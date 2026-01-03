@@ -1,0 +1,340 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  role          String    @default("USER") // "USER" or "ADMIN"
+  
+  // Profile Fields
+  firstName     String?
+  lastName      String?
+  dancerName    String?
+  bio           String?
+  
+  // Dance Profile
+  danceLevel    String?   // "BEGINNER", "INTERMEDIATE", "ADVANCED", "PROFESSIONAL"
+  lookingFor    String?   // "GROUP", "PARTNER", "BOTH", "NONE"
+  
+  // Social Media
+  instagramUrl  String?
+  facebookUrl   String?
+  youtubeUrl    String?
+  tiktokUrl     String?
+  website       String?
+  
+  // Notification Preferences
+  emailNotifications Boolean @default(true)
+  
+  // Location-based Notification Preferences
+  notifyNewGroups    Boolean @default(false)
+  notifyNewEvents    Boolean @default(false)
+  notifyLat          Float?
+  notifyLng          Float?
+  notifyRadius       Int     @default(50) // km
+  
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  ownedGroups   Group[]       @relation("GroupOwner")
+  memberships   GroupMember[]
+  
+  // Feature 2: Push Notifications
+  pushSubscriptions   PushSubscription[]
+  
+  createdEvents       Event[]       @relation("EventCreator")
+  
+  // Feature 3: Community Feed
+  posts               Post[]
+
+  // Dance Styles
+  danceStyles         UserDanceStyle[]
+
+  // Messages
+  sentMessages        Message[]     @relation("MessageSender")
+  receivedMessages    Message[]     @relation("MessageReceiver")
+
+  // Event Registrations
+  eventRegistrations  EventRegistration[]
+  
+  // Favorites
+  favoriteGroups      FavoriteGroup[]
+
+  feedbacks           Feedback[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  image     String?
+  
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String
+  p256dh    String
+  auth      String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([endpoint])
+}
+
+model Group {
+  id            String    @id @default(cuid())
+  name          String
+  description   String
+  website       String?
+  contactEmail  String?
+  image         String?
+  videoUrl      String?   // YouTube Link
+  size          String    @default("SMALL") // SOLO, DUO, TRIO, SMALL (<10), LARGE (>10)
+  
+  trainingTime  String?   // Free text for training times (e.g. "Mo 18:00-20:00")
+  performances  Boolean   @default(false)
+  foundingYear  Int?
+  seekingMembers Boolean  @default(false)
+
+  ownerId       String
+  owner         User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  
+  members       GroupMember[]
+  
+  location      Location?
+  tags          Tag[]
+  events        Event[]
+  eventParticipations EventParticipation[]
+  
+  // Gallery (max 5 images)
+  galleryImages GalleryImage[]
+  
+  // Favorites
+  favoritedBy   FavoriteGroup[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  role      String   @default("MEMBER") // "ADMIN", "MEMBER"
+  status    String   @default("PENDING") // "PENDING", "APPROVED"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, groupId])
+}
+
+model FavoriteGroup {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, groupId])
+}
+
+model Event {
+  id            String    @id @default(cuid())
+  title         String
+  description   String
+  eventType     String    @default("EVENT") // "EVENT", "WORKSHOP", "SOCIAL", "OPEN_TRAINING"
+  startDate     DateTime
+  endDate       DateTime?
+  
+  locationName  String?
+  address       String?
+  lat           Float
+  lng           Float
+  
+  flyer1        String?
+  flyer2        String?
+  
+  website       String?
+  ticketLink    String?
+  ticketPrice   String?
+  
+  organizer     String?   // Name of the organizer (person or group)
+  
+  // Workshop booking fields
+  maxParticipants     Int?      // null = unlimited
+  requiresRegistration Boolean  @default(false)
+
+  groupId       String?
+  group         Group?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  
+  creatorId     String?
+  creator       User?     @relation("EventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  participations EventParticipation[]
+  registrations  EventRegistration[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model EventParticipation {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  status    String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  message   String?  // Optional message from the group applying
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, groupId])
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  address   String?
+  lat       Float
+  lng       Float
+  groupId   String   @unique
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id         String  @id @default(cuid())
+  name       String  @unique
+  isApproved Boolean @default(false)
+  groups     Group[]
+}
+
+model SystemSetting {
+  key   String @id
+  value String
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  message   String
+  reporterName  String?
+  reporterEmail String?
+  pageUrl   String?
+  userAgent String?
+  browser   String?
+  os        String?
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  archivedAt DateTime?
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([archivedAt])
+}
+
+// ===== NEW FEATURES =====
+
+// Gallery Images for Groups (max 5 per group)
+model GalleryImage {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?
+  order     Int      @default(0)
+  
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+}
+
+// Dance Styles (predefined list)
+model DanceStyle {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  category  String?  // e.g. "Oriental", "Tribal", "Fusion"
+  
+  users     UserDanceStyle[]
+}
+
+// User's Dance Styles with Level
+model UserDanceStyle {
+  id        String   @id @default(cuid())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  styleId   String
+  style     DanceStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
+  
+  level     String   @default("BEGINNER") // "BEGINNER", "INTERMEDIATE", "ADVANCED", "PROFESSIONAL"
+  
+  @@unique([userId, styleId])
+}
+
+// Workshop/Event Registrations
+model EventRegistration {
+  id        String   @id @default(cuid())
+  
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  status    String   @default("CONFIRMED") // "CONFIRMED", "WAITLIST", "CANCELLED"
+  note      String?  // Optional note from user
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([eventId, userId])
+}
+
+// Private Messages
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  read      Boolean  @default(false)
+  
+  senderId    String
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  receiverId  String
+  receiver    User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@index([senderId])
+  @@index([receiverId])
+}

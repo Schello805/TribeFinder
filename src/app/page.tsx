@@ -1,0 +1,117 @@
+import Link from "next/link";
+import prisma from "@/lib/prisma";
+
+export default async function Home() {
+  // Fetch stats
+  const [groupCount, eventCount, userCount] = await Promise.all([
+    prisma.group.count(),
+    prisma.event.count({ where: { startDate: { gte: new Date() } } }),
+    prisma.user.count()
+  ]);
+  return (
+    <div className="flex flex-col min-h-[calc(100vh-64px)]">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-20 px-4">
+        <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center">
+          <div className="md:w-1/2 mb-10 md:mb-0 text-center md:text-left">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              Verbinde dich mit der Tanzwelt
+            </h1>
+            <p className="text-xl mb-8 text-indigo-100">
+              Finde Tanzgruppen für Orientalischen Tanz, Tribal Style und mehr in deiner Nähe.
+              Präsentiere deine eigene Gruppe und wachse zusammen.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <Link
+                href="/groups"
+                className="bg-white text-indigo-600 px-8 py-3 rounded-full font-bold text-lg hover:bg-indigo-50 transition shadow-lg"
+              >
+                Gruppen finden
+              </Link>
+              <Link
+                href="/auth/register"
+                className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-white/10 transition"
+              >
+                Gruppe erstellen
+              </Link>
+            </div>
+          </div>
+          <div className="md:w-1/2 flex justify-center">
+            <div className="relative w-full max-w-md aspect-video bg-white/10 backdrop-blur-sm rounded-lg shadow-2xl flex items-center justify-center border border-white/20">
+              <span className="text-6xl">💃</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-12 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="grid grid-cols-3 gap-8 text-center">
+            <div className="p-6">
+              <div className="text-4xl md:text-5xl font-bold text-indigo-600 dark:text-indigo-400">{groupCount}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">Tanzgruppen</div>
+            </div>
+            <div className="p-6">
+              <div className="text-4xl md:text-5xl font-bold text-purple-600 dark:text-purple-400">{eventCount}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">Anstehende Events</div>
+            </div>
+            <div className="p-6">
+              <div className="text-4xl md:text-5xl font-bold text-pink-600 dark:text-pink-400">{userCount}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">Mitglieder</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-gray-50 dark:bg-gray-950">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <h2 className="text-3xl font-bold text-center mb-16 text-gray-800">Was bietet TribeFinder?</h2>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="text-4xl mb-4">🗺️</div>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Interaktive Karte</h3>
+              <p className="text-gray-600">
+                Entdecke Tanzgruppen direkt auf der Karte. Finde schnell heraus, wer in deiner Umgebung tanzt und trainiert.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="text-4xl mb-4">👯‍♀️</div>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Gruppen-Profile</h3>
+              <p className="text-gray-600">
+                Erstelle einen detaillierten Steckbrief für deine Gruppe mit Beschreibung, Fotos, Tags und Kontaktmöglichkeiten.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="text-4xl mb-4">🤝</div>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Community</h3>
+              <p className="text-gray-600">
+                Werde Mitglied in Gruppen, vernetze dich mit anderen Tänzern und bleibe über die Szene informiert.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4 max-w-4xl text-center">
+          <h2 className="text-3xl font-bold mb-6 text-gray-900">Bereit, sichtbar zu werden?</h2>
+          <p className="text-xl text-gray-600 mb-10">
+            Registriere dich jetzt kostenlos und trage deine Tanzgruppe ein.
+          </p>
+          <Link
+            href="/auth/register"
+            className="bg-indigo-600 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-indigo-700 transition shadow-xl"
+          >
+            Jetzt registrieren
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
