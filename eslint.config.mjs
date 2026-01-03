@@ -13,17 +13,24 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "node_modules/**",
+    "dance-connect/**",
     // Generated code
     "src/generated/**",
     // Scripts and utility files
     "scripts/**",
-    "*.js",
-    "*.config.js",
+    "**/*.js",
+    "**/*.config.js",
     // Public files (service workers, etc.)
     "public/workbox-*.js",
     "public/sw.js",
     "public/swe-worker-*.js",
   ]),
+  {
+    files: ["src/components/ui/ImageWithFallback.tsx"],
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

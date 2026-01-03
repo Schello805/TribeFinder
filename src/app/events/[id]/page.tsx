@@ -9,6 +9,51 @@ import DynamicEventMap from "@/components/map/DynamicEventMap";
 import EventRegistration from "@/components/events/EventRegistration";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 
+type EventGroupLike = {
+  id: string;
+  name: string;
+  image: string | null;
+  ownerId: string;
+};
+
+type EventCreatorLike = {
+  name: string | null;
+};
+
+type EventParticipationLike = {
+  group: {
+    id: string;
+    name: string;
+    image: string | null;
+  };
+};
+
+type EventLike = {
+  id: string;
+  title: string;
+  description: string;
+  eventType: string;
+  startDate: Date;
+  endDate: Date | null;
+  locationName: string | null;
+  address: string | null;
+  lat: number;
+  lng: number;
+  flyer1: string | null;
+  flyer2: string | null;
+  website: string | null;
+  ticketLink: string | null;
+  ticketPrice: string | null;
+  organizer: string | null;
+  maxParticipants: number | null;
+  requiresRegistration: boolean;
+  creatorId: string | null;
+  groupId: string | null;
+  group: EventGroupLike | null;
+  creator: EventCreatorLike | null;
+  participations: EventParticipationLike[];
+};
+
 interface EventDetailPageProps {
   params: Promise<{ id: string }>;
 }
@@ -31,7 +76,9 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const { id } = await params;
   const session = await getServerSession(authOptions);
 
-  const event = (await (prisma as any).event.findUnique({
+  const event = (await (prisma as unknown as {
+    event: { findUnique: (args: unknown) => Promise<unknown> };
+  }).event.findUnique({
     where: { id },
     include: {
       group: {
@@ -59,28 +106,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         }
       }
     }
-  })) as unknown as {
-    id: string;
-    title: string;
-    description: string;
-    startDate: Date;
-    endDate: Date | null;
-    locationName: string | null;
-    address: string | null;
-    lat: number;
-    lng: number;
-    flyer1: string | null;
-    flyer2: string | null;
-    website: string | null;
-    ticketLink: string | null;
-    ticketPrice: string | null;
-    organizer: string | null;
-    eventType: string;
-    requiresRegistration: boolean;
-    creatorId: string | null;
-    group: { id: string; name: string; image: string | null; ownerId: string } | null;
-    creator: { name: string | null } | null;
-  } | null;
+  })) as EventLike | null;
 
   if (!event) {
     notFound();
@@ -114,14 +140,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {event.flyer1 && (
             <div className="relative h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={event.flyer1} alt={`Flyer für ${event.title}`} className="w-full h-full object-contain" />
+              <ImageWithFallback src={event.flyer1} alt={`Flyer für ${event.title}`} className="w-full h-full object-contain" />
             </div>
           )}
           {event.flyer2 && (
             <div className="relative h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={event.flyer2} alt={`Flyer Rückseite für ${event.title}`} className="w-full h-full object-contain" />
+              <ImageWithFallback src={event.flyer2} alt={`Flyer für ${event.title}`} className="w-full h-full object-contain" />
             </div>
           )}
         </div>
@@ -244,7 +268,6 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                       <div className="w-14 h-14 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
                         {event.group.image ? (
                           <>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <ImageWithFallback src={event.group.image} alt={event.group.name} className="w-full h-full object-cover" />
                           </>
                         ) : (

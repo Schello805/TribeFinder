@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { ImgHTMLAttributes } from "react";
 
 type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & {
@@ -13,20 +12,14 @@ export default function ImageWithFallback({
   fallbackSrc = "/icons/icon.svg",
   ...rest
 }: Props) {
-  const [currentSrc, setCurrentSrc] = useState<string>(src || fallbackSrc);
-
-  useEffect(() => {
-    setCurrentSrc(src || fallbackSrc);
-  }, [src, fallbackSrc]);
-
   return (
     <img
       {...rest}
-      src={currentSrc}
+      alt={rest.alt ?? ""}
+      src={src || fallbackSrc}
       onError={(e) => {
-        if (currentSrc !== fallbackSrc) {
-          setCurrentSrc(fallbackSrc);
-        }
+        const img = e.currentTarget;
+        if (img.src && !img.src.endsWith(fallbackSrc)) img.src = fallbackSrc;
         rest.onError?.(e);
       }}
     />

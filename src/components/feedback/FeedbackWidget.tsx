@@ -7,11 +7,18 @@ type SpeechRecognitionType = {
   lang: string;
   interimResults: boolean;
   continuous: boolean;
-  onresult: ((event: any) => void) | null;
-  onerror: ((event: any) => void) | null;
+  onresult: ((event: unknown) => void) | null;
+  onerror: ((event: unknown) => void) | null;
   onend: (() => void) | null;
   start: () => void;
   stop: () => void;
+};
+
+type SpeechRecognitionResultLike = { transcript?: string };
+type SpeechRecognitionAlternativeListLike = { 0?: SpeechRecognitionResultLike };
+type SpeechRecognitionEventLike = {
+  results?: ArrayLike<SpeechRecognitionAlternativeListLike>;
+  resultIndex?: number;
 };
 
 export default function FeedbackWidget() {
@@ -27,13 +34,19 @@ export default function FeedbackWidget() {
 
   const speechSupported = useMemo(() => {
     if (typeof window === "undefined") return false;
-    const w = window as any;
+    const w = window as unknown as {
+      SpeechRecognition?: unknown;
+      webkitSpeechRecognition?: unknown;
+    };
     return Boolean(w.SpeechRecognition || w.webkitSpeechRecognition);
   }, []);
 
   useEffect(() => {
     if (!speechSupported) return;
-    const w = window as any;
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognitionType;
+      webkitSpeechRecognition?: new () => SpeechRecognitionType;
+    };
     const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) return;
 
@@ -42,12 +55,13 @@ export default function FeedbackWidget() {
     recognition.interimResults = false;
     recognition.continuous = true;
 
-    recognition.onresult = (event: any) => {
-      const results = event?.results;
+    recognition.onresult = (event: unknown) => {
+      const e = event as SpeechRecognitionEventLike;
+      const results = e?.results;
       if (!results || results.length === 0) return;
 
       let text = "";
-      for (let i = event.resultIndex ?? 0; i < results.length; i++) {
+      for (let i = e.resultIndex ?? 0; i < results.length; i++) {
         const r = results[i];
         const t = r?.[0]?.transcript;
         if (typeof t === "string") text += t;

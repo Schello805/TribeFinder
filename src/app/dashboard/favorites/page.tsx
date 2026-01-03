@@ -5,6 +5,18 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 
+type TagLike = { id: string; name: string };
+type LocationLike = { address: string | null };
+type GroupLike = {
+  id: string;
+  name: string;
+  description: string;
+  image: string | null;
+  location: LocationLike | null;
+  tags: TagLike[];
+};
+type FavoriteRowLike = { group: GroupLike };
+
 export default async function FavoritesPage() {
   const session = await getServerSession(authOptions);
 
@@ -12,7 +24,11 @@ export default async function FavoritesPage() {
     redirect("/auth/signin");
   }
 
-  const favorites = (await (prisma as any).favoriteGroup.findMany({
+  const favorites = (await (prisma as unknown as {
+    favoriteGroup: {
+      findMany: (args: unknown) => Promise<unknown>;
+    };
+  }).favoriteGroup.findMany({
     where: { userId: session.user.id },
     include: {
       group: {
@@ -23,7 +39,7 @@ export default async function FavoritesPage() {
       },
     },
     orderBy: { createdAt: "desc" },
-  })) as Array<{ group: any }>;
+  })) as FavoriteRowLike[];
 
   return (
     <div className="space-y-6">
@@ -56,7 +72,7 @@ export default async function FavoritesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {favorites.map(({ group }: { group: any }) => (
+          {favorites.map(({ group }) => (
             <Link
               key={group.id}
               href={`/groups/${group.id}`}
@@ -93,7 +109,7 @@ export default async function FavoritesPage() {
                 )}
                 {group.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {group.tags.slice(0, 3).map((tag: any) => (
+                    {group.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag.id}
                         className="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-full"

@@ -104,7 +104,6 @@ export default async function GroupDetailPage({
               <div className="flex-shrink-0 h-32 w-32 rounded-2xl border-4 border-white dark:border-gray-800 bg-white dark:bg-gray-800 shadow-lg overflow-hidden flex items-center justify-center">
                 {group.image ? (
                   <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <ImageWithFallback 
                       src={group.image} 
                       alt={group.name} 

@@ -110,7 +110,6 @@ export default function GalleryManager({ groupId, canEdit }: GalleryManagerProps
               className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-pointer group"
               onClick={() => setSelectedImage(img)}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <ImageWithFallback src={img.url} alt={img.caption || "Gallery"} className="w-full h-full object-cover" />
               {canEdit && (
                 <button
@@ -141,7 +140,6 @@ export default function GalleryManager({ groupId, canEdit }: GalleryManagerProps
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-w-4xl max-h-[90vh]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <ImageWithFallback src={selectedImage.url} alt="" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
             <button
               onClick={() => setSelectedImage(null)}
