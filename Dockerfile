@@ -7,9 +7,8 @@ WORKDIR /app
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
 RUN npm ci
-RUN LC_VER=$(node -e "const l=require('./package-lock.json'); const v=(l.packages&&l.packages['node_modules/lightningcss']&&l.packages['node_modules/lightningcss'].version)||(l.dependencies&&l.dependencies.lightningcss&&l.dependencies.lightningcss.version)||''; process.stdout.write(v||'');") && \
-    if [ -z "$LC_VER" ]; then LC_VER=1.30.2; fi && \
-    npm install --no-save --no-audit --no-fund lightningcss-linux-x64-gnu@"$LC_VER"
+# Work around npm optionalDependencies bug: remove lockfile + node_modules and npm install again
+RUN rm -rf node_modules package-lock.json && npm install --no-audit --no-fund
 
 # Rebuild the source code only when needed
 FROM base AS builder
