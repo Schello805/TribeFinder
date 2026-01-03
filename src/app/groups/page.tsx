@@ -106,7 +106,7 @@ export default async function GroupsPage({
 
       <GroupFilter />
 
-      <GroupListAnimated groups={groups as unknown} />
+      <GroupListAnimated groups={groups as any[]} />
     </div>
   );
 }
