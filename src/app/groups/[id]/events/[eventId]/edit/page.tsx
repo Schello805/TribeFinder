@@ -54,7 +54,7 @@ export default async function EditEventPage({
       <h1 className="text-2xl font-bold mb-6">Event bearbeiten</h1>
       <EventForm 
         groupId={id} 
-        initialData={event as any}
+        initialData={event as unknown}
         isEditing={true}
       />
     </div>
