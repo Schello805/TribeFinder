@@ -139,7 +139,6 @@ newgrp docker
    ```
 
 3. **Datenbank vorbereiten**
-   Der Prisma Client wird automatisch an einen benutzerdefinierten Ort (`src/generated/client`) generiert, um Konflikte mit Next.js Caching zu vermeiden.
    ```bash
    npx prisma migrate dev
    ```
@@ -149,6 +148,82 @@ newgrp docker
    npm run dev
    ```
    Die App ist nun unter `http://localhost:3000` erreichbar.
+
+### Debian 12/13 (Proxmox LXC) Quickstart (ohne Docker)
+
+Wenn du in einem Proxmox LXC testen willst, ist der schnellste Weg: **Node.js + SQLite** direkt im Container.
+
+1. **System-Pakete**
+   ```bash
+   sudo apt update
+   sudo apt install -y git ca-certificates curl openssl
+   ```
+
+2. **Node.js 20+ installieren**
+   Empfohlen: NodeSource (funktioniert in der Regel auf Debian 12/13):
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt install -y nodejs
+   node -v
+   npm -v
+   ```
+
+3. **Repo klonen**
+   ```bash
+   git clone https://github.com/Schello805/TribeFinder.git
+   cd TribeFinder
+   ```
+
+4. **Env-Datei anlegen**
+   Für einen schnellen Test reicht SQLite:
+   ```bash
+   cp .env.example .env
+   ```
+   Dann in `.env` setzen:
+   - `DATABASE_URL="file:./dev.db"`
+   - `NEXTAUTH_URL` auf deine URL (für Test: `http://<LXC-IP>:3000`)
+   - `NEXTAUTH_SECRET` als langes Random-Secret
+
+5. **Install + Migrationen + Build**
+   ```bash
+   npm install
+   npx prisma generate
+   npx prisma migrate deploy
+   npm run build
+   ```
+
+6. **Starten (Production Mode)**
+   ```bash
+   npm run start
+   ```
+   Standard-Port: `3000`.
+
+Hinweis: Für LXC/Serverbetrieb ist `npm run dev` nicht empfehlenswert. Nutze `npm run build` + `npm run start`.
+
+### Optional: als Service (systemd)
+
+Für einen dauerhaften Testbetrieb kannst du TribeFinder als systemd Service laufen lassen.
+
+Beispiel (anpassen: Pfad + User):
+
+```ini
+[Unit]
+Description=TribeFinder
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/TribeFinder
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=3
+User=tribefinder
+Group=tribefinder
+
+[Install]
+WantedBy=multi-user.target
+```
 
 ## Konfiguration
 
