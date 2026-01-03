@@ -33,7 +33,7 @@ export default async function MapPage() {
 
   return (
     <div className="h-full w-full">
-       <DynamicMap groups={groups} events={events} availableTags={tags} />
+       <DynamicMap groups={groups as any} events={events as any} availableTags={tags as any} />
     </div>
   );
 }

@@ -1,3 +1,7 @@
+# syntax=docker/dockerfile:1
+# Force no inline cache to ensure fresh builds
+ARG BUILDKIT_INLINE_CACHE=0
+
 FROM node:20-bookworm-slim AS base
 
 # Install dependencies only when needed
