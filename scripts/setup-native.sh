@@ -3,7 +3,7 @@
 # Führt die komplette Installation durch
 
 # Script Version
-SCRIPT_VERSION="1.0.5"
+SCRIPT_VERSION="1.0.6"
 
 set -e
 
@@ -70,6 +70,7 @@ else
     useradd -r -m -s /bin/bash tribefinder
     echo -e "${GREEN}User 'tribefinder' erstellt.${NC}"
 fi
+echo "tribefinder passwd entry: $(getent passwd tribefinder || true)"
 echo ""
 
 # 3. TribeFinder installieren
@@ -154,23 +155,23 @@ fi
 # Dependencies installieren
 echo "Installiere Dependencies..."
 cd "$INSTALL_DIR"
-sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm install"
+sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm install"
 
 # Workaround für Tailwind CSS optional dependencies Bug
 echo "Behebe Tailwind CSS native bindings..."
 rm -rf node_modules package-lock.json
-sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm install"
+sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm install"
 
 # Prisma Setup
 echo "Initialisiere Datenbank..."
 cd "$INSTALL_DIR"
-sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm run db:generate"
-sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm run db:migrate"
+sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm run db:generate"
+sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm run db:migrate"
 
 # Build
 echo "Erstelle Production Build..."
 cd "$INSTALL_DIR"
-sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm run build"
+sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm run build"
 
 # Upload-Verzeichnis
 mkdir -p public/uploads
