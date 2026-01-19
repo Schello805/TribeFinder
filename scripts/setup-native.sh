@@ -148,6 +148,8 @@ NEXTAUTH_SECRET="$SECRET"
 # SMTP_FROM=
 EOF
     
+    chown tribefinder:tribefinder .env
+    
     echo -e "${GREEN}.env Datei erstellt mit automatisch generiertem Secret${NC}"
     echo -e "${YELLOW}Hinweis: Du kannst später NEXTAUTH_URL und SMTP in /home/tribefinder/TribeFinder/.env anpassen${NC}"
 fi
@@ -155,12 +157,20 @@ fi
 # Dependencies installieren
 echo "Installiere Dependencies..."
 cd "$INSTALL_DIR"
-sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm install"
+if [ -f "package-lock.json" ]; then
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm ci --include=optional"
+else
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm install"
+fi
 
 # Workaround für Tailwind CSS optional dependencies Bug
 echo "Behebe Tailwind CSS native bindings..."
-rm -rf node_modules package-lock.json
-sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm install"
+rm -rf node_modules
+if [ -f "package-lock.json" ]; then
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm ci --include=optional"
+else
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm install"
+fi
 
 # Prisma Setup
 echo "Initialisiere Datenbank..."
