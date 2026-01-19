@@ -3,7 +3,7 @@
 # Führt die komplette Installation durch
 
 # Script Version
-SCRIPT_VERSION="1.0.6"
+SCRIPT_VERSION="1.0.7"
 
 set -e
 
@@ -158,30 +158,41 @@ fi
 echo "Installiere Dependencies..."
 cd "$INSTALL_DIR"
 if [ -f "package-lock.json" ]; then
-    sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm ci --include=optional"
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm ci --include=optional'
 else
-    sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm install"
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm install'
+fi
+
+# Expliziter Fix für npm optionalDependencies Bug (@tailwindcss/oxide native binding)
+if [ ! -d "node_modules/@tailwindcss/oxide-linux-x64-gnu" ]; then
+    echo "Installiere Tailwind Oxide Linux Binary explizit..."
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && npm install --no-save @tailwindcss/oxide-linux-x64-gnu@4.1.18'
 fi
 
 # Workaround für Tailwind CSS optional dependencies Bug
 echo "Behebe Tailwind CSS native bindings..."
 rm -rf node_modules
 if [ -f "package-lock.json" ]; then
-    sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm ci --include=optional"
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm ci --include=optional'
 else
-    sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm install"
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm install'
+fi
+
+if [ ! -d "node_modules/@tailwindcss/oxide-linux-x64-gnu" ]; then
+    echo "Installiere Tailwind Oxide Linux Binary explizit (nach Reinstall)..."
+    sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && npm install --no-save @tailwindcss/oxide-linux-x64-gnu@4.1.18'
 fi
 
 # Prisma Setup
 echo "Initialisiere Datenbank..."
 cd "$INSTALL_DIR"
-sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm run db:generate"
-sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm run db:migrate"
+sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:generate'
+sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:migrate'
 
 # Build
 echo "Erstelle Production Build..."
 cd "$INSTALL_DIR"
-sudo -u tribefinder env HOME=/home/tribefinder bash -c "cd $INSTALL_DIR && echo HOME=$HOME && npm run build"
+sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run build'
 
 # Upload-Verzeichnis
 mkdir -p public/uploads
