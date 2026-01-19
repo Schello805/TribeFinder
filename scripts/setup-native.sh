@@ -86,6 +86,12 @@ if [ -f "package.json" ]; then
         
         # Setze Rechte
         chown -R tribefinder:tribefinder "$INSTALL_DIR"
+        
+        # Wechsle ins neue Verzeichnis
+        cd "$INSTALL_DIR"
+    else
+        # Bereits im richtigen Verzeichnis
+        cd "$INSTALL_DIR"
     fi
 else
     # Kein Repo gefunden, klone es
@@ -100,9 +106,12 @@ else
     else
         sudo -u tribefinder git clone https://github.com/Schello805/TribeFinder.git "$INSTALL_DIR"
     fi
+    
+    cd "$INSTALL_DIR"
 fi
 
-cd "$INSTALL_DIR"
+# Stelle sicher dass wir im richtigen Verzeichnis sind
+echo "Arbeitsverzeichnis: $(pwd)"
 
 # .env erstellen falls nicht vorhanden
 if [ ! -f ".env" ]; then
