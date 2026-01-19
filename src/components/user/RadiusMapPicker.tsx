@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
+import { useToast } from "@/components/ui/Toast";
 import "leaflet/dist/leaflet.css";
 
 type Props = {
@@ -16,7 +17,7 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const circleRef = useRef<L.Circle | null>(null);
-
+  const { showToast } = useToast();
   const [isLocating, setIsLocating] = useState(false);
 
   const center = useMemo<[number, number]>(() => {
@@ -88,7 +89,7 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
 
   const locateMe = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation wird nicht unterstützt.");
+      showToast('Geolocation wird nicht unterstützt', 'warning');
       return;
     }
 
@@ -100,7 +101,7 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
       },
       () => {
         setIsLocating(false);
-        alert("Standort konnte nicht ermittelt werden.");
+        showToast('Standort konnte nicht ermittelt werden', 'error');
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );

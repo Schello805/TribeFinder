@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useToast } from "@/components/ui/Toast";
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import AdminNav from '@/components/admin/AdminNav';
@@ -17,6 +18,7 @@ interface Tag {
 export default function AdminTagsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { showToast } = useToast();
   const [tags, setTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newTagName, setNewTagName] = useState('');
@@ -125,8 +127,9 @@ export default function AdminTagsPage() {
           return [...prev, { ...newTag, _count: { groups: 0 } }].sort((a, b) => a.name.localeCompare(b.name));
         });
         setNewTagName('');
+        showToast('Tag hinzugefügt', 'success');
       } else {
-        alert('Fehler beim Hinzufügen');
+        showToast('Fehler beim Hinzufügen', 'error');
       }
     } catch (error) {
       console.error('Error adding tag:', error);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/Toast";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 
 interface GalleryImage {
@@ -16,6 +17,7 @@ interface GalleryManagerProps {
 }
 
 export default function GalleryManager({ groupId, canEdit }: GalleryManagerProps) {
+  const { showToast } = useToast();
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -66,10 +68,11 @@ export default function GalleryManager({ groupId, canEdit }: GalleryManagerProps
       if (addRes.ok) {
         const newImage = await addRes.json();
         setImages((prev) => [...prev, newImage]);
+        showToast('Bild hochgeladen', 'success');
       }
     } catch (error) {
       console.error("Gallery upload failed", error);
-      alert("Fehler beim Hochladen");
+      showToast('Fehler beim Hochladen', 'error');
     } finally {
       setIsUploading(false);
     }

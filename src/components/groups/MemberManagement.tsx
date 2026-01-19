@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useToast } from "@/components/ui/Toast";
 import ObfuscatedEmail from "@/components/ui/ObfuscatedEmail";
 
 interface User {
@@ -24,6 +26,7 @@ interface MemberManagementProps {
 }
 
 export default function MemberManagement({ groupId, members: initialMembers, currentUserId }: MemberManagementProps) {
+  const { showToast } = useToast();
   const [members, setMembers] = useState(initialMembers);
   const [isLoading, setIsLoading] = useState<string | null>(null); // ID of member being processed
 
@@ -40,9 +43,10 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
         
         if (response.ok) {
           setMembers(prev => prev.filter(m => m.user.id !== userId));
+          showToast(action === 'remove' ? 'Mitglied entfernt' : 'Anfrage abgelehnt', 'success');
         } else {
             const data = await response.json();
-            alert(data.message || "Fehler beim Entfernen");
+            showToast(data.message || "Fehler beim Entfernen", 'error');
         }
       } else if (action === 'approve') {
         const response = await fetch(`/api/groups/${groupId}/members`, {
@@ -53,9 +57,10 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
 
         if (response.ok) {
             setMembers(prev => prev.map(m => m.user.id === userId ? { ...m, status: 'APPROVED' } : m));
+            showToast('Mitglied genehmigt', 'success');
         } else {
             const data = await response.json();
-            alert(data.message || "Fehler beim Genehmigen");
+            showToast(data.message || "Fehler beim Genehmigen", 'error');
         }
       } else if (action === 'promote') {
           const response = await fetch(`/api/groups/${groupId}/members`, {
@@ -65,6 +70,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
         });
         if (response.ok) {
             setMembers(prev => prev.map(m => m.user.id === userId ? { ...m, role: 'ADMIN' } : m));
+            showToast('Zum Admin befördert', 'success');
         }
       } else if (action === 'demote') {
           const response = await fetch(`/api/groups/${groupId}/members`, {
@@ -74,6 +80,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
         });
         if (response.ok) {
             setMembers(prev => prev.map(m => m.user.id === userId ? { ...m, role: 'MEMBER' } : m));
+            showToast('Zum Mitglied zurückgestuft', 'info');
         }
       }
     } catch (error) {

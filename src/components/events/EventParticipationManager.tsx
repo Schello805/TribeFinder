@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
 
 interface Participation {
   id: string;
@@ -21,6 +22,7 @@ interface EventParticipationManagerProps {
 
 export default function EventParticipationManager({ participations }: EventParticipationManagerProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
   const pending = participations.filter(p => p.status === "PENDING");
@@ -36,12 +38,13 @@ export default function EventParticipationManager({ participations }: EventParti
       });
 
       if (res.ok) {
+        showToast('Status aktualisiert', 'success');
         router.refresh();
       } else {
-        alert("Fehler beim Aktualisieren");
+        showToast('Fehler beim Aktualisieren', 'error');
       }
     } catch {
-      alert("Fehler");
+      showToast('Ein Fehler ist aufgetreten', 'error');
     } finally {
       setIsLoading(null);
     }

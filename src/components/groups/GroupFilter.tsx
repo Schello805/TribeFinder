@@ -3,8 +3,10 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useDebounce } from "@/lib/hooks/useDebounce";
+import { useToast } from "@/components/ui/Toast";
 
 export default function GroupFilter() {
+  const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchParamsString = searchParams.toString();
@@ -138,12 +140,12 @@ export default function GroupFilter() {
         (error) => {
           console.error(error);
           setIsLocating(false);
-          alert("Standort konnte nicht ermittelt werden.");
+          showToast('Standort konnte nicht ermittelt werden', 'error');
         }
       );
     } else {
       setIsLocating(false);
-      alert("Geolocation wird von diesem Browser nicht unterstützt.");
+      showToast('Geolocation wird von diesem Browser nicht unterstützt', 'warning');
     }
   };
 

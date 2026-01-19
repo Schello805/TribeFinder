@@ -5,6 +5,7 @@ import AuthProvider from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import Navbar from "@/components/layout/Navbar";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
@@ -67,12 +68,14 @@ export default async function RootLayout({
           <ForceThemeStyles />
           <AuthProvider>
             <ToastProvider>
-              <MatomoTracker url={config.MATOMO_URL} siteId={config.MATOMO_SITE_ID} />
-              <Navbar />
-              <main className="flex-grow container mx-auto px-4 py-8">
-                {children}
-              </main>
-              <FeedbackWidget />
+              <ErrorBoundary>
+                <MatomoTracker url={config.MATOMO_URL} siteId={config.MATOMO_SITE_ID} />
+                <Navbar />
+                <main className="flex-grow container mx-auto px-4 py-8">
+                  {children}
+                </main>
+                <FeedbackWidget />
+              </ErrorBoundary>
             </ToastProvider>
             <footer className="bg-gray-900 border-t border-gray-800 py-10 text-center text-gray-400 text-sm mt-auto">
               <div className="flex flex-col items-center gap-4">

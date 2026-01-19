@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import { ListSkeleton } from "@/components/ui/SkeletonLoader";
 
 type Event = {
   id: string;
@@ -93,7 +94,7 @@ export default function EventsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20">Lade Events...</div>
+        <ListSkeleton count={6} type="event" />
       ) : events.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
           <p className="text-gray-500">Aktuell keine Events gefunden.</p>

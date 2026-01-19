@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
 
 interface DeleteEventButtonProps {
   eventId: string;
@@ -9,6 +10,7 @@ interface DeleteEventButtonProps {
 
 export default function DeleteEventButton({ eventId }: DeleteEventButtonProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -18,13 +20,14 @@ export default function DeleteEventButton({ eventId }: DeleteEventButtonProps) {
     try {
       const res = await fetch(`/api/events/${eventId}`, { method: "DELETE" });
       if (res.ok) {
+        showToast('Event gelöscht', 'success');
         router.refresh();
       } else {
         const data = await res.json();
-        alert(data.message || "Fehler beim Löschen");
+        showToast(data.message || 'Fehler beim Löschen', 'error');
       }
     } catch {
-      alert("Fehler beim Löschen");
+      showToast('Fehler beim Löschen', 'error');
     } finally {
       setIsDeleting(false);
     }

@@ -35,6 +35,16 @@ function MyComponent() {
 - Slide-in Animation
 - Dark Mode Support
 
+**Integriert in:**
+- ✅ Gruppenverwaltung (Beitreten, Mitglieder verwalten, Galerie)
+- ✅ Event-Management (Teilnahme, Löschen)
+- ✅ Community Feed (Beiträge erstellen/löschen, Bilder hochladen)
+- ✅ Karte (Standort-Funktionen)
+- ✅ Admin-Bereich (Tag-Verwaltung)
+- ✅ Alle Geolocation-Features
+
+**Ersetzt:** Alle `alert()` Aufrufe durch moderne Toast-Benachrichtigungen
+
 ---
 
 ### 2. Skeleton Loader
@@ -42,10 +52,13 @@ function MyComponent() {
 
 **Verwendung:**
 ```tsx
-import { ListSkeleton, GroupCardSkeleton, EventCardSkeleton } from "@/components/ui/SkeletonLoader";
+import { ListSkeleton, GroupListSkeleton, GroupCardSkeleton, EventCardSkeleton } from "@/components/ui/SkeletonLoader";
 
-// Für Listen
-{isLoading ? <ListSkeleton count={6} type="group" /> : <GroupList />}
+// Für Gruppen-Liste (passt zu GroupListAnimated)
+{isLoading ? <GroupListSkeleton count={6} /> : <GroupListAnimated groups={groups} />}
+
+// Für Event-Liste
+{isLoading ? <ListSkeleton count={6} type="event" /> : <EventList />}
 
 // Einzelne Karten
 {isLoading ? <GroupCardSkeleton /> : <GroupCard />}
@@ -56,6 +69,11 @@ import { ListSkeleton, GroupCardSkeleton, EventCardSkeleton } from "@/components
 - Anpassbare Anzahl
 - Pulse-Animation
 - Dark Mode Support
+
+**Integriert in:**
+- ✅ Gruppen-Listenseite (`/groups`)
+- ✅ Event-Listenseite (`/events`)
+- ✅ Passt exakt zum Layout der jeweiligen Listen
 
 ---
 
@@ -132,18 +150,51 @@ npm run db:backup
 
 ---
 
+### 7. Error Boundary
+**Beschreibung:** Globale Fehlerbehandlung für React Components.
+
+**Features:**
+- Fängt Fehler in Client Components ab
+- Zeigt benutzerfreundliche Fehlermeldung
+- "Seite neu laden" Button
+- Entwickler-Details nur in Development-Modus
+- Verhindert White-Screen-of-Death
+
+**Integriert in:**
+- ✅ Root Layout (`src/app/layout.tsx`)
+- Schützt alle Client Components
+
+---
+
+### 8. Security Headers
+**Beschreibung:** HTTP Security Headers in Next.js Config.
+
+**Implementiert:**
+- ✅ X-Frame-Options: SAMEORIGIN (Clickjacking-Schutz)
+- ✅ X-Content-Type-Options: nosniff
+- ✅ X-XSS-Protection: 1; mode=block
+- ✅ Strict-Transport-Security (HSTS)
+- ✅ Referrer-Policy: origin-when-cross-origin
+- ✅ Permissions-Policy (Camera, Microphone, Geolocation)
+
+**Konfiguration:** `next.config.ts`
+
+---
+
 ## 🔒 Sicherheit
 
 ### Implementiert:
-- ✅ Input Sanitization (DOMPurify)
-- ✅ HTML Escaping für User-Content
-- ✅ Rate Limiting (bereits vorhanden)
-- ✅ Magic Bytes Validation für Uploads (bereits vorhanden)
+- ✅ **Input Validation** - Zod-Schemas in allen API-Routes
+- ✅ **Security Headers** - X-Frame-Options, HSTS, CSP-ähnlich
+- ✅ **Rate Limiting** - Für Login, Register, Group/Event Creation
+- ✅ **Magic Bytes Validation** - Für File-Uploads
+- ✅ **Error Boundary** - Verhindert Crash der gesamten App
+- ✅ **HTML Sanitization** - DOMPurify für User-Content
 
 ### Noch offen:
 - ⏳ CSRF-Schutz für Formulare
-- ⏳ Content Security Policy (CSP) Headers
-- ⏳ Strikte File Upload Limits
+- ⏳ Content Security Policy (CSP) - Vollständig
+- ⏳ Strikte File Upload Limits (aktuell: 10MB)
 
 ---
 
@@ -160,8 +211,8 @@ npm run db:backup
 ## 🎯 Nächste Schritte
 
 ### Kurzfristig:
-1. Toast Notifications in bestehende Formulare integrieren
-2. Skeleton Loader in Listen-Seiten einbauen
+1. ✅ Toast Notifications in bestehende Formulare integrieren (ERLEDIGT)
+2. ✅ Skeleton Loader in Listen-Seiten einbauen (ERLEDIGT)
 3. Input Sanitization in allen User-Input-Feldern
 
 ### Mittelfristig:
@@ -201,4 +252,4 @@ npm run db:backup
 
 ---
 
-**Letzte Aktualisierung:** 2. Januar 2026
+**Letzte Aktualisierung:** 19. Januar 2026

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
+import { useToast } from "@/components/ui/Toast";
 import "leaflet/dist/leaflet.css";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
 
@@ -63,7 +64,8 @@ interface MapProps {
 }
 
 export default function Map({ groups, events = [], availableTags = [] }: MapProps) {
-  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const [isLocating, setIsLocating] = useState(false);
@@ -83,12 +85,12 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         (error) => {
           console.error("Error getting location", error);
           setIsLocating(false);
-          alert("Standort konnte nicht ermittelt werden.");
+          showToast('Standort konnte nicht ermittelt werden', 'error');
         }
       );
     } else {
       setIsLocating(false);
-      alert("Geolocation wird nicht unterstützt.");
+      showToast('Geolocation wird nicht unterstützt', 'warning');
     }
   };
 

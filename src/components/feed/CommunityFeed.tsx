@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useToast } from "@/components/ui/Toast";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
@@ -9,6 +10,7 @@ import { usePosts } from "@/lib/hooks";
 
 export default function CommunityFeed() {
   const { data: session } = useSession();
+  const { showToast } = useToast();
   const { posts, isLoading: loading, createPost, deletePost } = usePosts();
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -36,8 +38,9 @@ export default function CommunityFeed() {
 
       const data = await res.json();
       setImageUrl(data.url);
+      showToast('Bild hochgeladen', 'success');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Fehler beim Bild-Upload');
+      showToast(err instanceof Error ? err.message : 'Fehler beim Bild-Upload', 'error');
     } finally {
       setIsUploading(false);
     }
@@ -63,8 +66,10 @@ export default function CommunityFeed() {
     if (!confirm("Möchtest du diesen Beitrag wirklich löschen?")) return;
 
     const success = await deletePost(postId);
-    if (!success) {
-      alert("Fehler beim Löschen");
+    if (success) {
+      showToast('Beitrag gelöscht', 'success');
+    } else {
+      showToast('Fehler beim Löschen', 'error');
     }
   };
 

@@ -22,72 +22,55 @@ Eine moderne Plattform für Tanzgruppen (Tribal Style, Fusion & mehr) zur Verwal
 
 ## Installation & Setup
 
-Die Anwendung kann entweder lokal (für Entwicklung) oder per Docker (empfohlen für Server/Produktivbetrieb) betrieben werden.
+TribeFinder kann auf verschiedene Arten installiert werden:
 
-### Voraussetzungen (Ubuntu/Debian)
+1. **Native Installation (empfohlen)**: Direkt auf Ubuntu/Debian mit Node.js
+2. **Docker**: Für isolierte Container-Umgebungen
+3. **Lokal**: Für Entwicklung
 
-- **Git**
-- **Docker Engine** + **Docker Compose Plugin** (`docker compose`)
-- Optional für lokale Entwicklung ohne Docker: **Node.js 20+** und **npm**
+### Voraussetzungen
 
-Getestet/empfohlen:
+**Für native Installation (empfohlen):**
+- Ubuntu 22.04/24.04 oder Debian 12
+- Node.js 20+
+- Nginx (für Reverse Proxy)
+- Git
 
-- **Debian 12 (bookworm)**: empfohlen für Serverbetrieb
-- **Ubuntu 22.04/24.04**: funktioniert ebenfalls
+**Für Docker:**
+- Docker Engine + Docker Compose Plugin
 
-Hinweis zu **Debian 13 (trixie)**: Das offizielle Docker APT-Repo liefert für `trixie` nicht immer alle Pakete im `stable` Channel (z.B. 404 bei `containerd.io`). In diesem Fall entweder:
+### 🚀 Schnellstart: Native Installation (Ubuntu LXC)
 
-- Docker über Debian-Pakete installieren (`docker.io`), oder
-- ein unterstütztes System wie Debian 12 nutzen.
-
-Beispiel (Ubuntu/Debian) für Git:
-
-```bash
-sudo apt update
-sudo apt install -y git
-```
-
-Docker Installation (Ubuntu/Debian, Docker Engine + Compose Plugin):
+Die einfachste Methode für Ubuntu LXC Container:
 
 ```bash
-sudo apt update
-sudo apt install -y ca-certificates curl gnupg
+# Repository klonen
+git clone https://github.com/Schello805/TribeFinder.git
+cd TribeFinder
 
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
-
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
-  $(. /etc/os-release && echo $VERSION_CODENAME) stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-sudo systemctl enable --now docker
-docker --version
-docker compose version
+# Automatisches Setup-Script ausführen
+sudo ./scripts/setup-native.sh
 ```
 
-Alternative (falls Docker APT Repo fehlschlägt, z.B. Debian 13 trixie):
+Das Script führt automatisch aus:
+- Installation von Node.js, Nginx und Dependencies
+- Erstellen des tribefinder Users
+- Datenbank-Setup
+- Systemd Service-Konfiguration
+- Nginx Reverse Proxy Setup
+- Optional: SSL mit Let's Encrypt
 
-```bash
-sudo apt update
-sudo apt install -y docker.io docker-compose
-sudo systemctl enable --now docker
-docker --version
-docker-compose --version
-```
+**Detaillierte Anleitung:** Siehe `INSTALL_NATIVE.md`
 
-Optional (damit du `docker` ohne `sudo` ausführen kannst):
+---
 
-```bash
-sudo usermod -aG docker "$USER"
-newgrp docker
-```
+### Alternative: Docker Installation
 
-### Produktivbetrieb (empfohlen): Docker Compose
+Für isolierte Container-Umgebungen oder Multi-Service-Setups.
+
+**Detaillierte Docker-Anleitung:** Siehe `DEPLOY.md`
+
+**Kurzversion:**
 
 1. **Repository klonen**
    ```bash
@@ -140,7 +123,7 @@ newgrp docker
 
 3. **Datenbank vorbereiten**
    ```bash
-   npx prisma migrate dev
+   npm run db:migrate:dev
    ```
 
 4. **Entwicklungsserver starten**
@@ -149,81 +132,7 @@ newgrp docker
    ```
    Die App ist nun unter `http://localhost:3000` erreichbar.
 
-### Debian 12/13 (Proxmox LXC) Quickstart (ohne Docker)
-
-Wenn du in einem Proxmox LXC testen willst, ist der schnellste Weg: **Node.js + SQLite** direkt im Container.
-
-1. **System-Pakete**
-   ```bash
-   sudo apt update
-   sudo apt install -y git ca-certificates curl openssl
-   ```
-
-2. **Node.js 20+ installieren**
-   Empfohlen: NodeSource (funktioniert in der Regel auf Debian 12/13):
-   ```bash
-   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   sudo apt install -y nodejs
-   node -v
-   npm -v
-   ```
-
-3. **Repo klonen**
-   ```bash
-   git clone https://github.com/Schello805/TribeFinder.git
-   cd TribeFinder
-   ```
-
-4. **Env-Datei anlegen**
-   Für einen schnellen Test reicht SQLite:
-   ```bash
-   cp .env.example .env
-   ```
-   Dann in `.env` setzen:
-   - `DATABASE_URL="file:./dev.db"`
-   - `NEXTAUTH_URL` auf deine URL (für Test: `http://<LXC-IP>:3000`)
-   - `NEXTAUTH_SECRET` als langes Random-Secret
-
-5. **Install + Migrationen + Build**
-   ```bash
-   npm install
-   npx prisma generate
-   npx prisma migrate deploy
-   npm run build
-   ```
-
-6. **Starten (Production Mode)**
-   ```bash
-   npm run start
-   ```
-   Standard-Port: `3000`.
-
-Hinweis: Für LXC/Serverbetrieb ist `npm run dev` nicht empfehlenswert. Nutze `npm run build` + `npm run start`.
-
-### Optional: als Service (systemd)
-
-Für einen dauerhaften Testbetrieb kannst du TribeFinder als systemd Service laufen lassen.
-
-Beispiel (anpassen: Pfad + User):
-
-```ini
-[Unit]
-Description=TribeFinder
-After=network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/opt/TribeFinder
-Environment=NODE_ENV=production
-ExecStart=/usr/bin/npm run start
-Restart=always
-RestartSec=3
-User=tribefinder
-Group=tribefinder
-
-[Install]
-WantedBy=multi-user.target
-```
+---
 
 ## Konfiguration
 
@@ -275,9 +184,9 @@ SMTP_FROM=""
 - Vor Updates, die Migrationen enthalten, sollte immer ein Backup der DB erstellt werden (das Update-Script übernimmt das).
 
 ### Admin-Bereich
-Der erste registrierte Benutzer sollte manuell in der Datenbank zum ADMIN befördert werden, oder du nutzt das `prisma studio`:
+Der erste registrierte Benutzer sollte manuell in der Datenbank zum ADMIN befördert werden, oder du nutzt Prisma Studio:
 ```bash
-npx prisma studio
+npm run db:studio
 ```
 Ändere die Rolle des Users in der Tabelle `User` auf `ADMIN`.
 
@@ -293,6 +202,21 @@ Im Admin-Bereich (`/admin`) können konfiguriert werden:
   - **Matomo**: Optional. Wenn konfiguriert, wird das Tracking-Skript von *deiner* Matomo-Instanz geladen.
 - **Schriften**: Google Fonts werden durch Next.js lokal optimiert und nicht von Google-Servern geladen.
 
-## Deployment (ausführliche Anleitung)
+## Deployment
 
-Für eine Schritt-für-Schritt Anleitung für frische Debian/Ubuntu Systeme (inkl. Nginx/SSL Hinweise) siehe `DEPLOY.md`.
+### Native Installation (empfohlen)
+Siehe `INSTALL_NATIVE.md` für die vollständige Anleitung zur Installation auf Ubuntu/Debian.
+
+**Schnell-Updates:**
+```bash
+sudo su - tribefinder
+cd ~/TribeFinder
+npm run deploy  # Führt deploy-native.sh aus
+```
+
+### Docker Installation
+Siehe `DEPLOY.md` für die vollständige Docker-Anleitung.
+
+## Changelog
+
+Siehe `CHANGELOG.md` für alle Änderungen und Updates.

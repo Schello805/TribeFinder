@@ -19,7 +19,9 @@
     "db:push": "prisma db push",
     "db:seed-styles": "node scripts/seed-dance-styles.js",
     "db:backup": "./scripts/backup-db.sh",
-    "docker:dev": "docker compose -f docker-compose.dev.yml up -d"
+    "docker:dev": "docker compose -f docker-compose.dev.yml up -d",
+    "deploy": "./scripts/deploy-native.sh",
+    "setup": "./scripts/setup-native.sh"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
