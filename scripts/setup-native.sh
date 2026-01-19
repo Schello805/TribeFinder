@@ -2,10 +2,14 @@
 # TribeFinder - Initiales Setup Script für Ubuntu LXC
 # Führt die komplette Installation durch
 
+# Script Version
+SCRIPT_VERSION="1.0.5"
+
 set -e
 
 echo "=========================================="
 echo "TribeFinder - Native Installation"
+echo "Version: $SCRIPT_VERSION"
 echo "=========================================="
 echo ""
 
@@ -122,12 +126,26 @@ echo "Arbeitsverzeichnis: $(pwd)"
 # .env erstellen falls nicht vorhanden
 if [ ! -f ".env" ]; then
     echo "Erstelle .env Datei..."
-    cp .env.example .env
     
     # Generiere Secret
     SECRET=$(openssl rand -base64 32)
-    sed -i "s|NEXTAUTH_SECRET=.*|NEXTAUTH_SECRET=\"$SECRET\"|" .env
-    sed -i "s|DATABASE_URL=.*|DATABASE_URL=\"file:./prod.db\"|" .env
+    
+    # Erstelle .env direkt (statt .env.example zu kopieren)
+    cat > .env << EOF
+# Database
+DATABASE_URL="file:./prod.db"
+
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="$SECRET"
+
+# Optional: SMTP für E-Mail-Versand
+# SMTP_HOST=
+# SMTP_PORT=587
+# SMTP_USER=
+# SMTP_PASS=
+# SMTP_FROM=
+EOF
     
     echo -e "${GREEN}.env Datei erstellt mit automatisch generiertem Secret${NC}"
     echo -e "${YELLOW}Hinweis: Du kannst später NEXTAUTH_URL und SMTP in /home/tribefinder/TribeFinder/.env anpassen${NC}"
