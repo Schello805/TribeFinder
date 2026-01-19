@@ -299,7 +299,7 @@ export async function GET(req: Request, { params }: RouteParams) {
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(67, 56, 202);
-      const tagsText = group.tags.map(t => t.name).join(" • ");
+      const tagsText = group.tags.map((t: { name: string }) => t.name).join(" • ");
       const tagLines = clampLines(doc.splitTextToSize(tagsText, innerW), 2);
       doc.text(tagLines, innerX, y);
       y += tagLines.length * 5 + 8;
