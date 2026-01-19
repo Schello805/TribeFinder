@@ -114,11 +114,8 @@ if [ ! -f ".env" ]; then
     sed -i "s|NEXTAUTH_SECRET=.*|NEXTAUTH_SECRET=\"$SECRET\"|" .env
     sed -i "s|DATABASE_URL=.*|DATABASE_URL=\"file:./prod.db\"|" .env
     
-    echo -e "${YELLOW}WICHTIG: Bearbeite /home/tribefinder/TribeFinder/.env und setze:${NC}"
-    echo "  - NEXTAUTH_URL (deine Domain)"
-    echo "  - Optional: SMTP-Einstellungen"
-    echo ""
-    read -p "Drücke Enter wenn du .env bearbeitet hast..."
+    echo -e "${GREEN}.env Datei erstellt mit automatisch generiertem Secret${NC}"
+    echo -e "${YELLOW}Hinweis: Du kannst später NEXTAUTH_URL und SMTP in /home/tribefinder/TribeFinder/.env anpassen${NC}"
 fi
 
 # Dependencies installieren
@@ -167,11 +164,21 @@ echo ""
 # 5. Nginx
 echo -e "${YELLOW}[5/5] Konfiguriere Nginx...${NC}"
 
-read -p "Domain-Name (z.B. tribefinder.example.com): " DOMAIN
+read -p "Domain-Name (z.B. tribefinder.example.com, oder Enter für localhost): " DOMAIN
 
 if [ -z "$DOMAIN" ]; then
-    echo "Keine Domain angegeben, überspringe Nginx-Setup."
+    DOMAIN="localhost"
+    echo "Keine Domain angegeben, nutze localhost (nur lokal erreichbar)"
+    
+    # Setze NEXTAUTH_URL auf localhost
+    sed -i "s|NEXTAUTH_URL=.*|NEXTAUTH_URL=\"http://localhost:3000\"|" "$INSTALL_DIR/.env"
 else
+    # Setze NEXTAUTH_URL auf die eingegebene Domain
+    sed -i "s|NEXTAUTH_URL=.*|NEXTAUTH_URL=\"https://$DOMAIN\"|" "$INSTALL_DIR/.env"
+    echo -e "${GREEN}NEXTAUTH_URL gesetzt auf: https://$DOMAIN${NC}"
+fi
+
+if [ "$DOMAIN" != "localhost" ]; then
     # Nginx Config erstellen
     cp config/nginx.conf /etc/nginx/sites-available/tribefinder
     sed -i "s|deine-domain.de|$DOMAIN|g" /etc/nginx/sites-available/tribefinder
@@ -192,6 +199,9 @@ else
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         certbot --nginx -d "$DOMAIN"
     fi
+else
+    echo "Localhost-Modus: Nginx-Setup übersprungen"
+    echo "Die App wird auf http://localhost:3000 laufen"
 fi
 
 echo ""
