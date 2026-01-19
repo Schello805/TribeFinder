@@ -135,21 +135,24 @@ fi
 
 # Dependencies installieren
 echo "Installiere Dependencies..."
-sudo -u tribefinder npm install
+cd "$INSTALL_DIR"
+sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm install"
 
 # Workaround für Tailwind CSS optional dependencies Bug
 echo "Behebe Tailwind CSS native bindings..."
 rm -rf node_modules package-lock.json
-sudo -u tribefinder npm install
+sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm install"
 
 # Prisma Setup
 echo "Initialisiere Datenbank..."
-sudo -u tribefinder npm run db:generate
-sudo -u tribefinder npm run db:migrate
+cd "$INSTALL_DIR"
+sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm run db:generate"
+sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm run db:migrate"
 
 # Build
 echo "Erstelle Production Build..."
-sudo -u tribefinder npm run build
+cd "$INSTALL_DIR"
+sudo -u tribefinder bash -c "cd $INSTALL_DIR && npm run build"
 
 # Upload-Verzeichnis
 mkdir -p public/uploads
