@@ -26,7 +26,7 @@ export default async function AdminUsersPage() {
   });
 
   // Convert dates to strings for client component
-  const formattedUsers = users.map(user => ({
+  const formattedUsers = users.map((user: typeof users[0]) => ({
     ...user,
     createdAt: user.createdAt.toISOString()
   }));
