@@ -65,13 +65,30 @@ echo ""
 # 3. TribeFinder installieren
 echo -e "${YELLOW}[3/5] Installiere TribeFinder...${NC}"
 
-# Prüfe ob wir bereits im Repo sind
+INSTALL_DIR="/home/tribefinder/TribeFinder"
+
+# Prüfe ob wir bereits im Repo sind (z.B. in /root/TribeFinder)
 if [ -f "package.json" ]; then
-    INSTALL_DIR=$(pwd)
-    echo "Nutze aktuelles Verzeichnis: $INSTALL_DIR"
-else
-    INSTALL_DIR="/home/tribefinder/TribeFinder"
+    CURRENT_DIR=$(pwd)
+    echo "Repo gefunden in: $CURRENT_DIR"
     
+    # Wenn wir nicht bereits in /home/tribefinder/TribeFinder sind, verschiebe es
+    if [ "$CURRENT_DIR" != "$INSTALL_DIR" ]; then
+        echo "Verschiebe nach $INSTALL_DIR..."
+        
+        # Lösche Zielverzeichnis falls vorhanden
+        if [ -d "$INSTALL_DIR" ]; then
+            rm -rf "$INSTALL_DIR"
+        fi
+        
+        # Verschiebe das Repo
+        mv "$CURRENT_DIR" "$INSTALL_DIR"
+        
+        # Setze Rechte
+        chown -R tribefinder:tribefinder "$INSTALL_DIR"
+    fi
+else
+    # Kein Repo gefunden, klone es
     if [ -d "$INSTALL_DIR" ]; then
         echo "Verzeichnis $INSTALL_DIR existiert bereits."
         read -p "Neu klonen? (y/n) " -n 1 -r
