@@ -122,6 +122,10 @@ fi
 echo "Installiere Dependencies..."
 sudo -u tribefinder npm install
 
+# Workaround für Tailwind CSS optional dependencies Bug
+echo "Installiere optionale Dependencies..."
+sudo -u tribefinder npm install --include=optional
+
 # Prisma Setup
 echo "Initialisiere Datenbank..."
 sudo -u tribefinder npm run db:generate
