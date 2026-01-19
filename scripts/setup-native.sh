@@ -56,6 +56,12 @@ echo ""
 echo -e "${YELLOW}[2/5] Erstelle tribefinder User...${NC}"
 if id "tribefinder" &>/dev/null; then
     echo "User 'tribefinder' existiert bereits."
+    # Stelle sicher dass Home-Verzeichnis existiert
+    if [ ! -d "/home/tribefinder" ]; then
+        echo "Erstelle Home-Verzeichnis..."
+        mkdir -p /home/tribefinder
+        chown tribefinder:tribefinder /home/tribefinder
+    fi
 else
     useradd -r -m -s /bin/bash tribefinder
     echo -e "${GREEN}User 'tribefinder' erstellt.${NC}"
