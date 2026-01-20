@@ -29,12 +29,17 @@ export default function GroupsPage() {
         if (radius) params.append('radius', radius);
         
         const res = await fetch(`/api/groups?${params.toString()}`);
-        if (res.ok) {
-          const data = await res.json();
-          setGroups(data);
+        if (!res.ok) {
+          setGroups([]);
+          return;
         }
+
+        const json = await res.json();
+        const nextGroups = Array.isArray(json) ? json : (json?.data ?? []);
+        setGroups(Array.isArray(nextGroups) ? nextGroups : []);
       } catch (error) {
         console.error('Error fetching groups:', error);
+        setGroups([]);
       } finally {
         setIsLoading(false);
       }
