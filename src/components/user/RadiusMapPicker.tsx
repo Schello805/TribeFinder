@@ -5,6 +5,12 @@ import L from "leaflet";
 import { useToast } from "@/components/ui/Toast";
 import "leaflet/dist/leaflet.css";
 
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "/images/markers/marker-icon-2x-blue.png",
+  iconUrl: "/images/markers/marker-icon-2x-blue.png",
+  shadowUrl: "/images/markers/marker-shadow.png",
+});
+
 type Props = {
   lat: number | null;
   lng: number | null;

@@ -4,6 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 
+function normalizeUploadedImageUrl(image?: string | null): string | null {
+  if (!image) return null;
+  const trimmed = image.trim();
+  if (!trimmed) return null;
+
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/uploads/")) return trimmed;
+  if (trimmed.startsWith("uploads/")) return `/${trimmed}`;
+  if (!trimmed.startsWith("/")) return `/uploads/${trimmed}`;
+  return trimmed;
+}
+
 interface UserProfile {
   firstName?: string | null;
   lastName?: string | null;
@@ -79,7 +91,7 @@ export default function ProfileForm() {
       if (!res.ok) throw new Error("Upload fehlgeschlagen");
 
       const data = await res.json();
-      setFormData((prev) => ({ ...prev, image: data.url }));
+      setFormData((prev) => ({ ...prev, image: normalizeUploadedImageUrl(data.url) ?? "" }));
     } catch (err) {
       console.error(err);
       const errorMsg = "Fehler beim Bild-Upload";
