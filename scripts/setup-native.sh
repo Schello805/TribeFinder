@@ -3,7 +3,7 @@
 # Führt die komplette Installation durch
 
 # Script Version
-SCRIPT_VERSION="1.0.8"
+SCRIPT_VERSION="1.0.9"
 
 set -e
 
@@ -121,8 +121,16 @@ else
     cd "$INSTALL_DIR"
 fi
 
+# Stelle sicher, dass das Repo dem richtigen User gehört (verhindert Git "dubious ownership")
+chown -R tribefinder:tribefinder "$INSTALL_DIR"
+
 # Stelle sicher dass wir im richtigen Verzeichnis sind
 echo "Arbeitsverzeichnis: $(pwd)"
+
+# Upload-Verzeichnis früh anlegen (damit Uploads ab dem ersten Start funktionieren)
+mkdir -p public/uploads
+chown -R tribefinder:tribefinder public/uploads
+chmod 755 public/uploads
 
 # .env erstellen falls nicht vorhanden
 if [ ! -f ".env" ]; then
@@ -200,11 +208,6 @@ sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && e
 echo "Erstelle Production Build..."
 cd "$INSTALL_DIR"
 sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run build'
-
-# Upload-Verzeichnis
-mkdir -p public/uploads
-chown -R tribefinder:tribefinder public/uploads
-chmod 755 public/uploads
 
 # Rechte setzen
 chown -R tribefinder:tribefinder "$INSTALL_DIR"
@@ -284,8 +287,8 @@ echo "1. Öffne https://$DOMAIN in deinem Browser"
 echo "2. Registriere einen Account"
 echo "3. Mache dich zum Admin:"
 echo "   sudo su - tribefinder"
-echo "   cd TribeFinder"
-echo "   node make-admin.js deine@email.de"
+echo "   cd /home/tribefinder/TribeFinder"
+echo "   node ./make-admin.js deine@email.de"
 echo ""
 echo "Nützliche Befehle:"
 echo "  Status:  sudo systemctl status tribefinder"
