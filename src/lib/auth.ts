@@ -4,6 +4,18 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
+function normalizeUploadedImageUrl(image?: string | null): string | null {
+  if (!image) return null;
+  const trimmed = image.trim();
+  if (!trimmed) return null;
+
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/uploads/")) return trimmed;
+  if (trimmed.startsWith("uploads/")) return `/${trimmed}`;
+  if (!trimmed.startsWith("/")) return `/uploads/${trimmed}`;
+  return trimmed;
+}
+
 // Note: Type assertion needed due to custom Prisma client output path
 // This is a known compatibility issue between @next-auth/prisma-adapter and custom client paths
 export const authOptions: NextAuthOptions = {
@@ -43,7 +55,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-          image: user.image,
+          image: normalizeUploadedImageUrl(user.image),
           role: user.role,
         }
       }
@@ -59,6 +71,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
+        token.image = (user as { image?: string | null }).image ?? null
       }
       return token
     },
@@ -66,6 +79,7 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.sub!
         session.user.role = token.role as string
+        session.user.image = normalizeUploadedImageUrl((token as { image?: string | null }).image ?? null)
       }
       return session
     }
