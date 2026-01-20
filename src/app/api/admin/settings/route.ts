@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { requireAdminSession } from '@/lib/requireAdmin';
 
 const DEFAULT_SMTP_FROM = '"TribeFinder" <noreply@tribefinder.de>';
 const LEGACY_SMTP_FROM_VALUES = new Set([
@@ -10,9 +9,8 @@ const LEGACY_SMTP_FROM_VALUES = new Set([
 ]);
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
+  const session = await requireAdminSession();
+  if (!session) {
     return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
   }
 
@@ -47,9 +45,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
+  const session = await requireAdminSession();
+  if (!session) {
     return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
   }
 

@@ -10,12 +10,26 @@ const patchSchema = z.object({
   isBlocked: z.boolean().optional(),
 });
 
-async function ensureNotLastAdmin(userIdToDemoteOrDelete: string) {
-  const user = await prisma.user.findUnique({ where: { id: userIdToDemoteOrDelete }, select: { role: true } });
-  if (!user) return;
-  if (user.role !== "ADMIN") return;
-  const adminCount = await (prisma as any).user.count({ where: { role: "ADMIN", isBlocked: false } });
-  if (adminCount <= 1) {
+async function ensureNotLastUnblockedAdmin(targetUserId: string) {
+  const target = (await (prisma as any).user.findUnique({
+    where: { id: targetUserId },
+    select: { role: true, isBlocked: true },
+  })) as { role: string; isBlocked: boolean } | null;
+  if (!target) return;
+  if (target.role !== "ADMIN") return;
+
+  // We only need to protect when the target is currently an unblocked admin.
+  if (target.isBlocked) return;
+
+  const otherUnblockedAdmins = await (prisma as any).user.count({
+    where: {
+      role: "ADMIN",
+      isBlocked: false,
+      id: { not: targetUserId },
+    },
+  });
+
+  if (otherUnblockedAdmins <= 0) {
     throw new Error("Der letzte Admin kann nicht entfernt/gesperrt werden");
   }
 }
@@ -37,10 +51,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
   try {
     if (parsed.data.role === "USER") {
-      await ensureNotLastAdmin(id);
+      await ensureNotLastUnblockedAdmin(id);
     }
     if (parsed.data.isBlocked === true) {
-      await ensureNotLastAdmin(id);
+      await ensureNotLastUnblockedAdmin(id);
     }
 
     const updated = (await (prisma as any).user.update({
@@ -57,7 +71,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         isBlocked: true,
         createdAt: true,
       },
-    })) as unknown as {
+    })) as {
       id: string;
       name: string | null;
       email: string;
@@ -86,7 +100,7 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   }
 
   try {
-    await ensureNotLastAdmin(id);
+    await ensureNotLastUnblockedAdmin(id);
     await prisma.user.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (e) {

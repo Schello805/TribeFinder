@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/requireAdmin";
 import { z } from "zod";
 
 type RouteParams = { params: Promise<{ id: string }> };
@@ -11,9 +10,8 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: Request, { params }: RouteParams) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user || session.user.role !== "ADMIN") {
+  const session = await requireAdminSession();
+  if (!session) {
     return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
   }
 

@@ -11,7 +11,7 @@ function itemClass(active: boolean) {
   }`;
 }
 
-export default function AdminNav() {
+ export default function AdminNav() {
   const pathname = usePathname();
 
   const isActive = (href: string) => pathname === href;
@@ -20,6 +20,9 @@ export default function AdminNav() {
     <div className="flex flex-wrap gap-2">
       <Link href="/admin" className={itemClass(isActive("/admin"))}>
         Dashboard
+      </Link>
+      <Link href="/admin/system" className={itemClass(isActive("/admin/system"))}>
+        System
       </Link>
       <Link href="/admin/settings" className={itemClass(isActive("/admin/settings"))}>
         Einstellungen

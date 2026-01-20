@@ -93,6 +93,10 @@ Wichtige Einstellungen in `.env`:
 # SQLite für einfache Installation
 DATABASE_URL="file:/home/tribefinder/TribeFinder/prod.db"
 
+# Hinweis (lokale Entwicklung):
+# Für Development im Repo wird standardmäßig `prisma/dev.db` verwendet.
+# Vermeide `file:./dev.db` im Repo-Root, da das leicht zu Verwechslungen führen kann.
+
 # NextAuth Konfiguration
 NEXTAUTH_SECRET="GENERIERE_EIN_LANGES_ZUFÄLLIGES_SECRET_HIER"
 NEXTAUTH_URL="https://deine-domain.de"

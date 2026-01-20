@@ -86,94 +86,48 @@ test("groups + events CRUD smoke (optional, needs E2E_EMAIL/E2E_PASSWORD)", asyn
   // Verify group title visible
   await expect(page.getByText(`E2E Gruppe ${uniq}`)).toBeVisible();
 
-  // Create event via API (stable) and verify in frontend
+  // Create event via UI and verify in frontend
   const startDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const iso = (d: Date) => {
+  const isoLocal = (d: Date) => {
     const pad = (n: number) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
-  const createEventRes = await page.request.post(`${base}/api/events`, {
-    data: {
-      title: `E2E Event ${uniq}`,
-      description: `Event Beschreibung ${uniq}`,
-      eventType: "EVENT",
-      startDate: iso(startDate),
-      endDate: iso(new Date(startDate.getTime() + 60 * 60 * 1000)),
-      locationName: "E2E Location",
-      address: "Berlin",
-      lat: 52.52,
-      lng: 13.405,
-      flyer1: "",
-      flyer2: "",
-      website: "",
-      ticketLink: "",
-      ticketPrice: "",
-      organizer: "",
-      groupId,
-      requiresRegistration: false,
-    },
-  });
-  expect(createEventRes.ok(), `create event status ${createEventRes.status()}`).toBeTruthy();
-  const createdEvent = await createEventRes.json();
-  const eventId = createdEvent?.id as string | undefined;
-  expect(eventId, "eventId from API").toBeTruthy();
-
   await page.goto(`${base}/groups/${groupId}/events`);
+  await page.getByRole("link", { name: "Neues Event" }).click();
+  await expect(page.getByText("Neues Event erstellen")).toBeVisible();
+
+  await page.locator('input[name="title"]').fill(`E2E Event ${uniq}`);
+  await page.locator('input[name="startDate"]').fill(isoLocal(startDate));
+  await page.locator('textarea[name="description"]').fill(`Event Beschreibung ${uniq}`);
+  await page.locator('input[name="address"]').fill("Berlin");
+  await page.getByRole("button", { name: "Event erstellen" }).click();
+
+  await page.waitForURL(new RegExp(`/groups/${groupId}/events`), { timeout: 30_000 });
   await expect(page.getByText(`E2E Event ${uniq}`)).toBeVisible();
 
-  // Update event via API and verify
-  const updateEventRes = await page.request.put(`${base}/api/events/${eventId}`, {
-    data: {
-      title: `E2E Event ${uniq} (upd)`,
-      description: `Event Beschreibung ${uniq} (upd)`,
-      eventType: "EVENT",
-      startDate: iso(startDate),
-      endDate: iso(new Date(startDate.getTime() + 2 * 60 * 60 * 1000)),
-      locationName: "E2E Location",
-      address: "Berlin",
-      lat: 52.52,
-      lng: 13.405,
-      flyer1: "",
-      flyer2: "",
-      website: "",
-      ticketLink: "",
-      ticketPrice: "",
-      organizer: "",
-      groupId,
-      requiresRegistration: false,
-    },
-  });
-  expect(updateEventRes.ok(), `update event status ${updateEventRes.status()}`).toBeTruthy();
-
-  await page.goto(`${base}/groups/${groupId}/events`);
+  // Edit event via UI
+  const eventRow = page.locator('li', { hasText: `E2E Event ${uniq}` });
+  await eventRow.getByRole('link', { name: 'Bearbeiten' }).click();
+  await expect(page.getByText("Event bearbeiten")).toBeVisible();
+  await page.locator('input[name="title"]').fill(`E2E Event ${uniq} (upd)`);
+  await page.getByRole('button', { name: 'Aktualisieren' }).click();
+  await page.waitForURL(new RegExp(`/groups/${groupId}/events`), { timeout: 30_000 });
   await expect(page.getByText(`E2E Event ${uniq} (upd)`)).toBeVisible();
 
-  // Delete event via API
-  const deleteEventRes = await page.request.delete(`${base}/api/events/${eventId}`);
-  expect(deleteEventRes.ok(), `delete event status ${deleteEventRes.status()}`).toBeTruthy();
-  await page.goto(`${base}/groups/${groupId}/events`);
+  // Delete event via UI
+  page.once('dialog', (d) => d.accept());
+  const eventRowUpd = page.locator('li', { hasText: `E2E Event ${uniq} (upd)` });
+  await eventRowUpd.getByRole('button', { name: 'Löschen' }).click();
   await expect(page.getByText(`E2E Event ${uniq} (upd)`)).toHaveCount(0);
 
-  // Update group via API and verify
-  const updateGroupRes = await page.request.put(`${base}/api/groups/${groupId}`, {
-    data: {
-      name: `E2E Gruppe ${uniq} (upd)`,
-      description: `Beschreibung für ${uniq} (upd) - mindestens zehn Zeichen.`,
-      size: "SMALL",
-      image: "",
-      website: "",
-      contactEmail: "",
-      videoUrl: "",
-      trainingTime: "",
-      performances: false,
-      foundingYear: null,
-      seekingMembers: false,
-      tags: [],
-    },
-  });
-  expect(updateGroupRes.ok(), `update group status ${updateGroupRes.status()}`).toBeTruthy();
-  await page.goto(`${base}/groups/${groupId}`);
+  // Update group via UI and verify
+  await page.goto(`${base}/groups/${groupId}/edit`);
+  await expect(page.getByRole('heading', { name: 'Gruppe bearbeiten' })).toBeVisible();
+  await page.locator('input[name="name"]').fill(`E2E Gruppe ${uniq} (upd)`);
+  await page.locator('textarea[name="description"]').fill(`Beschreibung für ${uniq} (upd) - mindestens zehn Zeichen.`);
+  await page.getByRole('button', { name: 'Aktualisieren' }).click();
+  await page.waitForURL(new RegExp(`/groups/${groupId}$`), { timeout: 30_000 });
   await expect(page.getByText(`E2E Gruppe ${uniq} (upd)`)).toBeVisible();
 
   // Delete group via API (cleanup)

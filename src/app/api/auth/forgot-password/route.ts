@@ -2,8 +2,16 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight } from '@/lib/email';
 import { v4 as uuidv4 } from 'uuid';
+import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+  // Rate limiting
+  const clientId = getClientIdentifier(req);
+  const rateCheck = checkRateLimit(`auth:forgot-password:${clientId}`, RATE_LIMITS.auth);
+  if (!rateCheck.success) {
+    return rateLimitResponse(rateCheck);
+  }
+
   try {
     const { email } = await req.json();
 

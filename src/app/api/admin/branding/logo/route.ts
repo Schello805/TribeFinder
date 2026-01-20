@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { requireAdminSession } from "@/lib/requireAdmin";
 import { mkdir, writeFile, unlink } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
@@ -28,16 +27,8 @@ function extForMime(mime: AllowedMime): string {
   }
 }
 
-async function requireAdmin() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return null;
-  }
-  return session;
-}
-
 export async function POST(req: Request) {
-  const session = await requireAdmin();
+  const session = await requireAdminSession();
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
   try {
@@ -94,7 +85,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
-  const session = await requireAdmin();
+  const session = await requireAdminSession();
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
   try {

@@ -46,8 +46,19 @@ export async function GET() {
       return NextResponse.json({ message: "Benutzer nicht gefunden" }, { status: 404 });
     }
 
+    const derivedFirstName = user.firstName || (user.name ? user.name.trim().split(/\s+/)[0] : null);
+    const derivedLastName =
+      user.lastName ||
+      (user.name && user.name.trim().split(/\s+/).length > 1
+        ? user.name.trim().split(/\s+/).slice(1).join(" ")
+        : null);
+    const derivedDancerName = user.dancerName || user.name || null;
+
     return NextResponse.json({
       ...user,
+      firstName: derivedFirstName,
+      lastName: derivedLastName,
+      dancerName: derivedDancerName,
       image: normalizeUploadedImageUrl(user.image),
     });
   } catch (error) {

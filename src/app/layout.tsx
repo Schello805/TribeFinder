@@ -14,6 +14,7 @@ import MatomoTracker from "@/components/analytics/MatomoTracker";
 import ForceThemeStyles from "@/components/layout/ForceThemeStyles";
 import Image from "next/image";
 import FeedbackWidget from "@/components/feedback/FeedbackWidget";
+import { unstable_cache } from "next/cache";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,19 +43,26 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession(authOptions);
 
-  // Fetch Matomo settings
-  const settings = await prisma.systemSetting.findMany({
-    where: {
-      key: {
-        in: ['MATOMO_URL', 'MATOMO_SITE_ID', 'BRANDING_LOGO_URL']
-      }
-    }
-  });
+  const getCachedSystemConfig = unstable_cache(
+    async () => {
+      const settings = await prisma.systemSetting.findMany({
+        where: {
+          key: {
+            in: ["MATOMO_URL", "MATOMO_SITE_ID", "BRANDING_LOGO_URL"],
+          },
+        },
+      });
 
-  const config = settings.reduce((acc: Record<string, string>, setting) => {
-    acc[setting.key] = setting.value;
-    return acc;
-  }, {});
+      return settings.reduce((acc: Record<string, string>, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {});
+    },
+    ["system-settings", "layout"],
+    { revalidate: 60 }
+  );
+
+  const config = await getCachedSystemConfig();
 
   return (
     <html lang="de" suppressHydrationWarning>

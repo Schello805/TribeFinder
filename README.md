@@ -152,7 +152,10 @@ Erstelle eine `.env` Datei im Hauptverzeichnis (siehe `.env.example`):
 DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schema=public"
 
 # Oder SQLite für einfache lokale Entwicklung:
-# DATABASE_URL="file:./dev.db"
+#
+# Wichtig: Verwende in diesem Repo standardmäßig `prisma/dev.db`.
+# (Ein `./dev.db` im Repo-Root kann leicht zu Verwechslungen führen.)
+# DATABASE_URL="file:./prisma/dev.db"
 
 NEXTAUTH_SECRET="dein-geheimes-random-secret"
 NEXTAUTH_URL="http://localhost:3000"
