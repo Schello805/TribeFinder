@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
+import logger from "@/lib/logger";
 
 const DEFAULT_PREFS = {
   emailNotifications: true,
@@ -50,7 +51,8 @@ export async function GET() {
       ...DEFAULT_PREFS,
       ...user,
     });
-  } catch {
+  } catch (error) {
+    logger.error({ error, userId: session.user.id }, "GET /api/user/notifications failed");
     return NextResponse.json(
       { message: "Fehler beim Laden der Benachrichtigungs-Einstellungen" },
       { status: 500 }
@@ -101,7 +103,20 @@ export async function PUT(req: Request) {
       ...DEFAULT_PREFS,
       ...updated,
     });
-  } catch {
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    logger.error({ error, userId: session.user.id }, "PUT /api/user/notifications failed");
+
+    if (err?.code === "P2025") {
+      return NextResponse.json(
+        {
+          message:
+            "Benutzer nicht in der Datenbank gefunden. Bitte einmal abmelden und wieder anmelden (oder DATABASE_URL prüfen).",
+        },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { message: "Fehler beim Speichern der Benachrichtigungs-Einstellungen" },
       { status: 500 }

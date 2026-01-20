@@ -17,7 +17,7 @@ export default function AdminSettingsPage() {
     SMTP_PORT: '587',
     SMTP_USER: '',
     SMTP_PASSWORD: '',
-    SMTP_FROM: '"TribeFinder" <noreply@tribefinder.com>',
+    SMTP_FROM: '"TribeFinder" <noreply@tribefinder.de>',
     SMTP_SECURE: 'false',
     MATOMO_URL: '',
     MATOMO_SITE_ID: '',
@@ -236,11 +236,12 @@ export default function AdminSettingsPage() {
               <div className="sm:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Port</label>
                 <input
-                  type="number"
+                  type="text"
                   name="SMTP_PORT"
                   value={formData.SMTP_PORT}
                   onChange={handleChange}
                   placeholder="587"
+                  inputMode="numeric"
                   className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
                 />
               </div>
@@ -274,7 +275,7 @@ export default function AdminSettingsPage() {
                   name="SMTP_FROM"
                   value={formData.SMTP_FROM}
                   onChange={handleChange}
-                  placeholder='"Dance Connect" <noreply@example.com>'
+                  placeholder='"TribeFinder" <noreply@tribefinder.de>'
                   className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
                 />
               </div>
@@ -287,10 +288,11 @@ export default function AdminSettingsPage() {
                   onChange={handleChange}
                   className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
                 >
-                  <option value="false">Nein (STARTTLS / Port 587)</option>
-                  <option value="true">Ja (SSL / Port 465)</option>
+                  <option value="false">Nein (STARTTLS)</option>
+                  <option value="true">Ja (SSL/TLS)</option>
                 </select>
               </div>
+
             </div>
           </div>
         </div>

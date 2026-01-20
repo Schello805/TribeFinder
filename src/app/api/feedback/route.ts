@@ -5,12 +5,33 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import logger from "@/lib/logger";
 import { parseUserAgent } from "@/lib/userAgent";
+import { emailHeading, emailHighlight, emailText, emailTemplate, sendEmail } from "@/lib/email";
 
 const createFeedbackSchema = z.object({
   message: z.string().trim().min(3).max(5000),
-  reporterName: z.string().trim().min(1).max(200).optional(),
-  reporterEmail: z.string().trim().email().max(320).optional(),
-  pageUrl: z.string().trim().url().optional(),
+  reporterName: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v ? v : undefined)),
+  reporterEmail: z
+    .string()
+    .trim()
+    .email()
+    .max(320)
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v ? v : undefined)),
+  pageUrl: z
+    .string()
+    .trim()
+    .url()
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v ? v : undefined)),
 });
 
 export async function POST(req: Request) {
@@ -36,11 +57,44 @@ export async function POST(req: Request) {
       select: { id: true },
     });
 
+    try {
+      const notifySetting = await prisma.systemSetting
+        .findUnique({ where: { key: "FEEDBACK_NOTIFY_EMAIL" } })
+        .catch(() => null);
+      const notifyEmail = (notifySetting?.value || process.env.FEEDBACK_NOTIFY_EMAIL || "").trim();
+
+      if (notifyEmail) {
+        const subject = "Neues Feedback (TribeFinder)";
+        const content =
+          (await emailHeading("Neues Feedback")) +
+          (await emailText(`Seite: ${parsed.pageUrl || "(unbekannt)"}`)) +
+          (await emailHighlight(parsed.message));
+
+        const html = await emailTemplate(content, "Neues Feedback eingegangen");
+        const result = await sendEmail(notifyEmail, subject, html);
+        if (!result.success) {
+          logger.warn({ notifyEmail, error: result.error }, "Feedback email notification failed");
+        }
+      }
+    } catch (mailError) {
+      logger.warn({ mailError }, "Feedback email notification threw");
+    }
+
     return NextResponse.json({ id: created.id }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const first = error.issues[0];
+      const details = first
+        ? `${first.path.join(".") || "field"}: ${first.message}`
+        : undefined;
+
+      logger.warn(
+        { issues: error.issues, details },
+        "POST /api/feedback validation failed"
+      );
+
       return NextResponse.json(
-        { message: "Ungültige Daten", errors: error.issues },
+        { message: "Ungültige Daten", details, errors: error.issues },
         { status: 400 }
       );
     }

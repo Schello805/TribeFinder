@@ -3,18 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
-
-function normalizeUploadedImageUrl(image?: string | null): string | null {
-  if (!image) return null;
-  const trimmed = image.trim();
-  if (!trimmed) return null;
-
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  if (trimmed.startsWith("/uploads/")) return trimmed;
-  if (trimmed.startsWith("uploads/")) return `/${trimmed}`;
-  if (!trimmed.startsWith("/")) return `/uploads/${trimmed}`;
-  return trimmed;
-}
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 interface UserProfile {
   firstName?: string | null;
@@ -52,18 +41,25 @@ export default function ProfileForm() {
   const fetchProfile = useCallback(async () => {
     try {
       const res = await fetch("/api/user/profile");
-      if (!res.ok) throw new Error("Fehler beim Laden des Profils");
+      if (res.status === 401) {
+        router.push("/auth/signin");
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.message || data?.error || "Fehler beim Laden des Profils");
+      }
       const data = await res.json();
       setFormData(data);
     } catch (err) {
       console.error(err);
-      const errorMsg = "Profil konnte nicht geladen werden.";
+      const errorMsg = err instanceof Error ? err.message : "Profil konnte nicht geladen werden.";
       setError(errorMsg);
       showToast(errorMsg, "error");
     } finally {
       setIsLoading(false);
     }
-  }, [showToast]);
+  }, [router, showToast]);
 
   useEffect(() => {
     fetchProfile();

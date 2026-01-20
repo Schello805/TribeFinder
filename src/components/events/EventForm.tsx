@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EventFormData } from "@/lib/validations/event";
 import { useToast } from "@/components/ui/Toast";
@@ -63,9 +63,39 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     return trimmed;
   };
 
+  const normalizeEndDate = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return endDate;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return endDate;
+    return end < start ? startDate : endDate;
+  };
+
+  useEffect(() => {
+    if (!formData.startDate || !formData.endDate) return;
+    const normalized = normalizeEndDate(formData.startDate, formData.endDate);
+    if (normalized !== formData.endDate) {
+      setFormData((prev) => ({ ...prev, endDate: normalized }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.startDate]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value } as EventFormData;
+      if (name === "startDate" || name === "endDate") {
+        next.endDate = normalizeEndDate(next.startDate, next.endDate || "");
+      }
+      return next;
+    });
+  };
+
+  const handleDateBlur = () => {
+    setFormData((prev) => ({
+      ...prev,
+      endDate: normalizeEndDate(prev.startDate, prev.endDate || ""),
+    }));
   };
 
   const handleUrlBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -250,6 +280,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             name="startDate"
             value={formData.startDate}
             onChange={handleChange}
+            onBlur={handleDateBlur}
             required
             className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
           />
@@ -263,6 +294,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             value={formData.endDate}
             min={formData.startDate}
             onChange={handleChange}
+            onBlur={handleDateBlur}
             className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
           />
         </div>

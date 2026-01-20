@@ -204,6 +204,9 @@ cd "$INSTALL_DIR"
 sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:generate'
 sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:migrate'
 
+# Default DanceStyles seeden (für Erstinstallation)
+sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:seed-styles'
+
 # Build
 echo "Erstelle Production Build..."
 cd "$INSTALL_DIR"

@@ -14,21 +14,33 @@ export default async function AdminUsersPage() {
     redirect("/");
   }
 
-  const users = await prisma.user.findMany({
+  const users = (await (prisma as any).user.findMany({
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
       name: true,
       email: true,
       role: true,
+      isBlocked: true,
       createdAt: true
     }
-  });
+  })) as unknown as Array<{
+    id: string;
+    name: string | null;
+    email: string;
+    role: string;
+    isBlocked: boolean;
+    createdAt: Date;
+  }>;
 
   // Convert dates to strings for client component
-  const formattedUsers = users.map((user: typeof users[0]) => ({
-    ...user,
-    createdAt: user.createdAt.toISOString()
+  const formattedUsers = users.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    isBlocked: user.isBlocked,
+    createdAt: user.createdAt.toISOString(),
   }));
 
   return (
@@ -38,11 +50,10 @@ export default async function AdminUsersPage() {
       <AdminNav />
 
       <p className="text-gray-500">
-        Hier kannst du Benutzer verwalten und als &quot;Test-User&quot; markieren. 
-        Test-User können über die Systemeinstellungen global ausgeblendet werden.
+        Hier kannst du Benutzer einsehen.
       </p>
 
-      <UsersList initialUsers={formattedUsers} />
+      <UsersList initialUsers={formattedUsers} currentUserId={session.user.id} />
     </div>
   );
 }

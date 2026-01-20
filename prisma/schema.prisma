@@ -18,6 +18,7 @@ model User {
   password      String
   image         String?
   role          String    @default("USER") // "USER" or "ADMIN"
+  isBlocked     Boolean   @default(false)
   
   // Profile Fields
   firstName     String?

@@ -85,6 +85,11 @@ echo -e "${YELLOW}[5/7] Führe Datenbank-Migrationen aus...${NC}"
 npm run db:migrate
 echo ""
 
+# Default DanceStyles seeden (idempotent)
+echo -e "${YELLOW}[5.1/7] Seede Default DanceStyles...${NC}"
+npm run db:seed-styles || echo "Seed fehlgeschlagen (wird ggf. durch API-Fallback nachgeholt)"
+echo ""
+
 # Production Build
 echo -e "${YELLOW}[6/7] Erstelle Production Build...${NC}"
 npm run build

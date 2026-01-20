@@ -5,7 +5,7 @@ const normalizedDatabaseUrl = process.env.DATABASE_URL
   ? process.env.DATABASE_URL.replace(/\r?\n/g, "").trim()
   : null;
 
-const defaultSqliteUrl = `file:${path.join(process.cwd(), "dev.db")}`;
+const defaultSqliteUrl = `file:${path.join(process.cwd(), "prisma", "dev.db")}`;
 
 const normalizedSqliteUrl = normalizedDatabaseUrl
   ? normalizedDatabaseUrl
@@ -14,6 +14,7 @@ const normalizedSqliteUrl = normalizedDatabaseUrl
       .replace(/^file:prisma\/dev\.db$/, "file:./dev.db")
       .replace(/^file:\.\/prisma\/dev\.db$/, "file:./dev.db")
       .replace(/^file:\.\.\/prisma\/dev\.db$/, "file:./dev.db")
+      .replace(/^file:\.\/dev\.db$/, "file:./prisma/dev.db")
   : null;
 
 if (!normalizedSqliteUrl || !normalizedSqliteUrl.startsWith("file:")) {

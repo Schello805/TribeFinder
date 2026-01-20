@@ -3,6 +3,12 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+const DEFAULT_SMTP_FROM = '"TribeFinder" <noreply@tribefinder.de>';
+const LEGACY_SMTP_FROM_VALUES = new Set([
+  '"TribeFinder" <noreply@tribefinder.com>',
+  '"Dance Connect" <noreply@dance-connect.com>',
+]);
+
 export async function GET() {
   const session = await getServerSession(authOptions);
 
@@ -16,6 +22,21 @@ export async function GET() {
       acc[setting.key] = setting.value;
       return acc;
     }, {} as Record<string, string>);
+
+    const currentFrom = settingsMap.SMTP_FROM;
+    const shouldMigrateDefault =
+      !currentFrom ||
+      currentFrom.trim() === '' ||
+      LEGACY_SMTP_FROM_VALUES.has(currentFrom.trim());
+
+    if (shouldMigrateDefault) {
+      await prisma.systemSetting.upsert({
+        where: { key: 'SMTP_FROM' },
+        update: { value: DEFAULT_SMTP_FROM },
+        create: { key: 'SMTP_FROM', value: DEFAULT_SMTP_FROM },
+      });
+      settingsMap.SMTP_FROM = DEFAULT_SMTP_FROM;
+    }
 
     // Sensible Daten maskieren? Hier nicht, da Admin sie sehen/bearbeiten muss
     return NextResponse.json(settingsMap);
@@ -34,6 +55,14 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
+
+    if (Object.prototype.hasOwnProperty.call(body, 'SMTP_FROM')) {
+      const v = typeof body.SMTP_FROM === 'string' ? body.SMTP_FROM.trim() : '';
+      if (!v) body.SMTP_FROM = DEFAULT_SMTP_FROM;
+      if (LEGACY_SMTP_FROM_VALUES.has(String(body.SMTP_FROM).trim())) {
+        body.SMTP_FROM = DEFAULT_SMTP_FROM;
+      }
+    }
     
     // Transaktion für alle Updates
     await prisma.$transaction(

@@ -40,8 +40,11 @@ export default function DanceStylesEditor() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/user/dance-styles");
-      if (!res.ok) return;
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMessage(data?.message || data?.error || "Fehler beim Laden der Tanzstile");
+        return;
+      }
       setAvailable(data.available || []);
       setSelected(data.selected || []);
     } finally {
@@ -144,7 +147,7 @@ export default function DanceStylesEditor() {
             <select
               value={newStyleId}
               onChange={(e) => setNewStyleId(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border px-3 py-2 text-black"
+              className="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border appearance-none"
               disabled={isSaving}
             >
               <option value="">Bitte auswählen…</option>
@@ -161,7 +164,7 @@ export default function DanceStylesEditor() {
             <select
               value={newLevel}
               onChange={(e) => setNewLevel(e.target.value as Level)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border px-3 py-2 text-black"
+              className="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border appearance-none"
               disabled={isSaving}
             >
               {(Object.keys(LEVEL_LABEL) as Level[]).map((lvl) => (
@@ -202,7 +205,7 @@ export default function DanceStylesEditor() {
                     value={s.level}
                     onChange={(e) => updateLevel(s.id, e.target.value as Level)}
                     disabled={isSaving}
-                    className="rounded-md border-gray-300 shadow-sm sm:text-sm border px-3 py-2 text-black"
+                    className="rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border appearance-none"
                   >
                     {(Object.keys(LEVEL_LABEL) as Level[]).map((lvl) => (
                       <option key={lvl} value={lvl}>

@@ -22,7 +22,7 @@ const getTransporter = async () => {
   const user = config.SMTP_USER || process.env.SMTP_USER;
   const pass = config.SMTP_PASSWORD || process.env.SMTP_PASSWORD;
   const secure = (config.SMTP_SECURE || process.env.SMTP_SECURE) === 'true';
-  const from = config.SMTP_FROM || process.env.SMTP_FROM || '"Dance Connect" <noreply@dance-connect.com>';
+  const from = config.SMTP_FROM || process.env.SMTP_FROM || '"TribeFinder" <noreply@tribefinder.de>';
 
   if (!host || !user || !pass) {
     throw new Error('SMTP Konfiguration fehlt (DB oder ENV)');

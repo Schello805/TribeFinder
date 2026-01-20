@@ -33,6 +33,12 @@ export default function AdminNav() {
       <Link href="/admin/feedback" className={itemClass(isActive("/admin/feedback"))}>
         Feedback
       </Link>
+      <Link href="/admin/diagnostics" className={itemClass(isActive("/admin/diagnostics"))}>
+        Diagnose
+      </Link>
+      <Link href="/admin/backups" className={itemClass(isActive("/admin/backups"))}>
+        Backups
+      </Link>
     </div>
   );
 }

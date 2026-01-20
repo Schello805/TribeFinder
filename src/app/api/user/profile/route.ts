@@ -3,24 +3,7 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
-
-function normalizeUploadedImageUrl(image?: string | null): string | null {
-  if (!image) return null;
-  const trimmed = image.trim();
-  if (!trimmed) return null;
-
-  // Keep absolute URLs (e.g. external avatars)
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-
-  // Ensure local uploads always start with /uploads/
-  if (trimmed.startsWith('/uploads/')) return trimmed;
-  if (trimmed.startsWith('uploads/')) return `/${trimmed}`;
-
-  // Bare filename from older installs / buggy saves
-  if (!trimmed.startsWith('/')) return `/uploads/${trimmed}`;
-
-  return trimmed;
-}
+import { normalizeUploadedImageUrl } from '@/lib/normalizeUploadedImageUrl';
 
 const profileSchema = z.object({
   firstName: z.string().optional().nullable(),

@@ -3,18 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs"
-
-function normalizeUploadedImageUrl(image?: string | null): string | null {
-  if (!image) return null;
-  const trimmed = image.trim();
-  if (!trimmed) return null;
-
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  if (trimmed.startsWith("/uploads/")) return trimmed;
-  if (trimmed.startsWith("uploads/")) return `/${trimmed}`;
-  if (!trimmed.startsWith("/")) return `/uploads/${trimmed}`;
-  return trimmed;
-}
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 // Note: Type assertion needed due to custom Prisma client output path
 // This is a known compatibility issue between @next-auth/prisma-adapter and custom client paths
@@ -39,6 +28,10 @@ export const authOptions: NextAuthOptions = {
         })
 
         if (!user || !user.password) {
+          return null
+        }
+
+        if ((user as { isBlocked?: boolean }).isBlocked) {
           return null
         }
 

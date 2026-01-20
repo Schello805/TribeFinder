@@ -56,8 +56,10 @@ export default function DashboardNotificationsPage() {
         body: JSON.stringify(prefs),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        setMessage("Fehler beim Speichern");
+        setMessage(data?.message || "Fehler beim Speichern");
         return;
       }
 

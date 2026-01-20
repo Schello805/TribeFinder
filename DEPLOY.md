@@ -95,3 +95,75 @@ server {
 ```
 
 Dann Certbot nutzen: `sudo certbot --nginx -d deine-domain.de`
+
+## Empfohlener Workflow: Erst Staging testen, dann Prod updaten
+
+Ziel: Änderungen erst in einer **Staging-Instanz** testen (mit echten Daten via Backup), und erst nach erfolgreichem Test in **Prod** einspielen.
+
+### Begriffe
+
+- **Prod**: echte Instanz (z.B. `tribefinder.de`)
+- **Staging**: Test-Instanz (z.B. `staging.tribefinder.de`) mit eigener DB + eigenen Uploads
+
+### 1) Backup in Prod erstellen
+
+Im Admin-Bereich:
+
+- Öffne `/admin/backups`
+- Klicke **Backup erstellen**
+- Optional: Backup über **Download** herunterladen
+
+Das Backup enthält:
+
+- SQLite DB (Pfad aus `DATABASE_URL`)
+- `public/uploads`
+
+### 2) Backup nach Staging bringen
+
+Optionen:
+
+- **Download/Upload** (einfach, bei größeren Backups ggf. langsam)
+- **Server-seitig kopieren** (z.B. per SCP/rsync), wenn Staging auf einem anderen Host läuft
+
+### 3) Restore in Staging durchführen
+
+Variante A: über UI (wenn Staging läuft)
+
+- Öffne `/admin/backups` auf Staging
+- **Restore entsperren (10 Minuten)** (Admin-Passwort)
+- Backup auswählen
+- `RESTORE` eintippen
+- **Restore starten**
+
+Variante B: Notfall-Script (wenn App nicht startet)
+
+1. Service manuell stoppen
+2. Restore:
+
+```bash
+chmod +x scripts/restore-backup.sh
+./scripts/restore-backup.sh backups/<backup>.tar.gz
+```
+
+3. Service manuell starten
+
+### 4) Self-Test / Diagnose auf Staging ausführen
+
+Im Admin-Bereich:
+
+- Öffne `/admin/diagnostics`
+- Klicke **Diagnose starten**
+
+Die Diagnose prüft u.a.:
+
+- ENV/Config vorhanden
+- DB erreichbar + Migrationen
+- Uploads (write/read)
+- CRUD Smoke-Tests (Gruppe/Tag/DanceStyle) mit Cleanup
+
+### 5) Erst danach: Prod deployen
+
+Wenn Staging ok ist:
+
+- Update/Deploy in Prod ausführen
+- Danach in Prod einmal `/admin/diagnostics` laufen lassen
