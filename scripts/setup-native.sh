@@ -3,7 +3,7 @@
 # Führt die komplette Installation durch
 
 # Script Version
-SCRIPT_VERSION="1.0.7"
+SCRIPT_VERSION="1.0.8"
 
 set -e
 
@@ -134,7 +134,7 @@ if [ ! -f ".env" ]; then
     # Erstelle .env direkt (statt .env.example zu kopieren)
     cat > .env << EOF
 # Database
-DATABASE_URL="file:./prod.db"
+DATABASE_URL="file:$INSTALL_DIR/prod.db"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
@@ -152,6 +152,13 @@ EOF
     
     echo -e "${GREEN}.env Datei erstellt mit automatisch generiertem Secret${NC}"
     echo -e "${YELLOW}Hinweis: Du kannst später NEXTAUTH_URL und SMTP in /home/tribefinder/TribeFinder/.env anpassen${NC}"
+fi
+
+# Stelle sicher, dass DATABASE_URL absolut ist (sonst kann beim Build/Prerender eine leere DB im falschen CWD entstehen)
+if [ -f ".env" ]; then
+    if grep -q '^DATABASE_URL="file:./prod.db"' .env; then
+        sed -i "s|^DATABASE_URL=\"file:./prod.db\"|DATABASE_URL=\"file:$INSTALL_DIR/prod.db\"|" .env
+    fi
 fi
 
 # Dependencies installieren
