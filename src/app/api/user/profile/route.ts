@@ -4,6 +4,24 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
 
+function normalizeUploadedImageUrl(image?: string | null): string | null {
+  if (!image) return null;
+  const trimmed = image.trim();
+  if (!trimmed) return null;
+
+  // Keep absolute URLs (e.g. external avatars)
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  // Ensure local uploads always start with /uploads/
+  if (trimmed.startsWith('/uploads/')) return trimmed;
+  if (trimmed.startsWith('uploads/')) return `/${trimmed}`;
+
+  // Bare filename from older installs / buggy saves
+  if (!trimmed.startsWith('/')) return `/uploads/${trimmed}`;
+
+  return trimmed;
+}
+
 const profileSchema = z.object({
   firstName: z.string().optional().nullable(),
   lastName: z.string().optional().nullable(),
@@ -45,7 +63,10 @@ export async function GET() {
       return NextResponse.json({ message: "Benutzer nicht gefunden" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json({
+      ...user,
+      image: normalizeUploadedImageUrl(user.image),
+    });
   } catch (error) {
     console.error('Error fetching profile:', error);
     return NextResponse.json({ error: 'Fehler beim Laden des Profils' }, { status: 500 });
@@ -80,7 +101,7 @@ export async function PUT(req: Request) {
         lastName: data.lastName,
         dancerName: data.dancerName,
         bio: data.bio,
-        image: data.image,
+        image: normalizeUploadedImageUrl(data.image),
         youtubeUrl: data.youtubeUrl,
         instagramUrl: data.instagramUrl,
         facebookUrl: data.facebookUrl,
@@ -90,7 +111,10 @@ export async function PUT(req: Request) {
       },
     });
 
-    return NextResponse.json(updatedUser);
+    return NextResponse.json({
+      ...updatedUser,
+      image: normalizeUploadedImageUrl(updatedUser.image),
+    });
   } catch (error) {
     console.error('Error updating profile:', error);
     return NextResponse.json({ error: 'Fehler beim Speichern des Profils' }, { status: 500 });
