@@ -2,6 +2,28 @@
 
 Diese Anleitung beschreibt die Installation von TribeFinder **ohne Docker** direkt auf einem Ubuntu LXC Container.
 
+## TL;DR (empfohlen: vollautomatisch)
+
+Die empfohlene Installation ist komplett automatisiert über das Setup-Script:
+
+```bash
+git clone https://github.com/Schello805/TribeFinder.git
+cd TribeFinder
+sudo ./scripts/setup-native.sh
+```
+
+Das Script übernimmt:
+
+- Installation von System-Paketen und Node.js
+- Erstellen/Verifizieren des Users `tribefinder`
+- Klonen nach `/home/tribefinder/TribeFinder` inkl. korrekter Ownership (kein Git "dubious ownership")
+- `.env` Erstellung (inkl. `NEXTAUTH_SECRET`)
+- Reproduzierbare Dependency-Installation (`npm ci --include=optional`)
+- Prisma generate + migrate
+- Production Build
+- `public/uploads` mit korrekten Permissions
+- systemd Service + optional Nginx/SSL
+
 ## Voraussetzungen
 
 - Ubuntu 22.04 oder 24.04 LXC Container
@@ -46,6 +68,8 @@ sudo usermod -aG sudo tribefinder  # optional, falls sudo benötigt wird
 
 ## 4. TribeFinder installieren
 
+Hinweis: Die folgenden Schritte sind eine **manuelle Alternative**. Wenn möglich, nutze stattdessen `./scripts/setup-native.sh` (siehe oben).
+
 ### Als tribefinder-User wechseln
 ```bash
 sudo su - tribefinder
@@ -67,7 +91,7 @@ nano .env
 Wichtige Einstellungen in `.env`:
 ```env
 # SQLite für einfache Installation
-DATABASE_URL="file:./prod.db"
+DATABASE_URL="file:/home/tribefinder/TribeFinder/prod.db"
 
 # NextAuth Konfiguration
 NEXTAUTH_SECRET="GENERIERE_EIN_LANGES_ZUFÄLLIGES_SECRET_HIER"
@@ -88,7 +112,7 @@ openssl rand -base64 32
 
 ### Dependencies installieren
 ```bash
-npm install
+npm ci --include=optional
 ```
 
 ### Datenbank initialisieren
@@ -105,6 +129,7 @@ npm run build
 ### Upload-Verzeichnis vorbereiten
 ```bash
 mkdir -p public/uploads
+chown -R tribefinder:tribefinder public/uploads
 chmod 755 public/uploads
 ```
 
@@ -245,29 +270,22 @@ node make-admin.js deine@email.de
 ## 9. Wartung & Updates
 
 ### Updates einspielen
+
+Empfohlen: Nutze das Update/Deploy-Script.
+
 ```bash
 sudo su - tribefinder
 cd ~/TribeFinder
-
-# Backup erstellen
-npm run db:backup
-
-# Updates holen
-git pull
-
-# Dependencies aktualisieren
-npm install
-
-# Migrationen ausführen
-npx prisma migrate deploy
-
-# Neu bauen
-npm run build
-
-# Service neustarten
-exit
-sudo systemctl restart tribefinder
+./scripts/deploy-native.sh
 ```
+
+Das Script führt je nach Stand automatisch u.a. aus:
+
+- `git pull`
+- `npm ci --include=optional`
+- `npm run db:generate` / `npm run db:migrate`
+- `npm run build`
+- `sudo systemctl restart tribefinder`
 
 ### Logs überwachen
 ```bash

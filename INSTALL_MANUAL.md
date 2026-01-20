@@ -30,7 +30,7 @@ cd TribeFinder
 ```bash
 cat > .env << 'EOF'
 # Database
-DATABASE_URL="file:./prod.db"
+DATABASE_URL="file:/home/tribefinder/TribeFinder/prod.db"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
@@ -52,37 +52,31 @@ sed -i "s|CHANGE_THIS_TO_RANDOM_STRING|$SECRET|" .env
 ### 4. Dependencies installieren
 
 ```bash
-npm install
+npm ci --include=optional
 ```
 
-### 5. Tailwind CSS Fix (falls Build-Fehler)
-
-```bash
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### 6. Datenbank initialisieren
+### 5. Datenbank initialisieren
 
 ```bash
 npm run db:generate
 npm run db:migrate
 ```
 
-### 7. Production Build erstellen
+### 6. Production Build erstellen
 
 ```bash
 npm run build
 ```
 
-### 8. Upload-Verzeichnis erstellen
+### 7. Upload-Verzeichnis erstellen
 
 ```bash
 mkdir -p public/uploads
+chown -R tribefinder:tribefinder public/uploads
 chmod 755 public/uploads
 ```
 
-### 9. Test-Start
+### 8. Test-Start
 
 ```bash
 npm start
@@ -217,12 +211,7 @@ sudo tail -f /var/log/nginx/error.log
 ```bash
 sudo su - tribefinder
 cd ~/TribeFinder
-git pull
-npm install
-npm run db:migrate
-npm run build
-exit
-sudo systemctl restart tribefinder
+./scripts/deploy-native.sh
 ```
 
 ---

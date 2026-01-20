@@ -62,6 +62,12 @@ Das Script führt automatisch aus:
 
 **Detaillierte Anleitung:** Siehe `INSTALL_NATIVE.md`
 
+Hinweise:
+
+- Für SQLite in Produktion sollte `DATABASE_URL` ein **absoluter Pfad** sein (z.B. `file:/home/tribefinder/TribeFinder/prod.db`), damit Build/Runtime immer dieselbe DB verwenden.
+- Für reproduzierbare Builds nutzt das Setup/Deploy vorzugsweise `npm ci --include=optional` (u.a. wegen Tailwind/Turbo optional dependencies).
+- Uploads werden in `public/uploads` gespeichert. Wichtig sind korrekte Dateirechte (Owner: `tribefinder`).
+
 ---
 
 ### Alternative: Docker Installation
@@ -107,6 +113,8 @@ Für isolierte Container-Umgebungen oder Multi-Service-Setups.
    ./scripts/update.sh
    ```
    Das Script macht einen Testlauf (Build + Migrationen auf DB-Kopie) und fragt erst danach, ob es live einspielen soll.
+
+   Hinweis: `scripts/update.sh` ist für das **Docker** Setup gedacht. Für eine native Installation nutze `scripts/deploy-native.sh`.
 
 ### Entwicklung (lokal, ohne Docker)
 
