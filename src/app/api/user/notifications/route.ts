@@ -4,6 +4,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
+const DEFAULT_PREFS = {
+  emailNotifications: true,
+  notifyNewGroups: false,
+  notifyNewEvents: false,
+  notifyRadius: 50,
+  notifyLat: null as number | null,
+  notifyLng: null as number | null,
+};
+
 const schema = z.object({
   emailNotifications: z.boolean().optional(),
   notifyNewGroups: z.boolean().optional(),
@@ -20,19 +29,33 @@ export async function GET() {
     return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      emailNotifications: true,
-      notifyNewGroups: true,
-      notifyNewEvents: true,
-      notifyRadius: true,
-      notifyLat: true,
-      notifyLng: true,
-    },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        emailNotifications: true,
+        notifyNewGroups: true,
+        notifyNewEvents: true,
+        notifyRadius: true,
+        notifyLat: true,
+        notifyLng: true,
+      },
+    });
 
-  return NextResponse.json(user);
+    if (!user) {
+      return NextResponse.json(DEFAULT_PREFS);
+    }
+
+    return NextResponse.json({
+      ...DEFAULT_PREFS,
+      ...user,
+    });
+  } catch {
+    return NextResponse.json(
+      { message: "Fehler beim Laden der Benachrichtigungs-Einstellungen" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PUT(req: Request) {
@@ -53,25 +76,35 @@ export async function PUT(req: Request) {
 
   const data = parsed.data;
 
-  const updated = await prisma.user.update({
-    where: { id: session.user.id },
-    data: {
-      ...(data.emailNotifications !== undefined ? { emailNotifications: data.emailNotifications } : {}),
-      ...(data.notifyNewGroups !== undefined ? { notifyNewGroups: data.notifyNewGroups } : {}),
-      ...(data.notifyNewEvents !== undefined ? { notifyNewEvents: data.notifyNewEvents } : {}),
-      ...(data.notifyRadius !== undefined ? { notifyRadius: data.notifyRadius } : {}),
-      ...(data.notifyLat !== undefined ? { notifyLat: data.notifyLat } : {}),
-      ...(data.notifyLng !== undefined ? { notifyLng: data.notifyLng } : {}),
-    },
-    select: {
-      emailNotifications: true,
-      notifyNewGroups: true,
-      notifyNewEvents: true,
-      notifyRadius: true,
-      notifyLat: true,
-      notifyLng: true,
-    },
-  });
+  try {
+    const updated = await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        ...(data.emailNotifications !== undefined ? { emailNotifications: data.emailNotifications } : {}),
+        ...(data.notifyNewGroups !== undefined ? { notifyNewGroups: data.notifyNewGroups } : {}),
+        ...(data.notifyNewEvents !== undefined ? { notifyNewEvents: data.notifyNewEvents } : {}),
+        ...(data.notifyRadius !== undefined ? { notifyRadius: data.notifyRadius } : {}),
+        ...(data.notifyLat !== undefined ? { notifyLat: data.notifyLat } : {}),
+        ...(data.notifyLng !== undefined ? { notifyLng: data.notifyLng } : {}),
+      },
+      select: {
+        emailNotifications: true,
+        notifyNewGroups: true,
+        notifyNewEvents: true,
+        notifyRadius: true,
+        notifyLat: true,
+        notifyLng: true,
+      },
+    });
 
-  return NextResponse.json(updated);
+    return NextResponse.json({
+      ...DEFAULT_PREFS,
+      ...updated,
+    });
+  } catch {
+    return NextResponse.json(
+      { message: "Fehler beim Speichern der Benachrichtigungs-Einstellungen" },
+      { status: 500 }
+    );
+  }
 }
