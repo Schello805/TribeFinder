@@ -22,6 +22,10 @@ if [ "$USER" != "tribefinder" ]; then
     exit 1
 fi
 
+# Stelle sicher dass Upload-Verzeichnis existiert (und beschreibbar ist)
+mkdir -p public/uploads
+chmod 755 public/uploads
+
 # Prüfe ob wir im richtigen Verzeichnis sind
 if [ ! -f "package.json" ]; then
     echo -e "${RED}Fehler: package.json nicht gefunden!${NC}"
@@ -64,7 +68,11 @@ echo ""
 
 # Dependencies installieren
 echo -e "${YELLOW}[3/7] Installiere Dependencies...${NC}"
-npm install
+if [ -f "package-lock.json" ]; then
+    npm ci --include=optional
+else
+    npm install
+fi
 echo ""
 
 # Prisma generieren
