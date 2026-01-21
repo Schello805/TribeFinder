@@ -7,6 +7,7 @@ import { z } from "zod";
 import { notifyAdminsAboutNewTags, notifyUsersAboutNewGroup } from "@/lib/notifications";
 import logger from "@/lib/logger";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
+import { revalidatePath } from "next/cache";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
@@ -173,6 +174,8 @@ export async function POST(req: Request) {
       notifyUsersAboutNewGroup(group.id, group.name, validatedData.location.lat, validatedData.location.lng)
         .catch(err => logger.error({ err }, "New group notification error"));
     }
+
+    revalidatePath("/map");
 
     return NextResponse.json(group, { status: 201 });
   } catch (error) {

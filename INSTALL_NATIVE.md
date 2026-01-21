@@ -167,6 +167,7 @@ User=tribefinder
 Group=tribefinder
 WorkingDirectory=/home/tribefinder/TribeFinder
 Environment=NODE_ENV=production
+EnvironmentFile=/home/tribefinder/TribeFinder/.env
 ExecStart=/usr/bin/npm run start
 Restart=always
 RestartSec=10
@@ -183,6 +184,12 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 sudo systemctl enable tribefinder
 sudo systemctl start tribefinder
+```
+
+Empfohlen:
+```bash
+sudo chmod 600 /home/tribefinder/TribeFinder/.env
+sudo chown tribefinder:tribefinder /home/tribefinder/TribeFinder/.env
 ```
 
 ### Status prüfen
@@ -310,6 +317,8 @@ sudo su - tribefinder
 cd ~/TribeFinder
 npm run db:backup
 ```
+
+Hinweis: `npm run db:backup` nutzt `DATABASE_URL` aus `.env`, um die richtige SQLite-Datei (z.B. `prod.db`) zu sichern.
 
 ### Automatische Backups via Cron
 ```bash

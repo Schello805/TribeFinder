@@ -7,10 +7,30 @@ set -e
 
 # Configuration
 BACKUP_DIR="./backups"
-DB_FILE="./dev.db"
+DB_FILE=""
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_FILE="${BACKUP_DIR}/backup_${TIMESTAMP}.db"
 MAX_BACKUPS=10
+
+if [ -z "$DB_FILE" ] && [ -f ".env" ]; then
+    DB_URL=$(grep -E '^DATABASE_URL=' .env | head -n 1 | cut -d= -f2- | tr -d '"\r')
+    if [[ "$DB_URL" == file:* ]]; then
+        DB_PATH="${DB_URL#file:}"
+        if [[ "$DB_PATH" == /* ]]; then
+            DB_FILE="$DB_PATH"
+        else
+            DB_FILE="$(pwd)/$DB_PATH"
+        fi
+    fi
+fi
+
+if [ -z "$DB_FILE" ]; then
+    if [ -f "./prod.db" ]; then
+        DB_FILE="./prod.db"
+    else
+        DB_FILE="./dev.db"
+    fi
+fi
 
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"

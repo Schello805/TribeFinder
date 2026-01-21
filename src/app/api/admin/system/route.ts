@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import os from "node:os";
 import fs from "node:fs";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { createRequire } from "node:module";
 import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
+import { jsonUnauthorized } from "@/lib/apiResponse";
 
 function maskDatabaseUrl(url: string | undefined) {
   if (!url) return null;
@@ -48,12 +49,11 @@ function maskDatabaseUrl(url: string | undefined) {
   }
 }
 
-function readPackageVersions() {
+async function readPackageVersions() {
   try {
-    // createRequire works in ESM and avoids TS json module config edge cases
-    const require = createRequire(import.meta.url);
     const pkgPath = path.join(process.cwd(), "package.json");
-    const pkg = require(pkgPath) as {
+    const raw = await readFile(pkgPath, "utf8");
+    const pkg = JSON.parse(raw) as {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
@@ -88,7 +88,7 @@ function getUploadsInfo() {
 
 export async function GET() {
   const session = await requireAdminSession();
-  if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  if (!session) return jsonUnauthorized();
 
   const dbUrl = process.env.DATABASE_URL;
 
@@ -132,7 +132,7 @@ export async function GET() {
       },
       npmUserAgent: process.env.npm_config_user_agent ?? null,
     },
-    packages: readPackageVersions(),
+    packages: await readPackageVersions(),
     database: {
       url: maskDatabaseUrl(dbUrl),
       checks,

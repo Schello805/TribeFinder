@@ -35,11 +35,7 @@ fi
 
 # Backup erstellen
 echo -e "${YELLOW}[1/7] Erstelle Datenbank-Backup...${NC}"
-if [ -f "dev.db" ] || [ -f "prod.db" ]; then
-    npm run db:backup || echo "Backup fehlgeschlagen (möglicherweise keine DB vorhanden)"
-else
-    echo "Keine Datenbank gefunden, überspringe Backup."
-fi
+npm run db:backup || echo "Backup fehlgeschlagen (möglicherweise keine DB vorhanden oder DATABASE_URL nicht SQLite)"
 echo ""
 
 # Git Updates holen

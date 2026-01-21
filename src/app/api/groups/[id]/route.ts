@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 import { notifyAdminsAboutNewTags } from "@/lib/notifications";
 import logger from "@/lib/logger";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   req: Request,
@@ -163,6 +164,8 @@ export async function PUT(
       notifyAdminsAboutNewTags(newTagsToNotify, session.user.name || session.user.email || "Unbekannt").catch(err => console.error("Notification error:", err));
     }
 
+    revalidatePath("/map");
+
     return NextResponse.json(group);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -221,6 +224,8 @@ export async function DELETE(
     await prisma.group.delete({
       where: { id }
     });
+
+    revalidatePath("/map");
 
     return NextResponse.json({ message: "Gruppe erfolgreich gelöscht" });
   } catch (error) {

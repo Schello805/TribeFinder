@@ -152,11 +152,12 @@ NEXTAUTH_SECRET="$SECRET"
 # SMTP_HOST=
 # SMTP_PORT=587
 # SMTP_USER=
-# SMTP_PASS=
+# SMTP_PASSWORD=
 # SMTP_FROM=
 EOF
     
     chown tribefinder:tribefinder .env
+    chmod 600 .env
     
     echo -e "${GREEN}.env Datei erstellt mit automatisch generiertem Secret${NC}"
     echo -e "${YELLOW}Hinweis: Du kannst später NEXTAUTH_URL und SMTP in /home/tribefinder/TribeFinder/.env anpassen${NC}"

@@ -8,6 +8,7 @@ User=tribefinder
 Group=tribefinder
 WorkingDirectory=/home/tribefinder/TribeFinder
 Environment=NODE_ENV=production
+EnvironmentFile=/home/tribefinder/TribeFinder/.env
 ExecStart=/usr/bin/npm run start
 Restart=always
 RestartSec=10

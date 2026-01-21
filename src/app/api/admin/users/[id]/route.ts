@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { z } from "zod";
+import { jsonBadRequest, jsonUnauthorized } from "@/lib/apiResponse";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -36,17 +37,17 @@ async function ensureNotLastUnblockedAdmin(targetUserId: string) {
 
 export async function PATCH(req: Request, { params }: RouteParams) {
   const session = await requireAdminSession();
-  if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  if (!session) return jsonUnauthorized();
 
   const { id } = await params;
   if (id === session.user.id) {
-    return NextResponse.json({ message: "Du kannst dich nicht selbst ändern" }, { status: 400 });
+    return jsonBadRequest("Du kannst dich nicht selbst ändern");
   }
 
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: "Validierungsfehler", errors: parsed.error.flatten() }, { status: 400 });
+    return jsonBadRequest("Validierungsfehler", { errors: parsed.error.flatten() });
   }
 
   try {
@@ -86,17 +87,17 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Fehler";
-    return NextResponse.json({ message: msg }, { status: 400 });
+    return jsonBadRequest(msg);
   }
 }
 
 export async function DELETE(_req: Request, { params }: RouteParams) {
   const session = await requireAdminSession();
-  if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  if (!session) return jsonUnauthorized();
 
   const { id } = await params;
   if (id === session.user.id) {
-    return NextResponse.json({ message: "Du kannst dich nicht selbst löschen" }, { status: 400 });
+    return jsonBadRequest("Du kannst dich nicht selbst löschen");
   }
 
   try {
@@ -105,6 +106,6 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
     return NextResponse.json({ ok: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Fehler";
-    return NextResponse.json({ message: msg }, { status: 400 });
+    return jsonBadRequest(msg);
   }
 }

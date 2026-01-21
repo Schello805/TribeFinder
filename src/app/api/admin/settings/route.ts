@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/requireAdmin';
+import { jsonServerError, jsonUnauthorized } from "@/lib/apiResponse";
 
 const DEFAULT_SMTP_FROM = '"TribeFinder" <noreply@tribefinder.de>';
 const LEGACY_SMTP_FROM_VALUES = new Set([
@@ -11,7 +12,7 @@ const LEGACY_SMTP_FROM_VALUES = new Set([
 export async function GET() {
   const session = await requireAdminSession();
   if (!session) {
-    return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+    return jsonUnauthorized();
   }
 
   try {
@@ -40,14 +41,14 @@ export async function GET() {
     return NextResponse.json(settingsMap);
   } catch (error) {
     console.error('Error fetching settings:', error);
-    return NextResponse.json({ error: 'Fehler beim Laden der Einstellungen' }, { status: 500 });
+    return jsonServerError('Fehler beim Laden der Einstellungen', error);
   }
 }
 
 export async function POST(req: Request) {
   const session = await requireAdminSession();
   if (!session) {
-    return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+    return jsonUnauthorized();
   }
 
   try {
@@ -75,6 +76,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Einstellungen gespeichert' });
   } catch (error) {
     console.error('Error saving settings:', error);
-    return NextResponse.json({ error: 'Fehler beim Speichern der Einstellungen' }, { status: 500 });
+    return jsonServerError('Fehler beim Speichern der Einstellungen', error);
   }
 }

@@ -107,10 +107,11 @@ export default async function RootLayout({
 
                 <div className="w-full max-w-xs h-px bg-gray-800 my-2"></div>
 
-                {/* Debug Info */}
-                <div className="text-xs text-gray-600">
-                  Status: {session ? 'Eingeloggt' : 'Gast'} | Rolle: {session?.user?.role || 'Keine'}
-                </div>
+                {process.env.NODE_ENV !== "production" ? (
+                  <div className="text-xs text-gray-600">
+                    Status: {session ? 'Eingeloggt' : 'Gast'} | Rolle: {session?.user?.role || 'Keine'}
+                  </div>
+                ) : null}
 
                 {session?.user?.role === 'ADMIN' && (
                   <Link href="/admin" className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
+import { jsonBadRequest, jsonServerError, jsonUnauthorized } from "@/lib/apiResponse";
 import { mkdir, writeFile, unlink } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
@@ -29,22 +30,22 @@ function extForMime(mime: AllowedMime): string {
 
 export async function POST(req: Request) {
   const session = await requireAdminSession();
-  if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  if (!session) return jsonUnauthorized();
 
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "Keine Datei hochgeladen" }, { status: 400 });
+      return jsonBadRequest("Keine Datei hochgeladen");
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: "Datei zu groß" }, { status: 400 });
+      return jsonBadRequest("Datei zu groß");
     }
 
     if (!isAllowedMime(file.type)) {
-      return NextResponse.json({ error: "Ungültiger Dateityp" }, { status: 400 });
+      return jsonBadRequest("Ungültiger Dateityp");
     }
 
     const uploadDir = path.join(process.cwd(), "public/uploads");
@@ -77,16 +78,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ logoUrl });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Fehler beim Upload", details: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
-    );
+    return jsonServerError("Fehler beim Upload", error);
   }
 }
 
 export async function DELETE() {
   const session = await requireAdminSession();
-  if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  if (!session) return jsonUnauthorized();
 
   try {
     const setting = await prisma.systemSetting.findUnique({ where: { key: "BRANDING_LOGO_URL" } });
@@ -104,9 +102,6 @@ export async function DELETE() {
 
     return NextResponse.json({ logoUrl: "" });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Fehler beim Entfernen", details: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
-    );
+    return jsonServerError("Fehler beim Entfernen", error);
   }
 }

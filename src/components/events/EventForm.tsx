@@ -24,6 +24,24 @@ const toLocalISOString = (dateString: string | Date) => {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
+const normalizeDatetimeLocal = (value: string) => {
+  const v = value.trim();
+  if (!v) return "";
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v)) return v;
+
+  const m = v.match(
+    /^(\d{1,2})\.(\d{1,2})\.(\d{4})(?:,?\s*(\d{1,2}):(\d{2}))?$/
+  );
+  if (!m) return value;
+
+  const dd = m[1].padStart(2, "0");
+  const mm = m[2].padStart(2, "0");
+  const yyyy = m[3];
+  const hh = (m[4] ?? "00").padStart(2, "0");
+  const min = (m[5] ?? "00").padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+};
+
 export default function EventForm({ initialData, groupId, isEditing = false }: EventFormProps) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -83,7 +101,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => {
-      const next = { ...prev, [name]: value } as EventFormData;
+      const normalizedValue = name === "startDate" || name === "endDate" ? normalizeDatetimeLocal(value) : value;
+      const next = { ...prev, [name]: normalizedValue } as EventFormData;
       if (name === "startDate" || name === "endDate") {
         next.endDate = normalizeEndDate(next.startDate, next.endDate || "");
       }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/requireAdmin';
+import { jsonServerError, jsonUnauthorized } from "@/lib/apiResponse";
 
 const STANDARD_TAGS = [
   "Orientalischer Tanz",
@@ -45,7 +46,7 @@ const STANDARD_TAGS = [
 export async function POST() {
   const session = await requireAdminSession();
   if (!session) {
-    return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+    return jsonUnauthorized();
   }
 
   try {
@@ -63,6 +64,6 @@ export async function POST() {
     return NextResponse.json({ message: `Standard-Tags wurden importiert/aktualisiert.` });
   } catch (error) {
     console.error('Error seeding tags:', error);
-    return NextResponse.json({ error: 'Fehler beim Importieren der Tags' }, { status: 500 });
+    return jsonServerError('Fehler beim Importieren der Tags', error);
   }
 }

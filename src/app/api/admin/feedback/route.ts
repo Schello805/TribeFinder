@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
+import { jsonServerError, jsonUnauthorized } from "@/lib/apiResponse";
 
 type FeedbackRow = {
   id: string;
@@ -19,7 +20,7 @@ type FeedbackRow = {
 export async function GET(req: Request) {
   const session = await requireAdminSession();
   if (!session) {
-    return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+    return jsonUnauthorized();
   }
 
   try {
@@ -59,17 +60,6 @@ export async function GET(req: Request) {
       }))
     );
   } catch (error) {
-    return NextResponse.json(
-      {
-        message: "Feedback konnte nicht geladen werden",
-        details:
-          process.env.NODE_ENV !== "production"
-            ? error instanceof Error
-              ? { name: error.name, message: error.message, stack: error.stack }
-              : { value: error }
-            : undefined,
-      },
-      { status: 500 }
-    );
+    return jsonServerError("Feedback konnte nicht geladen werden", error);
   }
 }

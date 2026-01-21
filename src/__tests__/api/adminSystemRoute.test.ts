@@ -30,7 +30,7 @@ describe("GET /api/admin/system", () => {
     expect(res.status).toBe(401);
 
     const json = await res.json();
-    expect(json).toEqual({ message: "Nicht autorisiert" });
+    expect(json).toEqual({ message: "Nicht autorisiert", error: "Nicht autorisiert" });
   });
 
   it("returns system info for admin and masks DATABASE_URL", async () => {
