@@ -29,11 +29,18 @@ export default function LocationPicker({
   const markerRef = useRef<L.Marker | null>(null);
   const onLocationSelectRef = useRef(onLocationSelect);
 
-  const markerIcon = L.divIcon({
-    className: "",
-    html: '<div style="width:18px;height:18px;border-radius:9999px;background:#2563eb;border:2px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.35);"></div>',
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
+  const markerIconRef = useRef(
+    L.divIcon({
+      className: "",
+      html: '<div class="tf-location-marker"></div>',
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
+    })
+  );
+
+  const markerOptionsRef = useRef<L.MarkerOptions>({
+    icon: markerIconRef.current,
+    zIndexOffset: 1000,
   });
 
   useEffect(() => {
@@ -53,8 +60,20 @@ export default function LocationPicker({
 
     mapRef.current.on("click", (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
+
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      } else if (mapRef.current) {
+        markerRef.current = L.marker([lat, lng], markerOptionsRef.current).addTo(mapRef.current);
+      }
+
       onLocationSelectRef.current(lat, lng);
     });
+
+    if (Number.isFinite(initialLat) && Number.isFinite(initialLng)) {
+      markerRef.current = L.marker([initialLat, initialLng], markerOptionsRef.current).addTo(mapRef.current);
+      mapRef.current.setView([initialLat, initialLng], 13);
+    }
     
     // Cleanup
     return () => {
@@ -74,7 +93,7 @@ export default function LocationPicker({
     if (markerRef.current) {
         markerRef.current.setLatLng([initialLat, initialLng]);
     } else {
-        markerRef.current = L.marker([initialLat, initialLng], { icon: markerIcon }).addTo(mapRef.current);
+        markerRef.current = L.marker([initialLat, initialLng], markerOptionsRef.current).addTo(mapRef.current);
     }
     
     mapRef.current.setView([initialLat, initialLng], 13);

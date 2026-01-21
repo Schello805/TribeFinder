@@ -147,3 +147,28 @@ html.dark body ::placeholder {
 .leaflet-container .leaflet-marker-shadow {
   max-width: none !important;
 }
+
+.leaflet-container .leaflet-tile-pane {
+  z-index: 200;
+}
+
+.leaflet-container .leaflet-overlay-pane {
+  z-index: 400;
+}
+
+.leaflet-container .leaflet-marker-pane {
+  z-index: 600;
+}
+
+.leaflet-container .leaflet-popup-pane {
+  z-index: 700;
+}
+
+.tf-location-marker {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #2563eb;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}

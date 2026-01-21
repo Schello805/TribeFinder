@@ -24,18 +24,20 @@ confirm() {
 }
 
 require_cmd git
-require_cmd docker
 
-if docker compose version >/dev/null 2>&1; then
-  DOCKER_COMPOSE=(docker compose)
-elif command -v docker-compose >/dev/null 2>&1; then
-  DOCKER_COMPOSE=(docker-compose)
-else
-  die "Docker Compose not found (need 'docker compose' or 'docker-compose')."
+HAS_DOCKER=0
+if command -v docker >/dev/null 2>&1 && [[ -f docker-compose.yml ]]; then
+  HAS_DOCKER=1
 fi
 
-if [[ ! -f docker-compose.yml ]]; then
-  die "docker-compose.yml not found in repo root."
+if [[ "$HAS_DOCKER" -eq 1 ]]; then
+  if docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE=(docker compose)
+  elif command -v docker-compose >/dev/null 2>&1; then
+    DOCKER_COMPOSE=(docker-compose)
+  else
+    HAS_DOCKER=0
+  fi
 fi
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -71,6 +73,55 @@ REMOTE_SHA="$(git rev-parse "$TARGET_REF")"
 
 if [[ "$LOCAL_SHA" == "$REMOTE_SHA" ]]; then
   echo "Already up-to-date ($BRANCH)."
+  exit 0
+fi
+
+if [[ "$HAS_DOCKER" -ne 1 ]]; then
+  echo "== Native update mode (no Docker) =="
+  require_cmd npm
+
+  echo
+  echo "Consequences if you proceed:"
+  echo "- Will create a DB backup via 'npm run db:backup' (if configured)"
+  echo "- Will 'git pull --ff-only' on branch '$BRANCH'"
+  echo "- Will run: npm ci, npm run db:migrate, npm run build"
+  echo "- Will attempt to restart systemd service 'tribefinder' (best-effort)"
+  echo
+
+  if ! confirm "Proceed with LIVE native update? Type YES to continue: "; then
+    echo "Cancelled. No live changes applied."
+    exit 0
+  fi
+
+  echo "Creating DB backup (best-effort)..."
+  npm run -s db:backup || echo "WARNING: DB backup failed (continuing)."
+
+  echo "Pulling latest code..."
+  git pull --ff-only
+
+  echo "Installing dependencies..."
+  npm ci
+
+  echo "Running Prisma migrations..."
+  npm run -s db:migrate
+
+  echo "Building app..."
+  npm run -s build
+
+  echo "Restarting service (best-effort)..."
+  if command -v systemctl >/dev/null 2>&1; then
+    if systemctl --no-pager status tribefinder >/dev/null 2>&1; then
+      (sudo systemctl restart tribefinder && sudo systemctl --no-pager status tribefinder) || \
+        echo "WARNING: Could not restart systemd service. If you don't have sudo, run: sudo systemctl restart tribefinder"
+    else
+      echo "NOTE: systemd service 'tribefinder' not found (skipping restart)."
+    fi
+  else
+    echo "NOTE: systemctl not found (skipping restart)."
+  fi
+
+  echo
+  echo "Native update finished."
   exit 0
 fi
 
