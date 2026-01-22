@@ -1,11 +1,25 @@
 import { PrismaClient } from "@prisma/client";
+import fs from "node:fs";
 import path from "node:path";
+
+const resolveProjectRoot = () => {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+};
+
+const projectRoot = resolveProjectRoot();
 
 const normalizedDatabaseUrl = process.env.DATABASE_URL
   ? process.env.DATABASE_URL.replace(/\r?\n/g, "").trim()
   : null;
 
-const defaultSqliteUrl = `file:${path.join(process.cwd(), "prisma", "dev.db")}`;
+const defaultSqliteUrl = `file:${path.join(projectRoot, "prisma", "dev.db")}`;
 
 const normalizedSqliteUrl = normalizedDatabaseUrl
   ? normalizedDatabaseUrl
@@ -20,18 +34,37 @@ const normalizedSqliteUrl = normalizedDatabaseUrl
 if (!normalizedSqliteUrl || !normalizedSqliteUrl.startsWith("file:")) {
   process.env.DATABASE_URL = defaultSqliteUrl;
 } else {
-  // If the URL is relative (file:./..., file:../...), resolve it to an absolute path
-  // so Prisma always points to the same sqlite file across build/runtime contexts.
-  if (/^file:\.\.?:\//.test(normalizedSqliteUrl)) {
-    const relPath = normalizedSqliteUrl.replace(/^file:/, "");
-    process.env.DATABASE_URL = `file:${path.resolve(process.cwd(), relPath)}`;
+  const sqlitePath = normalizedSqliteUrl.replace(/^file:/, "");
+  if (!path.isAbsolute(sqlitePath)) {
+    process.env.DATABASE_URL = `file:${path.resolve(projectRoot, sqlitePath)}`;
   } else {
     process.env.DATABASE_URL = normalizedSqliteUrl;
   }
 }
 
 const prismaClientSingleton = () => {
-  return new PrismaClient()
+  const client = new PrismaClient();
+
+  if (process.env.DATABASE_URL?.startsWith("file:")) {
+    const globalForSqlitePragmas = globalThis as unknown as {
+      __tf_sqlite_pragmas_applied?: boolean;
+    };
+
+    if (!globalForSqlitePragmas.__tf_sqlite_pragmas_applied) {
+      globalForSqlitePragmas.__tf_sqlite_pragmas_applied = true;
+      void (async () => {
+        try {
+          await client.$executeRawUnsafe("PRAGMA foreign_keys = ON;");
+          await client.$executeRawUnsafe("PRAGMA journal_mode = WAL;");
+          await client.$executeRawUnsafe("PRAGMA busy_timeout = 5000;");
+        } catch {
+          // best-effort only
+        }
+      })();
+    }
+  }
+
+  return client;
 }
 
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>

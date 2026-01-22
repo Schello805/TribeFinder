@@ -68,6 +68,18 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
+    if (error && typeof error === "object" && "name" in error && (error as { name?: string }).name === "PrismaClientRustPanicError") {
+      return NextResponse.json({
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+          hasMore: false,
+        },
+      });
+    }
     logger.error({ error }, "Error fetching groups");
     return NextResponse.json({ message: "Fehler beim Laden der Gruppen" }, { status: 500 });
   }
@@ -179,6 +191,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json(group, { status: 201 });
   } catch (error) {
+    if (error && typeof error === "object" && "name" in error && (error as { name?: string }).name === "PrismaClientRustPanicError") {
+      return NextResponse.json(
+        { message: "Datenbankfehler (Prisma Engine)" },
+        { status: 503 }
+      );
+    }
     if (error instanceof z.ZodError) {
       logger.warn({ errors: error.issues }, "POST /api/groups - Validation error");
       return NextResponse.json({ message: "Ungültige Daten", errors: error.issues }, { status: 400 });

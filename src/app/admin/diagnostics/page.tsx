@@ -77,9 +77,9 @@ export default function AdminDiagnosticsPage() {
   }
 
   function badge(status: CheckResult["status"]) {
-    if (status === "ok") return "bg-green-100 text-green-800";
-    if (status === "warn") return "bg-yellow-100 text-yellow-800";
-    return "bg-red-100 text-red-800";
+    if (status === "ok") return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200";
+    if (status === "warn") return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200";
+    return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200";
   }
 
   return (
@@ -87,7 +87,7 @@ export default function AdminDiagnosticsPage() {
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Diagnose</h1>
       <AdminNav />
 
-      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">E2E Smoke-Test (Playwright)</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -116,7 +116,7 @@ export default function AdminDiagnosticsPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">Self-Test</h2>
@@ -127,7 +127,7 @@ export default function AdminDiagnosticsPage() {
           <button
             onClick={runDiagnostics}
             disabled={isRunning}
-            className="px-4 py-2 rounded bg-indigo-600 text-white disabled:opacity-50"
+            className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {isRunning ? "Läuft..." : "Diagnose starten"}
           </button>
@@ -135,7 +135,7 @@ export default function AdminDiagnosticsPage() {
       </div>
 
       {results.length > 0 ? (
-        <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
           <div className="px-4 py-5 sm:px-6">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">Ergebnisse</h2>
           </div>

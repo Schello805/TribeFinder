@@ -3,11 +3,21 @@ import prisma from "@/lib/prisma";
 
 export default async function Home() {
   // Fetch stats
-  const [groupCount, eventCount, userCount] = await Promise.all([
-    prisma.group.count(),
-    prisma.event.count({ where: { startDate: { gte: new Date() } } }),
-    prisma.user.count()
-  ]);
+  let groupCount = 0;
+  let eventCount = 0;
+  let userCount = 0;
+  try {
+    const [g, e, u] = await Promise.all([
+      prisma.group.count(),
+      prisma.event.count({ where: { startDate: { gte: new Date() } } }),
+      prisma.user.count(),
+    ]);
+    groupCount = g;
+    eventCount = e;
+    userCount = u;
+  } catch {
+    // Intentionally ignore to keep homepage functional even if Prisma/SQLite is unhealthy.
+  }
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)]">
       {/* Hero Section */}

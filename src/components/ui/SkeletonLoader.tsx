@@ -35,7 +35,7 @@ export function GroupListSkeleton({ count = 6 }: { count?: number }) {
   return (
     <ul className="space-y-4">
       {Array.from({ length: count }).map((_, i) => (
-        <li key={i} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+        <li key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
           <div className="p-4 sm:p-6">
             <div className="flex items-start sm:items-center justify-between gap-6">
               {/* Logo skeleton */}

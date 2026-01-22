@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
 import JoinButton from "@/components/groups/JoinButton";
 import GroupDetailAnimations from "@/components/groups/GroupDetailAnimations";
 import ObfuscatedEmail from "@/components/ui/ObfuscatedEmail";
@@ -19,46 +20,108 @@ export default async function GroupDetailPage({
   const id = (await params).id;
   const session = await getServerSession(authOptions);
 
-  const group = await prisma.group.findUnique({
-    where: { id },
+  type GroupDetailPayload = Prisma.GroupGetPayload<{
     include: {
-      location: true,
-      tags: true,
+      location: true;
+      tags: true;
       owner: {
         select: {
-          id: true,
-          name: true,
-          image: true,
-          email: true,
-        },
-      },
+          id: true;
+          name: true;
+          image: true;
+          email: true;
+        };
+      };
       members: {
         select: {
-          id: true,
-          role: true,
-          status: true,
+          id: true;
+          role: true;
+          status: true;
           user: {
             select: {
-              id: true,
-              name: true,
-              image: true,
-              email: true,
-            }
-          }
-        }
-      },
+              id: true;
+              name: true;
+              image: true;
+              email: true;
+            };
+          };
+        };
+      };
       events: {
         where: {
           startDate: {
-            gte: new Date()
+            gte: Date;
+          };
+        };
+        orderBy: {
+          startDate: "asc";
+        };
+      };
+    };
+  }>;
+
+  let group: GroupDetailPayload | null = null;
+  try {
+    group = await prisma.group.findUnique({
+      where: { id },
+      include: {
+        location: true,
+        tags: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            email: true,
+          },
+        },
+        members: {
+          select: {
+            id: true,
+            role: true,
+            status: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                email: true,
+              }
+            }
           }
         },
-        orderBy: {
-          startDate: 'asc'
+        events: {
+          where: {
+            startDate: {
+              gte: new Date()
+            }
+          },
+          orderBy: {
+            startDate: 'asc'
+          }
         }
-      }
-    },
-  });
+      },
+    });
+  } catch (e) {
+    if (e && typeof e === "object" && "name" in e && (e as { name?: string }).name === "PrismaClientRustPanicError") {
+      return (
+        <div className="max-w-4xl mx-auto space-y-6 pb-12">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gruppe konnte nicht geladen werden</h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-300">
+              Die Datenbank ist aktuell nicht erreichbar.
+            </p>
+            <div className="mt-4">
+              <Link href="/groups" className="text-indigo-600 dark:text-indigo-300 hover:underline">
+                Zurück zur Gruppenübersicht
+              </Link>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    throw e;
+  }
 
   if (!group) {
     notFound();

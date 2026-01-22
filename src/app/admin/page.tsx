@@ -17,25 +17,42 @@ export default async function AdminPage() {
   }
 
   // Statistiken laden
-  const pendingTagsCount = await prisma.tag.count({
-    where: { isApproved: false }
-  });
+  let pendingTagsCount = 0;
+  let totalTagsCount = 0;
+  let totalGroupsCount = 0;
+  let totalUsersCount = 0;
+  let pendingTags: Array<{ id: string; name: string; isApproved: boolean }> = [];
+  let approvedTags: Array<{ id: string; name: string; isApproved: boolean }> = [];
 
-  const pendingTags = await prisma.tag.findMany({
-    where: { isApproved: false },
-    take: 5,
-    orderBy: { name: 'asc' }
-  });
+  try {
+    pendingTagsCount = await prisma.tag.count({
+      where: { isApproved: false },
+    });
+    totalTagsCount = await prisma.tag.count();
+    totalGroupsCount = await prisma.group.count();
+    totalUsersCount = await prisma.user.count();
 
-  const approvedTags = await prisma.tag.findMany({
-    where: { isApproved: true },
-    take: 20,
-    orderBy: { name: 'asc' }
-  });
+    pendingTags = await prisma.tag.findMany({
+      where: { isApproved: false },
+      take: 5,
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, isApproved: true },
+    });
 
-  const totalTagsCount = await prisma.tag.count();
-  const totalGroupsCount = await prisma.group.count();
-  const totalUsersCount = await prisma.user.count();
+    approvedTags = await prisma.tag.findMany({
+      where: { isApproved: true },
+      take: 20,
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, isApproved: true },
+    });
+  } catch {
+    pendingTagsCount = 0;
+    totalTagsCount = 0;
+    totalGroupsCount = 0;
+    totalUsersCount = 0;
+    pendingTags = [];
+    approvedTags = [];
+  }
 
   // Settings laden
   const settings = await prisma.systemSetting.findMany({

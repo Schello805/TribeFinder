@@ -71,24 +71,24 @@ export default function UsersList({
   };
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-      <ul role="list" className="divide-y divide-gray-200">
+    <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-transparent dark:border-gray-700">
+      <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
         {users.map((user) => (
-          <li key={user.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50">
+          <li key={user.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-900/40">
             <div className="flex items-center justify-between">
               <div className="flex items-center min-w-0 gap-4">
                 <div className="flex-shrink-0">
-                    <span className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 text-indigo-500 font-bold">
+                    <span className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-200 font-bold">
                         {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
                     </span>
                 </div>
                 <div className="min-w-0 truncate">
-                  <p className="text-sm font-medium text-indigo-600 truncate">{user.name || "Kein Name"}</p>
-                  <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                  <p className="text-sm font-medium text-indigo-600 dark:text-indigo-300 truncate">{user.name || "Kein Name"}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                 </div>
                 <div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                        user.role === 'ADMIN' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200' : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200'
                     }`}>
                         {user.role}
                     </span>
@@ -96,7 +96,7 @@ export default function UsersList({
 
                 {user.isBlocked ? (
                   <div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">
                       GESPERRT
                     </span>
                   </div>
@@ -108,7 +108,7 @@ export default function UsersList({
                   type="button"
                   disabled={busyId === user.id || user.id === currentUserId}
                   onClick={() => patchUser(user.id, { role: user.role === "ADMIN" ? "USER" : "ADMIN" })}
-                  className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50"
+                  className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
                   title={user.id === currentUserId ? "Du kannst deine eigene Rolle nicht ändern" : undefined}
                 >
                   {user.role === "ADMIN" ? "Admin entfernen" : "Admin machen"}
@@ -118,7 +118,7 @@ export default function UsersList({
                   type="button"
                   disabled={busyId === user.id || user.id === currentUserId}
                   onClick={() => patchUser(user.id, { isBlocked: !user.isBlocked })}
-                  className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50"
+                  className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
                   title={user.id === currentUserId ? "Du kannst dich nicht selbst sperren" : undefined}
                 >
                   {user.isBlocked ? "Entsperren" : "Sperren"}
@@ -128,14 +128,14 @@ export default function UsersList({
                   type="button"
                   disabled={busyId === user.id || user.id === currentUserId}
                   onClick={() => deleteUser(user.id)}
-                  className="px-3 py-2 rounded-md text-sm font-medium border border-red-200 bg-white text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  className="px-3 py-2 rounded-md text-sm font-medium border border-red-200 dark:border-red-800 bg-white dark:bg-gray-950 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
                   title={user.id === currentUserId ? "Du kannst dich nicht selbst löschen" : undefined}
                 >
                   Löschen
                 </button>
 
                 {user.id === currentUserId ? (
-                  <span className="ml-1 text-xs text-gray-400">(Du)</span>
+                  <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">(Du)</span>
                 ) : null}
               </div>
             </div>

@@ -52,7 +52,7 @@ export default function GroupsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Tanzgruppen finden</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tanzgruppen finden</h1>
         <Link
           href="/groups/create"
           className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"

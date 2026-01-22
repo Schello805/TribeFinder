@@ -67,8 +67,14 @@ if id "tribefinder" &>/dev/null; then
         chown tribefinder:tribefinder /home/tribefinder
     fi
 else
-    useradd -r -m -s /bin/bash tribefinder
+    useradd -m -s /bin/bash tribefinder
     echo -e "${GREEN}User 'tribefinder' erstellt.${NC}"
+fi
+
+PASS_STATUS="$(passwd -S tribefinder 2>/dev/null | awk '{print $2}' || true)"
+if [ "$PASS_STATUS" != "P" ]; then
+    echo -e "${YELLOW}Bitte setze jetzt ein Passwort für den User 'tribefinder' (wird für sudo/Updates benötigt).${NC}"
+    passwd tribefinder
 fi
 echo "tribefinder passwd entry: $(getent passwd tribefinder || true)"
 echo ""

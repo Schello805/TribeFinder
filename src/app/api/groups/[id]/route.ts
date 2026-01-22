@@ -52,6 +52,9 @@ export async function GET(
 
     return NextResponse.json(group);
   } catch (error) {
+    if (error && typeof error === "object" && "name" in error && (error as { name?: string }).name === "PrismaClientRustPanicError") {
+      return NextResponse.json({ message: "Datenbankfehler (Prisma Engine)" }, { status: 503 });
+    }
     logger.error({ error, groupId: id }, "Error fetching group");
     return NextResponse.json({ message: "Fehler beim Laden der Gruppe" }, { status: 500 });
   }

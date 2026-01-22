@@ -121,7 +121,7 @@ export default function AdminSystemPage() {
   }
 
   if (status === "loading" || isLoading) {
-    return <div className="p-8 text-center">Laden...</div>;
+    return <div className="p-8 text-center text-gray-900 dark:text-gray-100">Laden...</div>;
   }
 
   if (session?.user?.role !== "ADMIN") return null;
@@ -131,7 +131,7 @@ export default function AdminSystemPage() {
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">System</h1>
       <AdminNav />
 
-      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">System-Informationen</h2>
@@ -140,14 +140,14 @@ export default function AdminSystemPage() {
           <button
             onClick={refresh}
             disabled={isRefreshing}
-            className="px-4 py-2 rounded bg-indigo-600 text-white disabled:opacity-50"
+            className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {isRefreshing ? "Aktualisiere..." : "Aktualisieren"}
           </button>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">Datenbank</h2>
         </div>
@@ -167,9 +167,9 @@ export default function AdminSystemPage() {
           <div>
             <span className="font-semibold">DB Ping:</span>{" "}
             {info?.database?.checks?.dbPingOk ? (
-              <span className="text-green-700">OK</span>
+              <span className="text-green-700 dark:text-green-300">OK</span>
             ) : (
-              <span className="text-red-700">FEHLER</span>
+              <span className="text-red-700 dark:text-red-300">FEHLER</span>
             )}
           </div>
           {info?.database?.checks?.dbPingError ? (
@@ -178,7 +178,7 @@ export default function AdminSystemPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">Runtime</h2>
         </div>
@@ -195,7 +195,7 @@ export default function AdminSystemPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">Pakete</h2>
         </div>
@@ -209,7 +209,7 @@ export default function AdminSystemPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">Uploads</h2>
         </div>

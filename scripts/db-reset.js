@@ -10,6 +10,7 @@
  */
 
 const { execSync } = require('child_process');
+const path = require('path');
 
 const ALLOW_RESET = process.env.ALLOW_DB_RESET === 'true';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -40,8 +41,15 @@ console.log('This will DELETE all data and re-apply migrations.');
 console.log('');
 
 try {
+  const projectRoot = path.resolve(__dirname, '..');
+  const dbPath = path.join(projectRoot, 'prisma', 'dev.db');
+  process.env.DATABASE_URL = `file:${dbPath}`;
+
   console.log('🔄 Running: prisma migrate reset --force');
-  execSync('npx prisma migrate reset --force', { stdio: 'inherit' });
+  execSync('npx prisma migrate reset --force', {
+    stdio: 'inherit',
+    env: process.env,
+  });
   console.log('');
   console.log('✅ Database reset complete.');
   console.log('   You will need to register a new user account.');

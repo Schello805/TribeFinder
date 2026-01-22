@@ -71,19 +71,19 @@ export default function DashboardNotificationsPage() {
   };
 
   if (status === "loading" || isLoading) {
-    return <div className="p-8 text-center">Laden...</div>;
+    return <div className="p-8 text-center text-gray-700 dark:text-gray-200">Laden...</div>;
   }
 
   if (!session?.user) return null;
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900">Benachrichtigungen</h2>
-      <div className="bg-white shadow sm:rounded-lg p-6 space-y-4">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Benachrichtigungen</h2>
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 space-y-4 border border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <div className="text-lg font-medium text-gray-900">E-Mail Benachrichtigungen</div>
-            <div className="text-sm text-gray-500">Aktiviere/Deaktiviere Benachrichtigungen per E-Mail.</div>
+            <div className="text-lg font-medium text-gray-900 dark:text-white">E-Mail Benachrichtigungen</div>
+            <div className="text-sm text-gray-500 dark:text-gray-300">Aktiviere/Deaktiviere Benachrichtigungen per E-Mail.</div>
           </div>
           <button
             type="button"
@@ -91,15 +91,15 @@ export default function DashboardNotificationsPage() {
             className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
               prefs.emailNotifications
                 ? "bg-indigo-600 text-white border-indigo-600"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
             {prefs.emailNotifications ? "Aktiv" : "Inaktiv"}
           </button>
         </div>
 
-        <div className="border-t border-gray-100 pt-4 space-y-3">
-          <div className="text-sm font-medium text-gray-900">Neue Inhalte in deiner Nähe</div>
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-4 space-y-3">
+          <div className="text-sm font-medium text-gray-900 dark:text-white">Neue Inhalte in deiner Nähe</div>
 
           <div className="flex flex-wrap gap-2">
             <button
@@ -108,7 +108,7 @@ export default function DashboardNotificationsPage() {
               className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
                 prefs.notifyNewGroups
                   ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               Neue Gruppen
@@ -120,20 +120,20 @@ export default function DashboardNotificationsPage() {
               className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
                 prefs.notifyNewEvents
                   ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               Neue Events
             </button>
           </div>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+          <div className="bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
-                <div className="text-sm font-medium text-gray-900">Umkreis</div>
-                <div className="text-xs text-gray-500">Wähle, in welchem Radius du Benachrichtigungen bekommst.</div>
+                <div className="text-sm font-medium text-gray-900 dark:text-white">Umkreis</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Wähle, in welchem Radius du Benachrichtigungen bekommst.</div>
               </div>
-              <div className="text-sm font-bold text-indigo-700">{prefs.notifyRadius} km</div>
+              <div className="text-sm font-bold text-indigo-700 dark:text-indigo-300">{prefs.notifyRadius} km</div>
             </div>
 
             <input

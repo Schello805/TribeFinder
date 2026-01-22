@@ -141,7 +141,7 @@ export default function AdminSettingsPage() {
   };
 
   if (status === 'loading' || isLoading) {
-    return <div className="p-8 text-center">Laden...</div>;
+    return <div className="p-8 text-center text-gray-900 dark:text-gray-100">Laden...</div>;
   }
 
   if (session?.user?.role !== 'ADMIN') {
@@ -156,7 +156,7 @@ export default function AdminSettingsPage() {
         <AdminNav />
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8 border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Branding</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Webapp Logo (Navbar/Footer).</p>
@@ -311,7 +311,7 @@ export default function AdminSettingsPage() {
         </div>
       </form>
 
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8 border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Verbindung testen</h3>
         </div>
@@ -324,7 +324,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Analytics / Matomo Section */}
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Analytics (Matomo)</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
