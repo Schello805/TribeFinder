@@ -95,13 +95,13 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
     <div className="space-y-8">
       {/* Pending Requests */}
       {pendingMembers.length > 0 && (
-        <div className="bg-yellow-50 rounded-xl border border-yellow-100 p-6">
-          <h3 className="text-lg font-bold text-yellow-800 mb-4 flex items-center gap-2">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-100 dark:border-yellow-800 p-6">
+          <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
             <span>🔔</span> Beitrittsanfragen ({pendingMembers.length})
           </h3>
           <ul className="space-y-4">
             {pendingMembers.map(member => (
-              <li key={member.id} className="bg-white p-4 rounded-lg shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <li key={member.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-gray-100 dark:border-gray-700">
                 <div className="flex items-center gap-3">
                   {member.user.image ? (
                     <>
@@ -109,13 +109,13 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                       <img src={normalizeUploadedImageUrl(member.user.image) ?? ""} alt={member.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                     </>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-bold">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
                       {member.user.name?.charAt(0) || "?"}
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-gray-900">{member.user.name || "Unbekannt"}</p>
-                    <div className="text-sm text-gray-500">
+                    <p className="font-medium text-gray-900 dark:text-white">{member.user.name || "Unbekannt"}</p>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                         <ObfuscatedEmail email={member.user.email} />
                     </div>
                   </div>
@@ -131,7 +131,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                   <button
                     onClick={() => handleAction(member.user.id, 'reject')}
                     disabled={isLoading === member.user.id}
-                    className="px-3 py-1.5 bg-red-100 text-red-700 text-sm font-medium rounded-md hover:bg-red-200 disabled:opacity-50"
+                    className="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-200 text-sm font-medium rounded-md hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50"
                   >
                     Ablehnen
                   </button>
@@ -143,11 +143,11 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
       )}
 
       {/* Member List */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <span>👥</span> Mitglieder ({approvedMembers.length})
         </h3>
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-gray-100 dark:divide-gray-700">
           {approvedMembers.map(member => (
             <li key={member.id} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -157,18 +157,18 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                       <img src={normalizeUploadedImageUrl(member.user.image) ?? ""} alt={member.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                     </>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-bold">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
                       {member.user.name?.charAt(0) || "?"}
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-gray-900 flex items-center gap-2">
+                    <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                       {member.user.name || "Unbekannt"}
                       {member.role === 'ADMIN' && (
-                        <span className="bg-indigo-100 text-indigo-700 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Admin</span>
+                        <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-200 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Admin</span>
                       )}
                     </p>
-                     <div className="text-sm text-gray-500">
+                     <div className="text-sm text-gray-500 dark:text-gray-400">
                         <ObfuscatedEmail email={member.user.email} />
                     </div>
                   </div>
@@ -181,7 +181,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                      <button
                         onClick={() => handleAction(member.user.id, 'promote')}
                         disabled={isLoading === member.user.id}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2 py-1 rounded hover:bg-indigo-50"
+                        className="text-xs text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium px-2 py-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
                         title="Zum Admin befördern"
                       >
                         ↑ Admin
@@ -190,7 +190,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                       <button
                         onClick={() => handleAction(member.user.id, 'demote')}
                         disabled={isLoading === member.user.id}
-                        className="text-xs text-gray-500 hover:text-gray-700 font-medium px-2 py-1 rounded hover:bg-gray-50"
+                        className="text-xs text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 font-medium px-2 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
                         title="Admin-Rechte entziehen"
                       >
                         ↓ Member
@@ -204,7 +204,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                         }
                     }}
                     disabled={isLoading === member.user.id}
-                    className="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded hover:bg-red-50"
+                    className="text-xs text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 font-medium px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
                   >
                     Entfernen
                   </button>

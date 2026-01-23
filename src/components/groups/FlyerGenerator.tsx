@@ -28,14 +28,16 @@ export default function FlyerGenerator({ group }: FlyerGeneratorProps) {
   const { showToast } = useToast();
 
   const handlePreview = async () => {
-    setIsGenerating(true);
-    
     try {
       const url = `/api/groups/${group.id}/flyer?disposition=inline`;
-      const win = window.open(url, "_blank", "noopener,noreferrer");
+      const win = window.open("about:blank", "_blank");
       if (!win) {
         throw new Error("Popup blockiert");
       }
+
+      setIsGenerating(true);
+      win.opener = null;
+      win.location.href = url;
       showToast("Flyer-Vorschau geöffnet", "success");
     } catch (error) {
       console.error("Flyer preview failed:", error);

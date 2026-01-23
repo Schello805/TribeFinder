@@ -61,7 +61,10 @@ const getSizeLabel = (size: string | null) => {
 export async function GET(req: Request, { params }: RouteParams) {
   const { id } = await params;
   const requestUrl = new URL(req.url);
-  const origin = requestUrl.origin;
+  const forwardedProto = req.headers.get("x-forwarded-proto") || "";
+  const forwardedHost = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+  const envBase = (process.env.NEXTAUTH_URL || "").replace(/\/$/, "");
+  const origin = forwardedProto && forwardedHost ? `${forwardedProto}://${forwardedHost}` : (envBase || requestUrl.origin);
 
   const drawGradientHeader = (doc: jsPDF, pageWidth: number) => {
     const topH = 52;
