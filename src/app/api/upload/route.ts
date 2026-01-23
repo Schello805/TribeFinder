@@ -16,7 +16,8 @@ export async function POST(req: Request) {
 
   try {
     const formData = await req.formData();
-    const file = formData.get('file') as File;
+    const fileEntry = formData.get('file');
+    const file = fileEntry instanceof File ? fileEntry : null;
 
     if (!file) {
       return NextResponse.json({ error: 'Keine Datei hochgeladen' }, { status: 400 });
@@ -83,11 +84,7 @@ export async function POST(req: Request) {
     const uploadDir = path.join(process.cwd(), 'public/uploads');
 
     // Sicherstellen, dass das Verzeichnis existiert
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch {
-      // Ignorieren, wenn existiert
-    }
+    await mkdir(uploadDir, { recursive: true });
 
     const filepath = path.join(uploadDir, filename);
     await writeFile(filepath, buffer);
@@ -95,7 +92,23 @@ export async function POST(req: Request) {
     logger.info({ filename, size: file.size, type: file.type }, 'File uploaded successfully');
     return NextResponse.json({ url: `/uploads/${filename}` });
   } catch (error) {
-    logger.error({ error }, 'Upload error');
-    return NextResponse.json({ error: 'Fehler beim Upload' }, { status: 500 });
+    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    logger.error(
+      {
+        error,
+        uploadDir,
+        cwd: process.cwd(),
+        nodeEnv: process.env.NODE_ENV,
+      },
+      'Upload error'
+    );
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json(
+      {
+        error: 'Fehler beim Upload',
+        ...(process.env.NODE_ENV !== 'production' ? { details: message } : {}),
+      },
+      { status: 500 }
+    );
   }
 }
