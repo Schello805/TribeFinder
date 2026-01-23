@@ -39,6 +39,9 @@ export default function AdminBackupsPage() {
   const [inspection, setInspection] = useState<BackupInspection | null>(null);
   const [isInspecting, setIsInspecting] = useState(false);
 
+  const [backupIntervalHours, setBackupIntervalHours] = useState<number>(24);
+  const [isSavingInterval, setIsSavingInterval] = useState(false);
+
   const loadBackups = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/backups");
@@ -137,6 +140,26 @@ export default function AdminBackupsPage() {
   }, [status, session, router, loadBackups]);
 
   useEffect(() => {
+    if (status !== "authenticated" || session?.user?.role !== "ADMIN") return;
+
+    let canceled = false;
+    fetch("/api/admin/settings")
+      .then((r) => r.json().then((j) => ({ ok: r.ok, j })))
+      .then(({ ok, j }) => {
+        if (canceled) return;
+        if (!ok) throw new Error(j?.message || "Einstellungen konnten nicht geladen werden");
+        const raw = j?.BACKUP_INTERVAL_HOURS;
+        const n = Number(raw);
+        setBackupIntervalHours(Number.isFinite(n) ? n : 24);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      canceled = true;
+    };
+  }, [status, session]);
+
+  useEffect(() => {
     if (!restoreFilename) {
       setInspection(null);
       return;
@@ -181,6 +204,24 @@ export default function AdminBackupsPage() {
     }
   }
 
+  async function saveBackupInterval() {
+    setIsSavingInterval(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ BACKUP_INTERVAL_HOURS: String(backupIntervalHours) }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+      showToast("Backup-Intervall gespeichert", "success");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Speichern fehlgeschlagen", "error");
+    } finally {
+      setIsSavingInterval(false);
+    }
+  }
+
   function formatBytes(bytes: number) {
     if (bytes < 1024) return `${bytes} B`;
     const kb = bytes / 1024;
@@ -199,6 +240,40 @@ export default function AdminBackupsPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Backups</h1>
       <AdminNav />
+
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
+        <div className="px-4 py-5 sm:px-6">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white">Automatische Backups</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Intervall für automatische Server-Backups. Der Server prüft stündlich, ob ein Backup fällig ist.
+          </p>
+
+          <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:items-center">
+            <select
+              value={backupIntervalHours}
+              onChange={(e) => setBackupIntervalHours(Number(e.target.value))}
+              className="px-3 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-black dark:text-white"
+            >
+              <option value={0}>Deaktiviert</option>
+              <option value={1}>Alle 1 Stunde</option>
+              <option value={6}>Alle 6 Stunden</option>
+              <option value={12}>Alle 12 Stunden</option>
+              <option value={24}>Täglich</option>
+              <option value={48}>Alle 2 Tage</option>
+              <option value={72}>Alle 3 Tage</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={saveBackupInterval}
+              disabled={isSavingInterval}
+              className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {isSavingInterval ? "Speichere..." : "Speichern"}
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 flex items-center justify-between">

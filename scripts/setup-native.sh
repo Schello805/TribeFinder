@@ -238,12 +238,19 @@ echo ""
 echo -e "${YELLOW}[4/5] Richte Systemd Service ein...${NC}"
 cp config/tribefinder.service /etc/systemd/system/tribefinder.service
 
+# Auto-Backup Timer installieren (stündlicher Check, Intervall im Admin-Backups Tab)
+cp config/tribefinder-auto-backup.service /etc/systemd/system/tribefinder-auto-backup.service
+cp config/tribefinder-auto-backup.timer /etc/systemd/system/tribefinder-auto-backup.timer
+
 # Passe WorkingDirectory an falls nötig
 sed -i "s|WorkingDirectory=.*|WorkingDirectory=$INSTALL_DIR|" /etc/systemd/system/tribefinder.service
 
 systemctl daemon-reload
 systemctl enable tribefinder
 systemctl start tribefinder
+
+systemctl enable tribefinder-auto-backup.timer
+systemctl start tribefinder-auto-backup.timer
 
 sleep 2
 if systemctl is-active --quiet tribefinder; then

@@ -40,7 +40,7 @@ sudo apt update && sudo apt upgrade -y
 
 ### Benötigte System-Pakete installieren
 ```bash
-sudo apt install -y git curl ca-certificates openssl nginx certbot python3-certbot-nginx
+sudo apt install -y git curl ca-certificates openssl nginx certbot python3-certbot-nginx acl
 ```
 
 ## 2. Node.js installieren
@@ -218,6 +218,23 @@ server {
     # Weiterleitung zu HTTPS (wird nach SSL-Setup aktiv)
     # return 301 https://$server_name$request_uri;
 
+    # Uploads direkt ausliefern (empfohlen)
+    location ^~ /uploads/ {
+        alias /home/tribefinder/TribeFinder/public/uploads/;
+        access_log off;
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
+    location ^~ /_next/ {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
@@ -238,6 +255,15 @@ server {
     # Upload-Limit
     client_max_body_size 10M;
 }
+```
+
+Hinweis: Wenn `/home/tribefinder` auf `750` steht, braucht Nginx (`www-data`) Traverse-Rechte, sonst gibt es `403` bei `/uploads/*`.
+Empfohlen (minimal via ACL):
+```bash
+sudo setfacl -m u:www-data:--x /home/tribefinder
+sudo setfacl -m u:www-data:--x /home/tribefinder/TribeFinder
+sudo setfacl -m u:www-data:--x /home/tribefinder/TribeFinder/public
+sudo setfacl -m u:www-data:--x /home/tribefinder/TribeFinder/public/uploads
 ```
 
 ### Konfiguration aktivieren
@@ -330,6 +356,16 @@ Füge hinzu (täglich um 2 Uhr nachts):
 0 2 * * * cd /home/tribefinder/TribeFinder && npm run db:backup
 ```
 
+Alternativ (empfohlen): automatische Server-Backups via systemd Timer.
+Das Intervall kann im Admin-Bereich unter **Admin → Backups** als `BACKUP_INTERVAL_HOURS` eingestellt werden.
+
+Timer aktivieren:
+```bash
+sudo systemctl enable tribefinder-auto-backup.timer
+sudo systemctl start tribefinder-auto-backup.timer
+sudo systemctl list-timers | grep tribefinder-auto-backup
+```
+
 ## 10. Firewall (optional, aber empfohlen)
 
 ### UFW installieren und konfigurieren
@@ -392,6 +428,12 @@ ls -la /home/tribefinder/TribeFinder/public/uploads
 # Rechte setzen
 sudo chown -R tribefinder:tribefinder /home/tribefinder/TribeFinder/public/uploads
 chmod 755 /home/tribefinder/TribeFinder/public/uploads
+```
+
+### E2E Tests (Playwright) schlagen fehl (Browser fehlt)
+Wenn `npm run e2e` meldet, dass Chromium fehlt:
+```bash
+npx playwright install
 ```
 
 ## Performance-Tipps

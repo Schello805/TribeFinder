@@ -91,6 +91,15 @@ echo -e "${YELLOW}[6/7] Erstelle Production Build...${NC}"
 npm run build
 echo ""
 
+# Auto-Backup Timer/Service aktualisieren (falls vorhanden)
+echo -e "${YELLOW}[6.1/7] Aktualisiere Auto-Backup Timer...${NC}"
+sudo cp -f config/tribefinder-auto-backup.service /etc/systemd/system/tribefinder-auto-backup.service || true
+sudo cp -f config/tribefinder-auto-backup.timer /etc/systemd/system/tribefinder-auto-backup.timer || true
+sudo systemctl daemon-reload || true
+sudo systemctl enable tribefinder-auto-backup.timer || true
+sudo systemctl start tribefinder-auto-backup.timer || true
+echo ""
+
 # Service neustarten
 echo -e "${YELLOW}[7/7] Starte Service neu...${NC}"
 sudo systemctl restart tribefinder
