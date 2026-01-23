@@ -1,7 +1,8 @@
-import { cp, mkdir, mkdtemp, readdir, rename, rm, stat } from "fs/promises";
+import { cp, mkdir, mkdtemp, readdir, rename, rm, stat, writeFile } from "fs/promises";
 import path from "path";
 import { spawn } from "child_process";
 import os from "os";
+import prisma from "@/lib/prisma";
 
 function runCommand(cmd: string, args: string[], cwd: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
@@ -69,8 +70,16 @@ export async function createBackup() {
   try {
     const tmpDb = path.join(tmpRoot, "db.sqlite");
     const tmpUploads = path.join(tmpRoot, "uploads");
+    const tmpSettings = path.join(tmpRoot, "settings.json");
 
     await cp(dbPath, tmpDb);
+
+    const settings = await prisma.systemSetting.findMany({ orderBy: { key: "asc" } });
+    const payload = settings.reduce((acc: Record<string, string>, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {} as Record<string, string>);
+    await writeFile(tmpSettings, JSON.stringify(payload, null, 2), "utf8");
 
     const uploadsExists = await stat(uploadsDir)
       .then(() => true)
@@ -81,7 +90,7 @@ export async function createBackup() {
       await mkdir(tmpUploads, { recursive: true });
     }
 
-    await runTar(["-czf", outPath, "db.sqlite", "uploads"], tmpRoot);
+    await runTar(["-czf", outPath, "db.sqlite", "uploads", "settings.json"], tmpRoot);
   } finally {
     await rm(tmpRoot, { recursive: true, force: true });
   }

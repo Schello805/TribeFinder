@@ -42,6 +42,8 @@ export default function AdminBackupsPage() {
   const [backupIntervalHours, setBackupIntervalHours] = useState<number>(24);
   const [isSavingInterval, setIsSavingInterval] = useState(false);
 
+  const allowedBackupIntervals = new Set([0, 24, 168, 720]);
+
   const loadBackups = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/backups");
@@ -150,7 +152,8 @@ export default function AdminBackupsPage() {
         if (!ok) throw new Error(j?.message || "Einstellungen konnten nicht geladen werden");
         const raw = j?.BACKUP_INTERVAL_HOURS;
         const n = Number(raw);
-        setBackupIntervalHours(Number.isFinite(n) ? n : 24);
+        const v = Number.isFinite(n) ? n : 24;
+        setBackupIntervalHours(allowedBackupIntervals.has(v) ? v : 24);
       })
       .catch(() => undefined);
 
@@ -255,12 +258,9 @@ export default function AdminBackupsPage() {
               className="px-3 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-black dark:text-white"
             >
               <option value={0}>Deaktiviert</option>
-              <option value={1}>Alle 1 Stunde</option>
-              <option value={6}>Alle 6 Stunden</option>
-              <option value={12}>Alle 12 Stunden</option>
               <option value={24}>Täglich</option>
-              <option value={48}>Alle 2 Tage</option>
-              <option value={72}>Alle 3 Tage</option>
+              <option value={168}>Wöchentlich</option>
+              <option value={720}>Monatlich</option>
             </select>
 
             <button

@@ -49,7 +49,7 @@ async function createTarGz(outPath, cwd, files) {
   });
 }
 
-async function createServerBackup() {
+async function createServerBackup(settingsPayload) {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
 
@@ -71,6 +71,7 @@ async function createServerBackup() {
   try {
     const tmpDb = path.join(tmpRoot, "db.sqlite");
     const tmpUploads = path.join(tmpRoot, "uploads");
+    const tmpSettings = path.join(tmpRoot, "settings.json");
 
     await fs.cp(dbPath, tmpDb);
 
@@ -85,7 +86,13 @@ async function createServerBackup() {
       await fs.mkdir(tmpUploads, { recursive: true });
     }
 
-    await createTarGz(outPath, tmpRoot, ["db.sqlite", "uploads"]);
+    if (settingsPayload && typeof settingsPayload === "object") {
+      await fs.writeFile(tmpSettings, JSON.stringify(settingsPayload, null, 2), "utf8");
+    } else {
+      await fs.writeFile(tmpSettings, "{}\n", "utf8");
+    }
+
+    await createTarGz(outPath, tmpRoot, ["db.sqlite", "uploads", "settings.json"]);
   } finally {
     await fs.rm(tmpRoot, { recursive: true, force: true });
   }
@@ -124,7 +131,13 @@ async function main() {
       return;
     }
 
-    const result = await createServerBackup();
+    const allSettings = await prisma.systemSetting.findMany({ orderBy: { key: "asc" } });
+    const settingsPayload = allSettings.reduce((acc, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {});
+
+    const result = await createServerBackup(settingsPayload);
 
     await prisma.systemSetting.upsert({
       where: { key: "LAST_AUTO_BACKUP_AT" },
