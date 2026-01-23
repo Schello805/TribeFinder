@@ -43,7 +43,7 @@ echo ""
 # 1. System-Pakete
 echo -e "${YELLOW}[1/5] Installiere System-Pakete...${NC}"
 apt update
-apt install -y git curl ca-certificates openssl nginx certbot python3-certbot-nginx acl
+apt install -y git curl ca-certificates openssl nginx certbot python3-certbot-nginx acl sqlite3
 
 # Node.js installieren
 if ! command -v node &> /dev/null; then
@@ -138,11 +138,17 @@ mkdir -p public/uploads
 chown -R tribefinder:tribefinder public/uploads
 chmod 755 public/uploads
 
+# Backups-Verzeichnis (für manuelle + automatische Backups)
+mkdir -p backups
+chown -R tribefinder:tribefinder backups
+chmod 755 backups
+
 # Erlaube Nginx (www-data) das Ausliefern von /uploads via alias (ACL, minimal)
 setfacl -m u:www-data:--x /home/tribefinder || true
 setfacl -m u:www-data:--x "$INSTALL_DIR" || true
 setfacl -m u:www-data:--x "$INSTALL_DIR/public" || true
 setfacl -m u:www-data:--x "$INSTALL_DIR/public/uploads" || true
+setfacl -d -m u:www-data:--x "$INSTALL_DIR/public/uploads" || true
 setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.jpg 2>/dev/null || true
 setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.png 2>/dev/null || true
 setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.webp 2>/dev/null || true
