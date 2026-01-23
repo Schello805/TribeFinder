@@ -11,6 +11,7 @@ import MemberManagement from "@/components/groups/MemberManagement";
 import GalleryManager from "@/components/groups/GalleryManager";
 import FlyerGenerator from "@/components/groups/FlyerGenerator";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 export default async function GroupDetailPage({
   params,
@@ -355,7 +356,7 @@ export default async function GroupDetailPage({
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-500"
-                            src={group.owner.image}
+                            src={normalizeUploadedImageUrl(group.owner.image) ?? ""}
                             alt={group.owner.name || "Owner"}
                           />
                         </>

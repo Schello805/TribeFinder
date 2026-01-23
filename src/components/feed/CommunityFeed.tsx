@@ -7,6 +7,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import { usePosts } from "@/lib/hooks";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 export default function CommunityFeed() {
   const { data: session } = useSession();
@@ -89,7 +90,7 @@ export default function CommunityFeed() {
                 {session.user?.image ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={session.user.image} alt={session.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
+                    <img src={normalizeUploadedImageUrl(session.user.image) ?? ""} alt={session.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                   </>
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-500 dark:text-indigo-300 font-bold">
@@ -110,7 +111,7 @@ export default function CommunityFeed() {
                   <div className="mt-2 relative inline-block">
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={imageUrl} alt="Preview" className="h-20 w-auto rounded-md object-cover border border-gray-200" />
+                      <img src={normalizeUploadedImageUrl(imageUrl) ?? ""} alt="Preview" className="h-20 w-auto rounded-md object-cover border border-gray-200" />
                     </>
                     <button
                       type="button"
@@ -177,7 +178,7 @@ export default function CommunityFeed() {
                   {post.author.image ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={post.author.image} alt={post.author.name || "User"} className="w-10 h-10 rounded-full object-cover" />
+                      <img src={normalizeUploadedImageUrl(post.author.image) ?? ""} alt={post.author.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                     </>
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-500 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
@@ -201,7 +202,7 @@ export default function CommunityFeed() {
                     <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                       <>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={post.image} alt="Post bild" className="max-h-64 w-full object-cover" />
+                        <img src={normalizeUploadedImageUrl(post.image) ?? ""} alt="Post bild" className="max-h-64 w-full object-cover" />
                       </>
                     </div>
                   )}

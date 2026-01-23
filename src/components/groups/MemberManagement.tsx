@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/Toast";
 import ObfuscatedEmail from "@/components/ui/ObfuscatedEmail";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 interface User {
   id: string;
@@ -105,7 +106,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                   {member.user.image ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={member.user.image} alt={member.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
+                      <img src={normalizeUploadedImageUrl(member.user.image) ?? ""} alt={member.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                     </>
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-bold">
@@ -153,7 +154,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                  {member.user.image ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={member.user.image} alt={member.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
+                      <img src={normalizeUploadedImageUrl(member.user.image) ?? ""} alt={member.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                     </>
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-bold">

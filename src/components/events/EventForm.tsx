@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EventFormData } from "@/lib/validations/event";
 import { useToast } from "@/components/ui/Toast";
+import { normalizeUploadedImageUrl } from '@/lib/normalizeUploadedImageUrl';
 
 interface EventFormProps {
   initialData?: Partial<EventFormData> & { id?: string; flyerImage?: string | null };
@@ -419,7 +420,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
               {formData.flyer1 && (
                 <div className="flex items-center gap-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={formData.flyer1} alt="Flyer 1" className="h-20 w-20 object-cover rounded-md border border-gray-200 dark:border-gray-600" />
+                  <img src={normalizeUploadedImageUrl(formData.flyer1) ?? ""} alt="Flyer 1" className="h-20 w-20 object-cover rounded-md border border-gray-200 dark:border-gray-600" />
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, flyer1: "" }))}
@@ -443,7 +444,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
               {formData.flyer2 && (
                 <div className="flex items-center gap-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={formData.flyer2} alt="Flyer 2" className="h-20 w-20 object-cover rounded-md border border-gray-200 dark:border-gray-600" />
+                  <img src={normalizeUploadedImageUrl(formData.flyer2) ?? ""} alt="Flyer 2" className="h-20 w-20 object-cover rounded-md border border-gray-200 dark:border-gray-600" />
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, flyer2: "" }))}

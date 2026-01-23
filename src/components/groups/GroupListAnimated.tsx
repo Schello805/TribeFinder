@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { normalizeUploadedImageUrl } from '@/lib/normalizeUploadedImageUrl';
 
 interface GroupListAnimatedProps {
   groups: GroupListAnimatedItem[];
@@ -70,7 +71,7 @@ export default function GroupListAnimated({ groups }: GroupListAnimatedProps) {
               <div className="flex-shrink-0 h-20 w-20 sm:h-24 sm:w-24 rounded-lg overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 relative group-hover:scale-105 transition-transform duration-300 shadow-sm flex items-center justify-center">
                 {group.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={group.image} alt={group.name} className="max-h-full max-w-full object-contain" />
+                  <img src={normalizeUploadedImageUrl(group.image) ?? ""} alt={group.name} className="max-h-full max-w-full object-contain" />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center text-indigo-200 font-bold text-3xl bg-gradient-to-br from-indigo-50 to-white">
                     {group.name.charAt(0)}

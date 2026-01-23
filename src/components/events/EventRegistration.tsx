@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 interface EventRegistrationProps {
   eventId: string;
@@ -140,7 +141,7 @@ export default function EventRegistration({ eventId, isCreator }: EventRegistrat
               >
                 {reg.user.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={reg.user.image} alt="" className="w-5 h-5 rounded-full" />
+                  <img src={normalizeUploadedImageUrl(reg.user.image) ?? ""} alt="" className="w-5 h-5 rounded-full" />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-300">
                     {reg.user.name?.charAt(0) || "?"}
