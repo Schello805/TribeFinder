@@ -68,6 +68,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const [mapReady, setMapReady] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [showGroups, setShowGroups] = useState(true);
@@ -120,6 +121,8 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(mapRef.current);
+
+        setMapReady(true);
       }
     });
 
@@ -134,7 +137,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
 
   // Separate effect for markers that responds to filter changes
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapReady) return;
 
     // Clear existing markers
     markersRef.current.forEach(marker => marker.remove());
@@ -254,7 +257,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         }
       });
     }
-  }, [groups, events, selectedTag, showGroups, showEvents]);
+  }, [groups, events, selectedTag, showGroups, showEvents, mapReady]);
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full z-0">
