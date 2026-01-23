@@ -50,7 +50,10 @@ export default function ProfileForm() {
         throw new Error(data?.message || data?.error || "Fehler beim Laden des Profils");
       }
       const data = await res.json();
-      setFormData(data);
+      setFormData({
+        ...data,
+        image: normalizeUploadedImageUrl(data?.image) ?? "",
+      });
     } catch (err) {
       console.error(err);
       const errorMsg = err instanceof Error ? err.message : "Profil konnte nicht geladen werden.";
@@ -227,7 +230,7 @@ export default function ProfileForm() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       className="h-24 w-24 object-cover rounded-full border border-gray-200 dark:border-gray-600"
-                      src={formData.image}
+                      src={normalizeUploadedImageUrl(formData.image) ?? ""}
                       alt="Profilbild"
                     />
                   </>
