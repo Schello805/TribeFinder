@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import ThemeToggle from "./ThemeToggle";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -19,7 +20,7 @@ export default function Navbar() {
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return;
-        if (data?.logoUrl) setLogoUrl(String(data.logoUrl));
+        if (data?.logoUrl) setLogoUrl(normalizeUploadedImageUrl(String(data.logoUrl)) ?? "");
       })
       .catch(() => undefined);
 
@@ -40,7 +41,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="text-xl font-bold text-white flex items-center gap-2">
             {logoUrl ? (
-              <Image src={logoUrl} alt="TribeFinder" width={56} height={56} className="h-14 w-14 rounded" />
+              <Image src={logoUrl} alt="TribeFinder" width={56} height={56} className="h-14 w-14 rounded" unoptimized />
             ) : (
               <span className="text-2xl">💃</span>
             )}

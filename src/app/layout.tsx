@@ -15,6 +15,7 @@ import ForceThemeStyles from "@/components/layout/ForceThemeStyles";
 import Image from "next/image";
 import FeedbackWidget from "@/components/feedback/FeedbackWidget";
 import { unstable_cache } from "next/cache";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -63,6 +64,7 @@ export default async function RootLayout({
   );
 
   const config = await getCachedSystemConfig();
+  const brandingLogoUrl = normalizeUploadedImageUrl(config.BRANDING_LOGO_URL) ?? "";
 
   return (
     <html lang="de" suppressHydrationWarning>
@@ -88,8 +90,8 @@ export default async function RootLayout({
             <footer className="bg-gray-900 border-t border-gray-800 py-10 text-center text-gray-400 text-sm mt-auto">
               <div className="flex flex-col items-center gap-4">
                 <div className="flex items-center gap-2 mb-2">
-                  {config.BRANDING_LOGO_URL ? (
-                    <Image src={config.BRANDING_LOGO_URL} alt="TribeFinder" width={28} height={28} className="h-7 w-7 rounded" />
+                  {brandingLogoUrl ? (
+                    <Image src={brandingLogoUrl} alt="TribeFinder" width={28} height={28} className="h-7 w-7 rounded" unoptimized />
                   ) : (
                     <span className="text-2xl">💃</span>
                   )}

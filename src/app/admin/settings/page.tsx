@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import AdminEmailTest from '@/components/admin/AdminEmailTest';
 import AdminNav from '@/components/admin/AdminNav';
+import { normalizeUploadedImageUrl } from '@/lib/normalizeUploadedImageUrl';
 
 export default function AdminSettingsPage() {
   const { data: session, status } = useSession();
@@ -166,7 +167,7 @@ export default function AdminSettingsPage() {
             <div className="w-16 h-16 rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
               {formData.BRANDING_LOGO_URL ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={formData.BRANDING_LOGO_URL} alt="Logo" className="w-full h-full object-cover" />
+                <img src={normalizeUploadedImageUrl(formData.BRANDING_LOGO_URL) ?? ""} alt="Logo" className="w-full h-full object-cover" />
               ) : (
                 <span className="text-3xl">💃</span>
               )}
