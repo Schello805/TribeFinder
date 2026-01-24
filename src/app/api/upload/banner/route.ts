@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import fs from "node:fs";
 import logger from "@/lib/logger";
 import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE, AllowedImageType } from "@/types";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
@@ -9,6 +10,17 @@ import sharp from "sharp";
 
 const TARGET_W = 1200;
 const TARGET_H = 300;
+
+const resolveProjectRoot = () => {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+};
 
 export async function POST(req: Request) {
   const clientId = getClientIdentifier(req);
@@ -58,7 +70,7 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     const filename = `banner-${crypto.randomUUID()}.jpg`;
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir = path.join(resolveProjectRoot(), "public/uploads");
     await mkdir(uploadDir, { recursive: true });
 
     const filepath = path.join(uploadDir, filename);
@@ -87,7 +99,7 @@ export async function POST(req: Request) {
     logger.info({ filename, size: out.length, type: file.type }, "Banner uploaded successfully");
     return NextResponse.json({ url: `/uploads/${filename}`, width: TARGET_W, height: TARGET_H });
   } catch (error) {
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir = path.join(resolveProjectRoot(), "public/uploads");
     logger.error(
       {
         error,

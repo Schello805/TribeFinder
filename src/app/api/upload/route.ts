@@ -2,9 +2,21 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import fs from 'node:fs';
 import logger from '@/lib/logger';
 import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE, AllowedImageType } from '@/types';
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from '@/lib/rateLimit';
+
+const resolveProjectRoot = () => {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+};
 
 export async function POST(req: Request) {
   // Rate limiting
@@ -81,7 +93,7 @@ export async function POST(req: Request) {
     }
 
     const filename = `${crypto.randomUUID()}${ext}`;
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    const uploadDir = path.join(resolveProjectRoot(), 'public/uploads');
 
     // Sicherstellen, dass das Verzeichnis existiert
     await mkdir(uploadDir, { recursive: true, mode: 0o755 });
@@ -92,7 +104,7 @@ export async function POST(req: Request) {
     logger.info({ filename, size: file.size, type: file.type }, 'File uploaded successfully');
     return NextResponse.json({ url: `/uploads/${filename}` });
   } catch (error) {
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    const uploadDir = path.join(resolveProjectRoot(), 'public/uploads');
     logger.error(
       {
         error,
