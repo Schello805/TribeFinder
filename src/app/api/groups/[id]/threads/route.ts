@@ -52,6 +52,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     select: { id: true },
   });
 
+  await prisma.groupThreadReadState.upsert({
+    where: { threadId_userId: { threadId: thread.id, userId: session.user.id } },
+    update: { lastReadAt: new Date() },
+    create: { threadId: thread.id, userId: session.user.id, lastReadAt: new Date() },
+  });
+
   notifyGroupAboutInboxMessage({
     groupId: id,
     threadId: thread.id,

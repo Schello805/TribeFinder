@@ -75,6 +75,7 @@ model User {
   // Group contact inbox
   createdGroupThreads  GroupThread[]        @relation("GroupThreadCreator")
   groupThreadMessages  GroupThreadMessage[] @relation("GroupThreadMessageAuthor")
+  groupThreadReadStates GroupThreadReadState[]
 
   // Event Registrations
   eventRegistrations  EventRegistration[]
@@ -391,6 +392,7 @@ model GroupThread {
   lastMessageAt   DateTime @default(now())
 
   messages        GroupThreadMessage[]
+  readStates      GroupThreadReadState[]
 
   @@index([groupId])
   @@index([createdByUserId])
@@ -411,4 +413,21 @@ model GroupThreadMessage {
 
   @@index([threadId])
   @@index([authorId])
+}
+
+model GroupThreadReadState {
+  id         String   @id @default(cuid())
+
+  threadId   String
+  thread     GroupThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lastReadAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([threadId, userId])
+  @@index([userId])
+  @@index([threadId])
 }

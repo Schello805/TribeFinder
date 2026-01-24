@@ -63,6 +63,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ threadI
     select: { id: true },
   });
 
+  await prisma.groupThreadReadState.upsert({
+    where: { threadId_userId: { threadId, userId: session.user.id } },
+    update: { lastReadAt: new Date() },
+    create: { threadId, userId: session.user.id, lastReadAt: new Date() },
+  });
+
   await prisma.groupThread.update({
     where: { id: threadId },
     data: { lastMessageAt: new Date() },

@@ -39,6 +39,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ threadId
     return NextResponse.json({ message: "Kein Zugriff" }, { status: 403 });
   }
 
+  await prisma.groupThreadReadState.upsert({
+    where: { threadId_userId: { threadId, userId: session.user.id } },
+    update: { lastReadAt: new Date() },
+    create: { threadId, userId: session.user.id, lastReadAt: new Date() },
+  });
+
   const thread = await prisma.groupThread.findUnique({
     where: { id: threadId },
     include: {

@@ -39,7 +39,20 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
     redirect("/messages");
   }
 
+  await prisma.groupThreadReadState.upsert({
+    where: { threadId_userId: { threadId, userId: session.user.id } },
+    update: { lastReadAt: new Date() },
+    create: { threadId, userId: session.user.id, lastReadAt: new Date() },
+  });
+
   const groupImg = normalizeUploadedImageUrl(thread.group.image) ?? "";
+  const messages = thread.messages as Array<{
+    id: string;
+    authorId: string;
+    content: string;
+    createdAt: Date;
+    author: { id: string; name: string | null; image: string | null };
+  }>;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -71,7 +84,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-        {thread.messages.map((m) => {
+        {messages.map((m) => {
           const isMe = m.authorId === session.user.id;
           return (
             <div key={m.id} className={isMe ? "text-right" : "text-left"}>

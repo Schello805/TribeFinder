@@ -14,6 +14,8 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
 
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
   const [userAvatarUrl, setUserAvatarUrl] = useState<string>("");
   const userImageUrl = userAvatarUrl || (session?.user?.image ? (normalizeUploadedImageUrl(String(session.user.image)) ?? "") : "");
 
@@ -56,6 +58,37 @@ export default function Navbar() {
     };
   }, [session?.user]);
 
+  useEffect(() => {
+    if (!session?.user) {
+      setUnreadCount(0);
+      return;
+    }
+
+    let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    const load = async () => {
+      try {
+        const res = await fetch("/api/messages/unread-count", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json().catch(() => null)) as { unreadCount?: number } | null;
+        if (cancelled) return;
+        const next = typeof data?.unreadCount === "number" ? data.unreadCount : 0;
+        setUnreadCount(next);
+      } catch {
+        // ignore
+      }
+    };
+
+    load();
+    interval = setInterval(load, 45_000);
+
+    return () => {
+      cancelled = true;
+      if (interval) clearInterval(interval);
+    };
+  }, [session?.user]);
+
   // Close mobile menu on route change
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -90,8 +123,13 @@ export default function Navbar() {
 
             {session ? (
               <>
-                <Link href="/messages" className="text-indigo-100 hover:text-white transition font-medium">
+                <Link href="/messages" className="text-indigo-100 hover:text-white transition font-medium inline-flex items-center gap-2">
                   Nachrichten
+                  {unreadCount > 0 && (
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
                 <Link href="/dashboard" className="text-indigo-100 hover:text-white transition font-medium flex items-center gap-2">
                   {userImageUrl ? (
@@ -155,8 +193,13 @@ export default function Navbar() {
             </Link>
             {session ? (
               <>
-                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
-                  Nachrichten
+                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+                  <span>Nachrichten</span>
+                  {unreadCount > 0 && (
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
                 <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
                   {userImageUrl ? (
