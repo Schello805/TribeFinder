@@ -84,10 +84,10 @@ export async function POST(req: Request) {
     const uploadDir = path.join(process.cwd(), 'public/uploads');
 
     // Sicherstellen, dass das Verzeichnis existiert
-    await mkdir(uploadDir, { recursive: true });
+    await mkdir(uploadDir, { recursive: true, mode: 0o755 });
 
     const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
+    await writeFile(filepath, buffer, { mode: 0o644 });
 
     logger.info({ filename, size: file.size, type: file.type }, 'File uploaded successfully');
     return NextResponse.json({ url: `/uploads/${filename}` });

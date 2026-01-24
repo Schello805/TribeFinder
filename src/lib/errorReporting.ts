@@ -26,6 +26,21 @@ function fingerprintOf(input: ErrorReportInput) {
   return crypto.createHash("sha256").update(base).digest("hex");
 }
 
+function redactPII(s: string) {
+  let out = s;
+
+  out = out.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[REDACTED_EMAIL]");
+  out = out.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[REDACTED_IP]");
+  out = out.replace(/\b(?:[a-f0-9]{1,4}:){2,7}[a-f0-9]{1,4}\b/gi, "[REDACTED_IP]");
+  out = out.replace(/\b\+?[0-9][0-9 ()\-]{6,}[0-9]\b/g, "[REDACTED_PHONE]");
+
+  out = out.replace(/\b(Bearer)\s+[A-Za-z0-9._\-+/=]{8,}\b/g, "$1 [REDACTED_TOKEN]");
+  out = out.replace(/\b(access_token|refresh_token|id_token|token|apikey|api_key|password)\b\s*[:=]\s*[^\s,;"']+/gi, "$1=[REDACTED]");
+  out = out.replace(/\b(Authorization)\b\s*[:=]\s*[^\r\n]+/gi, "$1: [REDACTED]");
+
+  return out;
+}
+
 async function getNotifyEmail(): Promise<string> {
   const fromDb = await prisma.systemSetting
     .findUnique({ where: { key: "ERROR_NOTIFY_EMAIL" } })
@@ -45,9 +60,9 @@ export async function recordServerError(input: ErrorReportInput) {
     const fingerprint = fingerprintOf(input);
 
     const now = new Date();
-    const message = (input.message || "Unbekannter Fehler").slice(0, 5000);
-    const details = input.details ? input.details.slice(0, 10000) : null;
-    const stack = input.stack ? input.stack.slice(0, 20000) : null;
+    const message = redactPII((input.message || "Unbekannter Fehler").slice(0, 5000));
+    const details = input.details ? redactPII(input.details.slice(0, 10000)) : null;
+    const stack = input.stack ? redactPII(input.stack.slice(0, 20000)) : null;
 
     const row = await prismaAny.errorLog
       .upsert({

@@ -60,6 +60,20 @@ export async function GET() {
   );
 
   checks.push(
+    await runCheck("nextauth_url_https", "NEXTAUTH_URL: HTTPS", async () => {
+      const url = (process.env.NEXTAUTH_URL || "").trim();
+      if (!url) return { status: "warn", message: "NEXTAUTH_URL fehlt" };
+      if (!url.startsWith("https://")) {
+        return {
+          status: "warn",
+          message: `NEXTAUTH_URL ist nicht https:// (${url})`,
+        };
+      }
+      return { status: "ok", message: "OK" };
+    })
+  );
+
+  checks.push(
     await runCheck("db", "Datenbank erreichbar", async () => {
       const [users, groups, events] = await Promise.all([
         prisma.user.count(),

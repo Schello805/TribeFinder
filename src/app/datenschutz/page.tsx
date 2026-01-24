@@ -76,6 +76,19 @@ export default function DatenschutzPage() {
             Die Nutzung von OpenStreetMap erfolgt im Interesse einer ansprechenden Darstellung unserer Online-Angebote und einer leichten Auffindbarkeit der von uns auf der Website angegebenen Orte. Dies stellt ein berechtigtes Interesse im Sinne von Art. 6 Abs. 1 lit. f DSGVO dar.
           </p>
         </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">6. Server-Fehlerprotokollierung</h2>
+          <p>
+            Zur Sicherstellung der technischen Stabilität und zur Fehleranalyse protokollieren wir Serverfehler (z. B. Statuscode, betroffene Route, Fehlermeldung und technische Details). Die Protokollierung erfolgt grundsätzlich in pseudonymisierter Form; offensichtliche personenbezogene Daten (z. B. E-Mail-Adressen oder IP-Adressen) werden vor der Speicherung bestmöglich entfernt.
+          </p>
+          <p className="mt-2">
+            Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der sicheren Bereitstellung des Dienstes).
+          </p>
+          <p className="mt-2">
+            Die Fehlerprotokolle werden nur so lange gespeichert, wie dies für die Fehleranalyse erforderlich ist, und können durch Administratoren gelöscht werden.
+          </p>
+        </section>
       </div>
     </div>
   );
