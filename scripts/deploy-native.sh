@@ -108,7 +108,16 @@ echo ""
 
 # Migrationen ausführen
 echo -e "${YELLOW}[5/7] Führe Datenbank-Migrationen aus...${NC}"
+if [ "$CAN_SUDO" -eq 1 ]; then
+    echo -e "${YELLOW}Stoppe Service für Migration (verhindert SQLite Lock)...${NC}"
+    sudo systemctl stop tribefinder || true
+    sleep 1
+fi
 npm run db:migrate
+if [ "$CAN_SUDO" -eq 1 ]; then
+    echo -e "${YELLOW}Starte Service nach Migration...${NC}"
+    sudo systemctl start tribefinder || true
+fi
 echo ""
 
 # Default DanceStyles seeden (idempotent)
