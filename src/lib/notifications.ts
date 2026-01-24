@@ -10,7 +10,7 @@ export async function notifyGroupAboutNewMember(groupId: string, applicantName: 
       include: {
         owner: { select: { email: true, emailNotifications: true } },
         members: {
-          where: { role: 'ADMIN', status: 'APPROVED' },
+          where: { status: 'APPROVED' },
           include: { user: { select: { email: true, emailNotifications: true } } }
         }
       }

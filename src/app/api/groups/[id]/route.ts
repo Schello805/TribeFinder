@@ -133,7 +133,7 @@ export async function PUT(
     }
 
     if (existingGroup.ownerId !== session.user.id) {
-      // Check if user is an admin member
+      // Check if user is an approved member
       const membership = await prisma.groupMember.findUnique({
         where: {
           userId_groupId: {
@@ -143,9 +143,9 @@ export async function PUT(
         },
       });
 
-      if (!membership || membership.role !== "ADMIN" || membership.status !== "APPROVED") {
+      if (!membership || membership.status !== "APPROVED") {
         return NextResponse.json(
-          { message: "Nur Administratoren können diese Gruppe bearbeiten" },
+          { message: "Nur bestätigte Mitglieder können diese Gruppe bearbeiten" },
           { status: 403 }
         );
       }

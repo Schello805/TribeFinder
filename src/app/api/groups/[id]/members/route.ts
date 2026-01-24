@@ -20,7 +20,16 @@ export async function PUT(
     const body = await req.json();
     const { userId, action, role } = body;
 
-    // Verify requesting user is admin of the group
+    const group = await prisma.group.findUnique({
+      where: { id },
+      select: { ownerId: true },
+    });
+
+    if (!group) {
+      return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
+    }
+
+    // Verify requesting user is an APPROVED member of the group (or owner)
     const requesterMembership = await prisma.groupMember.findUnique({
       where: {
         userId_groupId: {
@@ -30,9 +39,10 @@ export async function PUT(
       },
     });
 
-    if (!requesterMembership || requesterMembership.role !== "ADMIN") {
+    const canManage = group.ownerId === session.user.id || requesterMembership?.status === "APPROVED";
+    if (!canManage) {
       return NextResponse.json(
-        { message: "Nur Administratoren können Mitglieder verwalten" },
+        { message: "Nur bestätigte Mitglieder können Beitrittsanfragen verwalten" },
         { status: 403 }
       );
     }
@@ -54,20 +64,10 @@ export async function PUT(
       notifyUserMembershipApproved(userId, id)
         .catch(err => logger.error({ err }, "Failed to send approval notification"));
     } else if (action === "update_role") {
-      if (role !== "ADMIN" && role !== "MEMBER") {
-        return NextResponse.json({ message: "Ungültige Rolle" }, { status: 400 });
-      }
-      await prisma.groupMember.update({
-        where: {
-          userId_groupId: {
-            userId,
-            groupId: id,
-          },
-        },
-        data: {
-          role,
-        },
-      });
+      return NextResponse.json(
+        { message: "Rollenverwaltung ist aktuell nicht aktiv" },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({ message: "Erfolgreich aktualisiert" });
@@ -99,7 +99,16 @@ export async function DELETE(
       return NextResponse.json({ message: "Benutzer ID fehlt" }, { status: 400 });
     }
 
-    // Verify requesting user is admin of the group
+    const group = await prisma.group.findUnique({
+      where: { id },
+      select: { ownerId: true },
+    });
+
+    if (!group) {
+      return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
+    }
+
+    // Verify requesting user is an APPROVED member of the group (or owner)
     const requesterMembership = await prisma.groupMember.findUnique({
       where: {
         userId_groupId: {
@@ -109,18 +118,13 @@ export async function DELETE(
       },
     });
 
-    if (!requesterMembership || requesterMembership.role !== "ADMIN") {
+    const canManage = group.ownerId === session.user.id || requesterMembership?.status === "APPROVED";
+    if (!canManage) {
       return NextResponse.json(
-        { message: "Nur Administratoren können Mitglieder entfernen" },
+        { message: "Nur bestätigte Mitglieder können Mitglieder entfernen" },
         { status: 403 }
       );
     }
-
-    // Prevent removing the group owner
-    const group = await prisma.group.findUnique({
-      where: { id },
-      select: { ownerId: true }
-    });
 
     if (group?.ownerId === userId) {
       return NextResponse.json(

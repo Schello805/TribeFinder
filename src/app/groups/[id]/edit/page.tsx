@@ -27,7 +27,7 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
   const isOwner = group.ownerId === session.user.id;
 
   if (!isOwner) {
-    // Check if user is an admin member
+    // Check if user is an approved member
     const membership = await prisma.groupMember.findUnique({
       where: {
         userId_groupId: {
@@ -37,7 +37,7 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
       },
     });
 
-    if (!membership || membership.role !== "ADMIN" || membership.status !== "APPROVED") {
+    if (!membership || membership.status !== "APPROVED") {
       redirect("/dashboard");
     }
   }

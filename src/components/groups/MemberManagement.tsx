@@ -34,7 +34,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
   const pendingMembers = members.filter(m => m.status === 'PENDING');
   const approvedMembers = members.filter(m => m.status === 'APPROVED');
 
-  const handleAction = async (userId: string, action: 'approve' | 'reject' | 'remove' | 'promote' | 'demote') => {
+  const handleAction = async (userId: string, action: 'approve' | 'reject' | 'remove') => {
     setIsLoading(userId);
     try {
       if (action === 'remove' || action === 'reject') {
@@ -62,26 +62,6 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
         } else {
             const data = await response.json();
             showToast(data.message || "Fehler beim Genehmigen", 'error');
-        }
-      } else if (action === 'promote') {
-          const response = await fetch(`/api/groups/${groupId}/members`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, action: 'update_role', role: 'ADMIN' })
-        });
-        if (response.ok) {
-            setMembers(prev => prev.map(m => m.user.id === userId ? { ...m, role: 'ADMIN' } : m));
-            showToast('Zum Admin befördert', 'success');
-        }
-      } else if (action === 'demote') {
-          const response = await fetch(`/api/groups/${groupId}/members`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, action: 'update_role', role: 'MEMBER' })
-        });
-        if (response.ok) {
-            setMembers(prev => prev.map(m => m.user.id === userId ? { ...m, role: 'MEMBER' } : m));
-            showToast('Zum Mitglied zurückgestuft', 'info');
         }
       }
     } catch (error) {
@@ -114,7 +94,9 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">{member.user.name || "Unbekannt"}</p>
+                    <Link href={`/users/${member.user.id}`} className="font-medium text-gray-900 dark:text-white hover:underline">
+                      {member.user.name || "Unbekannt"}
+                    </Link>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                         <ObfuscatedEmail email={member.user.email} />
                     </div>
@@ -163,10 +145,9 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                   )}
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                      {member.user.name || "Unbekannt"}
-                      {member.role === 'ADMIN' && (
-                        <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-200 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Admin</span>
-                      )}
+                      <Link href={`/users/${member.user.id}`} className="hover:underline">
+                        {member.user.name || "Unbekannt"}
+                      </Link>
                     </p>
                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         <ObfuscatedEmail email={member.user.email} />
@@ -177,26 +158,6 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
               {/* Actions - don't show for self */}
               {member.user.id !== currentUserId && (
                 <div className="flex items-center gap-2">
-                  {member.role === 'MEMBER' ? (
-                     <button
-                        onClick={() => handleAction(member.user.id, 'promote')}
-                        disabled={isLoading === member.user.id}
-                        className="text-xs text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium px-2 py-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
-                        title="Zum Admin befördern"
-                      >
-                        ↑ Admin
-                      </button>
-                  ) : (
-                      <button
-                        onClick={() => handleAction(member.user.id, 'demote')}
-                        disabled={isLoading === member.user.id}
-                        className="text-xs text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 font-medium px-2 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
-                        title="Admin-Rechte entziehen"
-                      >
-                        ↓ Member
-                      </button>
-                  )}
-                  
                   <button
                     onClick={() => {
                         if(confirm('Möchtest du dieses Mitglied wirklich entfernen?')) {

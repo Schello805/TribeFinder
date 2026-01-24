@@ -93,9 +93,9 @@ export default async function GroupDetailPage({
     if (group) {
       const isOwner = session?.user?.id === group.ownerId;
       const currentUserMembership = group.members.find((m) => m.user.id === session?.user?.id);
-      const isAdmin = isOwner || currentUserMembership?.role === "ADMIN";
+      const canManage = isOwner || currentUserMembership?.status === "APPROVED";
 
-      if (isAdmin) {
+      if (canManage) {
         const extra = await prisma.group.findUnique({
           where: { id },
           select: { contactEmail: true },
@@ -151,7 +151,7 @@ export default async function GroupDetailPage({
   
   const isMember = currentUserMembership?.status === 'APPROVED';
   const isPending = currentUserMembership?.status === 'PENDING';
-  const isAdmin = isOwner || currentUserMembership?.role === 'ADMIN';
+  const isAdmin = isOwner || currentUserMembership?.status === 'APPROVED';
   
   const membershipStatus = isMember ? 'APPROVED' : (isPending ? 'PENDING' : 'NONE');
 
@@ -169,8 +169,8 @@ export default async function GroupDetailPage({
   const displayUrl = group.website ? group.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
 
   const headerImageUrl = normalizeUploadedImageUrl(group.headerImage) ?? null;
-  const headerFrom = (group.headerGradientFrom || "").trim();
-  const headerTo = (group.headerGradientTo || "").trim();
+  const headerFrom = (((group as any).headerGradientFrom as string | null) || "").trim();
+  const headerTo = (((group as any).headerGradientTo as string | null) || "").trim();
   const headerFocusYRaw = group.headerImageFocusY;
   const headerFocusY = typeof headerFocusYRaw === "number" && Number.isFinite(headerFocusYRaw) ? Math.min(100, Math.max(0, headerFocusYRaw)) : 50;
   const headerStyle = !headerImageUrl && headerFrom && headerTo ? { backgroundImage: `linear-gradient(to right, ${headerFrom}, ${headerTo})` } : undefined;
@@ -415,7 +415,7 @@ export default async function GroupDetailPage({
           </div>
         </div>
 
-        {/* Member Management Section (Admin Only) */}
+        {/* Member Management Section (Approved Members) */}
         {isAdmin && session?.user?.id && (
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Mitgliederverwaltung</h2>
