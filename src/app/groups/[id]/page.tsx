@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { Prisma } from "@prisma/client";
 import JoinButton from "@/components/groups/JoinButton";
 import GroupDetailAnimations from "@/components/groups/GroupDetailAnimations";
-import ObfuscatedEmail from "@/components/ui/ObfuscatedEmail";
+import RevealGroupContactEmail from "@/components/ui/RevealGroupContactEmail";
 import MemberManagement from "@/components/groups/MemberManagement";
 import GalleryManager from "@/components/groups/GalleryManager";
 import FlyerGenerator from "@/components/groups/FlyerGenerator";
@@ -21,62 +21,89 @@ export default async function GroupDetailPage({
   const id = (await params).id;
   const session = await getServerSession(authOptions);
 
-  type GroupDetailPayload = Prisma.GroupGetPayload<{
-    include: {
-      location: true;
-      tags: true;
-      owner: {
-        select: {
-          id: true;
-          name: true;
-          image: true;
-          email: true;
-        };
-      };
-      members: {
-        select: {
-          id: true;
-          role: true;
-          status: true;
-          user: {
-            select: {
-              id: true;
-              name: true;
-              image: true;
-              email: true;
-            };
-          };
-        };
-      };
-      events: {
-        where: {
-          startDate: {
-            gte: Date;
-          };
-        };
-        orderBy: {
-          startDate: "asc";
-        };
-      };
-    };
-  }>;
-
-  let group: GroupDetailPayload | null = null;
-  try {
-    group = await prisma.group.findUnique({
-      where: { id },
-      include: {
-        location: true,
-        tags: true,
-        owner: {
+  const groupSelect = {
+    id: true,
+    name: true,
+    description: true,
+    website: true,
+    videoUrl: true,
+    image: true,
+    createdAt: true,
+    ownerId: true,
+    foundingYear: true,
+    size: true,
+    seekingMembers: true,
+    performances: true,
+    trainingTime: true,
+    headerImage: true,
+    headerImageFocusY: true,
+    headerGradientFrom: true,
+    headerGradientTo: true,
+    location: true,
+    tags: true,
+    owner: {
+      select: {
+        id: true,
+        name: true,
+        image: true,
+      },
+    },
+    members: {
+      select: {
+        id: true,
+        role: true,
+        status: true,
+        user: {
           select: {
             id: true,
             name: true,
             image: true,
-            email: true,
           },
         },
-        members: {
+      },
+    },
+    events: {
+      where: {
+        startDate: {
+          gte: new Date(),
+        },
+      },
+      orderBy: {
+        startDate: "asc",
+      },
+    },
+  } as const;
+
+  type GroupDetailPayload = Prisma.GroupGetPayload<{ select: typeof groupSelect }>;
+
+  let group: GroupDetailPayload | null = null;
+  let contactEmail: string | null = null;
+  let membersForManagement: Array<{
+    id: string;
+    role: string;
+    status: string;
+    user: { id: string; name: string | null; image: string | null; email: string };
+  }> = [];
+  try {
+    group = await prisma.group.findUnique({
+      where: { id },
+      select: groupSelect,
+    });
+
+    if (group) {
+      const isOwner = session?.user?.id === group.ownerId;
+      const currentUserMembership = group.members.find((m) => m.user.id === session?.user?.id);
+      const isAdmin = isOwner || currentUserMembership?.role === "ADMIN";
+
+      if (isAdmin) {
+        const extra = await prisma.group.findUnique({
+          where: { id },
+          select: { contactEmail: true },
+        });
+        contactEmail = extra?.contactEmail ?? null;
+
+        membersForManagement = await prisma.groupMember.findMany({
+          where: { groupId: id },
           select: {
             id: true,
             role: true,
@@ -87,22 +114,13 @@ export default async function GroupDetailPage({
                 name: true,
                 image: true,
                 email: true,
-              }
-            }
-          }
-        },
-        events: {
-          where: {
-            startDate: {
-              gte: new Date()
-            }
+              },
+            },
           },
-          orderBy: {
-            startDate: 'asc'
-          }
-        }
-      },
-    });
+          orderBy: { createdAt: "asc" },
+        });
+      }
+    }
   } catch (e) {
     if (e && typeof e === "object" && "name" in e && (e as { name?: string }).name === "PrismaClientRustPanicError") {
       return (
@@ -150,10 +168,10 @@ export default async function GroupDetailPage({
   // Helper to display clean domain
   const displayUrl = group.website ? group.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
 
-  const headerImageUrl = normalizeUploadedImageUrl((group as unknown as { headerImage?: string | null }).headerImage) ?? null;
-  const headerFrom = ((group as unknown as { headerGradientFrom?: string | null }).headerGradientFrom || "").trim();
-  const headerTo = ((group as unknown as { headerGradientTo?: string | null }).headerGradientTo || "").trim();
-  const headerFocusYRaw = (group as unknown as { headerImageFocusY?: number | null }).headerImageFocusY;
+  const headerImageUrl = normalizeUploadedImageUrl(group.headerImage) ?? null;
+  const headerFrom = (group.headerGradientFrom || "").trim();
+  const headerTo = (group.headerGradientTo || "").trim();
+  const headerFocusYRaw = group.headerImageFocusY;
   const headerFocusY = typeof headerFocusYRaw === "number" && Number.isFinite(headerFocusYRaw) ? Math.min(100, Math.max(0, headerFocusYRaw)) : 50;
   const headerStyle = !headerImageUrl && headerFrom && headerTo ? { backgroundImage: `linear-gradient(to right, ${headerFrom}, ${headerTo})` } : undefined;
 
@@ -317,15 +335,17 @@ export default async function GroupDetailPage({
                     </div>
                   )}
 
-                  {group.contactEmail && (
-                    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
-                      <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Kontakt</dt>
-                      <dd className="flex items-center gap-2 text-gray-900 dark:text-white font-medium">
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                        <ObfuscatedEmail email={group.contactEmail} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" />
-                      </dd>
-                    </div>
-                  )}
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
+                    <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Kontakt</dt>
+                    <dd className="flex items-center gap-2 text-gray-900 dark:text-white font-medium">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                      {contactEmail ? (
+                        <span className="break-all">{contactEmail}</span>
+                      ) : (
+                        <RevealGroupContactEmail groupId={group.id} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" />
+                      )}
+                    </dd>
+                  </div>
 
                   {/* Message Button */}
                   {session && group.owner.id !== session.user?.id && (
@@ -401,7 +421,7 @@ export default async function GroupDetailPage({
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Mitgliederverwaltung</h2>
             <MemberManagement 
               groupId={group.id} 
-              members={group.members} 
+              members={membersForManagement} 
               currentUserId={session.user.id} 
             />
           </div>

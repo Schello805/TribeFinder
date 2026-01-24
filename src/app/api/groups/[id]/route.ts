@@ -14,8 +14,59 @@ export async function GET(
 ) {
   const id = (await params).id;
 
+  const session = await getServerSession(authOptions);
+
   try {
-    const group = await prisma.group.findUnique({
+    const base = await prisma.group.findUnique({
+      where: { id },
+      include: {
+        location: true,
+        tags: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        members: {
+          select: {
+            id: true,
+            role: true,
+            status: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!base) {
+      return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
+    }
+
+    const isOwner = !!session?.user?.id && session.user.id === base.ownerId;
+    const isAdminMember =
+      !!session?.user?.id &&
+      base.members.some((m) => m.user.id === session.user.id && m.role === "ADMIN" && m.status === "APPROVED");
+    const canSeeEmails = isOwner || isAdminMember;
+
+    if (!canSeeEmails) {
+      const { contactEmail: _contactEmail, ...rest } = base as any;
+      return NextResponse.json({
+        ...rest,
+        contactEmail: null,
+        owner: { ...rest.owner, email: null },
+        members: rest.members.map((m: any) => ({ ...m, user: { ...m.user, email: null } })),
+      });
+    }
+
+    const full = await prisma.group.findUnique({
       where: { id },
       include: {
         location: true,
@@ -26,7 +77,7 @@ export async function GET(
             name: true,
             email: true,
             image: true,
-          }
+          },
         },
         members: {
           select: {
@@ -39,18 +90,18 @@ export async function GET(
                 name: true,
                 image: true,
                 email: true,
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     });
 
-    if (!group) {
+    if (!full) {
       return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
     }
 
-    return NextResponse.json(group);
+    return NextResponse.json(full);
   } catch (error) {
     if (error && typeof error === "object" && "name" in error && (error as { name?: string }).name === "PrismaClientRustPanicError") {
       return NextResponse.json({ message: "Datenbankfehler (Prisma Engine)" }, { status: 503 });
@@ -121,7 +172,8 @@ export async function PUT(
     // Note: detailed tag handling might be more complex in real app, simply replacing for now
     
     logger.debug({ groupId: id }, "PUT /api/groups - Updating group in DB...");
-    const group = await prisma.group.update({
+    const prismaAny = prisma as any;
+    const group = await prismaAny.group.update({
       where: { id },
       data: {
         name: validatedData.name,
