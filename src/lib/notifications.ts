@@ -48,6 +48,76 @@ export async function notifyGroupAboutNewMember(groupId: string, applicantName: 
   }
 }
 
+export async function notifyGroupAboutInboxMessage(params: {
+  groupId: string;
+  threadId: string;
+  authorId: string;
+  authorName: string;
+  preview: string;
+  subject?: string | null;
+}) {
+  try {
+    const group = await prisma.group.findUnique({
+      where: { id: params.groupId },
+      select: {
+        id: true,
+        name: true,
+        owner: { select: { id: true, email: true, emailNotifications: true, notifyInboxMessages: true } },
+        members: {
+          where: { status: "APPROVED" },
+          select: {
+            user: { select: { id: true, email: true, emailNotifications: true, notifyInboxMessages: true } },
+          },
+        },
+      },
+    });
+
+    if (!group) return;
+
+    const recipients = new Set<string>();
+    const shouldNotify = (u: { id: string; email: string | null; emailNotifications: boolean; notifyInboxMessages: boolean }) => {
+      if (!u.email) return false;
+      if (u.id === params.authorId) return false;
+      if (!u.emailNotifications) return false;
+      if (!u.notifyInboxMessages) return false;
+      return true;
+    };
+
+    if (group.owner && shouldNotify(group.owner)) {
+      recipients.add(group.owner.email as string);
+    }
+
+    group.members.forEach((m) => {
+      const u = m.user;
+      if (shouldNotify(u)) {
+        recipients.add(u.email as string);
+      }
+    });
+
+    if (recipients.size === 0) return;
+
+    const subject = `Neue Nachricht in ${group.name}`;
+    const threadTitle = params.subject ? params.subject : `Nachricht an ${group.name}`;
+    const url = `${process.env.NEXTAUTH_URL}/messages/threads/${params.threadId}`;
+    const content = `
+      ${emailHeading('Neue Inbox-Nachricht 📬')}
+      ${emailText(`<strong>${params.authorName}</strong> hat in <strong>${group.name}</strong> geschrieben:`)}
+      ${emailText(`<em>"${params.preview}"</em>`)}
+      ${emailText(`Betreff: <strong>${threadTitle}</strong>`)}
+      ${emailButton('Thread öffnen', url)}
+    `;
+
+    const html = await emailTemplate(content, `Neue Nachricht in ${group.name}`);
+    await Promise.all(Array.from(recipients).map((email) => sendEmail(email, subject, html)));
+    logger.info({ groupId: params.groupId, threadId: params.threadId, recipientCount: recipients.size }, "Inbox notification sent");
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    // Best-effort: wenn DB noch nicht migriert ist (fehlende Spalte), nicht crashen.
+    if (err?.code === "P2022" || err?.code === "P2021") return;
+    logger.error({ error, groupId: params.groupId, threadId: params.threadId }, "Error sending inbox notification");
+  }
+}
+
 // Notify user when their membership is approved
 export async function notifyUserMembershipApproved(userId: string, groupId: string) {
   try {

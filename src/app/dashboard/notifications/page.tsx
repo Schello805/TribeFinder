@@ -7,6 +7,7 @@ import RadiusMapPicker from "@/components/user/RadiusMapPicker";
 
 type Prefs = {
   emailNotifications: boolean;
+  notifyInboxMessages: boolean;
   notifyNewGroups: boolean;
   notifyNewEvents: boolean;
   notifyRadius: number;
@@ -23,6 +24,7 @@ export default function DashboardNotificationsPage() {
   const [message, setMessage] = useState("");
   const [prefs, setPrefs] = useState<Prefs>({
     emailNotifications: true,
+    notifyInboxMessages: false,
     notifyNewGroups: false,
     notifyNewEvents: false,
     notifyRadius: 50,
@@ -99,6 +101,25 @@ export default function DashboardNotificationsPage() {
         </div>
 
         <div className="border-t border-gray-100 dark:border-gray-700 pt-4 space-y-3">
+          <div className="text-sm font-medium text-gray-900 dark:text-white">Inbox (Gruppen-Nachrichten)</div>
+
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Benachrichtige mich per E-Mail, wenn eine Gruppe eine neue Nachricht erhält.
+            </div>
+            <button
+              type="button"
+              onClick={() => setPrefs((p) => ({ ...p, notifyInboxMessages: !p.notifyInboxMessages }))}
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
+                prefs.notifyInboxMessages
+                  ? "bg-indigo-600 text-white border-indigo-600"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+            >
+              {prefs.notifyInboxMessages ? "Aktiv" : "Inaktiv"}
+            </button>
+          </div>
+
           <div className="text-sm font-medium text-gray-900 dark:text-white">Neue Inhalte in deiner Nähe</div>
 
           <div className="flex flex-wrap gap-2">

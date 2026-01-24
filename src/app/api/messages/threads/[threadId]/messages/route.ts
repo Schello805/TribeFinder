@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
+import { notifyGroupAboutInboxMessage } from "@/lib/notifications";
 
 async function canAccessThread(userId: string, threadId: string) {
   const thread = await prisma.groupThread.findUnique({
@@ -66,6 +67,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ threadI
     where: { id: threadId },
     data: { lastMessageAt: new Date() },
   });
+
+  notifyGroupAboutInboxMessage({
+    groupId: access.thread.groupId,
+    threadId,
+    authorId: session.user.id,
+    authorName: session.user.name || session.user.email || "Unbekannt",
+    preview: content.slice(0, 120),
+  }).catch(() => undefined);
 
   return NextResponse.json({ messageId: message.id }, { status: 201 });
 }

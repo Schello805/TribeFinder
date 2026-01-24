@@ -7,6 +7,7 @@ import logger from "@/lib/logger";
 
 const DEFAULT_PREFS = {
   emailNotifications: true,
+  notifyInboxMessages: false,
   notifyNewGroups: false,
   notifyNewEvents: false,
   notifyRadius: 50,
@@ -16,6 +17,7 @@ const DEFAULT_PREFS = {
 
 const schema = z.object({
   emailNotifications: z.boolean().optional(),
+  notifyInboxMessages: z.boolean().optional(),
   notifyNewGroups: z.boolean().optional(),
   notifyNewEvents: z.boolean().optional(),
   notifyRadius: z.number().int().min(1).max(500).optional(),
@@ -35,6 +37,7 @@ export async function GET() {
       where: { id: session.user.id },
       select: {
         emailNotifications: true,
+        notifyInboxMessages: true,
         notifyNewGroups: true,
         notifyNewEvents: true,
         notifyRadius: true,
@@ -90,6 +93,7 @@ export async function PUT(req: Request) {
       where: { id: session.user.id },
       data: {
         ...(data.emailNotifications !== undefined ? { emailNotifications: data.emailNotifications } : {}),
+        ...(data.notifyInboxMessages !== undefined ? { notifyInboxMessages: data.notifyInboxMessages } : {}),
         ...(data.notifyNewGroups !== undefined ? { notifyNewGroups: data.notifyNewGroups } : {}),
         ...(data.notifyNewEvents !== undefined ? { notifyNewEvents: data.notifyNewEvents } : {}),
         ...(data.notifyRadius !== undefined ? { notifyRadius: data.notifyRadius } : {}),
@@ -98,6 +102,7 @@ export async function PUT(req: Request) {
       },
       select: {
         emailNotifications: true,
+        notifyInboxMessages: true,
         notifyNewGroups: true,
         notifyNewEvents: true,
         notifyRadius: true,

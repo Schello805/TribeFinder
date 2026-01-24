@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
+import { notifyGroupAboutInboxMessage } from "@/lib/notifications";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -50,6 +51,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     },
     select: { id: true },
   });
+
+  notifyGroupAboutInboxMessage({
+    groupId: id,
+    threadId: thread.id,
+    authorId: session.user.id,
+    authorName: session.user.name || session.user.email || "Unbekannt",
+    preview: content.slice(0, 120),
+    subject,
+  }).catch(() => undefined);
 
   return NextResponse.json({ threadId: thread.id }, { status: 201 });
 }
