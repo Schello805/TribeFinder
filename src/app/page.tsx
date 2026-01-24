@@ -71,20 +71,57 @@ export default async function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <div className="grid grid-cols-3 gap-8 text-center">
-            <div className="p-6">
-              <div className="text-4xl md:text-5xl font-bold text-indigo-600 dark:text-indigo-400">{groupCount}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">Tanzgruppen</div>
+      <section className="py-14 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Finde deine Tanz-Community</h2>
+            <p className="mt-3 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Ob Bühnenprojekt, Training oder einfach Austausch: TribeFinder hilft dir, Menschen zu finden,
+              mit denen du dich wohlfühlst und gemeinsam wachsen kannst.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-gray-50 dark:bg-gray-800/60 p-7 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div className="text-3xl mb-3">💜</div>
+              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">Gemeinsam statt allein</div>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">
+                Entdecke Gruppen in deiner Nähe und vernetze dich unkompliziert – ohne lange Suche.
+              </p>
             </div>
-            <div className="p-6">
-              <div className="text-4xl md:text-5xl font-bold text-purple-600 dark:text-purple-400">{eventCount}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">Anstehende Events</div>
+
+            <div className="bg-gray-50 dark:bg-gray-800/60 p-7 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div className="text-3xl mb-3">✨</div>
+              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">Inspiration & Events</div>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">
+                Finde Workshops, Auftritte und Szene-Events – und trage deine eigenen Termine ein.
+              </p>
             </div>
-            <div className="p-6">
-              <div className="text-4xl md:text-5xl font-bold text-pink-600 dark:text-pink-400">{userCount}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">Mitglieder</div>
+
+            <div className="bg-gray-50 dark:bg-gray-800/60 p-7 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div className="text-3xl mb-3">🌙</div>
+              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">Dein Stil, dein Tempo</div>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">
+                Von Orientalisch bis Tribal Fusion: Filter nach Tanzstil, Ort und Umkreis – so wie es zu dir passt.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 text-center">
+              <div className="text-sm text-gray-500 dark:text-gray-400">Schon dabei</div>
+              <div className="mt-1 text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">{groupCount}</div>
+              <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">Tanzgruppen</div>
+            </div>
+            <div className="rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 text-center">
+              <div className="text-sm text-gray-500 dark:text-gray-400">Aktuell geplant</div>
+              <div className="mt-1 text-3xl font-extrabold text-purple-600 dark:text-purple-400">{eventCount}</div>
+              <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">Events</div>
+            </div>
+            <div className="rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 text-center">
+              <div className="text-sm text-gray-500 dark:text-gray-400">Mitglieder</div>
+              <div className="mt-1 text-3xl font-extrabold text-pink-600 dark:text-pink-400">{userCount}</div>
+              <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">in der Community</div>
             </div>
           </div>
         </div>
