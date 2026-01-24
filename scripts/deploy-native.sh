@@ -59,8 +59,10 @@ if [ ! -f "package.json" ]; then
 fi
 
 CAN_SUDO=0
-if sudo -n true 2>/dev/null; then
-    CAN_SUDO=1
+if command -v sudo >/dev/null 2>&1; then
+    if sudo -v; then
+        CAN_SUDO=1
+    fi
 fi
 
 # Backup erstellen
@@ -111,13 +113,32 @@ echo -e "${YELLOW}[5/7] Führe Datenbank-Migrationen aus...${NC}"
 if [ "$CAN_SUDO" -eq 1 ]; then
     echo -e "${YELLOW}Stoppe Service für Migration (verhindert SQLite Lock)...${NC}"
     sudo systemctl stop tribefinder || true
-    sleep 1
+    sleep 2
+else
+    echo -e "${RED}Fehler: Migrationen benötigen einen gestoppten Service, aber sudo ist nicht verfügbar.${NC}"
+    echo "Bitte einmalig als root ausführen: systemctl stop tribefinder"
+    echo "Dann dieses Script erneut starten."
+    exit 1
 fi
-npm run db:migrate
-if [ "$CAN_SUDO" -eq 1 ]; then
-    echo -e "${YELLOW}Starte Service nach Migration...${NC}"
-    sudo systemctl start tribefinder || true
+
+MIGRATE_OK=0
+for i in 1 2 3; do
+    if npm run db:migrate; then
+        MIGRATE_OK=1
+        break
+    fi
+    echo -e "${YELLOW}Migration fehlgeschlagen (Versuch $i/3). Warte kurz und versuche erneut...${NC}"
+    sleep 2
+done
+
+if [ "$MIGRATE_OK" -ne 1 ]; then
+    echo -e "${RED}Fehler: Migrationen sind nach mehreren Versuchen fehlgeschlagen.${NC}"
+    echo "Hinweis: Prüfe, ob noch ein Prozess prod.db offen hält (z.B. per: sudo lsof /home/tribefinder/TribeFinder/prod.db)"
+    exit 1
 fi
+
+echo -e "${YELLOW}Starte Service nach Migration...${NC}"
+sudo systemctl start tribefinder || true
 echo ""
 
 # Default DanceStyles seeden (idempotent)
