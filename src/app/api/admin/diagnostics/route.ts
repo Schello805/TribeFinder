@@ -99,6 +99,30 @@ export async function GET() {
   );
 
   checks.push(
+    await runCheck("errors", "Aktive Fehler (Server)", async () => {
+      const prismaAny = prisma as unknown as {
+        errorLog: {
+          count: (args: unknown) => Promise<number>;
+        };
+      };
+
+      try {
+        const count = await prismaAny.errorLog.count({});
+        if (count === 0) {
+          return { status: "ok", message: "Keine Fehler" };
+        }
+        return { status: "warn", message: `${count} Fehler im Log (siehe Admin → Fehler)` };
+      } catch (e) {
+        const err = e as { code?: string; message?: string };
+        if (err?.code === "P2021" || err?.code === "P2022") {
+          return { status: "warn", message: "ErrorLog Tabelle fehlt (Migration noch nicht gelaufen?)" };
+        }
+        throw e;
+      }
+    })
+  );
+
+  checks.push(
     await runCheck("dance_styles", "DanceStyles (Katalog)", async () => {
       const count = await prisma.danceStyle.count();
       if (count === 0) {

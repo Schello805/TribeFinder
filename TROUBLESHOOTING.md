@@ -198,7 +198,7 @@ cat .env | grep DATABASE_URL
 
 #### Rechte prüfen
 ```bash
-ls -la /home/tribefinder/TribeFinder/public/uploads
+ls -la /var/www/tribefinder/uploads
 
 # Sollte sein:
 # drwxr-xr-x tribefinder tribefinder
@@ -206,8 +206,21 @@ ls -la /home/tribefinder/TribeFinder/public/uploads
 
 #### Rechte korrigieren
 ```bash
-sudo chown -R tribefinder:tribefinder /home/tribefinder/TribeFinder/public/uploads
-chmod 755 /home/tribefinder/TribeFinder/public/uploads
+sudo chown -R tribefinder:tribefinder /var/www/tribefinder/uploads
+sudo find /var/www/tribefinder/uploads -type d -exec chmod 755 {} \;
+sudo find /var/www/tribefinder/uploads -type f -exec chmod 644 {} \;
+```
+
+#### Symlink prüfen
+```bash
+ls -la /home/tribefinder/TribeFinder/public/uploads
+# sollte ein Symlink auf /var/www/tribefinder/uploads sein
+```
+
+#### Nginx Alias prüfen
+```bash
+sudo grep -n "location \^~ /uploads/" -n /etc/nginx/sites-available/tribefinder
+sudo grep -n "alias /var/www/tribefinder/uploads/;" -n /etc/nginx/sites-available/tribefinder
 ```
 
 #### Upload-Limit in Nginx

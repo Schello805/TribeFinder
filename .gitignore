@@ -35,6 +35,9 @@ public/uploads/*
 *.db-wal
 *.db-shm
 
+# legacy nested prisma folder (can appear due to misconfigured DATABASE_URL / old setups)
+prisma/prisma/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

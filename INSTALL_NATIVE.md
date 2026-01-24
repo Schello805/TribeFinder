@@ -21,7 +21,7 @@ Das Script übernimmt:
 - Reproduzierbare Dependency-Installation (`npm ci --include=optional`)
 - Prisma generate + migrate
 - Production Build
-- `public/uploads` mit korrekten Permissions
+- Uploads unter `/var/www/tribefinder/uploads` (robust für Nginx in LXC)
 - systemd Service + optional Nginx/SSL
 
 ## Voraussetzungen
@@ -130,11 +130,15 @@ npm run db:migrate
 npm run build
 ```
 
-### Upload-Verzeichnis vorbereiten
+### Upload-Verzeichnis vorbereiten (empfohlen)
 ```bash
-mkdir -p public/uploads
-chown -R tribefinder:tribefinder public/uploads
-chmod 755 public/uploads
+sudo mkdir -p /var/www/tribefinder/uploads
+sudo chown -R tribefinder:tribefinder /var/www/tribefinder/uploads
+sudo chmod 755 /var/www/tribefinder/uploads
+
+# App schreibt weiterhin nach public/uploads (Symlink auf /var/www/...)
+sudo rm -rf public/uploads
+sudo ln -s /var/www/tribefinder/uploads public/uploads
 ```
 
 ### Test-Start (optional)
@@ -220,7 +224,7 @@ server {
 
     # Uploads direkt ausliefern (empfohlen)
     location ^~ /uploads/ {
-        alias /home/tribefinder/TribeFinder/public/uploads/;
+        alias /var/www/tribefinder/uploads/;
         access_log off;
         expires 30d;
         add_header Cache-Control "public";
@@ -257,18 +261,15 @@ server {
 }
 ```
 
-Hinweis: Wenn `/home/tribefinder` auf `750` steht, braucht Nginx (`www-data`) Traverse-Rechte, sonst gibt es `403` bei `/uploads/*`.
-Empfohlen (minimal via ACL):
-```bash
-sudo setfacl -m u:www-data:--x /home/tribefinder
-sudo setfacl -m u:www-data:--x /home/tribefinder/TribeFinder
-sudo setfacl -m u:www-data:--x /home/tribefinder/TribeFinder/public
-sudo setfacl -m u:www-data:--x /home/tribefinder/TribeFinder/public/uploads
-```
+Hinweis: In LXC-Setups kann Nginx Zugriffe auf Pfade unter `/home/...` trotz ACLs blocken (403). Deshalb werden Uploads standardmäßig unter `/var/www/tribefinder/uploads` gehalten.
 
 ### Konfiguration aktivieren
 ```bash
 sudo ln -s /etc/nginx/sites-available/tribefinder /etc/nginx/sites-enabled/
+
+# Default-Site deaktivieren (sonst matcht evtl. der falsche vHost)
+sudo rm -f /etc/nginx/sites-enabled/default
+
 sudo nginx -t  # Konfiguration testen
 sudo systemctl restart nginx
 ```
@@ -423,11 +424,12 @@ npm run db:migrate
 ### Upload-Fehler
 ```bash
 # Rechte prüfen
-ls -la /home/tribefinder/TribeFinder/public/uploads
+ls -la /var/www/tribefinder/uploads
 
 # Rechte setzen
-sudo chown -R tribefinder:tribefinder /home/tribefinder/TribeFinder/public/uploads
-chmod 755 /home/tribefinder/TribeFinder/public/uploads
+sudo chown -R tribefinder:tribefinder /var/www/tribefinder/uploads
+sudo find /var/www/tribefinder/uploads -type d -exec chmod 755 {} \;
+sudo find /var/www/tribefinder/uploads -type f -exec chmod 644 {} \;
 ```
 
 ### E2E Tests (Playwright) schlagen fehl (Browser fehlt)

@@ -20,6 +20,10 @@ export const groupSchema = z.object({
   }).optional(),
   tags: z.array(z.string()).optional(),
   image: z.string().optional(), // Für Logo/Bild Upload (Pfad)
+  headerImage: z.string().optional(),
+  headerImageFocusY: z.number().min(0).max(100).optional(),
+  headerGradientFrom: z.string().optional(),
+  headerGradientTo: z.string().optional(),
 });
 
 export type GroupFormData = z.infer<typeof groupSchema>;

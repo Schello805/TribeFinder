@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const startOfDay = (d: Date) => {
+  const copy = new Date(d);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+};
+
 export const eventSchema = z.object({
   title: z.string().min(2, "Titel muss mindestens 2 Zeichen lang sein"),
   description: z.string().min(10, "Beschreibung muss mindestens 10 Zeichen lang sein"),
@@ -28,6 +34,17 @@ export const eventSchema = z.object({
   // Workshop booking fields
   maxParticipants: z.number().min(1).optional().nullable(),
   requiresRegistration: z.boolean().optional(),
+}).refine((data) => {
+  const start = new Date(data.startDate);
+  if (Number.isNaN(start.getTime())) return true;
+
+  const min = startOfDay(new Date());
+  min.setDate(min.getDate() - 30);
+
+  return start >= min;
+}, {
+  message: "Startdatum darf höchstens 30 Tage in der Vergangenheit liegen",
+  path: ["startDate"],
 }).refine((data) => {
   if (!data.endDate) return true;
   const start = new Date(data.startDate);

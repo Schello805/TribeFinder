@@ -134,25 +134,30 @@ chown -R tribefinder:tribefinder "$INSTALL_DIR"
 echo "Arbeitsverzeichnis: $(pwd)"
 
 # Upload-Verzeichnis früh anlegen (damit Uploads ab dem ersten Start funktionieren)
-mkdir -p public/uploads
-chown -R tribefinder:tribefinder public/uploads
-chmod 755 public/uploads
+UPLOADS_DIR="/var/www/tribefinder/uploads"
+mkdir -p "$UPLOADS_DIR"
+chown -R tribefinder:tribefinder "$UPLOADS_DIR"
+chmod 755 "$UPLOADS_DIR"
+
+# public/uploads als Symlink auf /var/www/... (verhindert 403 durch Nginx Policies auf /home)
+if [ -L "public/uploads" ]; then
+    :
+elif [ -d "public/uploads" ]; then
+    # Falls bereits ein echtes Verzeichnis existiert, Inhalte migrieren und ersetzen
+    if [ "$(ls -A public/uploads 2>/dev/null | wc -l)" -gt 0 ]; then
+        cp -a public/uploads/. "$UPLOADS_DIR/" || true
+    fi
+    rm -rf public/uploads
+fi
+ln -sfn "$UPLOADS_DIR" public/uploads
+chown -h tribefinder:tribefinder public/uploads
 
 # Backups-Verzeichnis (für manuelle + automatische Backups)
 mkdir -p backups
 chown -R tribefinder:tribefinder backups
 chmod 755 backups
 
-# Erlaube Nginx (www-data) das Ausliefern von /uploads via alias (ACL, minimal)
-setfacl -m u:www-data:--x /home/tribefinder || true
-setfacl -m u:www-data:--x "$INSTALL_DIR" || true
-setfacl -m u:www-data:--x "$INSTALL_DIR/public" || true
-setfacl -m u:www-data:--x "$INSTALL_DIR/public/uploads" || true
-setfacl -d -m u:www-data:--x "$INSTALL_DIR/public/uploads" || true
-setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.jpg 2>/dev/null || true
-setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.png 2>/dev/null || true
-setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.webp 2>/dev/null || true
-setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.gif 2>/dev/null || true
+
 
 # .env erstellen falls nicht vorhanden
 if [ ! -f ".env" ]; then
@@ -291,20 +296,20 @@ if [ "$DOMAIN" != "localhost" ]; then
     
     # Aktivieren
     ln -sf /etc/nginx/sites-available/tribefinder /etc/nginx/sites-enabled/
+
+    # Default-Site deaktivieren (sonst matcht /uploads evtl. falscher vHost)
+    if [ -e /etc/nginx/sites-enabled/default ]; then
+        rm -f /etc/nginx/sites-enabled/default
+    fi
     
     # Test
     nginx -t
     systemctl restart nginx
 
-    # Erlaube Nginx (www-data) Uploads aus $INSTALL_DIR/public/uploads via alias zu lesen
-    setfacl -m u:www-data:--x /home/tribefinder || true
-    setfacl -m u:www-data:--x "$INSTALL_DIR" || true
-    setfacl -m u:www-data:--x "$INSTALL_DIR/public" || true
-    setfacl -m u:www-data:--x "$INSTALL_DIR/public/uploads" || true
-    setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.jpg 2>/dev/null || true
-    setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.png 2>/dev/null || true
-    setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.webp 2>/dev/null || true
-    setfacl -m u:www-data:r-- "$INSTALL_DIR/public/uploads"/*.gif 2>/dev/null || true
+    # Stelle sicher, dass Uploads-Pfad existiert (Nginx alias zeigt auf /var/www/...)
+    mkdir -p "$UPLOADS_DIR"
+    chown -R tribefinder:tribefinder "$UPLOADS_DIR"
+    chmod 755 "$UPLOADS_DIR"
     
     echo -e "${GREEN}✓ Nginx konfiguriert für $DOMAIN${NC}"
     echo ""

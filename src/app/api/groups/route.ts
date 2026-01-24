@@ -143,6 +143,10 @@ export async function POST(req: Request) {
         videoUrl: validatedData.videoUrl,
         size: validatedData.size,
         image: validatedData.image,
+        headerImage: validatedData.headerImage,
+        headerImageFocusY: validatedData.headerImageFocusY,
+        headerGradientFrom: validatedData.headerGradientFrom,
+        headerGradientTo: validatedData.headerGradientTo,
         
         trainingTime: validatedData.trainingTime,
         performances: validatedData.performances || false,

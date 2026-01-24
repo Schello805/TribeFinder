@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { GroupFormData } from "@/lib/validations/group";
@@ -28,6 +28,9 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+  const [pendingHeaderFile, setPendingHeaderFile] = useState<File | null>(null);
+  const [pendingHeaderPreviewUrl, setPendingHeaderPreviewUrl] = useState<string | null>(null);
+
   const groupId = initialData?.id;
 
   const initialTags: Array<string | { name: string }> = initialData?.tags ?? [];
@@ -40,6 +43,10 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
     videoUrl: initialData?.videoUrl || "",
     size: initialData?.size || "SMALL",
     image: initialData?.image || "",
+    headerImage: initialData?.headerImage || "",
+    headerImageFocusY: typeof initialData?.headerImageFocusY === "number" ? initialData.headerImageFocusY : 50,
+    headerGradientFrom: initialData?.headerGradientFrom || "",
+    headerGradientTo: initialData?.headerGradientTo || "",
     
     trainingTime: initialData?.trainingTime || "",
     performances: initialData?.performances || false,
@@ -172,6 +179,55 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
     }
   };
 
+  const handleHeaderFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (pendingHeaderPreviewUrl) {
+      URL.revokeObjectURL(pendingHeaderPreviewUrl);
+    }
+    setPendingHeaderFile(file);
+    const url = URL.createObjectURL(file);
+    setPendingHeaderPreviewUrl(url);
+    setFormData(prev => ({ ...prev, headerImageFocusY: typeof prev.headerImageFocusY === "number" ? prev.headerImageFocusY : 50 }));
+  };
+
+  const headerPreviewObjectPosition = useMemo(() => {
+    const y = typeof formData.headerImageFocusY === "number" ? formData.headerImageFocusY : 50;
+    return `50% ${y}%`;
+  }, [formData.headerImageFocusY]);
+
+  const uploadPendingHeader = async () => {
+    if (!pendingHeaderFile) return;
+
+    const body = new FormData();
+    body.append('file', pendingHeaderFile);
+    const focusY = typeof formData.headerImageFocusY === "number" ? String(formData.headerImageFocusY) : "50";
+    body.append('focusY', focusY);
+
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/upload/banner', {
+        method: 'POST',
+        body,
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || 'Upload fehlgeschlagen');
+
+      setFormData(prev => ({ ...prev, headerImage: data.url }));
+      setPendingHeaderFile(null);
+      if (pendingHeaderPreviewUrl) {
+        URL.revokeObjectURL(pendingHeaderPreviewUrl);
+      }
+      setPendingHeaderPreviewUrl(null);
+    } catch (err) {
+      console.error(err);
+      setError('Fehler beim Banner-Upload');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -227,6 +283,111 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
           {error}
         </div>
       )}
+
+      <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-md border border-gray-200 dark:border-gray-600">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Header / Banner</label>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Banner wird automatisch auf 1200×300 zugeschnitten.</p>
+
+        <div className="mt-3 flex flex-col sm:flex-row gap-4 sm:items-center">
+          {(pendingHeaderPreviewUrl || formData.headerImage) ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={pendingHeaderPreviewUrl || formData.headerImage}
+                alt="Banner Vorschau"
+                className="h-16 w-64 object-cover rounded-md border border-gray-200 dark:border-gray-600"
+                style={pendingHeaderPreviewUrl ? { objectPosition: headerPreviewObjectPosition } : undefined}
+              />
+            </>
+          ) : (
+            <div className="h-16 w-64 rounded-md border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
+              Kein Banner gesetzt
+            </div>
+          )}
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleHeaderFileSelect}
+            className="block w-full text-sm text-black dark:text-gray-400
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-md file:border-0
+              file:text-sm file:font-semibold
+              file:bg-indigo-50 file:text-indigo-700
+              hover:file:bg-indigo-100
+              dark:file:bg-indigo-900/50 dark:file:text-indigo-200"
+          />
+        </div>
+
+        {pendingHeaderPreviewUrl ? (
+          <div className="mt-4">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Ausschnitt (oben/unten)</label>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={typeof formData.headerImageFocusY === "number" ? formData.headerImageFocusY : 50}
+              onChange={(e) => setFormData(prev => ({ ...prev, headerImageFocusY: Number(e.target.value) }))}
+              className="w-full"
+            />
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={uploadPendingHeader}
+                disabled={isLoading}
+                className="px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {isLoading ? "Lade hoch..." : "Banner übernehmen"}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Gradient von</label>
+            <input
+              type="color"
+              value={formData.headerGradientFrom || "#6366f1"}
+              onChange={(e) => setFormData(prev => ({ ...prev, headerGradientFrom: e.target.value }))}
+              className="h-10 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Gradient zu</label>
+            <input
+              type="color"
+              value={formData.headerGradientTo || "#ec4899"}
+              onChange={(e) => setFormData(prev => ({ ...prev, headerGradientTo: e.target.value }))}
+              className="h-10 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Bild / Logo</label>
+        <div className="mt-1 flex items-center gap-4">
+          {formData.image && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={formData.image} alt="Vorschau" className="h-20 w-20 object-cover rounded-md border border-gray-200 dark:border-gray-600" />
+            </>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="block w-full text-sm text-black dark:text-gray-400
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-md file:border-0
+              file:text-sm file:font-semibold
+              file:bg-indigo-50 file:text-indigo-700
+              hover:file:bg-indigo-100
+              dark:file:bg-indigo-900/50 dark:file:text-indigo-200"
+          />
+        </div>
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Name der Gruppe</label>
@@ -350,30 +511,6 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
             placeholder="https://youtube.com/..."
           />
           {fieldErrors.videoUrl && <p className="mt-1 text-sm text-red-600">{fieldErrors.videoUrl}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Bild / Logo</label>
-        <div className="mt-1 flex items-center gap-4">
-          {formData.image && (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={formData.image} alt="Vorschau" className="h-20 w-20 object-cover rounded-md border border-gray-200 dark:border-gray-600" />
-            </>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="block w-full text-sm text-black dark:text-gray-400
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-md file:border-0
-              file:text-sm file:font-semibold
-              file:bg-indigo-50 file:text-indigo-700
-              hover:file:bg-indigo-100
-              dark:file:bg-indigo-900/50 dark:file:text-indigo-200"
-          />
-        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

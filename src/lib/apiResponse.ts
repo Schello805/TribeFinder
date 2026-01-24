@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordServerError } from "@/lib/errorReporting";
 
 type ErrorBody = {
   message: string;
@@ -7,6 +8,31 @@ type ErrorBody = {
 };
 
 export function jsonError(message: string, status = 500, details?: unknown) {
+  if (status >= 500) {
+    const stack = details && typeof details === "object" && details !== null && "stack" in (details as any)
+      ? String((details as any).stack)
+      : undefined;
+
+    const detailText =
+      details === undefined
+        ? undefined
+        : typeof details === "string"
+          ? details
+          : JSON.stringify(details);
+
+    try {
+      void recordServerError({
+        route: null,
+        status,
+        message,
+        details: detailText ?? null,
+        stack: stack ?? null,
+      });
+    } catch {
+      // best-effort only
+    }
+  }
+
   const body: ErrorBody = {
     message,
     error: message,

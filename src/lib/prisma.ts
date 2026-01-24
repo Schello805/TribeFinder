@@ -21,25 +21,17 @@ const normalizedDatabaseUrl = process.env.DATABASE_URL
 
 const defaultSqliteUrl = `file:${path.join(projectRoot, "prisma", "dev.db")}`;
 
-const normalizedSqliteUrl = normalizedDatabaseUrl
-  ? normalizedDatabaseUrl
-      .replace(/^file:\.\.\/dev\.db$/, "file:./dev.db")
-      .replace(/^file:\.\.\/\.\.\/dev\.db$/, "file:./dev.db")
-      .replace(/^file:prisma\/dev\.db$/, "file:./dev.db")
-      .replace(/^file:\.\/prisma\/dev\.db$/, "file:./dev.db")
-      .replace(/^file:\.\.\/prisma\/dev\.db$/, "file:./dev.db")
-      .replace(/^file:\.\/dev\.db$/, "file:./prisma/dev.db")
-  : null;
+const collapseDuplicatePrismaDir = (p: string) => p.replace(/\/(?:prisma\/)+/g, "/prisma/");
 
-if (!normalizedSqliteUrl || !normalizedSqliteUrl.startsWith("file:")) {
+if (!normalizedDatabaseUrl || !normalizedDatabaseUrl.startsWith("file:")) {
   process.env.DATABASE_URL = defaultSqliteUrl;
 } else {
-  const sqlitePath = normalizedSqliteUrl.replace(/^file:/, "");
-  if (!path.isAbsolute(sqlitePath)) {
-    process.env.DATABASE_URL = `file:${path.resolve(projectRoot, sqlitePath)}`;
-  } else {
-    process.env.DATABASE_URL = normalizedSqliteUrl;
-  }
+  const rawSqlitePath = normalizedDatabaseUrl.replace(/^file:/, "");
+  const resolved = path.isAbsolute(rawSqlitePath)
+    ? rawSqlitePath
+    : path.resolve(projectRoot, rawSqlitePath);
+  const normalized = collapseDuplicatePrismaDir(resolved);
+  process.env.DATABASE_URL = `file:${normalized}`;
 }
 
 const prismaClientSingleton = () => {

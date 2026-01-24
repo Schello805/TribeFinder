@@ -75,9 +75,13 @@ npm run build
 ### 7. Upload-Verzeichnis erstellen
 
 ```bash
-mkdir -p public/uploads
-chown -R tribefinder:tribefinder public/uploads
-chmod 755 public/uploads
+sudo mkdir -p /var/www/tribefinder/uploads
+sudo chown -R tribefinder:tribefinder /var/www/tribefinder/uploads
+sudo chmod 755 /var/www/tribefinder/uploads
+
+# App schreibt weiterhin nach public/uploads (Symlink auf /var/www/...)
+sudo rm -rf public/uploads
+sudo ln -s /var/www/tribefinder/uploads public/uploads
 ```
 
 ### 8. Test-Start
@@ -140,6 +144,13 @@ server {
     listen 80;
     server_name deine-domain.de;
 
+    location ^~ /uploads/ {
+        alias /var/www/tribefinder/uploads/;
+        access_log off;
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
@@ -159,6 +170,10 @@ sudo sed -i 's|deine-domain.de|DEINE_DOMAIN_HIER|g' /etc/nginx/sites-available/t
 
 # Aktivieren
 sudo ln -sf /etc/nginx/sites-available/tribefinder /etc/nginx/sites-enabled/
+
+# Default-Site deaktivieren (sonst matcht evtl. der falsche vHost)
+sudo rm -f /etc/nginx/sites-enabled/default
+
 sudo nginx -t
 sudo systemctl restart nginx
 

@@ -27,55 +27,80 @@ async function requireUser() {
 }
 
 async function ensureDanceStylesSeeded() {
-  const existing = await prisma.danceStyle.count();
-  if (existing > 0) return;
+  try {
+    const existing = await prisma.danceStyle.count();
+    if (existing > 0) return;
 
-  const tags = await prisma.tag.findMany({
-    where: { isApproved: true },
-    select: { name: true },
-    orderBy: { name: "asc" },
-  });
+    const tags = await prisma.tag.findMany({
+      where: { isApproved: true },
+      select: { name: true },
+      orderBy: { name: "asc" },
+    });
 
-  const names = tags.length
-    ? tags.map((t) => t.name)
-    : [
-        "Orientalischer Tanz",
-        "Bauchtanz",
-        "Tribal Fusion",
-        "ATS / FCBD Style",
-        "Tribal",
-        "Folklore (Orient)",
-        "Drum Solo",
-        "Fusion",
-      ];
+    const names = tags.length
+      ? tags.map((t) => t.name)
+      : [
+          "Orientalischer Tanz",
+          "Bauchtanz",
+          "Tribal Fusion",
+          "ATS / FCBD Style",
+          "Tribal",
+          "Folklore (Orient)",
+          "Drum Solo",
+          "Fusion",
+        ];
 
-  await prisma.$transaction(
-    names.map((name) =>
-      prisma.danceStyle.upsert({
-        where: { name },
-        update: {},
-        create: { name },
-      })
-    )
-  );
+    await prisma.$transaction(
+      names.map((name) =>
+        prisma.danceStyle.upsert({
+          where: { name },
+          update: {},
+          create: { name },
+        })
+      )
+    );
+  } catch {
+    // best-effort only (z.B. wenn Tabellen/Migrationen noch fehlen)
+  }
 }
 
 export async function GET() {
   const session = await requireUser();
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
-  await ensureDanceStylesSeeded();
+  try {
+    await ensureDanceStylesSeeded();
 
-  const [available, selected] = await Promise.all([
-    prisma.danceStyle.findMany({ orderBy: { name: "asc" } }),
-    prisma.userDanceStyle.findMany({
-      where: { userId: session.user.id },
-      include: { style: true },
-      orderBy: { style: { name: "asc" } },
-    }),
-  ]);
+    const [available, selected] = await Promise.all([
+      prisma.danceStyle.findMany({ orderBy: { name: "asc" } }),
+      prisma.userDanceStyle.findMany({
+        where: { userId: session.user.id },
+        include: { style: true },
+        orderBy: { style: { name: "asc" } },
+      }),
+    ]);
 
-  return NextResponse.json({ available, selected });
+    return NextResponse.json({ available, selected });
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+
+    // Wenn die DB noch nicht migriert ist: UI soll nicht kaputt gehen.
+    if (err?.code === "P2021" || err?.code === "P2022") {
+      return NextResponse.json(
+        {
+          available: [],
+          selected: [],
+          message: "Tanzstile sind auf dem Server noch nicht verfügbar (Migration fehlt).",
+        },
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "Fehler beim Laden der Tanzstile" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(req: Request) {
@@ -116,6 +141,16 @@ export async function POST(req: Request) {
 
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
+    const err = error as { code?: string; message?: string };
+    if (err?.code === "P2021" || err?.code === "P2022") {
+      return NextResponse.json(
+        {
+          error:
+            "Server-Datenbank ist noch nicht auf dem neuesten Stand (Migration fehlt). Bitte Migrationen ausführen und erneut versuchen.",
+        },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
       { error: "Konnte Tanzstil nicht hinzufügen", details: error instanceof Error ? error.message : String(error) },
       { status: 400 }
@@ -135,21 +170,57 @@ export async function PATCH(req: Request) {
 
   const { userStyleId, level } = parsed.data;
 
-  const existing = await prisma.userDanceStyle.findFirst({
-    where: { id: userStyleId, userId: session.user.id },
-  });
+  let existing: { id: string } | null = null;
+  try {
+    existing = await prisma.userDanceStyle.findFirst({
+      where: { id: userStyleId, userId: session.user.id },
+      select: { id: true },
+    });
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    if (err?.code === "P2021" || err?.code === "P2022") {
+      return NextResponse.json(
+        {
+          error:
+            "Server-Datenbank ist noch nicht auf dem neuesten Stand (Migration fehlt). Bitte Migrationen ausführen und erneut versuchen.",
+        },
+        { status: 503 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Fehler beim Speichern" },
+      { status: 500 }
+    );
+  }
 
   if (!existing) {
     return NextResponse.json({ message: "Nicht gefunden" }, { status: 404 });
   }
 
-  const updated = await prisma.userDanceStyle.update({
-    where: { id: userStyleId },
-    data: { level },
-    include: { style: true },
-  });
+  try {
+    const updated = await prisma.userDanceStyle.update({
+      where: { id: userStyleId },
+      data: { level },
+      include: { style: true },
+    });
 
-  return NextResponse.json(updated);
+    return NextResponse.json(updated);
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    if (err?.code === "P2021" || err?.code === "P2022") {
+      return NextResponse.json(
+        {
+          error:
+            "Server-Datenbank ist noch nicht auf dem neuesten Stand (Migration fehlt). Bitte Migrationen ausführen und erneut versuchen.",
+        },
+        { status: 503 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Fehler beim Speichern" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(req: Request) {
@@ -164,17 +235,50 @@ export async function DELETE(req: Request) {
 
   const { userStyleId } = parsed.data;
 
-  const existing = await prisma.userDanceStyle.findFirst({
-    where: { id: userStyleId, userId: session.user.id },
-  });
+  let existing: { id: string } | null = null;
+  try {
+    existing = await prisma.userDanceStyle.findFirst({
+      where: { id: userStyleId, userId: session.user.id },
+      select: { id: true },
+    });
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    if (err?.code === "P2021" || err?.code === "P2022") {
+      return NextResponse.json(
+        {
+          message:
+            "Server-Datenbank ist noch nicht auf dem neuesten Stand (Migration fehlt). Bitte Migrationen ausführen und erneut versuchen.",
+        },
+        { status: 503 }
+      );
+    }
+    return NextResponse.json({ message: "Fehler beim Entfernen" }, { status: 500 });
+  }
 
   if (!existing) {
     return NextResponse.json({ message: "Nicht gefunden" }, { status: 404 });
   }
 
-  await prisma.userDanceStyle.delete({
-    where: { id: userStyleId },
-  });
+  try {
+    await prisma.userDanceStyle.delete({
+      where: { id: userStyleId },
+    });
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    if (err?.code === "P2021" || err?.code === "P2022") {
+      return NextResponse.json(
+        {
+          message:
+            "Server-Datenbank ist noch nicht auf dem neuesten Stand (Migration fehlt). Bitte Migrationen ausführen und erneut versuchen.",
+        },
+        { status: 503 }
+      );
+    }
+    return NextResponse.json(
+      { message: "Fehler beim Entfernen" },
+      { status: 500 }
+    );
+  }
 }

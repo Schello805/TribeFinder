@@ -113,6 +113,10 @@ model Group {
   website       String?
   contactEmail  String?
   image         String?
+  headerImage   String?
+  headerImageFocusY Int?
+  headerGradientFrom String?
+  headerGradientTo String?
   videoUrl      String?   // YouTube Link
   size          String    @default("SMALL") // SOLO, DUO, TRIO, SMALL (<10), LARGE (>10)
   
@@ -262,6 +266,27 @@ model Feedback {
   @@index([createdAt])
   @@index([userId])
   @@index([archivedAt])
+}
+
+model ErrorLog {
+  id       String   @id @default(cuid())
+  fingerprint String @unique
+
+  route    String?
+  status   Int?
+
+  message  String
+  details  String?
+  stack    String?
+
+  count    Int      @default(1)
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  lastEmailSentAt DateTime?
+
+  @@index([lastSeenAt])
+  @@index([status])
 }
 
 // ===== NEW FEATURES =====

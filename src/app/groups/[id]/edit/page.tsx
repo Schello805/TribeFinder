@@ -47,7 +47,7 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Gruppe bearbeiten</h1>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Gruppe bearbeiten</h1>
       <GroupForm initialData={serializedGroup} isEditing={true} isOwner={isOwner} />
     </div>
   );

@@ -103,12 +103,21 @@ nano .env
 sudo su - tribefinder
 cd ~/TribeFinder
 
+# Uploads Zielpfad (robust für Nginx in LXC)
+sudo mkdir -p /var/www/tribefinder/uploads
+sudo chown -R tribefinder:tribefinder /var/www/tribefinder/uploads
+sudo chmod 755 /var/www/tribefinder/uploads
+
+# App-Pfad als Symlink setzen
+sudo rm -rf public/uploads
+sudo ln -s /var/www/tribefinder/uploads public/uploads
+
 # Uploads kopieren
-cp -r /pfad/zu/uploads_backup/* public/uploads/
+cp -r /pfad/zu/uploads_backup/* /var/www/tribefinder/uploads/
 
 # Rechte setzen
-chmod 755 public/uploads
-chmod 644 public/uploads/*
+sudo find /var/www/tribefinder/uploads -type d -exec chmod 755 {} \;
+sudo find /var/www/tribefinder/uploads -type f -exec chmod 644 {} \;
 ```
 
 ### 5. Service starten und testen
@@ -187,11 +196,12 @@ sudo tail -f /var/log/nginx/error.log
 
 ```bash
 # Rechte prüfen
-ls -la /home/tribefinder/TribeFinder/public/uploads
+ls -la /var/www/tribefinder/uploads
 
 # Rechte korrigieren
-sudo chown -R tribefinder:tribefinder /home/tribefinder/TribeFinder/public/uploads
-chmod 755 /home/tribefinder/TribeFinder/public/uploads
+sudo chown -R tribefinder:tribefinder /var/www/tribefinder/uploads
+sudo find /var/www/tribefinder/uploads -type d -exec chmod 755 {} \;
+sudo find /var/www/tribefinder/uploads -type f -exec chmod 644 {} \;
 ```
 
 ## Rollback zu Docker

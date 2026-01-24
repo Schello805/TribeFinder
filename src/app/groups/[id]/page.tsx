@@ -150,6 +150,13 @@ export default async function GroupDetailPage({
   // Helper to display clean domain
   const displayUrl = group.website ? group.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
 
+  const headerImageUrl = normalizeUploadedImageUrl((group as unknown as { headerImage?: string | null }).headerImage) ?? null;
+  const headerFrom = ((group as unknown as { headerGradientFrom?: string | null }).headerGradientFrom || "").trim();
+  const headerTo = ((group as unknown as { headerGradientTo?: string | null }).headerGradientTo || "").trim();
+  const headerFocusYRaw = (group as unknown as { headerImageFocusY?: number | null }).headerImageFocusY;
+  const headerFocusY = typeof headerFocusYRaw === "number" && Number.isFinite(headerFocusYRaw) ? Math.min(100, Math.max(0, headerFocusYRaw)) : 50;
+  const headerStyle = !headerImageUrl && headerFrom && headerTo ? { backgroundImage: `linear-gradient(to right, ${headerFrom}, ${headerTo})` } : undefined;
+
   return (
     <GroupDetailAnimations>
       <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -158,8 +165,20 @@ export default async function GroupDetailPage({
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
           {/* ... existing header content ... */}
           {/* Banner Area */}
-          <div className="h-48 w-full bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 relative">
+          <div className="h-48 w-full relative" style={headerStyle}>
+            {headerImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={headerImageUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ objectPosition: `50% ${headerFocusY}%` }}
+              />
+            ) : null}
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+            {!headerImageUrl && !headerStyle ? (
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500" />
+            ) : null}
           </div>
 
           <div className="px-6 pb-6">

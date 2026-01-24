@@ -39,6 +39,9 @@ function itemClass(active: boolean) {
       <Link href="/admin/diagnostics" className={itemClass(isActive("/admin/diagnostics"))}>
         Diagnose
       </Link>
+      <Link href="/admin/errors" className={itemClass(isActive("/admin/errors"))}>
+        Fehler
+      </Link>
       <Link href="/admin/backups" className={itemClass(isActive("/admin/backups"))}>
         Backups
       </Link>

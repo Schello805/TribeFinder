@@ -14,6 +14,9 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
 
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string>("");
+  const userImageUrl = userAvatarUrl || (session?.user?.image ? (normalizeUploadedImageUrl(String(session.user.image)) ?? "") : "");
+
   useEffect(() => {
     let cancelled = false;
     fetch("/api/branding")
@@ -28,6 +31,30 @@ export default function Navbar() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!session?.user) {
+      setUserAvatarUrl("");
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    fetch("/api/user/profile")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        const img = data?.image ? (normalizeUploadedImageUrl(String(data.image)) ?? "") : "";
+        setUserAvatarUrl(img);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -63,8 +90,13 @@ export default function Navbar() {
 
             {session ? (
               <>
-                <Link href="/dashboard" className="text-indigo-100 hover:text-white transition font-medium">
-                  Mein Bereich
+                <Link href="/dashboard" className="text-indigo-100 hover:text-white transition font-medium flex items-center gap-2">
+                  {userImageUrl ? (
+                    <Image src={userImageUrl} alt="Profil" width={28} height={28} className="h-7 w-7 rounded-full object-cover border border-white/20" unoptimized />
+                  ) : (
+                    <span className="h-7 w-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm">👤</span>
+                  )}
+                  Profil
                 </Link>
                 <button
                   onClick={() => signOut()}
@@ -120,8 +152,13 @@ export default function Navbar() {
             </Link>
             {session ? (
               <>
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
-                  Mein Bereich
+                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+                  {userImageUrl ? (
+                    <Image src={userImageUrl} alt="Profil" width={24} height={24} className="h-6 w-6 rounded-full object-cover border border-white/20" unoptimized />
+                  ) : (
+                    <span className="h-6 w-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs">👤</span>
+                  )}
+                  Profil
                 </Link>
                 <button
                   onClick={() => signOut()}

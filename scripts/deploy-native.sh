@@ -23,8 +23,33 @@ if [ "$USER" != "tribefinder" ]; then
 fi
 
 # Stelle sicher dass Upload-Verzeichnis existiert (und beschreibbar ist)
-mkdir -p public/uploads
-chmod 755 public/uploads
+UPLOADS_DIR="/var/www/tribefinder/uploads"
+if [ ! -d "$UPLOADS_DIR" ]; then
+    echo -e "${RED}Fehler: Upload-Verzeichnis existiert nicht: $UPLOADS_DIR${NC}"
+    echo "Bitte einmalig als root anlegen (oder setup-native.sh ausführen):"
+    echo "  sudo mkdir -p $UPLOADS_DIR"
+    echo "  sudo chown -R tribefinder:tribefinder $UPLOADS_DIR"
+    echo "  sudo chmod 755 $UPLOADS_DIR"
+    exit 1
+fi
+
+if [ ! -w "$UPLOADS_DIR" ]; then
+    echo -e "${RED}Fehler: Upload-Verzeichnis ist nicht beschreibbar: $UPLOADS_DIR${NC}"
+    echo "Fix als root:"
+    echo "  sudo chown -R tribefinder:tribefinder $UPLOADS_DIR"
+    exit 1
+fi
+
+# public/uploads als Symlink auf /var/www/... (robust für Nginx in LXC)
+if [ -L "public/uploads" ]; then
+    :
+elif [ -d "public/uploads" ]; then
+    if [ "$(ls -A public/uploads 2>/dev/null | wc -l)" -gt 0 ]; then
+        cp -a public/uploads/. "$UPLOADS_DIR/" || true
+    fi
+    rm -rf public/uploads
+fi
+ln -sfn "$UPLOADS_DIR" public/uploads
 
 # Prüfe ob wir im richtigen Verzeichnis sind
 if [ ! -f "package.json" ]; then

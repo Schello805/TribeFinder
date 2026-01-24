@@ -52,7 +52,14 @@ export async function GET() {
       ...user,
     });
   } catch (error) {
+    const err = error as { code?: string; message?: string };
     logger.error({ error, userId: session.user.id }, "GET /api/user/notifications failed");
+
+    // Wenn die DB noch nicht migriert ist (z.B. frischer Server/Update), vermeiden wir harte 500s im UI.
+    if (err?.code === "P2022") {
+      return NextResponse.json(DEFAULT_PREFS, { status: 200 });
+    }
+
     return NextResponse.json(
       { message: "Fehler beim Laden der Benachrichtigungs-Einstellungen" },
       { status: 500 }
@@ -106,6 +113,16 @@ export async function PUT(req: Request) {
   } catch (error) {
     const err = error as { code?: string; message?: string };
     logger.error({ error, userId: session.user.id }, "PUT /api/user/notifications failed");
+
+    if (err?.code === "P2022") {
+      return NextResponse.json(
+        {
+          message:
+            "Server-Datenbank ist noch nicht auf dem neuesten Stand (Migration fehlt). Bitte Server-Update/Migration ausführen und erneut versuchen.",
+        },
+        { status: 503 }
+      );
+    }
 
     if (err?.code === "P2025") {
       return NextResponse.json(
