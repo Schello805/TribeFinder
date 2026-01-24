@@ -1,8 +1,35 @@
 import { cp, mkdir, mkdtemp, readdir, rename, rm, stat, writeFile } from "fs/promises";
+import { realpath } from "fs/promises";
 import path from "path";
 import { spawn } from "child_process";
 import os from "os";
 import prisma from "@/lib/prisma";
+
+function resolveProjectRoot() {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const fs = require("node:fs") as typeof import("node:fs");
+      if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    } catch {
+      // ignore
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+}
+
+async function resolveUploadsDir(projectRoot: string) {
+  const uploadsDir = path.join(projectRoot, "public", "uploads");
+  try {
+    return await realpath(uploadsDir);
+  } catch {
+    return uploadsDir;
+  }
+}
 
 function runCommand(cmd: string, args: string[], cwd: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
@@ -23,14 +50,14 @@ function runCommand(cmd: string, args: string[], cwd: string): Promise<{ stdout:
   });
 }
 
-function parseSqlitePathFromDatabaseUrl(databaseUrl: string): string {
+function parseSqlitePathFromDatabaseUrl(databaseUrl: string, projectRoot: string): string {
   const trimmed = databaseUrl.trim();
   if (!trimmed.startsWith("file:")) {
     throw new Error("DATABASE_URL ist kein SQLite file:-Pfad");
   }
   const withoutScheme = trimmed.replace(/^file:/, "");
   const cleaned = withoutScheme.replace(/^\/\//, "");
-  return path.isAbsolute(cleaned) ? cleaned : path.join(process.cwd(), cleaned);
+  return path.isAbsolute(cleaned) ? cleaned : path.join(projectRoot, cleaned);
 }
 
 function runTar(args: string[], cwd: string): Promise<void> {
@@ -49,13 +76,14 @@ function runTar(args: string[], cwd: string): Promise<void> {
 }
 
 export async function createBackup() {
+  const projectRoot = resolveProjectRoot();
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
 
-  const dbPath = parseSqlitePathFromDatabaseUrl(databaseUrl);
-  const uploadsDir = path.join(process.cwd(), "public/uploads");
+  const dbPath = parseSqlitePathFromDatabaseUrl(databaseUrl, projectRoot);
+  const uploadsDir = await resolveUploadsDir(projectRoot);
 
-  const backupDir = path.join(process.cwd(), "backups");
+  const backupDir = path.join(projectRoot, "backups");
   await mkdir(backupDir, { recursive: true });
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -85,7 +113,8 @@ export async function createBackup() {
       .then(() => true)
       .catch(() => false);
     if (uploadsExists) {
-      await cp(uploadsDir, tmpUploads, { recursive: true });
+      // dereference symlink so we copy actual image files (public/uploads is often a symlink to /var/www/...)
+      await cp(uploadsDir, tmpUploads, { recursive: true, dereference: true });
     } else {
       await mkdir(tmpUploads, { recursive: true });
     }
@@ -114,11 +143,12 @@ function isSafeBackupFilename(filename: string) {
 }
 
 export async function inspectBackup(filename: string) {
+  const projectRoot = resolveProjectRoot();
   if (!isSafeBackupFilename(filename)) {
     throw new Error("Ungültiger Backup-Dateiname");
   }
 
-  const backupDir = path.join(process.cwd(), "backups");
+  const backupDir = path.join(projectRoot, "backups");
   const archivePath = path.join(backupDir, filename);
   await stat(archivePath).catch(() => {
     throw new Error("Backup nicht gefunden");
@@ -128,7 +158,7 @@ export async function inspectBackup(filename: string) {
   try {
     // Try to extract db.sqlite (new format). Legacy archives might not have it.
     try {
-      await runTar(["-xzf", archivePath, "-C", tmpRoot, "db.sqlite"], process.cwd());
+      await runTar(["-xzf", archivePath, "-C", tmpRoot, "db.sqlite"], projectRoot);
     } catch {
       // ignore
     }
@@ -136,7 +166,7 @@ export async function inspectBackup(filename: string) {
     const dbPath = path.join(tmpRoot, "db.sqlite");
     const hasDb = await stat(dbPath).then(() => true).catch(() => false);
 
-    const uploadsList = await runCommand("tar", ["-tzf", archivePath], process.cwd());
+    const uploadsList = await runCommand("tar", ["-tzf", archivePath], projectRoot);
     const uploadFiles = uploadsList.stdout
       .split("\n")
       .map((s) => s.trim())
@@ -158,7 +188,7 @@ export async function inspectBackup(filename: string) {
         "select 'Feedback' as t, count(*) as c from Feedback",
       ].join(" union all ") + ";";
 
-      const res = await runCommand("sqlite3", [dbPath, q], process.cwd());
+      const res = await runCommand("sqlite3", [dbPath, q], projectRoot);
       res.stdout
         .split("\n")
         .map((l) => l.trim())
@@ -242,6 +272,7 @@ async function replaceFile(srcFile: string, destFile: string) {
 }
 
 export async function restoreBackup(filename: string) {
+  const projectRoot = resolveProjectRoot();
   if (!isSafeBackupFilename(filename)) {
     throw new Error("Ungültiger Backup-Dateiname");
   }
@@ -249,12 +280,12 @@ export async function restoreBackup(filename: string) {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
 
-  const dbPath = parseSqlitePathFromDatabaseUrl(databaseUrl);
-  const uploadsDir = path.join(process.cwd(), "public/uploads");
-  const relDb = path.relative(process.cwd(), dbPath);
-  const relUploads = path.relative(process.cwd(), uploadsDir);
+  const dbPath = parseSqlitePathFromDatabaseUrl(databaseUrl, projectRoot);
+  const uploadsDir = await resolveUploadsDir(projectRoot);
+  const relDb = path.relative(projectRoot, dbPath);
+  const relUploads = path.relative(projectRoot, uploadsDir);
 
-  const backupDir = path.join(process.cwd(), "backups");
+  const backupDir = path.join(projectRoot, "backups");
   const archivePath = path.join(backupDir, filename);
   await stat(archivePath).catch(() => {
     throw new Error("Backup nicht gefunden");
@@ -262,7 +293,7 @@ export async function restoreBackup(filename: string) {
 
   const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "tribefinder-restore-"));
   try {
-    await runTar(["-xzf", archivePath, "-C", tmpRoot], process.cwd());
+    await runTar(["-xzf", archivePath, "-C", tmpRoot], projectRoot);
 
     // Preferred (new) layout: db.sqlite + uploads/
     const extractedDbNew = path.join(tmpRoot, "db.sqlite");
@@ -327,6 +358,7 @@ export async function restoreBackup(filename: string) {
     }
 
     await replaceFile(extractedDb!, dbPath);
+    // Restore uploads into the resolved uploads directory (symlink target), not into the symlink itself.
     await replaceDirectory(extractedUploads!, uploadsDir);
 
     return {

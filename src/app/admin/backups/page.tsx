@@ -27,6 +27,8 @@ export default function AdminBackupsPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [backups, setBackups] = useState<BackupItem[]>([]);
 
   const [isRestoring, setIsRestoring] = useState(false);
@@ -56,6 +58,37 @@ export default function AdminBackupsPage() {
       setIsLoading(false);
     }
   }, [showToast]);
+
+  const uploadBackup = useCallback(async () => {
+    if (!uploadFile) {
+      showToast("Bitte eine .tar.gz Datei auswählen", "error");
+      return;
+    }
+
+    if (!uploadFile.name.endsWith(".tar.gz")) {
+      showToast("Nur .tar.gz Backups sind erlaubt", "error");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", uploadFile);
+      const res = await fetch("/api/admin/backups/upload", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+      showToast("Backup hochgeladen", "success");
+      setUploadFile(null);
+      await loadBackups();
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Upload fehlgeschlagen", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  }, [loadBackups, showToast, uploadFile]);
 
   const restoreSelectedBackup = useCallback(async () => {
     setRestoreError(null);
@@ -288,6 +321,30 @@ export default function AdminBackupsPage() {
           >
             {isCreating ? "Erstelle..." : "Backup erstellen"}
           </button>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
+        <div className="px-4 py-5 sm:px-6">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white">Backup hochladen</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Lade ein .tar.gz Backup hoch, um es später zu prüfen oder zu restoren.</p>
+
+          <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:items-center">
+            <input
+              type="file"
+              accept=".tar.gz"
+              onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
+              className="block w-full text-sm text-gray-700 dark:text-gray-200"
+            />
+            <button
+              type="button"
+              onClick={uploadBackup}
+              disabled={isUploading || !uploadFile}
+              className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {isUploading ? "Lade hoch..." : "Upload"}
+            </button>
+          </div>
         </div>
       </div>
 

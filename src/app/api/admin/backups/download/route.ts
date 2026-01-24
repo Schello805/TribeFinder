@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
 import path from "path";
 import { readFile } from "fs/promises";
+import fs from "node:fs";
 import { requireAdminSession } from "@/lib/requireAdmin";
+
+function resolveProjectRoot() {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+}
 
 export async function GET(req: Request) {
   const session = await requireAdminSession();
@@ -14,7 +26,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ message: "Ungültiger Dateiname" }, { status: 400 });
   }
 
-  const fullPath = path.join(process.cwd(), "backups", filename);
+  const fullPath = path.join(resolveProjectRoot(), "backups", filename);
   const data = await readFile(fullPath).catch(() => null);
   if (!data) return NextResponse.json({ message: "Nicht gefunden" }, { status: 404 });
 
