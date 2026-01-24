@@ -193,6 +193,7 @@ export default async function GroupDetailPage({
                 style={{ objectPosition: `50% ${headerFocusY}%` }}
               />
             ) : null}
+            <div className="absolute inset-0 bg-black/20" />
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
             {!headerImageUrl && !headerStyle ? (
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500" />
@@ -220,31 +221,33 @@ export default async function GroupDetailPage({
 
               {/* Title & Basic Info */}
               <div className="flex-1 text-center sm:text-left pt-2 sm:pt-0 min-w-0">
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">{group.name}</h1>
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <span className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    Seit {group.foundingYear || new Date(group.createdAt).getFullYear()}
-                  </span>
-                  {group.size && (
-                    <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium border border-indigo-100 dark:border-indigo-800">
-                      {group.size === 'SOLO' && '👤 Solo'}
-                      {group.size === 'DUO' && '👥 Duo'}
-                      {group.size === 'TRIO' && '👥 Trio'}
-                      {group.size === 'SMALL' && '👥 Kleine Gruppe (4-10)'}
-                      {group.size === 'LARGE' && '👨‍👩‍👧‍👦 Große Gruppe (>10)'}
+                <div className="inline-block max-w-full bg-white/85 dark:bg-gray-950/60 backdrop-blur-md rounded-2xl px-4 py-3 shadow-sm border border-white/60 dark:border-white/10">
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2 truncate">{group.name}</h1>
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-2 text-sm text-gray-700 dark:text-gray-200">
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      Seit {group.foundingYear || new Date(group.createdAt).getFullYear()}
                     </span>
-                  )}
-                  {group.seekingMembers && (
-                     <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium border border-green-100 dark:border-green-800">
-                       👋 Sucht Mitglieder
-                     </span>
-                  )}
-                  {group.performances && (
-                     <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium border border-purple-100 dark:border-purple-800">
-                       🎭 Auftritte möglich
-                     </span>
-                  )}
+                    {group.size && (
+                      <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50/90 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-200 font-medium border border-indigo-100/70 dark:border-indigo-800/60">
+                        {group.size === 'SOLO' && '👤 Solo'}
+                        {group.size === 'DUO' && '👥 Duo'}
+                        {group.size === 'TRIO' && '👥 Trio'}
+                        {group.size === 'SMALL' && '👥 Kleine Gruppe (4-10)'}
+                        {group.size === 'LARGE' && '👨‍👩‍👧‍👦 Große Gruppe (>10)'}
+                      </span>
+                    )}
+                    {group.seekingMembers && (
+                      <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-50/90 dark:bg-green-900/40 text-green-800 dark:text-green-200 font-medium border border-green-100/70 dark:border-green-800/60">
+                        👋 Sucht Mitglieder
+                      </span>
+                    )}
+                    {group.performances && (
+                      <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50/90 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200 font-medium border border-purple-100/70 dark:border-purple-800/60">
+                        🎭 Auftritte möglich
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -254,7 +257,12 @@ export default async function GroupDetailPage({
                   <JoinButton groupId={group.id} initialStatus="NONE" />
                 )}
                 {session && (isMember || isPending) && !isOwner && (
-                   <JoinButton groupId={group.id} initialStatus={membershipStatus} />
+                   <div className="flex flex-col items-center sm:items-start">
+                     <JoinButton groupId={group.id} initialStatus={membershipStatus} />
+                     <div className="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                       {isMember ? "Tipp: Über diesen Button kannst du die Gruppe verlassen." : "Tipp: Über diesen Button kannst du deine Anfrage zurückziehen."}
+                     </div>
+                   </div>
                 )}
                 {isAdmin && (
                   <div className="flex flex-wrap gap-2">
