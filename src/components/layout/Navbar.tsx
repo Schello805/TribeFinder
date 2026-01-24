@@ -83,11 +83,21 @@ export default function Navbar() {
     load();
     interval = setInterval(load, 45_000);
 
+    const onFocus = () => load();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") load();
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       cancelled = true;
       if (interval) clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [session?.user]);
+  }, [session?.user, pathname]);
 
   // Close mobile menu on route change
   useEffect(() => {
