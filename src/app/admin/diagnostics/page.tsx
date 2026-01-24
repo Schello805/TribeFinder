@@ -15,24 +15,6 @@ type CheckResult = {
   durationMs: number;
 };
 
-type E2EReport =
-  | {
-      exists: false;
-      message: string;
-    }
-  | {
-      exists: true;
-      ok?: boolean;
-      message?: string;
-      summary?: {
-        passed: number;
-        failed: number;
-        skipped: number;
-        flaky: number;
-        durationMs: number | null;
-      };
-    };
-
 export default function AdminDiagnosticsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -40,7 +22,6 @@ export default function AdminDiagnosticsPage() {
 
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<CheckResult[]>([]);
-  const [e2eReport, setE2eReport] = useState<E2EReport | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -52,12 +33,6 @@ export default function AdminDiagnosticsPage() {
       return;
     }
 
-    if (status === "authenticated" && session?.user?.role === "ADMIN") {
-      fetch("/api/admin/e2e-report")
-        .then((r) => r.json())
-        .then((data) => setE2eReport(data))
-        .catch(() => setE2eReport(null));
-    }
   }, [status, session, router]);
 
   async function runDiagnostics() {
@@ -86,35 +61,6 @@ export default function AdminDiagnosticsPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Diagnose</h1>
       <AdminNav />
-
-      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
-        <div className="px-4 py-5 sm:px-6">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white">E2E Smoke-Test (Playwright)</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Ausführen im Terminal: <span className="font-mono">npm run e2e</span>
-          </p>
-
-          {e2eReport ? (
-            e2eReport.exists ? (
-              <div className="mt-3 text-sm text-gray-700 dark:text-gray-200">
-                <div>
-                  Status: {e2eReport.ok ? "OK" : "FEHLER"}
-                </div>
-                {e2eReport.summary ? (
-                  <div>
-                    Passed: {e2eReport.summary.passed} · Failed: {e2eReport.summary.failed} · Skipped: {e2eReport.summary.skipped} · Flaky: {e2eReport.summary.flaky}
-                  </div>
-                ) : null}
-                {e2eReport.message ? <div>{e2eReport.message}</div> : null}
-              </div>
-            ) : (
-              <div className="mt-3 text-sm text-gray-600 dark:text-gray-300">{e2eReport.message}</div>
-            )
-          ) : (
-            <div className="mt-3 text-sm text-gray-600 dark:text-gray-300">Kein Report geladen.</div>
-          )}
-        </div>
-      </div>
 
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 flex items-center justify-between">

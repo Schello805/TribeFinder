@@ -27,9 +27,21 @@ if (!normalizedDatabaseUrl || !normalizedDatabaseUrl.startsWith("file:")) {
   process.env.DATABASE_URL = defaultSqliteUrl;
 } else {
   const rawSqlitePath = normalizedDatabaseUrl.replace(/^file:/, "");
-  const resolved = path.isAbsolute(rawSqlitePath)
-    ? rawSqlitePath
-    : path.resolve(projectRoot, rawSqlitePath);
+  const resolved = (() => {
+    if (path.isAbsolute(rawSqlitePath)) return rawSqlitePath;
+
+    const asProjectRoot = path.resolve(projectRoot, rawSqlitePath);
+
+    const stripped = rawSqlitePath.replace(/^\.\//, "");
+    const asPrismaDir = path.resolve(projectRoot, "prisma", stripped);
+
+    // Prisma CLI resolves relative sqlite paths against the schema directory (./prisma).
+    // In runtime we prefer the prisma/ directory if it exists to avoid creating a second dev.db in repo root.
+    if (fs.existsSync(asPrismaDir)) return asPrismaDir;
+    if (stripped === "dev.db" && fs.existsSync(path.join(projectRoot, "prisma"))) return asPrismaDir;
+
+    return asProjectRoot;
+  })();
   const normalized = collapseDuplicatePrismaDir(resolved);
   process.env.DATABASE_URL = `file:${normalized}`;
 }

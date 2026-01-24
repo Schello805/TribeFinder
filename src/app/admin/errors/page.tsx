@@ -54,7 +54,10 @@ export default function AdminErrorsPage() {
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.message || "Löschen fehlgeschlagen");
       setErrors([]);
-      showToast("Fehlerliste geleert", "success");
+      setInfoMessage(typeof data?.message === "string" ? data.message : "");
+      const deleted = typeof data?.deleted === "number" ? data.deleted : 0;
+      showToast(`Fehlerliste geleert (${deleted})`, "success");
+      await load();
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Löschen fehlgeschlagen", "error");
     } finally {

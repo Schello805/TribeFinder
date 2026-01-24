@@ -39,6 +39,7 @@ export async function GET() {
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
   const checks: CheckResult[] = [];
+  let dbWritable = true;
 
   checks.push(
     await runCheck("env", "Konfiguration (ENV)", async () => {
@@ -83,6 +84,18 @@ export async function GET() {
     })
   );
 
+  const dbWriteCheck = await runCheck("db_write", "Datenbank schreibbar", async () => {
+    const stamp = Date.now();
+    await prisma.$executeRawUnsafe(`CREATE TEMP TABLE __diag_write_${stamp} (id INTEGER);`);
+    await prisma.$executeRawUnsafe(`INSERT INTO __diag_write_${stamp} (id) VALUES (1);`);
+    await prisma.$executeRawUnsafe(`DROP TABLE __diag_write_${stamp};`);
+    return { status: "ok", message: "OK" };
+  });
+  checks.push(dbWriteCheck);
+  if (dbWriteCheck.status !== "ok") {
+    dbWritable = false;
+  }
+
   checks.push(
     await runCheck("uploads", "Uploads-Verzeichnis schreibbar", async () => {
       const uploadDir = path.join(process.cwd(), "public/uploads");
@@ -100,11 +113,11 @@ export async function GET() {
 
   checks.push(
     await runCheck("errors", "Aktive Fehler (Server)", async () => {
-      const prismaAny = prisma as unknown as {
-        errorLog: {
-          count: (args: unknown) => Promise<number>;
-        };
-      };
+      const prismaAny = prisma as any;
+
+      if (!prismaAny?.errorLog?.count) {
+        return { status: "warn", message: "ErrorLog ist noch nicht verfügbar (Prisma generate/Migration fehlt)." };
+      }
 
       try {
         const count = await prismaAny.errorLog.count({});
@@ -122,6 +135,55 @@ export async function GET() {
     })
   );
 
+  if (!dbWritable) {
+    checks.push({
+      id: "crud_event",
+      label: "CRUD Smoke-Test: Event",
+      status: "warn",
+      message: "Übersprungen (DB nicht schreibbar)",
+      durationMs: 0,
+    });
+  } else {
+    checks.push(
+      await runCheck("crud_event", "CRUD Smoke-Test: Event", async () => {
+        const stamp = Date.now();
+        const title = `__diag_test_event_${stamp}`;
+        let eventId: string | null = null;
+
+        try {
+          const created = await prisma.event.create({
+            data: {
+              title,
+              description: "diagnostic test event",
+              startDate: new Date(Date.now() + 60 * 60 * 1000),
+              endDate: new Date(Date.now() + 2 * 60 * 60 * 1000),
+              lat: 52.52,
+              lng: 13.405,
+              locationName: "Diagnostic",
+              address: "Diagnostic",
+            },
+            select: { id: true },
+          });
+
+          eventId = created.id;
+
+          const found = await prisma.event.findUnique({ where: { id: eventId } });
+          if (!found) throw new Error("Event nach dem Erstellen nicht gefunden");
+
+          await prisma.event.update({ where: { id: eventId }, data: { description: "diagnostic test event (updated)" } });
+          await prisma.event.delete({ where: { id: eventId } });
+          eventId = null;
+
+          return { status: "ok", message: "OK (create/read/update/delete)" };
+        } finally {
+          if (eventId) {
+            await prisma.event.delete({ where: { id: eventId } }).catch(() => undefined);
+          }
+        }
+      })
+    );
+  }
+
   checks.push(
     await runCheck("dance_styles", "DanceStyles (Katalog)", async () => {
       const count = await prisma.danceStyle.count();
@@ -135,95 +197,115 @@ export async function GET() {
     })
   );
 
-  checks.push(
-    await runCheck("crud_group", "CRUD Smoke-Test: Gruppe + Tag", async () => {
-      const stamp = Date.now();
-      const tagName = `__diag_test_tag_${stamp}`;
-      const groupName = `__diag_test_group_${stamp}`;
-      let tagId: string | null = null;
-      let groupId: string | null = null;
+  if (!dbWritable) {
+    checks.push({
+      id: "crud_group",
+      label: "CRUD Smoke-Test: Gruppe + Tag",
+      status: "warn",
+      message: "Übersprungen (DB nicht schreibbar)",
+      durationMs: 0,
+    });
+  } else {
+    checks.push(
+      await runCheck("crud_group", "CRUD Smoke-Test: Gruppe + Tag", async () => {
+        const stamp = Date.now();
+        const tagName = `__diag_test_tag_${stamp}`;
+        const groupName = `__diag_test_group_${stamp}`;
+        let tagId: string | null = null;
+        let groupId: string | null = null;
 
-      try {
-        const tag = await prisma.tag.create({
-          data: {
-            name: tagName,
-            isApproved: true,
-          },
-          select: { id: true },
-        });
-        tagId = tag.id;
-
-        const group = await prisma.group.create({
-          data: {
-            name: groupName,
-            description: "diagnostic test group",
-            owner: { connect: { id: session.user.id } },
-            members: {
-              create: {
-                userId: session.user.id,
-                role: "ADMIN",
-                status: "APPROVED",
-              },
+        try {
+          const tag = await prisma.tag.create({
+            data: {
+              name: tagName,
+              isApproved: true,
             },
-            tags: { connect: [{ id: tag.id }] },
-          },
-          select: { id: true },
-        });
-        groupId = group.id;
+            select: { id: true },
+          });
+          tagId = tag.id;
 
-        await prisma.group.update({
-          where: { id: group.id },
-          data: { description: "diagnostic test group (updated)" },
-        });
+          const group = await prisma.group.create({
+            data: {
+              name: groupName,
+              description: "diagnostic test group",
+              owner: { connect: { id: session.user.id } },
+              members: {
+                create: {
+                  userId: session.user.id,
+                  role: "ADMIN",
+                  status: "APPROVED",
+                },
+              },
+              tags: { connect: [{ id: tag.id }] },
+            },
+            select: { id: true },
+          });
+          groupId = group.id;
 
-        const loaded = await prisma.group.findUnique({
-          where: { id: group.id },
-          include: { tags: true, members: true },
-        });
+          await prisma.group.update({
+            where: { id: group.id },
+            data: { description: "diagnostic test group (updated)" },
+          });
 
-        if (!loaded) throw new Error("Gruppe nach dem Erstellen nicht gefunden");
-        if (!loaded.tags.some((t) => t.id === tag.id)) throw new Error("Tag-Relation fehlt");
-        if (!loaded.members.some((m) => m.userId === session.user.id)) throw new Error("Member-Relation fehlt");
+          const loaded = await prisma.group.findUnique({
+            where: { id: group.id },
+            include: { tags: true, members: true },
+          });
 
-        return { status: "ok", message: "OK (create/read/update)" };
-      } finally {
-        if (groupId) {
-          await prisma.group.delete({ where: { id: groupId } }).catch(() => undefined);
+          if (!loaded) throw new Error("Gruppe nach dem Erstellen nicht gefunden");
+          if (!loaded.tags.some((t) => t.id === tag.id)) throw new Error("Tag-Relation fehlt");
+          if (!loaded.members.some((m) => m.userId === session.user.id)) throw new Error("Member-Relation fehlt");
+
+          return { status: "ok", message: "OK (create/read/update)" };
+        } finally {
+          if (groupId) {
+            await prisma.group.delete({ where: { id: groupId } }).catch(() => undefined);
+          }
+          if (tagId) {
+            await prisma.tag.delete({ where: { id: tagId } }).catch(() => undefined);
+          }
         }
-        if (tagId) {
-          await prisma.tag.delete({ where: { id: tagId } }).catch(() => undefined);
+      })
+    );
+  }
+
+  if (!dbWritable) {
+    checks.push({
+      id: "crud_dancestyle",
+      label: "CRUD Smoke-Test: DanceStyle",
+      status: "warn",
+      message: "Übersprungen (DB nicht schreibbar)",
+      durationMs: 0,
+    });
+  } else {
+    checks.push(
+      await runCheck("crud_dancestyle", "CRUD Smoke-Test: DanceStyle", async () => {
+        const stamp = Date.now();
+        const name = `__diag_test_style_${stamp}`;
+        let id: string | null = null;
+        try {
+          const created = await prisma.danceStyle.create({
+            data: { name, category: "Diagnostic" },
+            select: { id: true },
+          });
+          id = created.id;
+
+          const found = await prisma.danceStyle.findUnique({ where: { id } });
+          if (!found) throw new Error("DanceStyle nach dem Erstellen nicht gefunden");
+
+          await prisma.danceStyle.update({ where: { id }, data: { category: "Diagnostic (updated)" } });
+          await prisma.danceStyle.delete({ where: { id } });
+          id = null;
+
+          return { status: "ok", message: "OK (create/read/update/delete)" };
+        } finally {
+          if (id) {
+            await prisma.danceStyle.delete({ where: { id } }).catch(() => undefined);
+          }
         }
-      }
-    })
-  );
-
-  checks.push(
-    await runCheck("crud_dancestyle", "CRUD Smoke-Test: DanceStyle", async () => {
-      const stamp = Date.now();
-      const name = `__diag_test_style_${stamp}`;
-      let id: string | null = null;
-      try {
-        const created = await prisma.danceStyle.create({
-          data: { name, category: "Diagnostic" },
-          select: { id: true },
-        });
-        id = created.id;
-
-        const found = await prisma.danceStyle.findUnique({ where: { id } });
-        if (!found) throw new Error("DanceStyle nach dem Erstellen nicht gefunden");
-
-        await prisma.danceStyle.update({ where: { id }, data: { category: "Diagnostic (updated)" } });
-        await prisma.danceStyle.delete({ where: { id } });
-        id = null;
-
-        return { status: "ok", message: "OK (create/read/update/delete)" };
-      } finally {
-        if (id) {
-          await prisma.danceStyle.delete({ where: { id } }).catch(() => undefined);
-        }
-      }
-    })
-  );
+      })
+    );
+  }
 
   checks.push(
     await runCheck("api_profile", "API: /api/user/profile (auth)", async () => {
