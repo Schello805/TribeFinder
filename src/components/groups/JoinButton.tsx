@@ -41,6 +41,7 @@ export default function JoinButton({ groupId, initialStatus }: JoinButtonProps) 
       }
     } catch (error) {
       console.error("Error updating membership:", error);
+      showToast("Fehler beim Aktualisieren der Mitgliedschaft", 'error');
     } finally {
       setIsLoading(false);
     }

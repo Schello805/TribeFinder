@@ -40,8 +40,8 @@ export default async function Home() {
               Verbinde dich mit der Tanzwelt
             </h1>
             <p className="text-xl mb-8 text-indigo-100">
-              Finde Tanzgruppen für Orientalischen Tanz, Tribal Style und mehr in deiner Nähe.
-              Präsentiere deine eigene Gruppe und wachse zusammen.
+              Möchtest du wissen, ob es in deiner Nähe Gleichgesinnte gibt?
+              Finde Tanzgruppen für Orientalischen Tanz, Tribal Style und mehr – und wachse gemeinsam.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Link
