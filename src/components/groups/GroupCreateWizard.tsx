@@ -451,10 +451,10 @@ export default function GroupCreateWizard() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Wo seid ihr zu finden?
+                Wo trainiert ihr?
               </h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                Damit andere euch auf der Karte finden können.
+                Das ist euer Trainingsort – damit andere wissen, wo ihr trainiert (und euch auf der Karte finden können).
               </p>
             </div>
 
@@ -470,7 +470,7 @@ export default function GroupCreateWizard() {
                   })
                 }
                 className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 dark:bg-gray-700 dark:text-white"
-                placeholder="Stadt oder Adresse eingeben..."
+                placeholder="Trainingsort (Adresse oder Stadt) eingeben..."
               />
               <button
                 type="button"

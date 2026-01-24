@@ -303,6 +303,12 @@ export default async function GroupDetailPage({
                         <span className="text-xl">🕒</span>
                         <span>{group.trainingTime}</span>
                       </dd>
+                      {group.location && (
+                        <dd className="mt-2 text-base text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-100 dark:border-gray-600 flex items-start gap-3">
+                          <span className="text-xl">📍</span>
+                          <span>{group.location.address || "Auf der Karte markiert"}</span>
+                        </dd>
+                      )}
                     </div>
                   )}
 

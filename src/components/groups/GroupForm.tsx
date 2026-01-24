@@ -543,7 +543,8 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
       </div>
 
       <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-md border border-gray-200 dark:border-gray-600">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Standort / Adresse</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Trainingsort</label>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Der Trainingsort wird in der Gruppenansicht unter den Trainingszeiten angezeigt und auf der Karte genutzt.</p>
         
         <div className="flex gap-2 mb-4">
           <input 
