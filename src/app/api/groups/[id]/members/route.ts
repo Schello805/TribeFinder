@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { notifyUserMembershipApproved } from "@/lib/notifications";
+import { notifyUserMembershipApproved, notifyUserRemovedFromGroup } from "@/lib/notifications";
 import logger from "@/lib/logger";
 
 export async function PUT(
@@ -141,6 +141,13 @@ export async function DELETE(
         },
       },
     });
+
+    if (userId !== session.user.id) {
+      const removedByName = session.user.name || session.user.email || "Ein Gruppenmitglied";
+      notifyUserRemovedFromGroup({ userId, groupId: id, removedByName }).catch((err) =>
+        logger.error({ err, groupId: id, userId }, "Failed to send removed-from-group notification")
+      );
+    }
 
     return NextResponse.json({ message: "Mitglied entfernt" });
   } catch (error) {

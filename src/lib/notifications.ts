@@ -48,6 +48,35 @@ export async function notifyGroupAboutNewMember(groupId: string, applicantName: 
   }
 }
 
+export async function notifyUserRemovedFromGroup(params: {
+  userId: string;
+  groupId: string;
+  removedByName: string;
+}) {
+  try {
+    const [user, group] = await Promise.all([
+      prisma.user.findUnique({ where: { id: params.userId }, select: { email: true, emailNotifications: true } }),
+      prisma.group.findUnique({ where: { id: params.groupId }, select: { name: true } }),
+    ]);
+
+    if (!user?.email || !user.emailNotifications || !group) return;
+
+    const subject = `Du wurdest aus ${group.name} entfernt`;
+    const content = `
+      ${emailHeading('Mitgliedschaft beendet')}
+      ${emailText(`Du wurdest von <strong>${params.removedByName}</strong> aus der Gruppe <strong>${group.name}</strong> entfernt.`)}
+      ${emailText('Wenn das ein Fehler war, kannst du der Gruppe jederzeit erneut beitreten:')}
+      ${emailButton('Zur Gruppe', `${process.env.NEXTAUTH_URL}/groups/${params.groupId}`)}
+    `;
+
+    const html = await emailTemplate(content, `Entfernt aus ${group.name}`);
+    await sendEmail(user.email, subject, html);
+    logger.info({ userId: params.userId, groupId: params.groupId }, "Removed-from-group notification sent");
+  } catch (error) {
+    logger.error({ error, userId: params.userId, groupId: params.groupId }, "Error sending removed-from-group notification");
+  }
+}
+
 export async function notifyGroupAboutInboxMessage(params: {
   groupId: string;
   threadId: string;
@@ -57,7 +86,7 @@ export async function notifyGroupAboutInboxMessage(params: {
   subject?: string | null;
 }) {
   try {
-    const group = await prisma.group.findUnique({
+    const group = (await prisma.group.findUnique({
       where: { id: params.groupId },
       select: {
         id: true,
@@ -69,13 +98,13 @@ export async function notifyGroupAboutInboxMessage(params: {
             user: { select: { id: true, email: true, emailNotifications: true, notifyInboxMessages: true } },
           },
         },
-      },
-    });
+      } as any,
+    })) as any;
 
     if (!group) return;
 
     const recipients = new Set<string>();
-    const shouldNotify = (u: { id: string; email: string | null; emailNotifications: boolean; notifyInboxMessages: boolean }) => {
+    const shouldNotify = (u: { id: string; email: string | null; emailNotifications: boolean; notifyInboxMessages?: boolean }) => {
       if (!u.email) return false;
       if (u.id === params.authorId) return false;
       if (!u.emailNotifications) return false;
@@ -87,7 +116,7 @@ export async function notifyGroupAboutInboxMessage(params: {
       recipients.add(group.owner.email as string);
     }
 
-    group.members.forEach((m) => {
+    (group.members as Array<{ user: { id: string; email: string | null; emailNotifications: boolean; notifyInboxMessages?: boolean } }>).forEach((m) => {
       const u = m.user;
       if (shouldNotify(u)) {
         recipients.add(u.email as string);
