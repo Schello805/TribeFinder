@@ -58,6 +58,11 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
+CAN_SUDO=0
+if sudo -n true 2>/dev/null; then
+    CAN_SUDO=1
+fi
+
 # Backup erstellen
 echo -e "${YELLOW}[1/7] Erstelle Datenbank-Backup...${NC}"
 npm run db:backup || echo "Backup fehlgeschlagen (möglicherweise keine DB vorhanden oder DATABASE_URL nicht SQLite)"
@@ -118,25 +123,43 @@ echo ""
 
 # Auto-Backup Timer/Service aktualisieren (falls vorhanden)
 echo -e "${YELLOW}[6.1/7] Aktualisiere Auto-Backup Timer...${NC}"
-sudo cp -f config/tribefinder-auto-backup.service /etc/systemd/system/tribefinder-auto-backup.service || true
-sudo cp -f config/tribefinder-auto-backup.timer /etc/systemd/system/tribefinder-auto-backup.timer || true
-sudo systemctl daemon-reload || true
-sudo systemctl enable tribefinder-auto-backup.timer || true
-sudo systemctl start tribefinder-auto-backup.timer || true
+if [ "$CAN_SUDO" -eq 1 ]; then
+    sudo cp -f config/tribefinder-auto-backup.service /etc/systemd/system/tribefinder-auto-backup.service || true
+    sudo cp -f config/tribefinder-auto-backup.timer /etc/systemd/system/tribefinder-auto-backup.timer || true
+    sudo systemctl daemon-reload || true
+    sudo systemctl enable tribefinder-auto-backup.timer || true
+    sudo systemctl start tribefinder-auto-backup.timer || true
+else
+    echo -e "${YELLOW}Hinweis: Auto-Backup Timer übersprungen (User 'tribefinder' hat kein sudo).${NC}"
+    echo "Einmalig als root ausführen:"
+    echo "  cp -f config/tribefinder-auto-backup.service /etc/systemd/system/tribefinder-auto-backup.service"
+    echo "  cp -f config/tribefinder-auto-backup.timer /etc/systemd/system/tribefinder-auto-backup.timer"
+    echo "  systemctl daemon-reload"
+    echo "  systemctl enable --now tribefinder-auto-backup.timer"
+fi
 echo ""
 
 # Service neustarten
 echo -e "${YELLOW}[7/7] Starte Service neu...${NC}"
-sudo systemctl restart tribefinder
+if [ "$CAN_SUDO" -eq 1 ]; then
+    sudo systemctl restart tribefinder
+else
+    echo -e "${YELLOW}Hinweis: Service-Restart übersprungen (kein sudo).${NC}"
+    echo "Bitte einmalig als root ausführen: systemctl restart tribefinder"
+fi
 
 # Warte kurz und prüfe Status
 sleep 2
-if sudo systemctl is-active --quiet tribefinder; then
-    echo -e "${GREEN}✓ Service erfolgreich gestartet!${NC}"
+if [ "$CAN_SUDO" -eq 1 ]; then
+    if sudo systemctl is-active --quiet tribefinder; then
+        echo -e "${GREEN}✓ Service erfolgreich gestartet!${NC}"
+    else
+        echo -e "${RED}✗ Service konnte nicht gestartet werden!${NC}"
+        echo "Prüfe die Logs mit: sudo journalctl -u tribefinder -n 50"
+        exit 1
+    fi
 else
-    echo -e "${RED}✗ Service konnte nicht gestartet werden!${NC}"
-    echo "Prüfe die Logs mit: sudo journalctl -u tribefinder -n 50"
-    exit 1
+    echo -e "${YELLOW}Status-Check übersprungen (kein sudo).${NC}"
 fi
 echo ""
 
