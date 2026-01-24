@@ -26,7 +26,10 @@ export default async function MapPage() {
       },
     }),
     prisma.tag.findMany({
-      where: { isApproved: true },
+      where: {
+        isApproved: true,
+        groups: { some: {} },
+      },
       orderBy: { name: 'asc' }
     })
   ]);

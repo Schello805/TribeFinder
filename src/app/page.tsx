@@ -1,20 +1,32 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import Image from "next/image";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 export default async function Home() {
   // Fetch stats
   let groupCount = 0;
   let eventCount = 0;
   let userCount = 0;
+  let brandingLogoUrl = "";
   try {
-    const [g, e, u] = await Promise.all([
+    const [g, e, u, settings] = await Promise.all([
       prisma.group.count(),
       prisma.event.count({ where: { startDate: { gte: new Date() } } }),
       prisma.user.count(),
+      prisma.systemSetting.findMany({
+        where: { key: { in: ["BRANDING_LOGO_URL"] } },
+      }),
     ]);
     groupCount = g;
     eventCount = e;
     userCount = u;
+
+    const map = settings.reduce((acc: Record<string, string>, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {});
+    brandingLogoUrl = normalizeUploadedImageUrl(map.BRANDING_LOGO_URL) ?? "";
   } catch {
     // Intentionally ignore to keep homepage functional even if Prisma/SQLite is unhealthy.
   }
@@ -48,7 +60,11 @@ export default async function Home() {
           </div>
           <div className="md:w-1/2 flex justify-center">
             <div className="relative w-full max-w-md aspect-video bg-white/10 backdrop-blur-sm rounded-lg shadow-2xl flex items-center justify-center border border-white/20">
-              <span className="text-6xl">💃</span>
+              {brandingLogoUrl ? (
+                <Image src={brandingLogoUrl} alt="TribeFinder" width={256} height={256} className="max-h-40 w-auto" unoptimized />
+              ) : (
+                <span className="text-6xl">💃</span>
+              )}
             </div>
           </div>
         </div>

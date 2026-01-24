@@ -26,16 +26,35 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export const metadata: Metadata = {
-  title: "TribeFinder",
-  description: "Finde und verwalte deine Tanzgruppe",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
+export async function generateMetadata(): Promise<Metadata> {
+  let brandingLogoUrl = "";
+  try {
+    const setting = await prisma.systemSetting.findUnique({
+      where: { key: "BRANDING_LOGO_URL" },
+      select: { value: true },
+    });
+    brandingLogoUrl = normalizeUploadedImageUrl(setting?.value) ?? "";
+  } catch {
+    brandingLogoUrl = "";
+  }
+
+  const appleIcon = brandingLogoUrl || undefined;
+
+  return {
     title: "TribeFinder",
-  },
-};
+    description: "Finde und verwalte deine Tanzgruppe",
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "TribeFinder",
+    },
+    icons: {
+      icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+      apple: appleIcon ? [{ url: appleIcon }] : undefined,
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
