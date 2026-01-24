@@ -67,9 +67,13 @@ model User {
   // Dance Styles
   danceStyles         UserDanceStyle[]
 
-  // Messages
+  // Private Messages
   sentMessages        Message[]     @relation("MessageSender")
   receivedMessages    Message[]     @relation("MessageReceiver")
+
+  // Group contact inbox
+  createdGroupThreads  GroupThread[]        @relation("GroupThreadCreator")
+  groupThreadMessages  GroupThreadMessage[] @relation("GroupThreadMessageAuthor")
 
   // Event Registrations
   eventRegistrations  EventRegistration[]
@@ -137,6 +141,9 @@ model Group {
   
   // Gallery (max 5 images)
   galleryImages GalleryImage[]
+
+  // Contact inbox
+  threads       GroupThread[]
   
   // Favorites
   favoritedBy   FavoriteGroup[]
@@ -363,4 +370,44 @@ model Message {
   
   @@index([senderId])
   @@index([receiverId])
+}
+
+// Group Contact Threads (Inbox)
+model GroupThread {
+  id              String   @id @default(cuid())
+
+  groupId         String
+  group           Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  createdByUserId String
+  createdBy       User     @relation("GroupThreadCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  subject         String?
+  status          String   @default("OPEN") // OPEN, CLOSED
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lastMessageAt   DateTime @default(now())
+
+  messages        GroupThreadMessage[]
+
+  @@index([groupId])
+  @@index([createdByUserId])
+  @@index([lastMessageAt])
+}
+
+model GroupThreadMessage {
+  id        String   @id @default(cuid())
+
+  threadId  String
+  thread    GroupThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  authorId  String
+  author    User     @relation("GroupThreadMessageAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([threadId])
+  @@index([authorId])
 }

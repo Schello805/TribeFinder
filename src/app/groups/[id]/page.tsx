@@ -350,7 +350,7 @@ export default async function GroupDetailPage({
                   {/* Message Button */}
                   {session && group.owner.id !== session.user?.id && (
                     <Link
-                      href={`/messages?to=${group.owner.id}`}
+                      href={`/messages/new?groupId=${group.id}`}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition shadow-sm"
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
