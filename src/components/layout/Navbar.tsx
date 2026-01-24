@@ -15,6 +15,7 @@ export default function Navbar() {
   const [logoUrl, setLogoUrl] = useState<string>("");
 
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
 
   const [userAvatarUrl, setUserAvatarUrl] = useState<string>("");
   const userImageUrl = userAvatarUrl || (session?.user?.image ? (normalizeUploadedImageUrl(String(session.user.image)) ?? "") : "");
@@ -38,6 +39,7 @@ export default function Navbar() {
     let cancelled = false;
 
     if (!session?.user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUserAvatarUrl("");
       return () => {
         cancelled = true;
@@ -60,13 +62,12 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!session?.user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnreadCount(0);
       return;
     }
 
     let cancelled = false;
-    let interval: ReturnType<typeof setInterval> | undefined;
-
     const load = async () => {
       try {
         const res = await fetch("/api/messages/unread-count", { cache: "no-store" });
@@ -80,8 +81,11 @@ export default function Navbar() {
       }
     };
 
-    load();
-    interval = setInterval(load, 45_000);
+    const interval: ReturnType<typeof setInterval> = setInterval(() => {
+      void load();
+    }, 45_000);
+
+    void load();
 
     const onFocus = () => load();
     const onVisibility = () => {
@@ -93,7 +97,50 @@ export default function Navbar() {
 
     return () => {
       cancelled = true;
-      if (interval) clearInterval(interval);
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [session?.user, pathname]);
+
+  useEffect(() => {
+    if (!session?.user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPendingRequestsCount(0);
+      return;
+    }
+
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/groups/pending-requests", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json().catch(() => null)) as { pendingCount?: number } | null;
+        if (cancelled) return;
+        const next = typeof data?.pendingCount === "number" ? data.pendingCount : 0;
+        setPendingRequestsCount(next);
+      } catch {
+        // ignore
+      }
+    };
+
+    const interval: ReturnType<typeof setInterval> = setInterval(() => {
+      void load();
+    }, 60_000);
+
+    void load();
+
+    const onFocus = () => load();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") load();
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
     };
@@ -148,6 +195,11 @@ export default function Navbar() {
                     <span className="h-7 w-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm">👤</span>
                   )}
                   Profil
+                  {pendingRequestsCount > 0 && (
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                      {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
+                    </span>
+                  )}
                 </Link>
                 <button
                   onClick={() => signOut()}
@@ -211,14 +263,23 @@ export default function Navbar() {
                     </span>
                   )}
                 </Link>
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
-                  {userImageUrl ? (
-                    <Image src={userImageUrl} alt="Profil" width={24} height={24} className="h-6 w-6 rounded-full object-cover border border-white/20" unoptimized />
-                  ) : (
-                    <span className="h-6 w-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs">👤</span>
+
+                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+                  <span className="flex items-center gap-2">
+                    {userImageUrl ? (
+                      <Image src={userImageUrl} alt="Profil" width={24} height={24} className="h-6 w-6 rounded-full object-cover border border-white/20" unoptimized />
+                    ) : (
+                      <span className="h-6 w-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs">👤</span>
+                    )}
+                    Profil
+                  </span>
+                  {pendingRequestsCount > 0 && (
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                      {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
+                    </span>
                   )}
-                  Profil
                 </Link>
+
                 <button
                   onClick={() => signOut()}
                   className="w-full text-left block px-3 py-2 text-red-200 hover:bg-indigo-600 hover:text-white rounded-md"
