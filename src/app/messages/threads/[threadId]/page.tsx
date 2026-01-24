@@ -6,6 +6,8 @@ import { redirect, notFound } from "next/navigation";
 import ReplyBox from "@/components/messages/ReplyBox";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
+export const dynamic = "force-dynamic";
+
 export default async function ThreadPage({ params }: { params: Promise<{ threadId: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/auth/signin");

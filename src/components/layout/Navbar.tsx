@@ -90,6 +90,9 @@ export default function Navbar() {
 
             {session ? (
               <>
+                <Link href="/messages" className="text-indigo-100 hover:text-white transition font-medium">
+                  Nachrichten
+                </Link>
                 <Link href="/dashboard" className="text-indigo-100 hover:text-white transition font-medium flex items-center gap-2">
                   {userImageUrl ? (
                     <Image src={userImageUrl} alt="Profil" width={28} height={28} className="h-7 w-7 rounded-full object-cover border border-white/20" unoptimized />
@@ -152,6 +155,9 @@ export default function Navbar() {
             </Link>
             {session ? (
               <>
+                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+                  Nachrichten
+                </Link>
                 <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
                   {userImageUrl ? (
                     <Image src={userImageUrl} alt="Profil" width={24} height={24} className="h-6 w-6 rounded-full object-cover border border-white/20" unoptimized />

@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
+export const dynamic = "force-dynamic";
+
 export default async function MessagesPage() {
   const session = await getServerSession(authOptions);
 
