@@ -62,6 +62,26 @@ export async function GET() {
       image: normalizeUploadedImageUrl(user.image),
     });
   } catch (error) {
+    const err = error as { code?: string; message?: string };
+
+    // Wenn die DB noch nicht migriert ist (fehlende Spalten/Tabelle), soll das Profil-UI nicht komplett kaputt gehen.
+    if (err?.code === "P2021" || err?.code === "P2022") {
+      return NextResponse.json({
+        firstName: null,
+        lastName: null,
+        dancerName: session.user.name || null,
+        bio: null,
+        image: normalizeUploadedImageUrl((session.user as { image?: string | null }).image ?? null),
+        youtubeUrl: null,
+        instagramUrl: null,
+        facebookUrl: null,
+        tiktokUrl: null,
+        email: (session.user as { email?: string | null }).email ?? "",
+        name: session.user.name || null,
+        message: "Profil-Daten sind auf dem Server noch nicht vollständig verfügbar (Migration fehlt).",
+      });
+    }
+
     console.error('Error fetching profile:', error);
     return NextResponse.json({ error: 'Fehler beim Laden des Profils' }, { status: 500 });
   }
@@ -110,6 +130,16 @@ export async function PUT(req: Request) {
       image: normalizeUploadedImageUrl(updatedUser.image),
     });
   } catch (error) {
+    const err = error as { code?: string; message?: string };
+    if (err?.code === "P2021" || err?.code === "P2022") {
+      return NextResponse.json(
+        {
+          error:
+            "Server-Datenbank ist noch nicht auf dem neuesten Stand (Migration fehlt). Bitte Migrationen ausführen und erneut versuchen.",
+        },
+        { status: 503 }
+      );
+    }
     console.error('Error updating profile:', error);
     return NextResponse.json({ error: 'Fehler beim Speichern des Profils' }, { status: 500 });
   }
