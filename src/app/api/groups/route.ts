@@ -15,6 +15,13 @@ const MAX_PAGE_SIZE = 100;
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("query");
+  const tag = searchParams.get("tag");
+  const latRaw = searchParams.get("lat");
+  const lngRaw = searchParams.get("lng");
+  const radiusRaw = searchParams.get("radius");
+  const lat = latRaw ? Number(latRaw) : NaN;
+  const lng = lngRaw ? Number(lngRaw) : NaN;
+  const radiusKm = radiusRaw ? Number(radiusRaw) : NaN;
   
   // Pagination params
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
@@ -24,7 +31,15 @@ export async function GET(req: Request) {
   );
   const skip = (page - 1) * limit;
   
-  const whereClause: { OR?: Array<{ name?: { contains: string }; description?: { contains: string }; tags?: { some: { name: { contains: string } } } }> } = {};
+  const whereClause: {
+    OR?: Array<{
+      name?: { contains: string };
+      description?: { contains: string };
+      tags?: { some: { name: { contains: string } } };
+    }>;
+    tags?: { some: { name: { equals: string } } };
+    location?: { lat: { gte: number; lte: number }; lng: { gte: number; lte: number } };
+  } = {};
   
   if (query) {
     whereClause.OR = [
@@ -32,6 +47,21 @@ export async function GET(req: Request) {
       { description: { contains: query } },
       { tags: { some: { name: { contains: query } } } }
     ];
+  }
+
+  if (tag) {
+    whereClause.tags = { some: { name: { equals: tag } } };
+  }
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    const r = Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : 50;
+    const latDelta = r / 111;
+    const lngDelta = r / (111 * Math.cos((lat * Math.PI) / 180) || 1);
+
+    whereClause.location = {
+      lat: { gte: lat - latDelta, lte: lat + latDelta },
+      lng: { gte: lng - lngDelta, lte: lng + lngDelta },
+    };
   }
 
   try {

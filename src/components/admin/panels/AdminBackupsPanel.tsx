@@ -173,11 +173,7 @@ export default function AdminBackupsPanel() {
     setIsInspecting(true);
     setInspection(null);
     try {
-      const res = await fetch("/api/admin/backups/inspect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename: restoreFilename }),
-      });
+      const res = await fetch(`/api/admin/backups/inspect?file=${encodeURIComponent(restoreFilename)}`);
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.details ? `${data?.message || "Inspect fehlgeschlagen"}: ${data.details}` : (data?.message || "Inspect fehlgeschlagen"));
       setInspection(data);
