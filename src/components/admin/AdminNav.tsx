@@ -14,36 +14,40 @@ function itemClass(active: boolean) {
  export default function AdminNav() {
   const pathname = usePathname();
 
-  const isActive = (href: string) => pathname === href;
+  const isActiveExact = (href: string) => pathname === href;
+  const isActivePrefix = (prefix: string) => pathname === prefix || pathname.startsWith(prefix + "/");
+
+  const isOverview = isActiveExact("/admin");
+  const isDesign = isActivePrefix("/admin/design") || isActivePrefix("/admin/settings");
+  const isContent = isActivePrefix("/admin/content") || isActivePrefix("/admin/tags");
+  const isUsers = isActivePrefix("/admin/users");
+  const isOps =
+    isActivePrefix("/admin/ops") ||
+    isActivePrefix("/admin/backups") ||
+    isActivePrefix("/admin/diagnostics") ||
+    isActivePrefix("/admin/errors") ||
+    isActivePrefix("/admin/feedback");
+  const isSystem = isActivePrefix("/admin/system");
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Link href="/admin" className={itemClass(isActive("/admin"))}>
-        Dashboard
+      <Link href="/admin" className={itemClass(isOverview)}>
+        Übersicht
       </Link>
-      <Link href="/admin/system" className={itemClass(isActive("/admin/system"))}>
-        System
+      <Link href="/admin/design" className={itemClass(isDesign)}>
+        Design
       </Link>
-      <Link href="/admin/settings" className={itemClass(isActive("/admin/settings"))}>
-        Einstellungen
+      <Link href="/admin/content" className={itemClass(isContent)}>
+        Inhalte
       </Link>
-      <Link href="/admin/tags" className={itemClass(isActive("/admin/tags"))}>
-        Tanzstile
-      </Link>
-      <Link href="/admin/users" className={itemClass(isActive("/admin/users"))}>
+      <Link href="/admin/users" className={itemClass(isUsers)}>
         Benutzer
       </Link>
-      <Link href="/admin/feedback" className={itemClass(isActive("/admin/feedback"))}>
-        Feedback
+      <Link href="/admin/ops" className={itemClass(isOps)}>
+        Betrieb
       </Link>
-      <Link href="/admin/diagnostics" className={itemClass(isActive("/admin/diagnostics"))}>
-        Diagnose
-      </Link>
-      <Link href="/admin/errors" className={itemClass(isActive("/admin/errors"))}>
-        Fehler
-      </Link>
-      <Link href="/admin/backups" className={itemClass(isActive("/admin/backups"))}>
-        Backups
+      <Link href="/admin/system" className={itemClass(isSystem)}>
+        System (Erweitert)
       </Link>
     </div>
   );

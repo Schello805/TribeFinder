@@ -22,11 +22,14 @@ vi.mock("@/lib/prisma", () => {
 });
 
 vi.mock("fs/promises", async () => {
+  const actual = await vi.importActual<typeof import("fs/promises")>("fs/promises");
   return {
+    ...actual,
     mkdir: vi.fn(),
     writeFile: vi.fn(),
     readFile: vi.fn().mockResolvedValue("ok"),
     unlink: vi.fn(),
+    default: {},
   };
 });
 
