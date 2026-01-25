@@ -4,7 +4,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import ReplyBox from "@/components/messages/ReplyBox";
+import ThreadMessages from "@/components/messages/ThreadMessages";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+
+const db = prisma as any;
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +17,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
 
   const threadId = (await params).threadId;
 
-  const thread = await prisma.groupThread.findUnique({
+  const thread = await db.groupThread.findUnique({
     where: { id: threadId },
     include: {
       group: { select: { id: true, name: true, image: true } },
@@ -22,6 +25,9 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
       messages: {
         orderBy: { createdAt: "asc" },
         include: { author: { select: { id: true, name: true, image: true } } },
+      },
+      readStates: {
+        select: { userId: true, lastReadAt: true },
       },
     },
   });
@@ -39,7 +45,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
     redirect("/messages");
   }
 
-  await prisma.groupThreadReadState.upsert({
+  await db.groupThreadReadState.upsert({
     where: { threadId_userId: { threadId, userId: session.user.id } },
     update: { lastReadAt: new Date() },
     create: { threadId, userId: session.user.id, lastReadAt: new Date() },
@@ -53,6 +59,17 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
     createdAt: Date;
     author: { id: string; name: string | null; image: string | null };
   }>;
+
+  const maxOtherReadAtMs = (thread.readStates as Array<{ userId: string; lastReadAt: Date }>).
+    filter((s) => s.userId !== session.user.id)
+    .reduce<number | null>((acc, s) => {
+      const ms = s.lastReadAt.getTime();
+      if (Number.isNaN(ms)) return acc;
+      if (acc === null) return ms;
+      return Math.max(acc, ms);
+    }, null);
+
+  const maxOtherReadAtIso = maxOtherReadAtMs === null ? null : new Date(maxOtherReadAtMs).toISOString();
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -83,21 +100,15 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-        {messages.map((m) => {
-          const isMe = m.authorId === session.user.id;
-          return (
-            <div key={m.id} className={isMe ? "text-right" : "text-left"}>
-              <div className={isMe ? "inline-block bg-indigo-600 text-white px-4 py-2 rounded-2xl max-w-[85%]" : "inline-block bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-2xl max-w-[85%]"}>
-                <div className="text-xs opacity-80 mb-1">
-                  {isMe ? "Du" : m.author.name || "Unbekannt"}
-                </div>
-                <div className="whitespace-pre-wrap break-words">{m.content}</div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <ThreadMessages
+        threadId={threadId}
+        currentUserId={session.user.id}
+        messages={messages.map((m) => ({
+          ...m,
+          createdAt: m.createdAt.toISOString(),
+        }))}
+        maxOtherReadAtIso={maxOtherReadAtIso}
+      />
 
       <ReplyBox threadId={threadId} />
     </div>
