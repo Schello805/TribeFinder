@@ -279,6 +279,37 @@ export default function AdminBackupsPage() {
 
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white">Manueller Umzug (Server A → Server B)</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Ziel: Backup auf Server A erstellen, herunterladen, auf Server B hochladen und dort restoren.
+          </p>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3">
+              <div className="font-semibold text-gray-900 dark:text-white">Schritte</div>
+              <ol className="mt-2 list-decimal list-inside space-y-1 text-gray-700 dark:text-gray-200">
+                <li>Auf Server A: Backup erstellen → Download (.tar.gz)</li>
+                <li>Auf Server B: Backup hochladen</li>
+                <li>Backup auswählen und Inhalt prüfen (Users/Gruppen/Uploads)</li>
+                <li>Restore starten (überschreibt DB + Uploads)</li>
+                <li>Danach Service neu starten (empfohlen)</li>
+              </ol>
+            </div>
+
+            <div className="rounded-md border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 px-4 py-3 text-yellow-900 dark:text-yellow-200">
+              <div className="font-semibold">Wichtige Hinweise</div>
+              <ul className="mt-2 list-disc list-inside space-y-1">
+                <li>Server B sollte möglichst die gleiche App-Version wie Server A haben.</li>
+                <li>Wenn <code>NEXTAUTH_SECRET</code> auf Server B anders ist, müssen sich Nutzer neu einloggen (Daten bleiben korrekt).</li>
+                <li>Nach Restore ist ein Neustart des Dienstes am sichersten, damit alle Prozesse die neue DB nutzen.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
+        <div className="px-4 py-5 sm:px-6">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">Automatische Backups</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Intervall für automatische Server-Backups. Der Server prüft stündlich, ob ein Backup fällig ist.
@@ -358,7 +389,8 @@ export default function AdminBackupsPage() {
           {restoreSuccess ? (
             <div className="mt-3 rounded-md border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 px-4 py-3 text-sm flex items-center justify-between gap-3">
               <div>
-                Restore erfolgreich. Wenn du ohne Server-Neustart weiterarbeiten willst, lade jetzt die DB-Verbindung neu.
+                Restore erfolgreich. Empfehlung: Service neu starten (z.B. <code>systemctl restart tribefinder.service</code>).
+                Wenn du ohne Neustart weiterarbeiten willst, kannst du auch die DB-Verbindung neu laden.
               </div>
               <button
                 type="button"
