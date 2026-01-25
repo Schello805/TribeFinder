@@ -101,6 +101,10 @@ export const emailTemplate = async (content: string, preheader?: string) => {
                 <tr>
                   <td style="color: #9ca3af; font-size: 12px; text-align: center;">
                     <p style="margin: 0 0 8px 0;">Diese E-Mail wurde automatisch von TribeFinder versendet.</p>
+                    <p style="margin: 0 0 8px 0;">
+                      Du kannst diese Benachrichtigungen im Profil (Mein Bereich) unter <strong>Benachrichtigungen</strong> deaktivieren:
+                      <a href="${process.env.NEXTAUTH_URL}/dashboard/notifications" style="color: #6366f1; text-decoration: none;">Einstellungen öffnen</a>
+                    </p>
                     <p style="margin: 0;">
                       <a href="${process.env.NEXTAUTH_URL}" style="color: #6366f1; text-decoration: none;">TribeFinder besuchen</a>
                     </p>

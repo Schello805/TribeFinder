@@ -45,6 +45,7 @@ export async function POST(req: Request) {
         name,
         dancerName: name, // Use name as default dancer name
         role,
+        notifyInboxMessages: true,
       },
     });
 
