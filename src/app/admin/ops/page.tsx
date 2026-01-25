@@ -1,24 +1,36 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import AdminNav from "@/components/admin/AdminNav";
 
 export const dynamic = "force-dynamic";
 
-function OpsCard({ title, description, href, action }: { title: string; description: string; href: string; action: string }) {
+function OpsAccordionItem({
+  title,
+  description,
+  src,
+  height,
+}: {
+  title: string;
+  description: string;
+  src: string;
+  height: string;
+}) {
   return (
-    <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
-      <div className="px-4 py-5 sm:px-6">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white">{title}</h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+    <details className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
+      <summary className="cursor-pointer select-none px-4 py-5 sm:px-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-lg font-medium text-gray-900 dark:text-white">{title}</div>
+            <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</div>
+          </div>
+          <div className="text-sm text-gray-400">Öffnen</div>
+        </div>
+      </summary>
+      <div className="border-t border-gray-200 dark:border-gray-700">
+        <iframe src={src} title={title} className={`w-full ${height} bg-transparent`} />
       </div>
-      <div className="px-4 py-5 sm:p-6">
-        <Link href={href} className="inline-flex items-center justify-center px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
-          {action}
-        </Link>
-      </div>
-    </div>
+    </details>
   );
 }
 
@@ -36,32 +48,32 @@ export default async function AdminOpsPage() {
       <AdminNav />
 
       <div className="grid grid-cols-1 gap-6">
-        <OpsCard
+        <OpsAccordionItem
           title="Backups & Restore"
           description="Manuelle Backups, Upload/Inspect, Restore und Auto-Backup Status."
-          href="/admin/backups"
-          action="Zu Backups"
+          src="/admin/backups"
+          height="h-[1900px]"
         />
 
-        <OpsCard
+        <OpsAccordionItem
           title="Diagnose"
           description="Self-Test: Datenbank, Uploads, Konfiguration und wichtige Endpunkte."
-          href="/admin/diagnostics"
-          action="Zu Diagnose"
+          src="/admin/diagnostics"
+          height="h-[900px]"
         />
 
-        <OpsCard
+        <OpsAccordionItem
           title="Fehler"
           description="Fehler/Reports einsehen und bearbeiten."
-          href="/admin/errors"
-          action="Zu Fehlern"
+          src="/admin/errors"
+          height="h-[1400px]"
         />
 
-        <OpsCard
+        <OpsAccordionItem
           title="Feedback"
           description="Feedback-Liste sowie Benachrichtigungs-Empfänger konfigurieren."
-          href="/admin/feedback"
-          action="Zu Feedback"
+          src="/admin/feedback"
+          height="h-[1400px]"
         />
       </div>
     </div>
