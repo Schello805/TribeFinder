@@ -4,11 +4,21 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import AdminNav from "@/components/admin/AdminNav";
 import AdminFeedbackList from "@/components/admin/AdminFeedbackList";
+import AdminEmbedMode from "@/components/admin/AdminEmbedMode";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminFeedbackPage() {
+export default async function AdminFeedbackPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await getServerSession(authOptions);
+
+  const sp = (await searchParams) || {};
+  const embedRaw = sp.embed;
+  const embed = Array.isArray(embedRaw) ? embedRaw[0] : embedRaw;
+  const isEmbed = embed === "1";
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
     redirect("/");
@@ -66,9 +76,14 @@ export default async function AdminFeedbackPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Feedback</h1>
+      <AdminEmbedMode />
+      {!isEmbed ? (
+        <>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Feedback</h1>
 
-      <AdminNav />
+          <AdminNav />
+        </>
+      ) : null}
 
       {loadError && (
         <div className="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 px-4 py-3 text-sm">

@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/admin/AdminNav";
+import AdminEmbedMode from "@/components/admin/AdminEmbedMode";
 import { useToast } from "@/components/ui/Toast";
 
 type CheckResult = {
@@ -19,6 +21,8 @@ export default function AdminDiagnosticsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const isEmbed = searchParams.get("embed") === "1";
 
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<CheckResult[]>([]);
@@ -59,8 +63,13 @@ export default function AdminDiagnosticsPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Diagnose</h1>
-      <AdminNav />
+      <AdminEmbedMode />
+      {!isEmbed ? (
+        <>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Diagnose</h1>
+          <AdminNav />
+        </>
+      ) : null}
 
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 flex items-center justify-between">

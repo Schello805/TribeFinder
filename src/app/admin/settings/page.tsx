@@ -3,13 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import AdminEmailTest from '@/components/admin/AdminEmailTest';
 import AdminNav from '@/components/admin/AdminNav';
+import AdminEmbedMode from '@/components/admin/AdminEmbedMode';
 import { normalizeUploadedImageUrl } from '@/lib/normalizeUploadedImageUrl';
 
 export default function AdminSettingsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEmbed = searchParams.get('embed') === '1';
+  const section = searchParams.get('section') || '';
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isLogoSaving, setIsLogoSaving] = useState(false);
@@ -159,11 +164,17 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">System Einstellungen</h1>
+      <AdminEmbedMode />
 
-      <div className="mb-6">
-        <AdminNav />
-      </div>
+      {!isEmbed ? (
+        <>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">System Einstellungen</h1>
+
+          <div className="mb-6">
+            <AdminNav />
+          </div>
+        </>
+      ) : null}
 
       <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8 border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
@@ -274,6 +285,9 @@ export default function AdminSettingsPage() {
           </div>
         </div>
       </div>
+
+      {isEmbed && section === 'design' ? null : (
+        <>
 
       <form onSubmit={handleSubmit}>
         <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
@@ -458,6 +472,9 @@ export default function AdminSettingsPage() {
           </form>
         </div>
       </div>
+
+        </>
+      )}
     </div>
   );
 }

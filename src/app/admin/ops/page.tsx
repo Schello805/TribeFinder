@@ -51,28 +51,28 @@ export default async function AdminOpsPage() {
         <OpsAccordionItem
           title="Backups & Restore"
           description="Manuelle Backups, Upload/Inspect, Restore und Auto-Backup Status."
-          src="/admin/backups"
+          src="/admin/backups?embed=1"
           height="h-[1900px]"
         />
 
         <OpsAccordionItem
           title="Diagnose"
           description="Self-Test: Datenbank, Uploads, Konfiguration und wichtige Endpunkte."
-          src="/admin/diagnostics"
+          src="/admin/diagnostics?embed=1"
           height="h-[900px]"
         />
 
         <OpsAccordionItem
           title="Fehler"
           description="Fehler/Reports einsehen und bearbeiten."
-          src="/admin/errors"
+          src="/admin/errors?embed=1"
           height="h-[1400px]"
         />
 
         <OpsAccordionItem
           title="Feedback"
           description="Feedback-Liste sowie Benachrichtigungs-Empfänger konfigurieren."
-          src="/admin/feedback"
+          src="/admin/feedback?embed=1"
           height="h-[1400px]"
         />
       </div>

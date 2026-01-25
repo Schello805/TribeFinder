@@ -27,7 +27,7 @@ export default async function AdminContentPage() {
         </div>
         <div className="p-0">
           <iframe
-            src="/admin/tags"
+            src="/admin/tags?embed=1"
             title="Tags & Tanzstile"
             className="w-full h-[1400px] bg-transparent"
           />

@@ -27,7 +27,7 @@ export default async function AdminDesignPage() {
         </div>
         <div className="p-0">
           <iframe
-            src="/admin/settings"
+            src="/admin/settings?embed=1&section=design"
             title="Design Einstellungen"
             className="w-full h-[1200px] bg-transparent"
           />
