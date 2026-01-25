@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useToast } from "@/components/ui/Toast";
 
@@ -19,6 +19,7 @@ export default function GroupFilter() {
   const [selectedTag, setSelectedTag] = useState(searchParams.get("tag") || "");
   const [availableTags, setAvailableTags] = useState<{ id: string, name: string }[]>([]);
   const [isLocating, setIsLocating] = useState(false);
+  const geocodeSeq = useRef(0);
 
   const radiusMin = 5;
   const radiusMax = 200;
@@ -91,20 +92,35 @@ export default function GroupFilter() {
   useEffect(() => {
     // Nur suchen, wenn Location Text da ist, aber noch keine Koordinaten oder wenn sich der Text geändert hat
     if (debouncedLocation && !lat && !lng) {
+      const seqId = ++geocodeSeq.current;
+      const controller = new AbortController();
+
       const geocode = async () => {
         try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(debouncedLocation)}&limit=1`);
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(debouncedLocation)}&limit=1`,
+            { signal: controller.signal }
+          );
           const data = await res.json();
+          if (geocodeSeq.current !== seqId) return;
+          if (!data || !data[0]) return;
+          if (!debouncedLocation) return;
+
           if (data && data[0]) {
             setLat(data[0].lat);
             setLng(data[0].lon);
             updateUrl(searchTerm, data[0].lat, data[0].lon, radius, debouncedLocation, selectedTag);
           }
-        } catch {
+        } catch (e) {
+          if (controller.signal.aborted) return;
           console.error("Geocoding failed");
         }
       };
       geocode();
+
+      return () => {
+        controller.abort();
+      };
     }
   }, [debouncedLocation, lat, lng, radius, searchTerm, selectedTag, updateUrl]);
 
@@ -152,6 +168,7 @@ export default function GroupFilter() {
   };
 
   const clearLocation = () => {
+    geocodeSeq.current += 1;
     setLocation("");
     setLat("");
     setLng("");
