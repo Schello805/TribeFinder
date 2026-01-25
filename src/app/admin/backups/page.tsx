@@ -9,7 +9,7 @@ export default function AdminBackupsPage() {
   const searchParams = useSearchParams();
   const isEmbed = searchParams.get("embed") === "1";
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <AdminEmbedMode />
       {!isEmbed ? (
         <>

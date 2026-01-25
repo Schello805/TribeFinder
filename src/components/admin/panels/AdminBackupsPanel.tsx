@@ -375,20 +375,24 @@ export default function AdminBackupsPanel() {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="text-left text-gray-500 dark:text-gray-400">
-                    <th className="py-2 pr-4">Datei</th>
-                    <th className="py-2 pr-4">Größe</th>
-                    <th className="py-2 pr-4">Erstellt</th>
-                    <th className="py-2 pr-2">Aktionen</th>
+                    <th className="py-2 pr-6 whitespace-nowrap">Datei</th>
+                    <th className="py-2 pr-6 whitespace-nowrap">Größe</th>
+                    <th className="py-2 pr-6 whitespace-nowrap">Erstellt</th>
+                    <th className="py-2 pr-2 whitespace-nowrap">Aktionen</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {backups.map((b) => (
                     <tr key={b.filename} className="text-gray-800 dark:text-gray-200">
-                      <td className="py-2 pr-4 font-mono text-xs">{b.filename}</td>
-                      <td className="py-2 pr-4">{formatBytes(b.size)}</td>
-                      <td className="py-2 pr-4">{formatDate(b.createdAt)}</td>
+                      <td className="py-2 pr-6 font-mono text-xs whitespace-nowrap">
+                        <span className="block max-w-[520px] truncate" title={b.filename}>
+                          {b.filename}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-6 whitespace-nowrap">{formatBytes(b.size)}</td>
+                      <td className="py-2 pr-6 whitespace-nowrap">{formatDate(b.createdAt)}</td>
                       <td className="py-2 pr-2">
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-nowrap gap-2 whitespace-nowrap">
                           <a
                             className="px-3 py-2 rounded bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 min-h-11"
                             href={`/api/admin/backups/download?file=${encodeURIComponent(b.filename)}`}

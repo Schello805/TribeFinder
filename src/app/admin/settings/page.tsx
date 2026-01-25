@@ -32,6 +32,7 @@ export default function AdminSettingsPage() {
     SITE_BANNER_ENABLED: 'false',
     SITE_BANNER_TEXT: '',
     SITE_BANNER_BG: '#f59e0b',
+    SITE_BANNER_TEXT_COLOR: '#ffffff',
   });
   const [message, setMessage] = useState('');
 
@@ -275,6 +276,27 @@ export default function AdminSettingsPage() {
                 value={formData.SITE_BANNER_BG}
                 onChange={handleChange}
                 placeholder="#f59e0b"
+                className="block w-40 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Textfarbe</label>
+            <div className="mt-1 flex items-center gap-3">
+              <input
+                type="color"
+                name="SITE_BANNER_TEXT_COLOR"
+                value={formData.SITE_BANNER_TEXT_COLOR || '#ffffff'}
+                onChange={handleChange}
+                className="h-10 w-14 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+              />
+              <input
+                type="text"
+                name="SITE_BANNER_TEXT_COLOR"
+                value={formData.SITE_BANNER_TEXT_COLOR}
+                onChange={handleChange}
+                placeholder="#ffffff"
                 className="block w-40 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
               />
             </div>

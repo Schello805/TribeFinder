@@ -15,6 +15,7 @@ export default function AdminDesignBrandingBanner() {
   const [bannerEnabled, setBannerEnabled] = useState<boolean>(false);
   const [bannerText, setBannerText] = useState<string>("");
   const [bannerBg, setBannerBg] = useState<string>("#f59e0b");
+  const [bannerTextColor, setBannerTextColor] = useState<string>("#ffffff");
 
   useEffect(() => {
     let cancelled = false;
@@ -30,11 +31,13 @@ export default function AdminDesignBrandingBanner() {
         const enabledRaw = typeof (data as any)?.SITE_BANNER_ENABLED === "string" ? (data as any).SITE_BANNER_ENABLED : "false";
         const text = typeof (data as any)?.SITE_BANNER_TEXT === "string" ? (data as any).SITE_BANNER_TEXT : "";
         const bg = typeof (data as any)?.SITE_BANNER_BG === "string" ? (data as any).SITE_BANNER_BG : "#f59e0b";
+        const textColor = typeof (data as any)?.SITE_BANNER_TEXT_COLOR === "string" ? (data as any).SITE_BANNER_TEXT_COLOR : "#ffffff";
 
         setBrandingLogoUrl(logo);
         setBannerEnabled(String(enabledRaw).toLowerCase() === "true");
         setBannerText(text);
         setBannerBg(bg || "#f59e0b");
+        setBannerTextColor(textColor || "#ffffff");
       } catch (e) {
         showToast(e instanceof Error ? e.message : "Fehler beim Laden", "error");
       } finally {
@@ -90,6 +93,7 @@ export default function AdminDesignBrandingBanner() {
         SITE_BANNER_ENABLED: bannerEnabled ? "true" : "false",
         SITE_BANNER_TEXT: bannerText,
         SITE_BANNER_BG: bannerBg || "#f59e0b",
+        SITE_BANNER_TEXT_COLOR: bannerTextColor || "#ffffff",
       };
 
       const res = await fetch("/api/admin/settings", {
@@ -209,6 +213,25 @@ export default function AdminDesignBrandingBanner() {
                 value={bannerBg}
                 onChange={(e) => setBannerBg(e.target.value)}
                 placeholder="#f59e0b"
+                className="block w-40 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Textfarbe</label>
+            <div className="mt-1 flex items-center gap-3">
+              <input
+                type="color"
+                value={bannerTextColor || "#ffffff"}
+                onChange={(e) => setBannerTextColor(e.target.value)}
+                className="h-10 w-14 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+              />
+              <input
+                type="text"
+                value={bannerTextColor}
+                onChange={(e) => setBannerTextColor(e.target.value)}
+                placeholder="#ffffff"
                 className="block w-40 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
               />
             </div>

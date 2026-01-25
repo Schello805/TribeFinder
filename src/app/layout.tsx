@@ -76,6 +76,7 @@ export default async function RootLayout({
               "SITE_BANNER_ENABLED",
               "SITE_BANNER_TEXT",
               "SITE_BANNER_BG",
+              "SITE_BANNER_TEXT_COLOR",
             ],
           },
         },
@@ -96,6 +97,7 @@ export default async function RootLayout({
   const siteBannerEnabled = String(config.SITE_BANNER_ENABLED || "").toLowerCase() === "true";
   const siteBannerText = (config.SITE_BANNER_TEXT || "").trim();
   const siteBannerBg = (config.SITE_BANNER_BG || "").trim() || "#f59e0b";
+  const siteBannerTextColor = (config.SITE_BANNER_TEXT_COLOR || "").trim() || "#ffffff";
 
   return (
     <html lang="de" suppressHydrationWarning>
@@ -117,8 +119,8 @@ export default async function RootLayout({
                 />
                 {siteBannerEnabled && siteBannerText ? (
                   <div
-                    className="w-full text-white text-xs leading-none px-3 h-6 flex items-center justify-center"
-                    style={{ backgroundColor: siteBannerBg }}
+                    className="w-full text-xs leading-none px-3 h-6 flex items-center justify-center sticky top-0 z-50"
+                    style={{ backgroundColor: siteBannerBg, color: siteBannerTextColor }}
                   >
                     <span className="truncate">{siteBannerText}</span>
                   </div>
