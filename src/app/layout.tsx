@@ -119,17 +119,19 @@ export default async function RootLayout({
                 />
                 {siteBannerEnabled && siteBannerText ? (
                   <div
-                    className="w-full text-xs leading-none px-3 h-6 flex items-center justify-center sticky top-0 z-50"
+                    className="fixed top-0 left-0 w-full text-xs leading-none px-3 h-6 flex items-center justify-center z-50"
                     style={{ backgroundColor: siteBannerBg, color: siteBannerTextColor }}
                   >
                     <span className="truncate">{siteBannerText}</span>
                   </div>
                 ) : null}
-                <Navbar />
-                <main className="flex-grow container mx-auto px-4 py-8">
-                  {children}
-                </main>
-                <FeedbackWidget />
+                <div className={siteBannerEnabled && siteBannerText ? "pt-6" : undefined}>
+                  <Navbar />
+                  <main className="flex-grow container mx-auto px-4 py-8">
+                    {children}
+                  </main>
+                  <FeedbackWidget />
+                </div>
               </ErrorBoundary>
             </ToastProvider>
             <footer className="bg-gray-900 border-t border-gray-800 py-10 text-center text-gray-400 text-sm mt-auto">
