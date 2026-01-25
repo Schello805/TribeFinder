@@ -127,7 +127,7 @@ export default function AdminSystemPage() {
   if (session?.user?.role !== "ADMIN") return null;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="relative left-1/2 -translate-x-1/2 w-[90vw] space-y-6">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">System</h1>
       <AdminNav />
 

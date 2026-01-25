@@ -89,7 +89,7 @@ export default async function AdminPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="relative left-1/2 -translate-x-1/2 w-[90vw] space-y-8">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
 
       <AdminNav />

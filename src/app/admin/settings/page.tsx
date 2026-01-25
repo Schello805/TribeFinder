@@ -164,7 +164,7 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
+    <div className="relative left-1/2 -translate-x-1/2 w-[90vw] py-8 px-4">
       <AdminEmbedMode />
 
       {!isEmbed ? (

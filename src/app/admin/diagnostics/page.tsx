@@ -10,7 +10,7 @@ export default function AdminDiagnosticsPage() {
   const isEmbed = searchParams.get("embed") === "1";
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="relative left-1/2 -translate-x-1/2 w-[90vw] space-y-6">
       <AdminEmbedMode />
       {!isEmbed ? (
         <>

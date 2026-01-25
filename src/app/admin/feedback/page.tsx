@@ -75,7 +75,7 @@ export default async function AdminFeedbackPage({
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
+    <div className="relative left-1/2 -translate-x-1/2 w-[90vw] space-y-6">
       <AdminEmbedMode />
       {!isEmbed ? (
         <>

@@ -14,7 +14,7 @@ export default async function AdminContentPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
+    <div className="relative left-1/2 -translate-x-1/2 w-[90vw] py-8 px-4 space-y-6">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Inhalte</h1>
 
       <AdminNav />
