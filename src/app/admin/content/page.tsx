@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminNav from "@/components/admin/AdminNav";
+import AdminTagsManager from "@/components/admin/AdminTagsManager";
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +26,8 @@ export default async function AdminContentPage() {
             Direktansicht der bestehenden Verwaltung.
           </p>
         </div>
-        <div className="p-0">
-          <iframe
-            src="/admin/tags?embed=1"
-            title="Tags & Tanzstile"
-            className="w-full h-[1400px] bg-transparent"
-          />
+        <div className="p-6">
+          <AdminTagsManager />
         </div>
       </div>
     </div>

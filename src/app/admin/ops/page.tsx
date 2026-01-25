@@ -2,19 +2,22 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminNav from "@/components/admin/AdminNav";
+import type { ReactNode } from "react";
+import AdminBackupsPanel from "@/components/admin/panels/AdminBackupsPanel";
+import AdminDiagnosticsPanel from "@/components/admin/panels/AdminDiagnosticsPanel";
+import AdminErrorsPanel from "@/components/admin/panels/AdminErrorsPanel";
+import AdminFeedbackPanel from "@/components/admin/panels/AdminFeedbackPanel";
 
 export const dynamic = "force-dynamic";
 
 function OpsAccordionItem({
   title,
   description,
-  src,
-  height,
+  children,
 }: {
   title: string;
   description: string;
-  src: string;
-  height: string;
+  children: ReactNode;
 }) {
   return (
     <details className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
@@ -28,7 +31,9 @@ function OpsAccordionItem({
         </div>
       </summary>
       <div className="border-t border-gray-200 dark:border-gray-700">
-        <iframe src={src} title={title} className={`w-full ${height} bg-transparent`} />
+        <div className="p-6">
+          {children}
+        </div>
       </div>
     </details>
   );
@@ -51,30 +56,30 @@ export default async function AdminOpsPage() {
         <OpsAccordionItem
           title="Backups & Restore"
           description="Manuelle Backups, Upload/Inspect, Restore und Auto-Backup Status."
-          src="/admin/backups?embed=1"
-          height="h-[1900px]"
-        />
+        >
+          <AdminBackupsPanel />
+        </OpsAccordionItem>
 
         <OpsAccordionItem
           title="Diagnose"
           description="Self-Test: Datenbank, Uploads, Konfiguration und wichtige Endpunkte."
-          src="/admin/diagnostics?embed=1"
-          height="h-[900px]"
-        />
+        >
+          <AdminDiagnosticsPanel />
+        </OpsAccordionItem>
 
         <OpsAccordionItem
           title="Fehler"
           description="Fehler/Reports einsehen und bearbeiten."
-          src="/admin/errors?embed=1"
-          height="h-[1400px]"
-        />
+        >
+          <AdminErrorsPanel />
+        </OpsAccordionItem>
 
         <OpsAccordionItem
           title="Feedback"
           description="Feedback-Liste sowie Benachrichtigungs-Empfänger konfigurieren."
-          src="/admin/feedback?embed=1"
-          height="h-[1400px]"
-        />
+        >
+          <AdminFeedbackPanel />
+        </OpsAccordionItem>
       </div>
     </div>
   );
