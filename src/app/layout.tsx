@@ -87,7 +87,7 @@ export default async function RootLayout({
       }, {});
     },
     ["system-settings", "layout"],
-    { revalidate: 60 }
+    { revalidate: 10 }
   );
 
   const config = await getCachedSystemConfig();

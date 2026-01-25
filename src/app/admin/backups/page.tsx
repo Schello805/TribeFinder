@@ -44,6 +44,8 @@ export default function AdminBackupsPage() {
   const [backupIntervalHours, setBackupIntervalHours] = useState<number>(24);
   const [isSavingInterval, setIsSavingInterval] = useState(false);
 
+  const [lastAutoBackupAt, setLastAutoBackupAt] = useState<number | null>(null);
+
   const allowedBackupIntervals = new Set([0, 24, 168, 720]);
 
   const loadBackups = useCallback(async () => {
@@ -187,6 +189,10 @@ export default function AdminBackupsPage() {
         const n = Number(raw);
         const v = Number.isFinite(n) ? n : 24;
         setBackupIntervalHours(allowedBackupIntervals.has(v) ? v : 24);
+
+        const lastRaw = j?.LAST_AUTO_BACKUP_AT;
+        const lastNum = Number(lastRaw);
+        setLastAutoBackupAt(Number.isFinite(lastNum) && lastNum > 0 ? lastNum : null);
       })
       .catch(() => undefined);
 
@@ -315,6 +321,18 @@ export default function AdminBackupsPage() {
             Intervall für automatische Server-Backups. Der Server prüft stündlich, ob ein Backup fällig ist.
           </p>
 
+          <div className="mt-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+            <div className="font-semibold text-gray-900 dark:text-white">Status</div>
+            <div className="mt-1">
+              <span className="font-medium">Letztes Auto-Backup:</span>{" "}
+              {lastAutoBackupAt ? formatDate(lastAutoBackupAt) : "Noch keines erstellt"}
+            </div>
+            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              Wenn keine Backups unten erscheinen: Stelle sicher, dass der Timer läuft (systemd: <code>tribefinder-auto-backup.timer</code>)
+              und dass das Verzeichnis <code>~/TribeFinder/backups</code> beschreibbar ist.
+            </div>
+          </div>
+
           <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:items-center">
             <select
               value={backupIntervalHours}
@@ -361,12 +379,18 @@ export default function AdminBackupsPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400">Lade ein .tar.gz Backup hoch, um es später zu prüfen oder zu restoren.</p>
 
           <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:items-center">
-            <input
-              type="file"
-              accept=".tar.gz"
-              onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-gray-700 dark:text-gray-200"
-            />
+            <label className="inline-flex items-center justify-center px-4 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer">
+              Datei auswählen
+              <input
+                type="file"
+                accept=".tar.gz"
+                onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
+                className="hidden"
+              />
+            </label>
+            <div className="flex-1 text-sm text-gray-700 dark:text-gray-200 truncate">
+              {uploadFile ? uploadFile.name : "Keine Datei ausgewählt"}
+            </div>
             <button
               type="button"
               onClick={uploadBackup}
@@ -391,6 +415,9 @@ export default function AdminBackupsPage() {
               <div>
                 Restore erfolgreich. Empfehlung: Service neu starten (z.B. <code>systemctl restart tribefinder.service</code>).
                 Wenn du ohne Neustart weiterarbeiten willst, kannst du auch die DB-Verbindung neu laden.
+                <div className="mt-1 text-xs opacity-90">
+                  Hinweis: System-Einstellungen (z.B. Matomo/Banner/Logo) können bis zum Neustart oder bis zum Cache-Refresh kurz verzögert erscheinen.
+                </div>
               </div>
               <button
                 type="button"
