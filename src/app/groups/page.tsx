@@ -13,6 +13,12 @@ export default function GroupsPage() {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchGroups = async () => {
+      const address = searchParams.get('address');
+      const lat = searchParams.get('lat');
+      const lng = searchParams.get('lng');
+      const hasPendingGeocode = Boolean(address) && (!lat || !lng);
+      if (hasPendingGeocode) return;
+
       setIsLoading(true);
       try {
         const params = new URLSearchParams();

@@ -62,12 +62,14 @@ export default function GroupFilter() {
         params.set("lat", newLat);
         params.set("lng", newLng);
         params.set("radius", newRadius);
-        params.set("address", newAddress);
+        if (newAddress) params.set("address", newAddress);
+        else params.delete("address");
       } else {
         params.delete("lat");
         params.delete("lng");
         params.delete("radius");
-        params.delete("address");
+        if (newAddress) params.set("address", newAddress);
+        else params.delete("address");
       }
 
       const nextQuery = params.toString();
