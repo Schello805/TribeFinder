@@ -134,12 +134,14 @@ export async function createBackup() {
 }
 
 function isSafeBackupFilename(filename: string) {
-  return (
-    filename.endsWith(".tar.gz") &&
-    !filename.includes("/") &&
-    !filename.includes("..") &&
-    filename.startsWith("tribefinder-backup-")
-  );
+  if (!filename.endsWith(".tar.gz")) return false;
+  if (filename.includes("/") || filename.includes("..")) return false;
+
+  // Backups created by this server start with tribefinder-backup-.
+  // Uploaded backups are stored with an upload- prefix.
+  if (filename.startsWith("tribefinder-backup-") || filename.startsWith("upload-")) return true;
+
+  return false;
 }
 
 export async function inspectBackup(filename: string) {
