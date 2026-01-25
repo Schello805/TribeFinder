@@ -68,7 +68,14 @@ export default async function RootLayout({
       const settings = await prisma.systemSetting.findMany({
         where: {
           key: {
-            in: ["MATOMO_URL", "MATOMO_SITE_ID", "BRANDING_LOGO_URL"],
+            in: [
+              "MATOMO_URL",
+              "MATOMO_SITE_ID",
+              "BRANDING_LOGO_URL",
+              "SITE_BANNER_ENABLED",
+              "SITE_BANNER_TEXT",
+              "SITE_BANNER_BG",
+            ],
           },
         },
       });
@@ -85,6 +92,10 @@ export default async function RootLayout({
   const config = await getCachedSystemConfig();
   const brandingLogoUrl = normalizeUploadedImageUrl(config.BRANDING_LOGO_URL) ?? "";
 
+  const siteBannerEnabled = String(config.SITE_BANNER_ENABLED || "").toLowerCase() === "true";
+  const siteBannerText = (config.SITE_BANNER_TEXT || "").trim();
+  const siteBannerBg = (config.SITE_BANNER_BG || "").trim() || "#f59e0b";
+
   return (
     <html lang="de" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col transition-colors duration-300`}>
@@ -99,6 +110,14 @@ export default async function RootLayout({
             <ToastProvider>
               <ErrorBoundary>
                 <MatomoTracker url={config.MATOMO_URL} siteId={config.MATOMO_SITE_ID} />
+                {siteBannerEnabled && siteBannerText ? (
+                  <div
+                    className="w-full text-white text-xs leading-none px-3 h-6 flex items-center justify-center"
+                    style={{ backgroundColor: siteBannerBg }}
+                  >
+                    <span className="truncate">{siteBannerText}</span>
+                  </div>
+                ) : null}
                 <Navbar />
                 <main className="flex-grow container mx-auto px-4 py-8">
                   {children}

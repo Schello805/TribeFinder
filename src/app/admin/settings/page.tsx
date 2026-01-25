@@ -24,6 +24,9 @@ export default function AdminSettingsPage() {
     MATOMO_SITE_ID: '',
     MATOMO_TRACKING_CODE: '',
     BRANDING_LOGO_URL: '',
+    SITE_BANNER_ENABLED: 'false',
+    SITE_BANNER_TEXT: '',
+    SITE_BANNER_BG: '#f59e0b',
   });
   const [message, setMessage] = useState('');
 
@@ -113,6 +116,11 @@ export default function AdminSettingsPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: checked ? 'true' : 'false' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -207,6 +215,62 @@ export default function AdminSettingsPage() {
 
           <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
             Empfohlen: quadratisches Bild, max. 5MB (PNG/JPG/WebP/GIF). Wird in <code>public/uploads</code> gespeichert.
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Banner</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Seitenübergreifender Hinweis ganz oben (z.B. Wartungen ankündigen).</p>
+        </div>
+        <div className="p-6 space-y-4">
+          <label className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-200">
+            <input
+              type="checkbox"
+              name="SITE_BANNER_ENABLED"
+              checked={String(formData.SITE_BANNER_ENABLED).toLowerCase() === 'true'}
+              onChange={handleCheckboxChange}
+              className="h-4 w-4"
+            />
+            Banner aktivieren
+          </label>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Text</label>
+            <input
+              type="text"
+              name="SITE_BANNER_TEXT"
+              value={formData.SITE_BANNER_TEXT}
+              onChange={handleChange}
+              placeholder="Wartung heute 22:00-22:10"
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hintergrundfarbe</label>
+            <div className="mt-1 flex items-center gap-3">
+              <input
+                type="color"
+                name="SITE_BANNER_BG"
+                value={formData.SITE_BANNER_BG || '#f59e0b'}
+                onChange={handleChange}
+                className="h-10 w-14 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+              />
+              <input
+                type="text"
+                name="SITE_BANNER_BG"
+                value={formData.SITE_BANNER_BG}
+                onChange={handleChange}
+                placeholder="#f59e0b"
+                className="block w-40 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+          </div>
+
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Vorschau: wird direkt nach dem Speichern oben auf jeder Seite angezeigt.
           </div>
         </div>
       </div>
