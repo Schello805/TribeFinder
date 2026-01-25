@@ -215,7 +215,7 @@ export default function GroupFilter() {
         {/* Standort Suche */}
         <div className="relative">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Standort</label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-grow">
               <input
                 type="text"
@@ -234,7 +234,7 @@ export default function GroupFilter() {
               {location && (
                 <button 
                   onClick={clearLocation}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 px-3 py-2 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                 >
                   ×
                 </button>
@@ -243,7 +243,7 @@ export default function GroupFilter() {
             <button
               onClick={handleUseMyLocation}
               disabled={isLocating}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-200"
+              className="px-3 py-2 min-h-11 min-w-11 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-200"
               title="Meinen Standort verwenden"
             >
               {isLocating ? "..." : "📍"}

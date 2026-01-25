@@ -159,7 +159,7 @@ export default function AdminTagsManager() {
     <>
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg mb-6 p-4 border border-transparent dark:border-gray-700">
         <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Neuen Tanzstil hinzufügen</h2>
-        <form onSubmit={addTag} className="flex gap-4">
+        <form onSubmit={addTag} className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             value={newTagName}
@@ -170,7 +170,7 @@ export default function AdminTagsManager() {
           <button
             type="submit"
             disabled={isAdding || !newTagName.trim()}
-            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 min-h-11"
           >
             {isAdding ? "Speichere..." : "Hinzufügen"}
           </button>
@@ -180,42 +180,40 @@ export default function AdminTagsManager() {
       <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-transparent dark:border-gray-700">
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {tags.map((tag) => (
-            <li key={tag.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/40">
-              <div className="flex items-center">
-                <div className="ml-4">
+            <li key={tag.id} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-gray-50 dark:hover:bg-gray-900/40">
+              <div className="min-w-0">
                   {editingTagId === tag.id ? (
                     <div className="flex items-center gap-3">
                       <input
                         type="text"
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
-                        className="w-64 rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                        className="w-full sm:w-64 rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                         disabled={isSavingEdit}
                         autoFocus
                       />
                       <button
                         onClick={() => void saveEdit(tag)}
                         disabled={isSavingEdit || !editingName.trim()}
-                        className="text-sm font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-200 disabled:opacity-50"
+                        className="px-3 py-2 rounded text-sm font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-200 disabled:opacity-50"
                       >
                         Speichern
                       </button>
                       <button
                         onClick={cancelEdit}
                         disabled={isSavingEdit}
-                        className="text-sm font-medium text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white disabled:opacity-50"
+                        className="px-3 py-2 rounded text-sm font-medium text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white disabled:opacity-50"
                       >
                         Abbrechen
                       </button>
                     </div>
                   ) : (
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{tag.name}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white break-words">{tag.name}</div>
                   )}
                   <div className="text-sm text-gray-500 dark:text-gray-400">Verwendet von {tag._count?.groups || 0} Gruppen</div>
                   {editingTagId === tag.id && editError && <div className="text-sm text-red-600 mt-1">{editError}</div>}
-                </div>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                     tag.isApproved
@@ -229,7 +227,7 @@ export default function AdminTagsManager() {
                 <button
                   onClick={() => (editingTagId === tag.id ? cancelEdit() : startEdit(tag))}
                   disabled={isSavingEdit || editingTagId !== null}
-                  className="text-sm font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-200 disabled:opacity-50"
+                  className="px-3 py-2 rounded text-sm font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-200 disabled:opacity-50"
                 >
                   Bearbeiten
                 </button>
@@ -247,7 +245,7 @@ export default function AdminTagsManager() {
 
                 <button
                   onClick={() => void deleteTag(tag.id)}
-                  className="text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-900 dark:hover:text-red-200"
+                  className="px-3 py-2 rounded text-sm font-medium text-red-600 dark:text-red-300 hover:text-red-900 dark:hover:text-red-200"
                 >
                   Löschen
                 </button>

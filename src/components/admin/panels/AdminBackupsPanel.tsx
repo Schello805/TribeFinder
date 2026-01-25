@@ -279,7 +279,7 @@ export default function AdminBackupsPanel() {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
-        <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
+        <div className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">Backup erstellen</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">Sichert Datenbank + Uploads als .tar.gz</p>
@@ -288,7 +288,7 @@ export default function AdminBackupsPanel() {
             type="button"
             onClick={createBackup}
             disabled={isCreating}
-            className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 min-h-11"
           >
             {isCreating ? "Erstelle..." : "Backup erstellen"}
           </button>
@@ -390,7 +390,7 @@ export default function AdminBackupsPanel() {
                       <td className="py-2 pr-2">
                         <div className="flex flex-wrap gap-2">
                           <a
-                            className="px-3 py-1.5 rounded bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                            className="px-3 py-2 rounded bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 min-h-11"
                             href={`/api/admin/backups/download?file=${encodeURIComponent(b.filename)}`}
                           >
                             Download
@@ -401,14 +401,14 @@ export default function AdminBackupsPanel() {
                               setRestoreFilename(b.filename);
                               setInspection(null);
                             }}
-                            className="px-3 py-1.5 rounded bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                            className="px-3 py-2 rounded bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 min-h-11"
                           >
                             Auswählen
                           </button>
                           <button
                             type="button"
                             onClick={() => void deleteBackup(b.filename)}
-                            className="px-3 py-1.5 rounded bg-red-600 text-white hover:bg-red-700"
+                            className="px-3 py-2 rounded bg-red-600 text-white hover:bg-red-700 min-h-11"
                           >
                             Löschen
                           </button>

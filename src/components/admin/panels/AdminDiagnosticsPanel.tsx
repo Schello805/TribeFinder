@@ -58,7 +58,7 @@ export default function AdminDiagnosticsPanel() {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
-        <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
+        <div className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">Self-Test</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">Prüft Datenbank, Uploads, Konfiguration und wichtige Endpunkte.</p>
@@ -66,7 +66,7 @@ export default function AdminDiagnosticsPanel() {
           <button
             onClick={runDiagnostics}
             disabled={isRunning}
-            className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 min-h-11"
           >
             {isRunning ? "Läuft..." : "Diagnose starten"}
           </button>
