@@ -71,6 +71,7 @@ export default async function RootLayout({
             in: [
               "MATOMO_URL",
               "MATOMO_SITE_ID",
+              "MATOMO_TRACKING_CODE",
               "BRANDING_LOGO_URL",
               "SITE_BANNER_ENABLED",
               "SITE_BANNER_TEXT",
@@ -109,7 +110,11 @@ export default async function RootLayout({
           <AuthProvider>
             <ToastProvider>
               <ErrorBoundary>
-                <MatomoTracker url={config.MATOMO_URL} siteId={config.MATOMO_SITE_ID} />
+                <MatomoTracker
+                  url={config.MATOMO_URL}
+                  siteId={config.MATOMO_SITE_ID}
+                  trackingCode={config.MATOMO_TRACKING_CODE}
+                />
                 {siteBannerEnabled && siteBannerText ? (
                   <div
                     className="w-full text-white text-xs leading-none px-3 h-6 flex items-center justify-center"

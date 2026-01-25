@@ -13,9 +13,19 @@ declare global {
 interface MatomoTrackerProps {
   url: string;
   siteId: string;
+  trackingCode?: string;
 }
 
-export default function MatomoTracker({ url, siteId }: MatomoTrackerProps) {
+function extractInlineScriptJs(trackingCode: string) {
+  const trimmed = trackingCode.trim();
+  if (!trimmed) return "";
+
+  const withoutComments = trimmed.replace(/<!--([\s\S]*?)-->/g, "");
+  const match = withoutComments.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+  return (match?.[1] ?? withoutComments).trim();
+}
+
+export default function MatomoTracker({ url, siteId, trackingCode }: MatomoTrackerProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -27,10 +37,21 @@ export default function MatomoTracker({ url, siteId }: MatomoTrackerProps) {
 
     // Initialize Matomo _paq
     const _paq = window._paq = window._paq || [];
+
+    // If the admin provided the full tracking code, execute it once.
+    const inlineJs = typeof trackingCode === "string" ? extractInlineScriptJs(trackingCode) : "";
+    if (inlineJs && !document.getElementById('matomo-inline')) {
+      const inline = document.createElement('script');
+      inline.id = 'matomo-inline';
+      inline.type = 'text/javascript';
+      inline.text = inlineJs;
+      document.head.appendChild(inline);
+    }
     
     // Check if script is already present to avoid duplicates on re-renders
     if (!document.getElementById('matomo-script')) {
-      _paq.push(['trackPageView']);
+      _paq.push(['setTrackerUrl', `${matomoUrl}matomo.php`]);
+      _paq.push(['setSiteId', siteId]);
       _paq.push(['enableLinkTracking']);
       
       const script = document.createElement('script');
