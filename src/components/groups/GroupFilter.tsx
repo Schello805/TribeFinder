@@ -101,7 +101,11 @@ export default function GroupFilter() {
             `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(debouncedLocation)}&limit=1`,
             { signal: controller.signal }
           );
-          const data = await res.json();
+          if (!res.ok) {
+            return;
+          }
+
+          const data = await res.json().catch(() => null);
           if (geocodeSeq.current !== seqId) return;
           if (!data || !data[0]) return;
           if (!debouncedLocation) return;
@@ -113,7 +117,8 @@ export default function GroupFilter() {
           }
         } catch (e) {
           if (controller.signal.aborted) return;
-          console.error("Geocoding failed");
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          console.warn("Geocoding failed");
         }
       };
       geocode();
