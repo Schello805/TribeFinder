@@ -10,6 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const id = (await params).id;
+  console.log("[api/events/[id]] GET", { id, url: req.url });
   try {
     const event = await prisma.event.findUnique({
       where: { id },
@@ -45,12 +46,20 @@ export async function PUT(
   const session = await getServerSession(authOptions);
   const id = (await params).id;
 
+  console.log("[api/events/[id]] PUT", {
+    id,
+    url: req.url,
+    userId: session?.user?.id ?? null,
+  });
+
   if (!session || !session.user) {
+    console.warn("[api/events/[id]] PUT unauthorized (no session)", { id });
     return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
   }
 
   try {
     const body = await req.json();
+    console.log("[api/events/[id]] PUT body keys", { id, keys: Object.keys(body ?? {}) });
     const validatedData = eventSchema.parse(body);
 
     const event = await prisma.event.findUnique({
@@ -64,6 +73,11 @@ export async function PUT(
 
     if (!event.group) {
         if (event.creatorId !== session.user.id) {
+             console.warn("[api/events/[id]] PUT forbidden (not creator)", {
+               id,
+               creatorId: event.creatorId,
+               userId: session.user.id,
+             });
              return NextResponse.json({ message: "Nicht autorisiert" }, { status: 403 });
         }
     } else {
@@ -82,6 +96,13 @@ export async function PUT(
         });
 
         if (!membership || membership.role !== "ADMIN" || membership.status !== "APPROVED") {
+          console.warn("[api/events/[id]] PUT forbidden (not group owner/admin)", {
+            id,
+            groupId: event.groupId,
+            ownerId: event.group.ownerId,
+            userId: session.user.id,
+            membership: membership ? { role: membership.role, status: membership.status } : null,
+          });
           return NextResponse.json(
             { message: "Nur Administratoren können Events bearbeiten" },
             { status: 403 }
@@ -134,7 +155,14 @@ export async function DELETE(
   const session = await getServerSession(authOptions);
   const id = (await params).id;
 
+  console.log("[api/events/[id]] DELETE", {
+    id,
+    url: req.url,
+    userId: session?.user?.id ?? null,
+  });
+
   if (!session || !session.user) {
+    console.warn("[api/events/[id]] DELETE unauthorized (no session)", { id });
     return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
   }
 

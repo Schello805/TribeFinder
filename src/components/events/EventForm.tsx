@@ -129,6 +129,55 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const startFieldRef = useRef<HTMLDivElement | null>(null);
   const endFieldRef = useRef<HTMLDivElement | null>(null);
   const lastStartRef = useRef<Date | null>(null);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+
+    const onError = (e: ErrorEvent) => {
+      // eslint-disable-next-line no-console
+      console.error("[EventForm] window.error", e.message, e.error);
+    };
+
+    const onUnhandledRejection = (e: PromiseRejectionEvent) => {
+      // eslint-disable-next-line no-console
+      console.error("[EventForm] window.unhandledrejection", e.reason);
+    };
+
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onUnhandledRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onUnhandledRejection);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (typeof window === "undefined") return;
+
+    const origFetch = window.fetch.bind(window);
+    window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : (input instanceof URL ? input.toString() : input.url);
+      const method = (init?.method || (typeof input === "string" ? "GET" : (input instanceof URL ? "GET" : input.method)) || "GET").toUpperCase();
+      const start = performance.now();
+      try {
+        const res = await origFetch(input as any, init);
+        const ms = Math.round(performance.now() - start);
+        // eslint-disable-next-line no-console
+        console.warn("[fetch]", method, url, res.status, `${ms}ms`);
+        return res;
+      } catch (e) {
+        const ms = Math.round(performance.now() - start);
+        // eslint-disable-next-line no-console
+        console.error("[fetch]", method, url, "FAILED", `${ms}ms`, e);
+        throw e;
+      }
+    };
+
+    return () => {
+      window.fetch = origFetch;
+    };
+  }, []);
  
   const buildNominatimUrl = (rawQuery: string, limit = 1) => {
     const q = (rawQuery || "").trim();
@@ -464,6 +513,10 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     try {
       const url = buildNominatimUrl(address, 5);
       if (!url) return;
+      if (process.env.NODE_ENV !== "production") {
+        // eslint-disable-next-line no-console
+        console.warn("[EventForm] geocodeAddress", { address, url });
+      }
       const res = await fetch(url);
       const data = (await res.json()) as NominatimSearchResult[];
       
@@ -487,6 +540,14 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   };
 
   const applyGeocodeSelection = (result: NominatimSearchResult) => {
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.warn("[EventForm] applyGeocodeSelection", {
+        lat: result.lat,
+        lon: result.lon,
+        display_name: result.display_name,
+      });
+    }
     setGeocodeResults([]);
     setGeocodeError("");
     setFormData((prev) => ({
@@ -622,6 +683,10 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       router.refresh();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Ein Fehler ist aufgetreten";
+      if (process.env.NODE_ENV !== "production") {
+        // eslint-disable-next-line no-console
+        console.error("[EventForm] submit error", err);
+      }
       setError(errorMessage);
       showToast(errorMessage, "error");
     } finally {
