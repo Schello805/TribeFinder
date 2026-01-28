@@ -125,6 +125,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState("");
   const [geocodeResults, setGeocodeResults] = useState<NominatimSearchResult[]>([]);
+  const geocodeControllerRef = useRef<AbortController | null>(null);
+  const lastGeocodeQueryRef = useRef<string>("");
   const didInitClearRef = useRef(false);
   const startFieldRef = useRef<HTMLDivElement | null>(null);
   const endFieldRef = useRef<HTMLDivElement | null>(null);
@@ -193,7 +195,6 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     });
     return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
   };
-  
   const [formData, setFormData] = useState<EventFormData>({
     title: initialData?.title || "",
     description: initialData?.description || "",
@@ -214,6 +215,72 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     maxParticipants: initialData?.maxParticipants || undefined,
     requiresRegistration: initialData?.requiresRegistration || false,
   });
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+
+    const q = (formData.address || "").trim();
+    if (q.length < 6) {
+      setGeocodeResults([]);
+      setGeocodeError("");
+      lastGeocodeQueryRef.current = "";
+      geocodeControllerRef.current?.abort();
+      geocodeControllerRef.current = null;
+      return;
+    }
+
+    const normalized = q;
+    if (normalized === lastGeocodeQueryRef.current) return;
+
+    const t = window.setTimeout(async () => {
+      geocodeControllerRef.current?.abort();
+      const controller = new AbortController();
+      geocodeControllerRef.current = controller;
+
+      setIsGeocoding(true);
+      setGeocodeError("");
+
+      try {
+        const url = buildNominatimUrl(normalized, 5);
+        if (!url) return;
+        if (process.env.NODE_ENV !== "production") {
+          // eslint-disable-next-line no-console
+          console.warn("[EventForm] geocode (debounced)", { query: normalized, url });
+        }
+        const res = await fetch(url, { signal: controller.signal });
+        const data = (await res.json()) as NominatimSearchResult[];
+        if (controller.signal.aborted) return;
+
+        lastGeocodeQueryRef.current = normalized;
+
+        if (data && data.length === 1 && data[0]) {
+          setFormData((prev) => ({
+            ...prev,
+            lat: parseFloat(data[0].lat),
+            lng: parseFloat(data[0].lon),
+          }));
+          setGeocodeResults([]);
+        } else if (data && data.length > 1) {
+          setGeocodeResults(data);
+        } else {
+          setGeocodeResults([]);
+          setGeocodeError("Adresse nicht gefunden. Bitte überprüfen.");
+        }
+      } catch (e) {
+        if (controller.signal.aborted) return;
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        setGeocodeResults([]);
+        setGeocodeError("Fehler bei der Adresssuche");
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsGeocoding(false);
+        }
+      }
+    }, 650);
+
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.address]);
 
   const initialStartParts = splitLocalDateTime(isEditing ? (formData.startDate || "") : "");
   const initialEndParts = splitLocalDateTime(isEditing ? (formData.endDate || "") : "");
@@ -548,12 +615,21 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
         display_name: result.display_name,
       });
     }
+
+    const selectedAddress = (result.display_name || "").trim();
+    if (selectedAddress) {
+      lastGeocodeQueryRef.current = selectedAddress;
+      geocodeControllerRef.current?.abort();
+      geocodeControllerRef.current = null;
+    }
+
     setGeocodeResults([]);
     setGeocodeError("");
     setFormData((prev) => ({
       ...prev,
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
+      address: selectedAddress || prev.address,
     }));
   };
 

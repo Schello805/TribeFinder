@@ -34,6 +34,8 @@ interface MapEvent {
   lng?: number | null;
   locationName?: string | null;
   group?: { name?: string | null } | null;
+  creator?: { name?: string | null } | null;
+  organizer?: string | null;
   flyer1?: string | null;
   flyer2?: string | null;
 }
@@ -232,25 +234,40 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
           minute: '2-digit',
           timeZone: 'Europe/Berlin'
         });
+
+        const organizerName = (event.organizer || event.group?.name || event.creator?.name || '').trim();
+        const flyerUrl = (event.flyer1 || event.flyer2 || '').trim();
         
         const marker = L.marker([event.lat, event.lng], { icon: eventIcon })
           .addTo(mapRef.current!)
           .bindPopup(`
-            <div class="p-2">
-              <div class="flex items-center gap-2 mb-1">
-                <span class="text-xs font-bold bg-red-100 text-red-800 px-1.5 py-0.5 rounded">EVENT</span>
-                <span class="text-xs text-gray-500">${date} Uhr</span>
-              </div>
-              <h3 class="font-bold text-lg leading-tight mb-1">${event.title}</h3>
-              <p class="text-sm font-medium text-gray-700 mb-1">von ${event.group?.name || 'Unbekannt'}</p>
-              <p class="text-sm text-gray-600 mb-2">${event.locationName || ''}</p>
-              <a href="/events/${event.id}" class="text-red-600 hover:underline text-sm font-medium">Zum Event</a>
-              ${(event.flyer1 || event.flyer2) ? `
-                <div class="flex gap-2 mt-2 pt-2 border-t border-gray-100">
-                  ${event.flyer1 ? `<a href="${event.flyer1}" target="_blank" class="text-xs text-gray-500 hover:text-indigo-600 flex items-center"><span class="mr-1">📎</span>Flyer 1</a>` : ''}
-                  ${event.flyer2 ? `<a href="${event.flyer2}" target="_blank" class="text-xs text-gray-500 hover:text-indigo-600 flex items-center"><span class="mr-1">📎</span>Flyer 2</a>` : ''}
+            <div class="min-w-[260px] font-sans -m-1">
+              <div class="p-4 bg-white rounded-xl shadow-lg border border-gray-100">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <span class="text-[11px] font-bold bg-red-100 text-red-800 px-2 py-0.5 rounded-full">EVENT</span>
+                  <span class="text-[11px] text-gray-500 font-medium">${date} Uhr</span>
                 </div>
-              ` : ''}
+
+                <div class="flex items-start gap-3">
+                  ${flyerUrl ? `
+                    <div class="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                      <img src="${flyerUrl}" alt="Flyer" class="w-full h-full object-cover" />
+                    </div>
+                  ` : ''}
+
+                  <div class="min-w-0">
+                    <h3 class="font-extrabold text-lg leading-snug text-gray-900 mb-1 truncate">${event.title}</h3>
+                    ${organizerName ? `<p class="text-sm text-gray-700 mb-1 truncate"><span class=\"text-gray-500\">Veranstalter:</span> <span class=\"font-semibold\">${organizerName}</span></p>` : ''}
+                    ${event.locationName ? `<p class="text-sm text-gray-600 mb-2 truncate">${event.locationName}</p>` : ''}
+                  </div>
+                </div>
+
+                <div class="mt-3">
+                  <a href="/events/${event.id}" class="inline-flex items-center px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-800 text-sm font-bold no-underline">
+                    Zum Event
+                  </a>
+                </div>
+              </div>
             </div>
           `);
           markersRef.current.push(marker);

@@ -130,8 +130,27 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   if (session?.user?.id) {
     if (event.creatorId === session.user.id) canEdit = true;
     if (event.group && event.group.ownerId === session.user.id) canEdit = true;
-    // Add logic for group admins if needed
+    if (!canEdit && event.groupId) {
+      const membership = await prisma.groupMember.findUnique({
+        where: {
+          userId_groupId: {
+            userId: session.user.id,
+            groupId: event.groupId,
+          },
+        },
+        select: {
+          role: true,
+          status: true,
+        },
+      });
+      if (membership?.role === "ADMIN" && membership?.status === "APPROVED") {
+        canEdit = true;
+      }
+    }
   }
+
+  const isDefaultLatLng = event.lat === 51.1657 && event.lng === 10.4515;
+  const hasLocation = Boolean((event.address || "").trim()) || (!isDefaultLatLng && Number.isFinite(event.lat) && Number.isFinite(event.lng));
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12 px-4 sm:px-0">
@@ -255,20 +274,24 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <p className="font-semibold text-lg">{event.locationName}</p>
                 {event.address && <p>{event.address}</p>}
                 
-                <div className="pt-3">
-                  <a 
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white text-center rounded-md font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm items-center gap-2 border border-gray-200 dark:border-gray-600 text-sm"
-                  >
-                    <span>📍</span> Navigation starten
-                  </a>
+                {hasLocation && (
+                  <div className="pt-3">
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white text-center rounded-md font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm items-center gap-2 border border-gray-200 dark:border-gray-600 text-sm"
+                    >
+                      <span>📍</span> Navigation starten
+                    </a>
+                  </div>
+                )}
+              </div>
+              {hasLocation && (
+                <div className="h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 shadow-sm relative z-0">
+                  <DynamicEventMap lat={event.lat} lng={event.lng} />
                 </div>
-              </div>
-              <div className="h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 shadow-sm relative z-0">
-                 <DynamicEventMap lat={event.lat} lng={event.lng} />
-              </div>
+              )}
             </div>
 
             {/* Organizer */}

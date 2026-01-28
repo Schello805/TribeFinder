@@ -23,6 +23,11 @@ export default async function MapPage() {
             name: true,
           },
         },
+        creator: {
+          select: {
+            name: true,
+          },
+        },
       },
     }),
     prisma.tag.findMany({
