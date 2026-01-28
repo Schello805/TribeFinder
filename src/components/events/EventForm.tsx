@@ -487,18 +487,18 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   };
 
   const applyGeocodeSelection = (result: NominatimSearchResult) => {
+    setGeocodeResults([]);
+    setGeocodeError("");
     setFormData((prev) => ({
       ...prev,
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
-      address: result.display_name ? result.display_name : prev.address,
     }));
-    setGeocodeResults([]);
-    setGeocodeError("");
   };
 
   const handleAddressBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { value } = e.target;
+    if (geocodeResults.length > 0) return;
     if (value.trim()) {
       geocodeAddress(value);
     }
