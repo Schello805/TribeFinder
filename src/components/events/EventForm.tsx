@@ -12,6 +12,12 @@ interface EventFormProps {
   isEditing?: boolean;
 }
 
+type NominatimSearchResult = {
+  lat: string;
+  lon: string;
+  display_name?: string;
+};
+
 const DEFAULT_EVENT_DURATION_MINUTES = 90;
 
 // Helper to format date for datetime-local input (YYYY-MM-DDThh:mm) in Local Time
@@ -118,10 +124,26 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const [error, setError] = useState("");
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState("");
+  const [geocodeResults, setGeocodeResults] = useState<NominatimSearchResult[]>([]);
   const didInitClearRef = useRef(false);
   const startFieldRef = useRef<HTMLDivElement | null>(null);
   const endFieldRef = useRef<HTMLDivElement | null>(null);
   const lastStartRef = useRef<Date | null>(null);
+ 
+  const buildNominatimUrl = (rawQuery: string, limit = 1) => {
+    const q = (rawQuery || "").trim();
+    if (!q) return "";
+    const normalizedQuery = /\bdeutschland\b/i.test(q) ? q : `${q}, Deutschland`;
+    const params = new URLSearchParams({
+      format: "json",
+      q: normalizedQuery,
+      limit: String(limit),
+      countrycodes: "de",
+      "accept-language": "de",
+      addressdetails: "1",
+    });
+    return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+  };
   
   const [formData, setFormData] = useState<EventFormData>({
     title: initialData?.title || "",
@@ -437,20 +459,23 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     
     setIsGeocoding(true);
     setGeocodeError("");
+    setGeocodeResults([]);
     
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
-        { headers: { "User-Agent": "TribeFinder/1.0" } }
-      );
-      const data = await res.json();
+      const url = buildNominatimUrl(address, 5);
+      if (!url) return;
+      const res = await fetch(url);
+      const data = (await res.json()) as NominatimSearchResult[];
       
-      if (data && data[0]) {
+      if (data && data.length === 1 && data[0]) {
         setFormData(prev => ({
           ...prev,
           lat: parseFloat(data[0].lat),
           lng: parseFloat(data[0].lon)
         }));
+        setGeocodeResults([]);
+      } else if (data && data.length > 1) {
+        setGeocodeResults(data);
       } else {
         setGeocodeError("Adresse nicht gefunden. Bitte überprüfen.");
       }
@@ -459,6 +484,17 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     } finally {
       setIsGeocoding(false);
     }
+  };
+
+  const applyGeocodeSelection = (result: NominatimSearchResult) => {
+    setFormData((prev) => ({
+      ...prev,
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon),
+      address: result.display_name ? result.display_name : prev.address,
+    }));
+    setGeocodeResults([]);
+    setGeocodeError("");
   };
 
   const handleAddressBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -473,11 +509,15 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     if (!query) return;
     
     setIsGeocoding(true);
+    setGeocodeError("");
+    setGeocodeResults([]);
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-      const data = await res.json();
+      const url = buildNominatimUrl(query, 5);
+      if (!url) return;
+      const res = await fetch(url);
+      const data = (await res.json()) as NominatimSearchResult[];
       
-      if (data && data.length > 0) {
+      if (data && data.length === 1) {
         const { lat, lon } = data[0];
         setFormData(prev => ({
           ...prev,
@@ -485,6 +525,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           lng: parseFloat(lon)
         }));
         setError("");
+      } else if (data && data.length > 1) {
+        setGeocodeResults(data);
       } else {
         setError(`Die Adresse "${query}" konnte nicht gefunden werden.`);
       }
@@ -898,6 +940,20 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             )}
             {geocodeError && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">⚠️ {geocodeError}</p>
+            )}
+            {!isGeocoding && geocodeResults.length > 0 && (
+              <div className="mt-2 rounded-md border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 overflow-hidden">
+                {geocodeResults.slice(0, 5).map((r, idx) => (
+                  <button
+                    key={`${r.lat}-${r.lon}-${idx}`}
+                    type="button"
+                    onClick={() => applyGeocodeSelection(r)}
+                    className="block w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    {r.display_name || `${r.lat}, ${r.lon}`}
+                  </button>
+                ))}
+              </div>
             )}
             {!isGeocoding && !geocodeError && formData.lat !== 51.1657 && (
               <p className="mt-1 text-sm text-green-600 dark:text-green-400">✓ Standort gefunden</p>
