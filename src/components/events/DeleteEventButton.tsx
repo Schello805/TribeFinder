@@ -6,9 +6,10 @@ import { useToast } from "@/components/ui/Toast";
 
 interface DeleteEventButtonProps {
   eventId: string;
+  redirectTo?: string;
 }
 
-export default function DeleteEventButton({ eventId }: DeleteEventButtonProps) {
+export default function DeleteEventButton({ eventId, redirectTo }: DeleteEventButtonProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -21,7 +22,11 @@ export default function DeleteEventButton({ eventId }: DeleteEventButtonProps) {
       const res = await fetch(`/api/events/${eventId}`, { method: "DELETE" });
       if (res.ok) {
         showToast('Event gelöscht', 'success');
-        router.refresh();
+        if (redirectTo) {
+          router.push(redirectTo);
+        } else {
+          router.refresh();
+        }
       } else {
         const data = await res.json();
         showToast(data.message || 'Fehler beim Löschen', 'error');

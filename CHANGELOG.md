@@ -4,6 +4,23 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ## [Unreleased] - 2026-01-19
 
+## [Unreleased] - 2026-01-28
+
+### 🔧 Geändert
+
+- Event-Erstellung: Datum/Uhrzeit Eingabe UX überarbeitet (native Date/Time Picker, Safari-kompatibel)
+- Event-Formular: Automatisches Setzen der Endzeit (+90 Minuten) solange Ende nicht manuell geändert wurde
+- Event-Formular: Beim Bearbeiten wird das Ende beim Verschieben des Starts mitverschoben (inkl. Hinweis)
+- Event-Formular: Inline-Validierung + Scroll zum ersten Fehler
+- Event-Formular: Zeitzone aus dem Browser wird als Info angezeigt
+- Formular-Layout: Ticket-Link/Preis unter Webseite neu angeordnet
+
+### 🐛 Behoben
+
+- "Ungültiger Wert" bei Datum/Uhrzeit Eingabe in Safari (Browser-Validation der versteckten Inputs)
+- Weiterleitung nach Event-Erstellung für Events ohne Gruppe
+- Event löschen: Delete-Button auf Detailseite + API-Route für Events ohne Gruppe
+
 ### 🎉 Neu hinzugefügt
 
 #### UX Verbesserungen

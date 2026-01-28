@@ -13,7 +13,7 @@ export const eventSchema = z.object({
   startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Ungültiges Startdatum",
   }),
-  endDate: z.string().optional().refine((val) => !val || !isNaN(Date.parse(val)), {
+  endDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Ungültiges Enddatum",
   }),
   locationName: z.string().optional(),
@@ -46,7 +46,6 @@ export const eventSchema = z.object({
   message: "Startdatum darf höchstens 30 Tage in der Vergangenheit liegen",
   path: ["startDate"],
 }).refine((data) => {
-  if (!data.endDate) return true;
   const start = new Date(data.startDate);
   const end = new Date(data.endDate);
   return end > start;

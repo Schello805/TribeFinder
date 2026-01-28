@@ -8,6 +8,7 @@ import { de } from "date-fns/locale";
 import DynamicEventMap from "@/components/map/DynamicEventMap";
 import EventRegistration from "@/components/events/EventRegistration";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
+import DeleteEventButton from "@/components/events/DeleteEventButton";
 
 type EventGroupLike = {
   id: string;
@@ -210,6 +211,18 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               >
                 <span>📅</span> Zum Kalender hinzufügen
               </a>
+
+              {canEdit && (
+                <div className="flex items-center justify-end gap-4 pt-2">
+                  <Link
+                    href={event.group ? `/groups/${event.group.id}/events/${event.id}/edit` : `/events/${event.id}/edit`}
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 text-sm font-medium"
+                  >
+                    Bearbeiten
+                  </Link>
+                  <DeleteEventButton eventId={event.id} redirectTo="/events" />
+                </div>
+              )}
             </div>
           </div>
 

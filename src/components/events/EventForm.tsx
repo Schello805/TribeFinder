@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EventFormData } from "@/lib/validations/event";
 import { useToast } from "@/components/ui/Toast";
@@ -11,6 +11,8 @@ interface EventFormProps {
   groupId?: string;
   isEditing?: boolean;
 }
+
+const DEFAULT_EVENT_DURATION_MINUTES = 90;
 
 // Helper to format date for datetime-local input (YYYY-MM-DDThh:mm) in Local Time
 const toLocalISOString = (dateString: string | Date) => {
@@ -28,12 +30,31 @@ const toLocalISOString = (dateString: string | Date) => {
 const normalizeDatetimeLocal = (value: string) => {
   const v = value.trim();
   if (!v) return "";
+
+  // Already compatible with datetime-local
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v)) return v;
+
+  // Some browsers / autofill may provide seconds/milliseconds
+  // e.g. 2026-01-28T18:30:00 or 2026-01-28T18:30:00.000
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d{1,3})?$/.test(v)) {
+    return v.slice(0, 16);
+  }
+
+  // If we get a full ISO string with timezone, convert it to local datetime-local format
+  // e.g. 2026-01-28T17:30:00.000Z or 2026-01-28T18:30:00+01:00
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d{1,3})?(Z|[+-]\d{2}:\d{2})$/.test(v)) {
+    const d = new Date(v);
+    if (!Number.isNaN(d.getTime())) return toLocalISOString(d);
+  }
 
   const m = v.match(
     /^(\d{1,2})\.(\d{1,2})\.(\d{4})(?:,?\s*(\d{1,2}):(\d{2}))?$/
   );
-  if (!m) return value;
+  if (!m) {
+    const d = new Date(v);
+    if (!Number.isNaN(d.getTime())) return toLocalISOString(d);
+    return "";
+  }
 
   const dd = m[1].padStart(2, "0");
   const mm = m[2].padStart(2, "0");
@@ -43,6 +64,53 @@ const normalizeDatetimeLocal = (value: string) => {
   return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
 };
 
+const splitLocalDateTime = (value: string) => {
+  const normalized = normalizeDatetimeLocal(value);
+  if (!normalized) return { date: "", time: "" };
+  const [date, time] = normalized.split("T");
+  return { date: date || "", time: time || "" };
+};
+
+const joinLocalDateTime = (date: string, time: string) => {
+  const d = (date || "").trim();
+  const t = (time || "").trim();
+  if (!d || !t) return "";
+  return `${d}T${t}`;
+};
+
+const normalizeDateOnly = (value: string) => {
+  const v = (value || "").trim();
+  if (!v) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const m = v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (m) {
+    const dd = m[1].padStart(2, "0");
+    const mm = m[2].padStart(2, "0");
+    const yyyy = m[3];
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+const normalizeTimeOnly = (value: string) => {
+  const v = (value || "").trim();
+  if (!v) return "";
+  if (/^\d{2}:\d{2}$/.test(v)) return v;
+  if (/^\d{2}:\d{2}:\d{2}/.test(v)) return v.slice(0, 5);
+  return "";
+};
+
+const toDisplayDate = (isoDate: string) => {
+  const v = (isoDate || "").trim();
+  if (!v) return "";
+  const m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return v;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+};
+
 export default function EventForm({ initialData, groupId, isEditing = false }: EventFormProps) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -50,13 +118,17 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const [error, setError] = useState("");
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState("");
+  const didInitClearRef = useRef(false);
+  const startFieldRef = useRef<HTMLDivElement | null>(null);
+  const endFieldRef = useRef<HTMLDivElement | null>(null);
+  const lastStartRef = useRef<Date | null>(null);
   
   const [formData, setFormData] = useState<EventFormData>({
     title: initialData?.title || "",
     description: initialData?.description || "",
     eventType: initialData?.eventType || "EVENT",
-    startDate: initialData?.startDate ? toLocalISOString(initialData.startDate) : "",
-    endDate: initialData?.endDate ? toLocalISOString(initialData.endDate) : "",
+    startDate: isEditing && initialData?.startDate ? toLocalISOString(initialData.startDate) : "",
+    endDate: isEditing && initialData?.endDate ? toLocalISOString(initialData.endDate) : "",
     locationName: initialData?.locationName || "",
     address: initialData?.address || "",
     lat: initialData?.lat || 51.1657,
@@ -71,6 +143,73 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     maxParticipants: initialData?.maxParticipants || undefined,
     requiresRegistration: initialData?.requiresRegistration || false,
   });
+
+  const initialStartParts = splitLocalDateTime(isEditing ? (formData.startDate || "") : "");
+  const initialEndParts = splitLocalDateTime(isEditing ? (formData.endDate || "") : "");
+  const [startDateOnly, setStartDateOnly] = useState(normalizeDateOnly(initialStartParts.date));
+  const [startTimeOnly, setStartTimeOnly] = useState(normalizeTimeOnly(initialStartParts.time));
+  const [endDateOnly, setEndDateOnly] = useState(normalizeDateOnly(initialEndParts.date));
+  const [endTimeOnly, setEndTimeOnly] = useState(normalizeTimeOnly(initialEndParts.time));
+  const [startDateTouched, setStartDateTouched] = useState(isEditing);
+  const [startTimeTouched, setStartTimeTouched] = useState(isEditing);
+  const [endDateTouched, setEndDateTouched] = useState(isEditing);
+  const [endTimeTouched, setEndTimeTouched] = useState(isEditing);
+  const [fieldErrors, setFieldErrors] = useState<{ startDate?: string; endDate?: string }>({});
+  const [endShiftHint, setEndShiftHint] = useState<string>("");
+  const [browserTimeZone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone || "");
+
+  useEffect(() => {
+    const clearAll = () => {
+      setFormData((prev) => ({
+        ...prev,
+        startDate: "",
+        endDate: "",
+      }));
+      setStartDateOnly("");
+      setStartTimeOnly("");
+      setEndDateOnly("");
+      setEndTimeOnly("");
+      setStartDateTouched(false);
+      setStartTimeTouched(false);
+      setEndDateTouched(false);
+      setEndTimeTouched(false);
+      setFieldErrors({});
+      setEndShiftHint("");
+      lastStartRef.current = null;
+    };
+
+    if (isEditing) return;
+
+    // Initial clear (create mode)
+    if (!didInitClearRef.current) {
+      didInitClearRef.current = true;
+      clearAll();
+    }
+
+    // Safari/Browser bfcache restore can re-show previous form values without remounting.
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) clearAll();
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (!isEditing) return;
+    const sp = splitLocalDateTime(formData.startDate || "");
+    const ep = splitLocalDateTime(formData.endDate || "");
+    setStartDateOnly(normalizeDateOnly(sp.date));
+    setStartTimeOnly(normalizeTimeOnly(sp.time));
+    setEndDateOnly(normalizeDateOnly(ep.date));
+    setEndTimeOnly(normalizeTimeOnly(ep.time));
+    setStartDateTouched(true);
+    setStartTimeTouched(true);
+    setEndDateTouched(true);
+    setEndTimeTouched(true);
+    const initialStart = joinLocalDateTime(normalizeDateOnly(sp.date), normalizeTimeOnly(sp.time));
+    lastStartRef.current = initialStart ? new Date(initialStart) : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing]);
 
   // Auto-add https:// to URLs if missing
   const normalizeUrl = (url: string): string => {
@@ -87,7 +226,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     const start = new Date(startDate);
     const end = new Date(endDate);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return endDate;
-    return end < start ? startDate : endDate;
+    return end < start ? "" : endDate;
   };
 
   useEffect(() => {
@@ -102,20 +241,159 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => {
-      const normalizedValue = name === "startDate" || name === "endDate" ? normalizeDatetimeLocal(value) : value;
-      const next = { ...prev, [name]: normalizedValue } as EventFormData;
-      if (name === "startDate" || name === "endDate") {
+      const next = { ...prev, [name]: value } as EventFormData;
+
+      if (process.env.NODE_ENV !== "production" && (name === "startDate" || name === "endDate")) {
+        // eslint-disable-next-line no-console
+        console.warn(`[EventForm] ${name} changed:`, { value });
+      }
+
+      if (name === "startDate") {
         next.endDate = normalizeEndDate(next.startDate, next.endDate || "");
       }
+
       return next;
     });
   };
 
-  const handleDateBlur = () => {
-    setFormData((prev) => ({
-      ...prev,
-      endDate: normalizeEndDate(prev.startDate, prev.endDate || ""),
-    }));
+  const setEndFromDate = (end: Date) => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const d = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
+    const t = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
+    setEndDateOnly(d);
+    setEndTimeOnly(t);
+    const combined = joinLocalDateTime(d, t);
+    setFormData((prev) => ({ ...prev, endDate: combined } as EventFormData));
+  };
+
+  const applyStartChange = (nextDate: string, nextTime: string) => {
+    const d = normalizeDateOnly(nextDate);
+    const t = normalizeTimeOnly(nextTime);
+    setStartDateOnly(d);
+    setStartTimeOnly(t);
+
+    const combinedStart = joinLocalDateTime(d, t);
+    setFormData((prev) => {
+      const next = { ...prev, startDate: combinedStart } as EventFormData;
+      next.endDate = normalizeEndDate(next.startDate, next.endDate || "");
+      return next;
+    });
+
+    const nextStartDateObj = combinedStart ? new Date(combinedStart) : null;
+    if (!nextStartDateObj || Number.isNaN(nextStartDateObj.getTime())) {
+      lastStartRef.current = null;
+      return;
+    }
+
+    const endIsManual = endDateTouched || endTimeTouched;
+    const currentEndCombined = joinLocalDateTime(normalizeDateOnly(endDateOnly), normalizeTimeOnly(endTimeOnly));
+    const currentEndObj = currentEndCombined ? new Date(currentEndCombined) : null;
+
+    if (isEditing && lastStartRef.current && currentEndObj && !Number.isNaN(currentEndObj.getTime())) {
+      const deltaMs = nextStartDateObj.getTime() - lastStartRef.current.getTime();
+      if (deltaMs !== 0) {
+        const shiftedEnd = new Date(currentEndObj.getTime() + deltaMs);
+        setEndShiftHint("Endzeit wurde passend zum neuen Start mitverschoben.");
+        setEndFromDate(shiftedEnd);
+      }
+    } else if (!endIsManual) {
+      const autoEnd = new Date(nextStartDateObj.getTime() + DEFAULT_EVENT_DURATION_MINUTES * 60 * 1000);
+      setEndShiftHint("");
+      setEndFromDate(autoEnd);
+    }
+
+    lastStartRef.current = nextStartDateObj;
+  };
+
+  const handleStartDateOnlyChange = (value: string) => {
+    setStartDateTouched(true);
+    applyStartChange(value, startTimeOnly);
+  };
+
+  const handleStartTimeOnlyChange = (value: string) => {
+    setStartTimeTouched(true);
+    applyStartChange(startDateOnly, value);
+  };
+
+  const handleEndDateOnlyChange = (value: string) => {
+    const d = normalizeDateOnly(value);
+    setEndDateOnly(d);
+    setEndDateTouched(true);
+    setEndShiftHint("");
+    const combined = joinLocalDateTime(d, normalizeTimeOnly(endTimeOnly));
+    setFormData((prev) => ({ ...prev, endDate: combined } as EventFormData));
+  };
+
+  const handleEndTimeOnlyChange = (value: string) => {
+    const t = normalizeTimeOnly(value);
+    setEndTimeOnly(t);
+    setEndTimeTouched(true);
+    setEndShiftHint("");
+    const combined = joinLocalDateTime(normalizeDateOnly(endDateOnly), t);
+    setFormData((prev) => ({ ...prev, endDate: combined } as EventFormData));
+  };
+
+  const handleStartDateBlur = () => {
+    const d = normalizeDateOnly(startDateOnly);
+    setStartDateOnly(d);
+    const combined = joinLocalDateTime(d, normalizeTimeOnly(startTimeOnly));
+    setFormData((prev) => {
+      const next = { ...prev, startDate: combined } as EventFormData;
+      next.endDate = normalizeEndDate(next.startDate, next.endDate || "");
+      return next;
+    });
+  };
+
+  const handleStartTimeBlur = () => {
+    const t = normalizeTimeOnly(startTimeOnly);
+    setStartTimeOnly(t);
+    const combined = joinLocalDateTime(normalizeDateOnly(startDateOnly), t);
+    setFormData((prev) => {
+      const next = { ...prev, startDate: combined } as EventFormData;
+      next.endDate = normalizeEndDate(next.startDate, next.endDate || "");
+      return next;
+    });
+  };
+
+  const handleEndDateBlur = () => {
+    const d = normalizeDateOnly(endDateOnly);
+    setEndDateOnly(d);
+    const combined = joinLocalDateTime(d, normalizeTimeOnly(endTimeOnly));
+    setFormData((prev) => ({ ...prev, endDate: combined } as EventFormData));
+  };
+
+  const handleEndTimeBlur = () => {
+    const t = normalizeTimeOnly(endTimeOnly);
+    setEndTimeOnly(t);
+    const combined = joinLocalDateTime(normalizeDateOnly(endDateOnly), t);
+    setFormData((prev) => ({ ...prev, endDate: combined } as EventFormData));
+  };
+
+  const handleDateBlur = (field?: "startDate" | "endDate") => {
+    setFormData((prev) => {
+      const normalizedStart = normalizeDatetimeLocal(prev.startDate);
+      const normalizedEnd = prev.endDate ? normalizeDatetimeLocal(prev.endDate) : "";
+      const next = {
+        ...prev,
+        startDate: normalizedStart,
+        endDate: normalizedEnd,
+      };
+
+      if (field === "startDate" || field === "endDate") {
+        const candidateEnd = next.endDate || "";
+        next.endDate = normalizeEndDate(next.startDate, candidateEnd);
+      }
+
+      if (process.env.NODE_ENV !== "production" && field) {
+        // eslint-disable-next-line no-console
+        console.warn(`[EventForm] ${field} blur normalized:`, {
+          startDate: next.startDate,
+          endDate: next.endDate,
+        });
+      }
+
+      return next;
+    });
   };
 
   const handleUrlBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -222,10 +500,12 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setFieldErrors({});
 
     const eventId = initialData?.id;
 
     try {
+
       if (isEditing && !eventId) {
         throw new Error("Fehlende Event-ID");
       }
@@ -233,11 +513,46 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       const url = isEditing ? `/api/events/${eventId}` : "/api/events";
       const method = isEditing ? "PUT" : "POST";
 
+      const errors: { startDate?: string; endDate?: string } = {};
+
+      if (!formData.startDate) {
+        errors.startDate = "Bitte Startdatum und Startuhrzeit auswählen.";
+      }
+
+      const start = formData.startDate ? new Date(formData.startDate) : null;
+      if (start && Number.isNaN(start.getTime())) {
+        errors.startDate = "Bitte Startdatum und Startuhrzeit auswählen.";
+      }
+
+      if (!formData.endDate) {
+        errors.endDate = "Bitte Enddatum und Enduhrzeit auswählen.";
+      }
+
+      const end = formData.endDate ? new Date(formData.endDate) : null;
+      if (end && Number.isNaN(end.getTime())) {
+        errors.endDate = "Bitte Enddatum und Enduhrzeit auswählen.";
+      }
+
+      if (start && end && end <= start) {
+        errors.endDate = "Ende muss nach dem Start liegen.";
+      }
+
+      if (errors.startDate || errors.endDate) {
+        setFieldErrors(errors);
+        const target = errors.startDate ? startFieldRef.current : endFieldRef.current;
+        target?.scrollIntoView({ behavior: "smooth", block: "center" });
+        throw new Error(errors.startDate || errors.endDate || "Bitte überprüfe die Eingaben.");
+      }
+
+      if (!start || !end) {
+        throw new Error("Bitte überprüfe die Eingaben.");
+      }
+
       // Prepare data for submission: Convert local datetime strings to UTC ISO strings
       const submitData = {
         ...formData,
-        startDate: new Date(formData.startDate).toISOString(),
-        endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
       };
 
       const response = await fetch(url, {
@@ -261,7 +576,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       }
 
       showToast(isEditing ? "Event erfolgreich aktualisiert!" : "Event erfolgreich erstellt!", "success");
-      router.push(`/groups/${groupId}/events`);
+      router.push(groupId ? `/groups/${groupId}/events` : "/events");
       router.refresh();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Ein Fehler ist aufgetreten";
@@ -273,7 +588,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors">
+    <form onSubmit={handleSubmit} autoComplete="off" noValidate className="space-y-6 max-w-2xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors">
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded dark:bg-red-900/30 dark:border-red-800 dark:text-red-200">
           {error}
@@ -293,30 +608,104 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div>
+        <div ref={startFieldRef}>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Start-Zeitpunkt</label>
-          <input
-            type="datetime-local"
-            name="startDate"
-            value={formData.startDate}
-            onChange={handleChange}
-            onBlur={handleDateBlur}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
-          />
+          {browserTimeZone ? (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Zeitzone: {browserTimeZone}</p>
+          ) : null}
+          <div className="mt-1 grid grid-cols-2 gap-2">
+            <div className="relative">
+              <input
+                type="text"
+                readOnly
+                value={startDateOnly ? toDisplayDate(startDateOnly) : ""}
+                autoComplete="off"
+                placeholder="Datum auswählen"
+                className={`block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white placeholder:text-gray-600 dark:bg-gray-700 dark:placeholder:text-gray-400 pointer-events-none ${startDateOnly && !startDateTouched ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white"}`}
+              />
+              <input
+                type="date"
+                value={startDateOnly}
+                onChange={(e) => handleStartDateOnlyChange(e.target.value)}
+                onBlur={handleStartDateBlur}
+                autoComplete="off"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              />
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                readOnly
+                value={startTimeOnly ? startTimeOnly : ""}
+                autoComplete="off"
+                placeholder="Uhrzeit auswählen"
+                className={`block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white placeholder:text-gray-600 dark:bg-gray-700 dark:placeholder:text-gray-400 pointer-events-none ${startTimeOnly && !startTimeTouched ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white"}`}
+              />
+              <input
+                type="time"
+                value={startTimeOnly}
+                onChange={(e) => handleStartTimeOnlyChange(e.target.value)}
+                onBlur={handleStartTimeBlur}
+                autoComplete="off"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              />
+            </div>
+          </div>
+          {fieldErrors.startDate ? (
+            <p className="mt-2 text-sm text-red-600 dark:text-red-300">{fieldErrors.startDate}</p>
+          ) : null}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">End-Zeitpunkt (Optional)</label>
-          <input
-            type="datetime-local"
-            name="endDate"
-            value={formData.endDate}
-            min={formData.startDate}
-            onChange={handleChange}
-            onBlur={handleDateBlur}
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
-          />
+        <div ref={endFieldRef}>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">End-Zeitpunkt</label>
+          {browserTimeZone ? (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 invisible">Zeitzone: {browserTimeZone}</p>
+          ) : null}
+          {endShiftHint ? (
+            <p className="mt-1 text-xs text-indigo-700 dark:text-indigo-200">{endShiftHint}</p>
+          ) : null}
+          <div className="mt-1 grid grid-cols-2 gap-2">
+            <div className="relative">
+              <input
+                type="text"
+                readOnly
+                value={endDateOnly ? toDisplayDate(endDateOnly) : ""}
+                autoComplete="off"
+                placeholder="Datum auswählen"
+                className={`block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white placeholder:text-gray-600 dark:bg-gray-700 dark:placeholder:text-gray-400 pointer-events-none ${endDateOnly && !endDateTouched ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white"}`}
+              />
+              <input
+                type="date"
+                value={endDateOnly}
+                min={startDateOnly || undefined}
+                onChange={(e) => handleEndDateOnlyChange(e.target.value)}
+                onBlur={handleEndDateBlur}
+                autoComplete="off"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              />
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                readOnly
+                value={endTimeOnly ? endTimeOnly : ""}
+                autoComplete="off"
+                placeholder="Uhrzeit auswählen"
+                className={`block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white placeholder:text-gray-600 dark:bg-gray-700 dark:placeholder:text-gray-400 pointer-events-none ${endTimeOnly && !endTimeTouched ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white"}`}
+              />
+              <input
+                type="time"
+                value={endTimeOnly}
+                onChange={(e) => handleEndTimeOnlyChange(e.target.value)}
+                onBlur={handleEndTimeBlur}
+                autoComplete="off"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              />
+            </div>
+          </div>
+          {fieldErrors.endDate ? (
+            <p className="mt-2 text-sm text-red-600 dark:text-red-300">{fieldErrors.endDate}</p>
+          ) : null}
         </div>
       </div>
 
@@ -332,44 +721,44 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-         <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Webseite (Optional)</label>
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Webseite (Optional)</label>
+          <input
+            type="text"
+            name="website"
+            value={formData.website || ""}
+            onChange={handleChange}
+            onBlur={handleUrlBlur}
+            placeholder="www.beispiel.de"
+            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Ticket-Link</label>
             <input
               type="text"
-              name="website"
-              value={formData.website || ""}
+              name="ticketLink"
+              value={formData.ticketLink || ""}
               onChange={handleChange}
               onBlur={handleUrlBlur}
-              placeholder="www.beispiel.de"
+              placeholder="tickets.beispiel.de"
               className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
             />
-         </div>
-         <div className="grid grid-cols-2 gap-4">
-             <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Ticket-Link</label>
-                <input
-                  type="text"
-                  name="ticketLink"
-                  value={formData.ticketLink || ""}
-                  onChange={handleChange}
-                  onBlur={handleUrlBlur}
-                  placeholder="tickets.beispiel.de"
-                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
-                />
-             </div>
-             <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Preis</label>
-                <input
-                  type="text"
-                  name="ticketPrice"
-                  value={formData.ticketPrice || ""}
-                  onChange={handleChange}
-                  placeholder="z.B. 15€ / Kostenlos"
-                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
-                />
-             </div>
-         </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Preis</label>
+            <input
+              type="text"
+              name="ticketPrice"
+              value={formData.ticketPrice || ""}
+              onChange={handleChange}
+              placeholder="z.B. 15€ / Kostenlos"
+              className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Workshop Booking Section */}

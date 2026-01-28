@@ -29,7 +29,15 @@ export default function MatomoTracker({ url, siteId, trackingCode }: MatomoTrack
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const isLocalhost = typeof window !== "undefined" && (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "::1"
+  );
+
   useEffect(() => {
+    if (isLocalhost) return;
+
     // Initialize Matomo _paq early so we can enqueue commands even before matomo.js loads
     const _paq = (window._paq = window._paq || []);
 
@@ -49,15 +57,19 @@ export default function MatomoTracker({ url, siteId, trackingCode }: MatomoTrack
     // In that case, don't inject a second copy.
     if (inlineJs) return;
 
-    if (!url || !siteId) return;
+    const cleanUrl = (url || "").trim();
+    const cleanSiteId = (siteId || "").trim();
+
+    if (!cleanUrl || !cleanSiteId) return;
+    if (!/^https?:\/\//i.test(cleanUrl)) return;
 
     // Ensure URL has trailing slash for consistency in logic below, or handle it
-    const matomoUrl = url.endsWith("/") ? url : `${url}/`;
+    const matomoUrl = cleanUrl.endsWith("/") ? cleanUrl : `${cleanUrl}/`;
 
     // Check if script is already present to avoid duplicates on re-renders
     if (!document.getElementById("matomo-script")) {
       _paq.push(["setTrackerUrl", `${matomoUrl}matomo.php`]);
-      _paq.push(["setSiteId", siteId]);
+      _paq.push(["setSiteId", cleanSiteId]);
       _paq.push(["enableLinkTracking"]);
 
       const script = document.createElement("script");
@@ -74,10 +86,11 @@ export default function MatomoTracker({ url, siteId, trackingCode }: MatomoTrack
       const firstScript = document.getElementsByTagName("script")[0];
       firstScript.parentNode?.insertBefore(script, firstScript);
     }
-  }, [url, siteId, trackingCode]);
+  }, [url, siteId, trackingCode, isLocalhost]);
 
   // Track page views on route change
   useEffect(() => {
+    if (isLocalhost) return;
     const _paq = window._paq = window._paq || [];
     
     // Construct full URL or just path
@@ -86,7 +99,7 @@ export default function MatomoTracker({ url, siteId, trackingCode }: MatomoTrack
     _paq.push(['setCustomUrl', fullUrl]);
     _paq.push(['setDocumentTitle', document.title]);
     _paq.push(['trackPageView']);
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, isLocalhost]);
 
   return null;
 }
