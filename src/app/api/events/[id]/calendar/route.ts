@@ -17,6 +17,18 @@ function escapeIcsText(input: string) {
     .replace(/;/g, "\\;");
 }
 
+function toSafeFilenameBase(input: string) {
+  const base = (input || "").trim();
+  if (!base) return "event";
+  return base
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/[\\/\\?<>\\:*|\"]/g, "-")
+    .replace(/\.+$/g, "")
+    .trim()
+    .slice(0, 80) || "event";
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -73,11 +85,15 @@ export async function GET(
 
   const ics = lines.join("\r\n");
 
+  const filenameBase = toSafeFilenameBase(event.title);
+  const filenameAscii = `${filenameBase.replace(/[^A-Za-z0-9 _.-]/g, "") || "event"}.ics`;
+  const filenameUtf8 = `${filenameBase}.ics`;
+
   return new NextResponse(ics, {
     status: 200,
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename=\"event-${event.id}.ics\"`,
+      "Content-Disposition": `attachment; filename=\"${filenameAscii}\"; filename*=UTF-8''${encodeURIComponent(filenameUtf8)}`,
       "Cache-Control": "no-store",
     },
   });

@@ -235,7 +235,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
           timeZone: 'Europe/Berlin'
         });
 
-        const organizerName = (event.organizer || event.group?.name || event.creator?.name || '').trim();
+        const organizerName = ((event.organizer || '').trim() || (event.group?.name || '').trim());
         const flyerUrl = (event.flyer1 || event.flyer2 || '').trim();
         
         const marker = L.marker([event.lat, event.lng], { icon: eventIcon })
