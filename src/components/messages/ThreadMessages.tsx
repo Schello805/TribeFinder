@@ -33,9 +33,11 @@ export default function ThreadMessages(props: {
 
   const canEditDelete = (m: Message) => {
     if (m.authorId !== props.currentUserId) return false;
-    if (!maxOtherReadAt) return true;
+
     const created = new Date(m.createdAt);
     if (Number.isNaN(created.getTime())) return false;
+
+    if (!maxOtherReadAt) return true;
     return maxOtherReadAt < created;
   };
 

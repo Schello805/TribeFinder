@@ -30,7 +30,7 @@ async function isMessageLocked(params: { threadId: string; authorId: string; mes
     where: {
       threadId: params.threadId,
       userId: { not: params.authorId },
-      lastReadAt: { gte: params.messageCreatedAt },
+      lastReadAt: { gt: params.messageCreatedAt },
     },
     select: { id: true },
     take: 1,
