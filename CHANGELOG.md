@@ -6,7 +6,15 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ## [Unreleased] - 2026-01-28
 
-### 🔧 Geändert
+### � Behoben
+
+- Group Inbox Messages: Bearbeiten/Löschen für eigene Nachrichten ist wieder möglich, solange der Empfänger die Nachricht noch nicht gelesen hat (Locking-Logik korrigiert)
+
+### 🧪 Tests
+
+- Playwright E2E: Neuer Test für Inbox-Thread (Edit/Delete bis gelesen)
+
+### �🔧 Geändert
 
 - Event-Erstellung: Datum/Uhrzeit Eingabe UX überarbeitet (native Date/Time Picker, Safari-kompatibel)
 - Event-Formular: Automatisches Setzen der Endzeit (+90 Minuten) solange Ende nicht manuell geändert wurde

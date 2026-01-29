@@ -140,6 +140,18 @@ Für isolierte Container-Umgebungen oder Multi-Service-Setups.
    ```
    Die App ist nun unter `http://localhost:3000` erreichbar.
 
+5. **E2E Tests (Playwright, optional)**
+   ```bash
+   npm run e2e
+   ```
+   Benötigt zwei Test-Accounts:
+   ```bash
+   export E2E_EMAIL_1="..."
+   export E2E_PASSWORD_1="..."
+   export E2E_EMAIL_2="..."
+   export E2E_PASSWORD_2="..."
+   ```
+
 ---
 
 ## Konfiguration
