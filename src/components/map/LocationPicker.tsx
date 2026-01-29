@@ -39,7 +39,6 @@ export default function LocationPicker({
   );
 
   const markerOptionsRef = useRef<L.MarkerOptions>({
-    icon: markerIconRef.current,
     zIndexOffset: 1000,
   });
 
@@ -64,14 +63,14 @@ export default function LocationPicker({
       if (markerRef.current) {
         markerRef.current.setLatLng([lat, lng]);
       } else if (mapRef.current) {
-        markerRef.current = L.marker([lat, lng], markerOptionsRef.current).addTo(mapRef.current);
+        markerRef.current = L.marker([lat, lng], { ...markerOptionsRef.current, icon: markerIconRef.current }).addTo(mapRef.current);
       }
 
       onLocationSelectRef.current(lat, lng);
     });
 
     if (Number.isFinite(initialLat) && Number.isFinite(initialLng)) {
-      markerRef.current = L.marker([initialLat, initialLng], markerOptionsRef.current).addTo(mapRef.current);
+      markerRef.current = L.marker([initialLat, initialLng], { ...markerOptionsRef.current, icon: markerIconRef.current }).addTo(mapRef.current);
       mapRef.current.setView([initialLat, initialLng], 13);
     }
     
@@ -93,7 +92,7 @@ export default function LocationPicker({
     if (markerRef.current) {
         markerRef.current.setLatLng([initialLat, initialLng]);
     } else {
-        markerRef.current = L.marker([initialLat, initialLng], markerOptionsRef.current).addTo(mapRef.current);
+        markerRef.current = L.marker([initialLat, initialLng], { ...markerOptionsRef.current, icon: markerIconRef.current }).addTo(mapRef.current);
     }
     
     mapRef.current.setView([initialLat, initialLng], 13);

@@ -9,9 +9,10 @@ type ErrorBody = {
 
 export function jsonError(message: string, status = 500, details?: unknown) {
   if (status >= 500) {
-    const stack = details && typeof details === "object" && details !== null && "stack" in (details as any)
-      ? String((details as any).stack)
-      : undefined;
+    const stack =
+      details && typeof details === "object" && details !== null && "stack" in details
+        ? String((details as { stack?: unknown }).stack)
+        : undefined;
 
     const detailText =
       details === undefined

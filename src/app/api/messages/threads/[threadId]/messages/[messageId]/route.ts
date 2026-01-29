@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-const db = prisma as any;
+const db = prisma;
 
 async function canAccessThread(userId: string, threadId: string) {
   const thread = await db.groupThread.findUnique({

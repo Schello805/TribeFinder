@@ -1,10 +1,10 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 function getBase(baseURL?: string) {
   return baseURL || process.env.E2E_BASE_URL || "http://localhost:3000";
 }
 
-async function login(page: any, base: string, email: string, password: string) {
+async function login(page: Page, base: string, email: string, password: string) {
   await page.goto(`${base}/auth/signin`);
   await page.locator("#email").fill(email);
   await page.locator("#password").fill(password);
@@ -12,7 +12,7 @@ async function login(page: any, base: string, email: string, password: string) {
   await page.waitForURL(`${base}/dashboard`, { timeout: 30_000 });
 }
 
-async function createGroupViaWizard(page: any, base: string, uniq: string) {
+async function createGroupViaWizard(page: Page, base: string, uniq: string) {
   await page.goto(`${base}/groups/create`);
   await expect(page.getByRole("heading", { name: "Neue Gruppe erstellen" })).toBeVisible();
 
@@ -32,13 +32,13 @@ async function createGroupViaWizard(page: any, base: string, uniq: string) {
   return groupId as string;
 }
 
-function deleteButtonForMessage(page: any, text: string) {
+function deleteButtonForMessage(page: Page, text: string) {
   const msg = page.getByText(text, { exact: true });
   const container = msg.locator('xpath=ancestor::div[contains(@class,"text-right")][1]');
   return container.getByRole("button", { name: "Löschen" });
 }
 
-function editButtonForMessage(page: any, text: string) {
+function editButtonForMessage(page: Page, text: string) {
   const msg = page.getByText(text, { exact: true });
   const container = msg.locator('xpath=ancestor::div[contains(@class,"text-right")][1]');
   return container.getByRole("button", { name: "Bearbeiten" });

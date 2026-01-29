@@ -86,7 +86,7 @@ export async function notifyGroupAboutInboxMessage(params: {
   subject?: string | null;
 }) {
   try {
-    const group = (await prisma.group.findUnique({
+    const group = await prisma.group.findUnique({
       where: { id: params.groupId },
       select: {
         id: true,
@@ -98,8 +98,8 @@ export async function notifyGroupAboutInboxMessage(params: {
             user: { select: { id: true, email: true, emailNotifications: true, notifyInboxMessages: true } },
           },
         },
-      } as any,
-    })) as any;
+      },
+    });
 
     if (!group) return;
 
@@ -116,7 +116,7 @@ export async function notifyGroupAboutInboxMessage(params: {
       recipients.add(group.owner.email as string);
     }
 
-    (group.members as Array<{ user: { id: string; email: string | null; emailNotifications: boolean; notifyInboxMessages?: boolean } }>).forEach((m) => {
+    group.members.forEach((m) => {
       const u = m.user;
       if (shouldNotify(u)) {
         recipients.add(u.email as string);

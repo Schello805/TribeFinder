@@ -64,6 +64,7 @@ describe('Validation Schemas', () => {
         description: 'Ein toller Workshop für alle Level.',
         eventType: 'WORKSHOP',
         startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
         lat: 52.52,
         lng: 13.405,
       };
@@ -78,6 +79,7 @@ describe('Validation Schemas', () => {
         description: 'Beschreibung',
         eventType: 'EVENT',
         startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
         lat: 52.52,
         lng: 13.405,
       };
@@ -95,6 +97,7 @@ describe('Validation Schemas', () => {
           description: 'Beschreibung',
           eventType,
           startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
           lat: 52.52,
           lng: 13.405,
         };
