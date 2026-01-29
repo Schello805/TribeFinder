@@ -743,15 +743,39 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        if (data.errors) {
-          // You might want to handle specific field errors here if your validation returns them
-          // For now, let's just show a general message or the first error
-          const errorMessage = data.errors[0]?.message || "Bitte überprüfe die Eingaben.";
-          throw new Error(errorMessage);
+        const ct = response.headers.get("content-type") || "";
+        if (ct.includes("application/json")) {
+          const data = (await response.json()) as unknown;
+          if (
+            data &&
+            typeof data === "object" &&
+            "errors" in data &&
+            Array.isArray((data as { errors?: unknown }).errors)
+          ) {
+            const errors = (data as { errors: Array<{ message?: unknown }> }).errors;
+            const first = errors[0]?.message;
+            const errorMessage = typeof first === "string" ? first : "Bitte überprüfe die Eingaben.";
+            throw new Error(errorMessage);
+          }
+
+          if (data && typeof data === "object" && "message" in data) {
+            const msg = (data as { message?: unknown }).message;
+            const details = (data as { details?: unknown }).details;
+            const messagePart = typeof msg === "string" ? msg : "Fehler beim Speichern";
+            const detailsPart = typeof details === "string" ? details : "";
+            throw new Error(detailsPart ? `${messagePart}: ${detailsPart}` : messagePart);
+          }
+
+          throw new Error("Fehler beim Speichern");
         }
-        const errorMessage = data.details ? `${data.message}: ${data.details}` : (data.message || "Fehler beim Speichern");
-        throw new Error(errorMessage);
+
+        const text = (await response.text()) || "";
+        const snippet = text.replace(/\s+/g, " ").trim().slice(0, 180);
+        throw new Error(
+          snippet
+            ? `Fehler beim Speichern (HTTP ${response.status}): ${snippet}`
+            : `Fehler beim Speichern (HTTP ${response.status})`
+        );
       }
 
       showToast(isEditing ? "Event erfolgreich aktualisiert!" : "Event erfolgreich erstellt!", "success");
