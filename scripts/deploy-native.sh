@@ -85,6 +85,10 @@ if [ "$BEHIND" -gt 0 ]; then
     read -p "Updates einspielen? (y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if ! git diff --quiet -- public/sw.js 2>/dev/null; then
+            echo -e "${YELLOW}Hinweis: Lokale Änderungen an public/sw.js erkannt (generiert) – setze Datei vor Update zurück...${NC}"
+            git checkout -- public/sw.js || true
+        fi
         git pull origin $CURRENT_BRANCH
     else
         echo "Updates übersprungen."

@@ -232,15 +232,17 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               </a>
 
               {canEdit && (
-                <div className="flex items-center justify-end gap-4 pt-2">
+                <>
                   <Link
                     href={event.group ? `/groups/${event.group.id}/events/${event.id}/edit` : `/events/${event.id}/edit`}
-                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 text-sm font-medium"
+                    className="w-full py-3 px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white text-center rounded-md font-bold hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm flex items-center justify-center"
                   >
                     Bearbeiten
                   </Link>
-                  <DeleteEventButton eventId={event.id} redirectTo="/events" />
-                </div>
+                  <div className="flex items-center justify-end pt-1">
+                    <DeleteEventButton eventId={event.id} redirectTo="/events" />
+                  </div>
+                </>
               )}
             </div>
           </div>
