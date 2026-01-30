@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
 import { ListSkeleton } from "@/components/ui/SkeletonLoader";
+
+const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
 type Event = {
   id: string;
@@ -23,6 +23,13 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("");
+
+  const formatBerlin = (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions) => {
+    if (!value) return "";
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    return new Intl.DateTimeFormat("de-DE", { ...options, timeZone: TZ_EUROPE_BERLIN }).format(d);
+  };
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -107,10 +114,10 @@ export default function EventsPage() {
               {/* Date Box */}
               <div className="flex-shrink-0 w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg flex flex-col items-center justify-center text-center border border-indigo-100 dark:border-indigo-800/50">
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase">
-                  {format(new Date(event.startDate), "MMM", { locale: de })}
+                  {formatBerlin(event.startDate, { month: "short" })}
                 </span>
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {format(new Date(event.startDate), "dd")}
+                  {formatBerlin(event.startDate, { day: "2-digit" })}
                 </span>
               </div>
 
@@ -133,7 +140,7 @@ export default function EventsPage() {
                 
                 <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 pt-2">
                   <span className="flex items-center gap-1">
-                    🕒 {format(new Date(event.startDate), "HH:mm")} Uhr
+                    🕒 {formatBerlin(event.startDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} Uhr
                   </span>
                   {event.locationName && (
                     <span className="flex items-center gap-1">

@@ -3,12 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
-import DynamicEventMap from "@/components/map/DynamicEventMap";
-import EventRegistration from "@/components/events/EventRegistration";
+import DeleteEventButton from '@/components/events/DeleteEventButton';
+import EventRegistration from '@/components/events/EventRegistration';
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
-import DeleteEventButton from "@/components/events/DeleteEventButton";
+import DynamicEventMap from "@/components/map/DynamicEventMap";
+
+const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
 type EventGroupLike = {
   id: string;
@@ -149,6 +149,13 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
     }
   }
 
+  const formatBerlin = (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions) => {
+    if (!value) return "";
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    return new Intl.DateTimeFormat("de-DE", { ...options, timeZone: TZ_EUROPE_BERLIN }).format(d);
+  };
+
   const isDefaultLatLng = event.lat === 51.1657 && event.lng === 10.4515;
   const hasLocation = Boolean((event.address || "").trim()) || (!isDefaultLatLng && Number.isFinite(event.lat) && Number.isFinite(event.lng));
 
@@ -194,17 +201,17 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <div className="flex items-center gap-2">
                   <span>🗓️</span> 
                   <span className="font-medium text-gray-900 dark:text-gray-200">
-                    {format(new Date(event.startDate), "EEEE, d. MMMM yyyy", { locale: de })}
+                    {formatBerlin(event.startDate, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                   </span>
                 </div>
                 <div className="hidden sm:block text-gray-300 dark:text-gray-600">•</div>
                 <div className="flex items-center gap-2">
                   <span>⏰</span>
                   <span className="font-medium text-gray-900 dark:text-gray-200">
-                    {format(new Date(event.startDate), "HH:mm")} Uhr
+                    {formatBerlin(event.startDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} Uhr
                   </span>
                   {event.endDate && (
-                    <span className="text-gray-500"> - {format(new Date(event.endDate), "HH:mm")}</span>
+                    <span className="text-gray-500"> - {formatBerlin(event.endDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span>
                   )}
                 </div>
               </div>
