@@ -27,7 +27,10 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        const errorMsg = "Ungültige E-Mail oder Passwort";
+        const errorMsg =
+          result.error === "EMAIL_NOT_VERIFIED"
+            ? "Bitte bestätige zuerst deine E-Mail-Adresse (Link in deiner E-Mail)."
+            : "Ungültige E-Mail oder Passwort";
         setError(errorMsg);
         showToast(errorMsg, "error");
       } else {

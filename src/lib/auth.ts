@@ -31,6 +31,10 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
+        if (!user.emailVerified) {
+          throw new Error("EMAIL_NOT_VERIFIED")
+        }
+
         if ((user as { isBlocked?: boolean }).isBlocked) {
           return null
         }
@@ -55,7 +59,8 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
+    maxAge: 60 * 60 * 24,
   },
   pages: {
     signIn: "/auth/signin",

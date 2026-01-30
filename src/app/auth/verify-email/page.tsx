@@ -1,0 +1,91 @@
+"use client";
+
+import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
+function VerifyEmailInner() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState<string>("");
+
+  useEffect(() => {
+    if (!token) {
+      setStatus("error");
+      setMessage("Ungültiger Link. Bitte fordere eine neue Bestätigungs-E-Mail an.");
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      setStatus("loading");
+      setMessage("");
+
+      try {
+        const res = await fetch("/api/auth/verify-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = (await res.json().catch(() => null)) as { message?: string } | null;
+
+        if (!res.ok) {
+          throw new Error(data?.message || "Bestätigung fehlgeschlagen");
+        }
+
+        if (cancelled) return;
+        setStatus("success");
+        setMessage(data?.message || "E-Mail-Adresse erfolgreich bestätigt.");
+      } catch (err) {
+        if (cancelled) return;
+        setStatus("error");
+        setMessage(err instanceof Error ? err.message : "Bestätigung fehlgeschlagen");
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  return (
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold text-center mb-3 text-gray-800 dark:text-white">E-Mail bestätigen</h1>
+      <p className="text-sm text-center text-gray-500 dark:text-gray-300 mb-6">
+        Der Bestätigungslink ist aus Sicherheitsgründen nur 24 Stunden gültig.
+      </p>
+
+      {status === "loading" ? (
+        <div className="text-center text-gray-600 dark:text-gray-300">Bitte warten...</div>
+      ) : status === "success" ? (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded">
+          {message}
+        </div>
+      ) : status === "error" ? (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded">
+          {message}
+        </div>
+      ) : null}
+
+      <div className="mt-6 text-center">
+        <Link href="/auth/signin" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+          Zum Login
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense>
+      <VerifyEmailInner />
+    </Suspense>
+  );
+}
