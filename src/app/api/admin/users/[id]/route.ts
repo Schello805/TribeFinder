@@ -9,6 +9,7 @@ type RouteParams = { params: Promise<{ id: string }> };
 const patchSchema = z.object({
   role: z.enum(["USER", "ADMIN"]).optional(),
   isBlocked: z.boolean().optional(),
+  emailVerified: z.boolean().optional(),
 });
 
 async function ensureNotLastUnblockedAdmin(targetUserId: string) {
@@ -40,14 +41,21 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   if (!session) return jsonUnauthorized();
 
   const { id } = await params;
-  if (id === session.user.id) {
-    return jsonBadRequest("Du kannst dich nicht selbst ändern");
-  }
 
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
     return jsonBadRequest("Validierungsfehler", { errors: parsed.error.flatten() });
+  }
+
+  if (id === session.user.id) {
+    const onlyEmailVerified =
+      parsed.data.emailVerified !== undefined &&
+      parsed.data.role === undefined &&
+      parsed.data.isBlocked === undefined;
+    if (!onlyEmailVerified) {
+      return jsonBadRequest("Du kannst dich nicht selbst ändern");
+    }
   }
 
   try {
@@ -63,11 +71,23 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       data: {
         ...(parsed.data.role !== undefined ? { role: parsed.data.role } : {}),
         ...(parsed.data.isBlocked !== undefined ? { isBlocked: parsed.data.isBlocked } : {}),
+        ...(parsed.data.emailVerified !== undefined
+          ? {
+              emailVerified: parsed.data.emailVerified ? new Date() : null,
+              ...(parsed.data.emailVerified
+                ? {
+                    verificationToken: null,
+                    verificationTokenExpiry: null,
+                  }
+                : {}),
+            }
+          : {}),
       },
       select: {
         id: true,
         name: true,
         email: true,
+        emailVerified: true,
         role: true,
         isBlocked: true,
         createdAt: true,
@@ -76,6 +96,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       id: string;
       name: string | null;
       email: string;
+      emailVerified: Date | null;
       role: string;
       isBlocked: boolean;
       createdAt: Date;
@@ -83,6 +104,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     return NextResponse.json({
       ...updated,
+      emailVerified: updated.emailVerified ? updated.emailVerified.toISOString() : null,
       createdAt: updated.createdAt.toISOString(),
     });
   } catch (e) {

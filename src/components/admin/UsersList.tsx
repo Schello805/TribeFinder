@@ -7,6 +7,7 @@ interface UserListItem {
   id: string;
   name: string | null;
   email: string;
+  emailVerified: string | null;
   role: string;
   isBlocked: boolean;
   createdAt: string;
@@ -94,6 +95,20 @@ export default function UsersList({
                     </span>
                 </div>
 
+                {user.emailVerified ? (
+                  <div>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                      VERIFIED
+                    </span>
+                  </div>
+                ) : (
+                  <div>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200">
+                      UNVERIFIED
+                    </span>
+                  </div>
+                )}
+
                 {user.isBlocked ? (
                   <div>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">
@@ -104,6 +119,15 @@ export default function UsersList({
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={busyId === user.id}
+                  onClick={() => patchUser(user.id, { emailVerified: !Boolean(user.emailVerified) })}
+                  className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {user.emailVerified ? "Verifizierung entfernen" : "Verifizieren"}
+                </button>
+
                 <button
                   type="button"
                   disabled={busyId === user.id || user.id === currentUserId}

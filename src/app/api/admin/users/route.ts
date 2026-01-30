@@ -13,6 +13,7 @@ export async function GET() {
       id: true,
       name: true,
       email: true,
+      emailVerified: true,
       role: true,
       isBlocked: true,
       createdAt: true,
@@ -21,6 +22,7 @@ export async function GET() {
     id: string;
     name: string | null;
     email: string;
+    emailVerified: Date | null;
     role: string;
     isBlocked: boolean;
     createdAt: Date;
@@ -29,6 +31,7 @@ export async function GET() {
   return NextResponse.json(
     users.map((u) => ({
       ...u,
+      emailVerified: u.emailVerified ? u.emailVerified.toISOString() : null,
       createdAt: u.createdAt.toISOString(),
     }))
   );

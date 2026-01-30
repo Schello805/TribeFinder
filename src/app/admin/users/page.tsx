@@ -20,6 +20,7 @@ export default async function AdminUsersPage() {
       id: true,
       name: true,
       email: true,
+      emailVerified: true,
       role: true,
       isBlocked: true,
       createdAt: true
@@ -28,6 +29,7 @@ export default async function AdminUsersPage() {
     id: string;
     name: string | null;
     email: string;
+    emailVerified: Date | null;
     role: string;
     isBlocked: boolean;
     createdAt: Date;
@@ -38,6 +40,7 @@ export default async function AdminUsersPage() {
     id: user.id,
     name: user.name,
     email: user.email,
+    emailVerified: user.emailVerified ? user.emailVerified.toISOString() : null,
     role: user.role,
     isBlocked: user.isBlocked,
     createdAt: user.createdAt.toISOString(),
