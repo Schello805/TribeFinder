@@ -5,8 +5,6 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
-const db = prisma as any;
-
 export const dynamic = "force-dynamic";
 
 export default async function MessagesPage({ searchParams }: { searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
@@ -29,59 +27,32 @@ export default async function MessagesPage({ searchParams }: { searchParams?: Pr
 
   const groupIds = approvedGroupIds.map((g) => g.groupId);
 
-  let supportsArchive = true;
-  let threads: any[] = [];
+  const threads = await prisma.groupThread.findMany({
+    where: {
+      OR: [{ createdByUserId: userId }, { groupId: { in: groupIds } }],
+    },
+    orderBy: { lastMessageAt: "desc" },
+    take: 100,
+    include: {
+      group: { select: { id: true, name: true, image: true } },
+      createdBy: { select: { id: true, name: true } },
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { content: true, createdAt: true, authorId: true },
+      },
+      readStates: {
+        where: { userId },
+        select: { archivedAt: true },
+        take: 1,
+      },
+    },
+  });
 
-  try {
-    threads = (await db.groupThread.findMany({
-      where: {
-        OR: [{ createdByUserId: userId }, { groupId: { in: groupIds } }],
-      },
-      orderBy: { lastMessageAt: "desc" },
-      take: 100,
-      include: {
-        group: { select: { id: true, name: true, image: true } },
-        createdBy: { select: { id: true, name: true } },
-        messages: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: { content: true, createdAt: true, authorId: true },
-        },
-        readStates: {
-          where: { userId },
-          select: { archivedAt: true },
-          take: 1,
-        },
-      },
-    })) as any[];
-  } catch {
-    supportsArchive = false;
-    threads = (await db.groupThread.findMany({
-      where: {
-        OR: [{ createdByUserId: userId }, { groupId: { in: groupIds } }],
-      },
-      orderBy: { lastMessageAt: "desc" },
-      take: 100,
-      include: {
-        group: { select: { id: true, name: true, image: true } },
-        createdBy: { select: { id: true, name: true } },
-        messages: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: { content: true, createdAt: true, authorId: true },
-        },
-      },
-    })) as any[];
-  }
-
-  const filteredThreads = supportsArchive
-    ? threads.filter((t) => {
-        const archivedAt = (t as any).readStates?.[0]?.archivedAt as Date | null | undefined;
-        return archived ? Boolean(archivedAt) : !archivedAt;
-      })
-    : archived
-      ? []
-      : threads;
+  const filteredThreads = threads.filter((t) => {
+    const archivedAt = t.readStates[0]?.archivedAt;
+    return archived ? Boolean(archivedAt) : !archivedAt;
+  });
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -95,27 +66,33 @@ export default async function MessagesPage({ searchParams }: { searchParams?: Pr
         </Link>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6">
+      <div
+        className={
+          archived
+            ? "bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900 p-6"
+            : "bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6"
+        }
+      >
         {filteredThreads.length > 0 ? (
           <ul className="divide-y divide-gray-100 dark:divide-gray-700">
             {filteredThreads.map((t) => {
-              const img = normalizeUploadedImageUrl(t.group?.image) ?? "";
-              const last = t.messages?.[0]?.content || "";
+              const img = normalizeUploadedImageUrl(t.group.image) ?? "";
+              const last = t.messages[0]?.content || "";
               return (
                 <li key={t.id} className="py-4 first:pt-0 last:pb-0">
                   <Link href={`/messages/threads/${t.id}`} className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3 min-w-0">
                       {img ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={img} alt={t.group?.name ?? "Gruppe"} className="h-10 w-10 rounded-lg object-cover border border-gray-200 dark:border-gray-700" />
+                        <img src={img} alt={t.group.name} className="h-10 w-10 rounded-lg object-cover border border-gray-200 dark:border-gray-700" />
                       ) : (
                         <div className="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 font-bold">
-                          {(t.group?.name ?? "?").charAt(0)}
+                          {t.group.name.charAt(0)}
                         </div>
                       )}
                       <div className="min-w-0">
                         <div className="font-medium text-gray-900 dark:text-white truncate">
-                          {t.subject || t.group?.name}
+                          {t.subject || t.group.name}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
                           {last}
