@@ -1,12 +1,16 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
 function VerifyEmailInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+
+  const hasVerifiedRef = useRef(false);
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
@@ -17,6 +21,9 @@ function VerifyEmailInner() {
       setMessage("Ungültiger Link. Bitte fordere eine neue Bestätigungs-E-Mail an.");
       return;
     }
+
+    if (hasVerifiedRef.current) return;
+    hasVerifiedRef.current = true;
 
     let cancelled = false;
 
@@ -40,6 +47,10 @@ function VerifyEmailInner() {
         if (cancelled) return;
         setStatus("success");
         setMessage(data?.message || "E-Mail-Adresse erfolgreich bestätigt.");
+
+        setTimeout(() => {
+          router.replace("/auth/signin?verified=true");
+        }, 1200);
       } catch (err) {
         if (cancelled) return;
         setStatus("error");
@@ -52,7 +63,7 @@ function VerifyEmailInner() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [router, token]);
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
