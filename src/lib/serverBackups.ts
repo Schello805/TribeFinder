@@ -145,7 +145,7 @@ export async function createBackup() {
   };
 }
 
- export async function purgeOldBackups(keepLast?: number) {
+ export async function purgeOldBackups(keepLast?: number, includeUploads?: boolean) {
    const projectRoot = resolveProjectRoot();
    const backupDir = path.join(projectRoot, "backups");
    await mkdir(backupDir, { recursive: true });
@@ -154,32 +154,36 @@ export async function createBackup() {
      typeof keepLast === "number" && Number.isFinite(keepLast) ? Math.floor(keepLast) : await getBackupRetentionCount();
 
    if (effectiveKeepLast <= 0) {
-     return { deleted: 0, kept: 0, keepLast: effectiveKeepLast };
-   }
+    return { deleted: 0, kept: 0, keepLast: effectiveKeepLast };
+  }
 
    const entries = await readdir(backupDir).catch(() => []);
-   const backups = await Promise.all(
-     entries
-       .filter((f) => f.endsWith(".tar.gz") && f.startsWith("tribefinder-backup-"))
-       .map(async (filename) => {
-         const full = path.join(backupDir, filename);
-         const s = await stat(full);
-         return { filename, full, mtimeMs: s.mtimeMs };
-       })
-   );
+  const backups = await Promise.all(
+    entries
+      .filter((f) => f.endsWith(".tar.gz"))
+      .map(async (filename) => {
+        const full = path.join(backupDir, filename);
+        const s = await stat(full);
+        return { filename, full, mtimeMs: s.mtimeMs };
+      })
+  );
 
-   backups.sort((a, b) => b.mtimeMs - a.mtimeMs);
-   const toDelete = backups.slice(effectiveKeepLast);
-   for (const b of toDelete) {
-     await rm(b.full, { force: true });
-   }
+  const candidates = includeUploads
+    ? backups
+    : backups.filter((b) => b.filename.startsWith("tribefinder-backup-"));
 
-   return {
-     deleted: toDelete.length,
-     kept: Math.min(backups.length, effectiveKeepLast),
-     keepLast: effectiveKeepLast,
-   };
- }
+   candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  const toDelete = candidates.slice(effectiveKeepLast);
+  for (const b of toDelete) {
+    await rm(b.full, { force: true });
+  }
+
+  return {
+    deleted: toDelete.length,
+    kept: Math.min(candidates.length, effectiveKeepLast),
+    keepLast: effectiveKeepLast,
+  };
+}
 
 function isSafeBackupFilename(filename: string) {
   if (!filename.endsWith(".tar.gz")) return false;
