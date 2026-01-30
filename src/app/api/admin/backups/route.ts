@@ -3,7 +3,7 @@ import { mkdir, readdir, rm, stat } from "fs/promises";
 import path from "path";
 import fs from "node:fs";
 import { requireAdminSession } from "@/lib/requireAdmin";
-import { createBackup } from "@/lib/serverBackups";
+import { createBackup, purgeOldBackups } from "@/lib/serverBackups";
 
 function resolveProjectRoot() {
   let dir = process.cwd();
@@ -49,7 +49,8 @@ export async function POST() {
 
   try {
     const result = await createBackup();
-    return NextResponse.json(result, { status: 201 });
+    const purged = await purgeOldBackups();
+    return NextResponse.json({ ...result, purged }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { message: "Backup fehlgeschlagen", details: error instanceof Error ? error.message : String(error) },

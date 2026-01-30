@@ -158,8 +158,15 @@ async function main() {
     );
 
     backups.sort((a, b) => b.mtimeMs - a.mtimeMs);
-    const MAX_BACKUPS = 30;
-    const toDelete = backups.slice(MAX_BACKUPS);
+
+    const retentionSetting = await prisma.systemSetting
+      .findUnique({ where: { key: "BACKUP_RETENTION_COUNT" } })
+      .catch(() => null);
+    const retentionRaw = Number(retentionSetting?.value);
+    const retention = Number.isFinite(retentionRaw) ? Math.floor(retentionRaw) : 30;
+    const effectiveRetention = Math.min(365, Math.max(1, retention));
+
+    const toDelete = backups.slice(effectiveRetention);
     for (const b of toDelete) {
       await fs.rm(b.full, { force: true });
     }

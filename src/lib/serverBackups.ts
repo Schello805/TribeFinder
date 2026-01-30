@@ -3,14 +3,26 @@ import { realpath } from "fs/promises";
 import path from "path";
 import { spawn } from "child_process";
 import os from "os";
+import fs from "node:fs";
 import prisma from "@/lib/prisma";
+
+ async function getBackupRetentionCount(): Promise<number> {
+   try {
+     const row = await prisma.systemSetting.findUnique({ where: { key: "BACKUP_RETENTION_COUNT" } });
+     const n = Number(row?.value);
+     if (!Number.isFinite(n)) return 30;
+     if (n < 1) return 1;
+     if (n > 365) return 365;
+     return Math.floor(n);
+   } catch {
+     return 30;
+   }
+ }
 
 function resolveProjectRoot() {
   let dir = process.cwd();
   for (let i = 0; i < 10; i++) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const fs = require("node:fs") as typeof import("node:fs");
       if (fs.existsSync(path.join(dir, "package.json"))) return dir;
     } catch {
       // ignore
@@ -132,6 +144,42 @@ export async function createBackup() {
     createdAt: s.mtimeMs,
   };
 }
+
+ export async function purgeOldBackups(keepLast?: number) {
+   const projectRoot = resolveProjectRoot();
+   const backupDir = path.join(projectRoot, "backups");
+   await mkdir(backupDir, { recursive: true });
+
+   const effectiveKeepLast =
+     typeof keepLast === "number" && Number.isFinite(keepLast) ? Math.floor(keepLast) : await getBackupRetentionCount();
+
+   if (effectiveKeepLast <= 0) {
+     return { deleted: 0, kept: 0, keepLast: effectiveKeepLast };
+   }
+
+   const entries = await readdir(backupDir).catch(() => []);
+   const backups = await Promise.all(
+     entries
+       .filter((f) => f.endsWith(".tar.gz") && f.startsWith("tribefinder-backup-"))
+       .map(async (filename) => {
+         const full = path.join(backupDir, filename);
+         const s = await stat(full);
+         return { filename, full, mtimeMs: s.mtimeMs };
+       })
+   );
+
+   backups.sort((a, b) => b.mtimeMs - a.mtimeMs);
+   const toDelete = backups.slice(effectiveKeepLast);
+   for (const b of toDelete) {
+     await rm(b.full, { force: true });
+   }
+
+   return {
+     deleted: toDelete.length,
+     kept: Math.min(backups.length, effectiveKeepLast),
+     keepLast: effectiveKeepLast,
+   };
+ }
 
 function isSafeBackupFilename(filename: string) {
   if (!filename.endsWith(".tar.gz")) return false;

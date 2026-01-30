@@ -19,6 +19,8 @@ type BackupInspection = {
   warnings?: { hasVeryFewData?: boolean };
 };
 
+ const allowedBackupIntervals = new Set([0, 24, 168, 720]);
+
 export default function AdminBackupsPanel() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -43,9 +45,11 @@ export default function AdminBackupsPanel() {
   const [backupIntervalHours, setBackupIntervalHours] = useState<number>(24);
   const [isSavingInterval, setIsSavingInterval] = useState(false);
 
-  const [lastAutoBackupAt, setLastAutoBackupAt] = useState<number | null>(null);
+  const [backupRetentionCount, setBackupRetentionCount] = useState<number>(30);
+  const [isSavingRetention, setIsSavingRetention] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
 
-  const allowedBackupIntervals = new Set([0, 24, 168, 720]);
+  const [lastAutoBackupAt, setLastAutoBackupAt] = useState<number | null>(null);
 
   const loadBackups = useCallback(async () => {
     try {
@@ -88,6 +92,11 @@ export default function AdminBackupsPanel() {
         const n = Number(raw);
         const v = Number.isFinite(n) ? n : 24;
         setBackupIntervalHours(allowedBackupIntervals.has(v) ? v : 24);
+
+        const retentionRaw = j?.BACKUP_RETENTION_COUNT;
+        const retentionN = Number(retentionRaw);
+        const retentionV = Number.isFinite(retentionN) ? retentionN : 30;
+        setBackupRetentionCount(Math.min(365, Math.max(1, Math.floor(retentionV))));
 
         const lastRaw = j?.LAST_AUTO_BACKUP_AT;
         const lastNum = Number(lastRaw);
@@ -254,6 +263,39 @@ export default function AdminBackupsPanel() {
     }
   }
 
+  async function saveBackupRetention() {
+    setIsSavingRetention(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ BACKUP_RETENTION_COUNT: String(backupRetentionCount) }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+      showToast("Retention gespeichert", "success");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Speichern fehlgeschlagen", "error");
+    } finally {
+      setIsSavingRetention(false);
+    }
+  }
+
+  async function purgeNow() {
+    setIsPurging(true);
+    try {
+      const res = await fetch("/api/admin/backups/purge", { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+      showToast(`Aufräumen fertig: ${data?.deleted ?? 0} gelöscht`, "success");
+      await loadBackups();
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Purge fehlgeschlagen", "error");
+    } finally {
+      setIsPurging(false);
+    }
+  }
+
   function formatBytes(bytes: number) {
     if (bytes < 1024) return `${bytes} B`;
     const kb = bytes / 1024;
@@ -358,6 +400,40 @@ export default function AdminBackupsPanel() {
               className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
             >
               {isSavingInterval ? "Speichere..." : "Speichern"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
+        <div className="px-4 py-5 sm:px-6">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white">Backup-Aufbewahrung</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Es werden automatisch nur die letzten N Server-Backups behalten (tribefinder-backup-*). Upload-Backups bleiben unangetastet.</p>
+
+          <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:items-center">
+            <input
+              type="number"
+              min={1}
+              max={365}
+              value={backupRetentionCount}
+              onChange={(e) => setBackupRetentionCount(Math.min(365, Math.max(1, Number(e.target.value) || 1)))}
+              className="px-3 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-black dark:text-white w-full sm:w-40"
+            />
+            <button
+              type="button"
+              onClick={saveBackupRetention}
+              disabled={isSavingRetention}
+              className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {isSavingRetention ? "Speichere..." : "Speichern"}
+            </button>
+            <button
+              type="button"
+              onClick={purgeNow}
+              disabled={isPurging}
+              className="px-4 py-2 rounded bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+            >
+              {isPurging ? "Räume auf..." : "Jetzt aufräumen"}
             </button>
           </div>
         </div>
