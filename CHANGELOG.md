@@ -6,15 +6,11 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ## [Unreleased] - 2026-01-28
 
-### � Behoben
-
-- Group Inbox Messages: Bearbeiten/Löschen für eigene Nachrichten ist wieder möglich, solange der Empfänger die Nachricht noch nicht gelesen hat (Locking-Logik korrigiert)
-
 ### 🧪 Tests
 
 - Playwright E2E: Neuer Test für Inbox-Thread (Edit/Delete bis gelesen)
 
-### �🔧 Geändert
+### 🔧 Geändert
 
 - Event-Erstellung: Datum/Uhrzeit Eingabe UX überarbeitet (native Date/Time Picker, Safari-kompatibel)
 - Event-Formular: Automatisches Setzen der Endzeit (+90 Minuten) solange Ende nicht manuell geändert wurde
@@ -22,6 +18,11 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Event-Formular: Inline-Validierung + Scroll zum ersten Fehler
 - Event-Formular: Zeitzone aus dem Browser wird als Info angezeigt
 - Formular-Layout: Ticket-Link/Preis unter Webseite neu angeordnet
+
+#### SEO
+- `robots.txt` und `sitemap.xml` werden jetzt server-seitig generiert (Next.js Metadata Routes)
+- Sitemap nutzt bevorzugt `SITE_URL` (Fallback: `NEXTAUTH_URL`) als Basis
+- Globales Default-SEO verbessert (Description, OpenGraph, Twitter Cards)
 
 ### 🐛 Behoben
 

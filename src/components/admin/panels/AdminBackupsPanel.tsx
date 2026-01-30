@@ -408,7 +408,7 @@ export default function AdminBackupsPanel() {
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">Backup-Aufbewahrung</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Auto-Backups behalten nur die letzten N Server-Backups (tribefinder-backup-*). Der Button "Jetzt aufräumen" berücksichtigt auch Upload-Backups.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Auto-Backups behalten nur die letzten N Server-Backups (tribefinder-backup-*). Der Button &quot;Jetzt aufräumen&quot; berücksichtigt auch Upload-Backups.</p>
 
           <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:items-center">
             <input

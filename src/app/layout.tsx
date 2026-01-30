@@ -27,6 +27,8 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
+  const baseUrl = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+
   let brandingLogoUrl = "";
   try {
     const setting = await prisma.systemSetting.findUnique({
@@ -39,10 +41,38 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   const appleIcon = brandingLogoUrl || undefined;
+  const socialImageUrl = brandingLogoUrl || "/icons/icon.svg";
 
   return {
-    title: "TribeFinder",
-    description: "Finde und verwalte deine Tanzgruppe",
+    metadataBase: new URL(baseUrl),
+    title: {
+      default: "TribeFinder",
+      template: "%s | TribeFinder",
+    },
+    description:
+      "Finde Tanzgruppen, Workshops und News zu Tribal Style Dance und Bauchtanz auf Tribefinder.de. Deine Online-Plattform für den Austausch und die Vernetzung innerhalb der deutschsprachigen Tanzszene.",
+    alternates: {
+      canonical: baseUrl,
+    },
+    openGraph: {
+      type: "website",
+      locale: "de_DE",
+      url: baseUrl,
+      siteName: "TribeFinder",
+      title: "TribeFinder",
+      description:
+        "Finde Tanzgruppen, Workshops und News zu Tribal Style Dance und Bauchtanz auf Tribefinder.de. Deine Online-Plattform für den Austausch und die Vernetzung innerhalb der deutschsprachigen Tanzszene.",
+      images: [{
+        url: socialImageUrl,
+      }],
+    },
+    twitter: {
+      card: "summary",
+      title: "TribeFinder",
+      description:
+        "Finde Tanzgruppen, Workshops und News zu Tribal Style Dance und Bauchtanz auf Tribefinder.de. Deine Online-Plattform für den Austausch und die Vernetzung innerhalb der deutschsprachigen Tanzszene.",
+      images: [socialImageUrl],
+    },
     manifest: "/manifest.json",
     appleWebApp: {
       capable: true,

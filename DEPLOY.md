@@ -31,6 +31,8 @@ Für den Start reicht die Standard-Konfiguration im `docker-compose.yml` oft aus
       - DATABASE_URL=file:/app/db/prod.db
       - NEXTAUTH_URL=http://deine-domain.de  # <-- WICHTIG: Hier deine Domain oder IP eintragen
       - NEXTAUTH_SECRET=ein_sehr_langes_und_sicheres_zufallspasswort # <-- ÄNDERN!
+      # Optional (SEO): Basis-URL für Canonical, OpenGraph, robots.txt und sitemap.xml (Fallback: NEXTAUTH_URL)
+      - SITE_URL=http://deine-domain.de
 ```
 
 Oder besser: Erstelle eine `.env.production` Datei und lade sie in Docker.
@@ -104,6 +106,9 @@ Ziel: Änderungen erst in einer **Staging-Instanz** testen (mit echten Daten via
 
 - **Prod**: echte Instanz (z.B. `tribefinder.de`)
 - **Staging**: Test-Instanz (z.B. `staging.tribefinder.de`) mit eigener DB + eigenen Uploads
+
+Hinweis (SEO): Für Staging/Test empfiehlt sich zusätzlich im Reverse Proxy:
+- `X-Robots-Tag: noindex, nofollow, noarchive`
 
 ### 1) Backup in Prod erstellen
 

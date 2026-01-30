@@ -172,6 +172,10 @@ DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schem
 NEXTAUTH_SECRET="dein-geheimes-random-secret"
 NEXTAUTH_URL="http://localhost:3000"
 
+# Optional (SEO): Wird für Canonical-URL, OpenGraph und die Generierung von robots.txt/sitemap.xml verwendet.
+# Fallback ist NEXTAUTH_URL.
+SITE_URL="http://localhost:3000"
+
 # PostgreSQL Passwort (für Docker Compose)
 POSTGRES_PASSWORD="sicheres-passwort"
 
@@ -205,6 +209,11 @@ SMTP_FROM=""
 - PostgreSQL läuft als separater Container (siehe `docker-compose.yml`).
 - Uploads werden unter `public/uploads` auf dem Host gespeichert.
 - Vor Updates, die Migrationen enthalten, sollte immer ein Backup der DB erstellt werden (das Update-Script übernimmt das).
+
+### SEO / Indexierung
+- Die App generiert `robots.txt` und `sitemap.xml` server-seitig.
+- Für Test-/Staging-Subdomains wird empfohlen, im Reverse Proxy einen Header zu setzen:
+  - `X-Robots-Tag: noindex, nofollow, noarchive`
 
 ### Admin-Bereich
 Der erste registrierte Benutzer sollte manuell in der Datenbank zum ADMIN befördert werden, oder du nutzt Prisma Studio:
