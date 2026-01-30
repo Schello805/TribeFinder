@@ -140,6 +140,8 @@ Für isolierte Container-Umgebungen oder Multi-Service-Setups.
    ```
    Die App ist nun unter `http://localhost:3000` erreichbar.
 
+Hinweis: Wenn du sowohl `.env` als auch `.env.local` verwendest, überschreibt `.env.local` die Werte aus `.env`. Achte darauf, dass `DATABASE_URL` konsistent ist (empfohlen: `file:./prisma/dev.db`), damit nicht versehentlich eine leere `./dev.db` im Repo-Root verwendet wird.
+
 5. **E2E Tests (Playwright, optional)**
    ```bash
    npm run e2e
