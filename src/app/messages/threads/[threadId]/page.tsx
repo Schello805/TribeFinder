@@ -7,6 +7,8 @@ import ReplyBox from "@/components/messages/ReplyBox";
 import ThreadMessages from "@/components/messages/ThreadMessages";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
+import ArchiveThreadButton from "@/components/messages/ArchiveThreadButton";
+
 const db = prisma as any;
 
 export const dynamic = "force-dynamic";
@@ -17,20 +19,40 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
 
   const threadId = (await params).threadId;
 
-  const thread = await db.groupThread.findUnique({
-    where: { id: threadId },
-    include: {
-      group: { select: { id: true, name: true, image: true } },
-      createdBy: { select: { id: true, name: true, image: true } },
-      messages: {
-        orderBy: { createdAt: "asc" },
-        include: { author: { select: { id: true, name: true, image: true } } },
+  let supportsArchive = true;
+  let thread = null as any;
+  try {
+    thread = await db.groupThread.findUnique({
+      where: { id: threadId },
+      include: {
+        group: { select: { id: true, name: true, image: true } },
+        createdBy: { select: { id: true, name: true, image: true } },
+        messages: {
+          orderBy: { createdAt: "asc" },
+          include: { author: { select: { id: true, name: true, image: true } } },
+        },
+        readStates: {
+          select: { userId: true, lastReadAt: true, archivedAt: true },
+        },
       },
-      readStates: {
-        select: { userId: true, lastReadAt: true },
+    });
+  } catch {
+    supportsArchive = false;
+    thread = await db.groupThread.findUnique({
+      where: { id: threadId },
+      include: {
+        group: { select: { id: true, name: true, image: true } },
+        createdBy: { select: { id: true, name: true, image: true } },
+        messages: {
+          orderBy: { createdAt: "asc" },
+          include: { author: { select: { id: true, name: true, image: true } } },
+        },
+        readStates: {
+          select: { userId: true, lastReadAt: true },
+        },
       },
-    },
-  });
+    });
+  }
 
   if (!thread) notFound();
 
@@ -71,6 +93,11 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
 
   const maxOtherReadAtIso = maxOtherReadAtMs === null ? null : new Date(maxOtherReadAtMs).toISOString();
 
+  const currentReadState = (thread.readStates as Array<{ userId: string; lastReadAt: Date; archivedAt?: Date | null }>).find(
+    (s) => s.userId === session.user.id,
+  );
+  const initialArchived = supportsArchive ? Boolean(currentReadState && "archivedAt" in currentReadState && currentReadState.archivedAt) : false;
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -80,9 +107,12 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
             {thread.subject || `Nachricht an ${thread.group.name}`}
           </h1>
         </div>
-        <Link href="/messages" className="text-indigo-600 dark:text-indigo-300 hover:underline font-medium">
-          Zur Inbox
-        </Link>
+        <div className="flex items-center gap-3">
+          {supportsArchive ? <ArchiveThreadButton threadId={threadId} initialArchived={initialArchived} /> : null}
+          <Link href="/messages" className="text-indigo-600 dark:text-indigo-300 hover:underline font-medium">
+            Zur Inbox
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-3">

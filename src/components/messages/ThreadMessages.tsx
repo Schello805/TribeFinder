@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 
@@ -20,6 +20,10 @@ export default function ThreadMessages(props: {
 }) {
   const router = useRouter();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    window.dispatchEvent(new Event("tribefinder:messages-read"));
+  }, [props.threadId]);
 
   const maxOtherReadAt = useMemo(() => {
     if (!props.maxOtherReadAtIso) return null;

@@ -427,6 +427,7 @@ model GroupThreadReadState {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   lastReadAt DateTime @default(now())
+  archivedAt DateTime?
   updatedAt  DateTime @updatedAt
 
   @@unique([threadId, userId])

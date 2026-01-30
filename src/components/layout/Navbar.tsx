@@ -94,12 +94,14 @@ export default function Navbar() {
 
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("tribefinder:messages-read", onFocus as EventListener);
 
     return () => {
       cancelled = true;
       clearInterval(interval);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("tribefinder:messages-read", onFocus as EventListener);
     };
   }, [session?.user, pathname]);
 

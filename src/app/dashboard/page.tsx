@@ -147,7 +147,9 @@ export default async function DashboardPage() {
                       </div>
                     </div>
                   </Link>
-                  <div className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">Öffnen</div>
+                  <Link href={`/groups/${g.id}`} className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">
+                    Öffnen
+                  </Link>
                 </div>
               </li>
             ))}
