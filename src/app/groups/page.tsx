@@ -17,7 +17,10 @@ export default function GroupsPage() {
       const lat = searchParams.get('lat');
       const lng = searchParams.get('lng');
       const hasPendingGeocode = Boolean(address) && (!lat || !lng);
-      if (hasPendingGeocode) return;
+      if (hasPendingGeocode) {
+        setIsLoading(true);
+        return;
+      }
 
       setIsLoading(true);
       try {
