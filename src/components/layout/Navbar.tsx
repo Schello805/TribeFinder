@@ -5,14 +5,16 @@ import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import ThemeToggle from "./ThemeToggle";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import { useTheme } from "next-themes";
 
 export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const { setTheme, resolvedTheme, theme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
@@ -152,6 +154,8 @@ export default function Navbar() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMenuOpen(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsUserMenuOpen(false);
   }, [pathname]);
 
   return (
@@ -177,8 +181,6 @@ export default function Navbar() {
             <Link href="/map" className="text-indigo-100 hover:text-white transition font-medium">
               Karte
             </Link>
-            
-            <ThemeToggle />
 
             {session ? (
               <>
@@ -190,25 +192,90 @@ export default function Navbar() {
                     </span>
                   )}
                 </Link>
-                <Link href="/dashboard" className="text-indigo-100 hover:text-white transition font-medium flex items-center gap-2">
-                  {userImageUrl ? (
-                    <Image src={userImageUrl} alt="Profil" width={28} height={28} className="h-7 w-7 rounded-full object-cover border border-white/20" unoptimized />
-                  ) : (
-                    <span className="h-7 w-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm">👤</span>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsUserMenuOpen((v) => !v)}
+                    className="inline-flex items-center gap-2 bg-white/10 text-white border border-white/20 px-3 py-2 rounded-md hover:bg-white/15 transition font-medium"
+                    aria-haspopup="menu"
+                    aria-expanded={isUserMenuOpen}
+                    title="Profil & Einstellungen"
+                  >
+                    {userImageUrl ? (
+                      <Image src={userImageUrl} alt="Profil" width={28} height={28} className="h-7 w-7 rounded-full object-cover border border-white/20" unoptimized />
+                    ) : (
+                      <span className="h-7 w-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm">👤</span>
+                    )}
+                    <span className="hidden lg:inline">Konto</span>
+                    {pendingRequestsCount > 0 && (
+                      <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                        {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg overflow-hidden z-50">
+                      <Link
+                        href="/dashboard"
+                        className="flex items-center justify-between px-4 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <span>Profil</span>
+                        {pendingRequestsCount > 0 ? (
+                          <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                            {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
+                          </span>
+                        ) : null}
+                      </Link>
+
+                      <div className="px-2 py-2 border-t border-gray-100 dark:border-gray-800">
+                        <div className="px-2 pb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Design</div>
+                        <div className="flex items-center rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => setTheme("light")}
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                              theme === "light" ? "bg-gray-100 dark:bg-gray-800" : ""
+                            }`}
+                          >
+                            Hell
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTheme("dark")}
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                              theme === "dark" ? "bg-gray-100 dark:bg-gray-800" : ""
+                            }`}
+                          >
+                            Dunkel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTheme("system")}
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                              theme === "system" ? "bg-gray-100 dark:bg-gray-800" : ""
+                            }`}
+                            title={`System (${resolvedTheme === "dark" ? "Dunkel" : "Hell"})`}
+                          >
+                            System
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          signOut();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
+                      >
+                        Abmelden
+                      </button>
+                    </div>
                   )}
-                  Profil
-                  {pendingRequestsCount > 0 && (
-                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
-                      {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
-                    </span>
-                  )}
-                </Link>
-                <button
-                  onClick={() => signOut()}
-                  className="bg-white/10 text-white border border-white/20 px-4 py-2 rounded-md hover:bg-white hover:text-indigo-600 transition font-medium"
-                >
-                  Abmelden
-                </button>
+                </div>
               </>
             ) : (
               <>
@@ -226,7 +293,6 @@ export default function Navbar() {
           </div>
 
           <div className="md:hidden flex items-center gap-4">
-            <ThemeToggle />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-indigo-100 hover:text-white focus:outline-none"
@@ -255,6 +321,39 @@ export default function Navbar() {
             <Link href="/map" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
               Karte
             </Link>
+            <div className="px-3 py-2">
+              <div className="text-xs font-semibold text-indigo-100/70 mb-2">Design</div>
+              <div className="inline-flex items-center rounded-md border border-white/15 bg-white/10 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setTheme("light")}
+                  className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
+                    theme === "light" ? "bg-white/15 text-white" : ""
+                  }`}
+                >
+                  Hell
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme("dark")}
+                  className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
+                    theme === "dark" ? "bg-white/15 text-white" : ""
+                  }`}
+                >
+                  Dunkel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme("system")}
+                  className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
+                    theme === "system" ? "bg-white/15 text-white" : ""
+                  }`}
+                  title={`System (${resolvedTheme === "dark" ? "Dunkel" : "Hell"})`}
+                >
+                  System
+                </button>
+              </div>
+            </div>
             {session ? (
               <>
                 <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
