@@ -17,7 +17,7 @@ export const eventSchema = z.object({
     message: "Ungültiges Enddatum",
   }),
   locationName: z.string().optional(),
-  address: z.string().optional(),
+  address: z.string().trim().min(6, "Adresse ist erforderlich"),
   lat: z.number(),
   lng: z.number(),
   

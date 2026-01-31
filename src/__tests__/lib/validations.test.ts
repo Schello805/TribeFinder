@@ -65,6 +65,7 @@ describe('Validation Schemas', () => {
         eventType: 'WORKSHOP',
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        address: 'Berlin, Germany',
         lat: 52.52,
         lng: 13.405,
       };
@@ -80,6 +81,7 @@ describe('Validation Schemas', () => {
         eventType: 'EVENT',
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        address: 'Berlin, Germany',
         lat: 52.52,
         lng: 13.405,
       };
@@ -98,6 +100,7 @@ describe('Validation Schemas', () => {
           eventType,
           startDate: new Date().toISOString(),
           endDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          address: 'Berlin, Germany',
           lat: 52.52,
           lng: 13.405,
         };
