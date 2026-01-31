@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const groupSchema = z.object({
+const baseGroupSchema = z.object({
   name: z.string().min(2, "Name muss mindestens 2 Zeichen lang sein"),
   description: z.string().min(10, "Beschreibung muss mindestens 10 Zeichen lang sein"),
   website: z.string().url("Ungültige URL").optional().or(z.literal("")),
@@ -13,11 +13,13 @@ export const groupSchema = z.object({
   foundingYear: z.number().min(1900).max(new Date().getFullYear()).optional().nullable(),
   seekingMembers: z.boolean().optional(),
 
-  location: z.object({
-    address: z.string().optional(),
-    lat: z.number(),
-    lng: z.number(),
-  }).optional(),
+  location: z
+    .object({
+      address: z.string().optional(),
+      lat: z.number(),
+      lng: z.number(),
+    })
+    .optional(),
   tags: z.array(z.string()).optional(),
   image: z.string().optional(), // Für Logo/Bild Upload (Pfad)
   headerImage: z.string().optional(),
@@ -26,4 +28,15 @@ export const groupSchema = z.object({
   headerGradientTo: z.string().optional(),
 });
 
-export type GroupFormData = z.infer<typeof groupSchema>;
+export const groupCreateSchema = baseGroupSchema.extend({
+  location: z.object({
+    address: z.string().trim().min(3, "Adresse ist erforderlich"),
+    lat: z.number().refine((v) => Number.isFinite(v), "Ungültige Koordinaten"),
+    lng: z.number().refine((v) => Number.isFinite(v), "Ungültige Koordinaten"),
+  }),
+});
+
+export const groupUpdateSchema = baseGroupSchema;
+
+export type GroupCreateData = z.infer<typeof groupCreateSchema>;
+export type GroupFormData = z.infer<typeof groupUpdateSchema>;

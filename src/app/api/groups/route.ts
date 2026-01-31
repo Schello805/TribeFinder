@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { groupSchema } from "@/lib/validations/group";
+import { groupCreateSchema } from "@/lib/validations/group";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
@@ -149,7 +149,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     logger.debug({ body }, "POST /api/groups - Received body");
 
-    const validatedData = groupSchema.parse(body);
+    const validatedData = groupCreateSchema.parse(body);
     logger.debug({ validatedData }, "POST /api/groups - Validated data");
 
     // Prüfen auf neue Tags für Benachrichtigung

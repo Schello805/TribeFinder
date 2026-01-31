@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { groupSchema } from '@/lib/validations/group';
+import { groupCreateSchema, groupUpdateSchema } from '@/lib/validations/group';
 import { eventSchema } from '@/lib/validations/event';
 
 describe('Validation Schemas', () => {
@@ -16,7 +16,7 @@ describe('Validation Schemas', () => {
         },
       };
 
-      const result = groupSchema.safeParse(validGroup);
+      const result = groupCreateSchema.safeParse(validGroup);
       expect(result.success).toBe(true);
     });
 
@@ -27,7 +27,7 @@ describe('Validation Schemas', () => {
         size: 'SMALL',
       };
 
-      const result = groupSchema.safeParse(invalidGroup);
+      const result = groupCreateSchema.safeParse(invalidGroup);
       expect(result.success).toBe(false);
     });
 
@@ -38,7 +38,7 @@ describe('Validation Schemas', () => {
         size: 'SMALL',
       };
 
-      const result = groupSchema.safeParse(invalidGroup);
+      const result = groupCreateSchema.safeParse(invalidGroup);
       expect(result.success).toBe(false);
     });
 
@@ -52,8 +52,11 @@ describe('Validation Schemas', () => {
         tags: ['Tribal', 'Fusion'],
       };
 
-      const result = groupSchema.safeParse(groupWithOptionals);
-      expect(result.success).toBe(true);
+      const createResult = groupCreateSchema.safeParse(groupWithOptionals);
+      expect(createResult.success).toBe(false);
+
+      const updateResult = groupUpdateSchema.safeParse(groupWithOptionals);
+      expect(updateResult.success).toBe(true);
     });
   });
 
