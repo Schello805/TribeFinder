@@ -4,6 +4,16 @@
 
 set -e
 
+# Ensure DATABASE_URL is available for this script even when executed outside systemd.
+if [ -z "${DATABASE_URL:-}" ] && [ -f ".env" ]; then
+    DBURL_LINE=$(grep -E '^DATABASE_URL=' .env | head -n 1 || true)
+    if [ -n "$DBURL_LINE" ]; then
+        DBURL_VALUE=${DBURL_LINE#DATABASE_URL=}
+        DBURL_VALUE=$(echo "$DBURL_VALUE" | sed -E "s/^[[:space:]]*['\"]?(.*?)['\"]?[[:space:]]*$/\1/")
+        export DATABASE_URL="$DBURL_VALUE"
+    fi
+fi
+
 echo "=========================================="
 echo "TribeFinder - Native Deployment"
 echo "=========================================="
