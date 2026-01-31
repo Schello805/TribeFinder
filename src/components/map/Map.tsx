@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import "leaflet/dist/leaflet.css";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
@@ -67,6 +68,7 @@ interface MapProps {
 
 export default function Map({ groups, events = [], availableTags = [] }: MapProps) {
   const { showToast } = useToast();
+  const router = useRouter();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -208,7 +210,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
                   ${group.tags.length > 3 ? `<span class="text-[10px] text-gray-400 px-1 self-center font-medium">+${group.tags.length - 3}</span>` : ''}
                 </div>
                 
-                <a href="/groups/${group.id}" class="block w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-bold py-2.5 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
+                <a data-tf-link="group-profile" href="/groups/${group.id}" class="block w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-bold py-2.5 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
                   Profil ansehen
                 </a>
               </div>
@@ -217,6 +219,22 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
             className: 'custom-popup-style',
             closeButton: false
           });
+
+          marker.on("popupopen", (ev: L.PopupEvent) => {
+            const el = ev.popup.getElement();
+            if (!el) return;
+
+            const link = el.querySelector<HTMLAnchorElement>('a[data-tf-link="group-profile"]');
+            if (!link) return;
+            if (link.dataset.tfBound === "1") return;
+            link.dataset.tfBound = "1";
+
+            L.DomEvent.on(link, "click", (e: Event) => {
+              L.DomEvent.stop(e);
+              router.push(`/groups/${group.id}`);
+            });
+          });
+
           markersRef.current.push(marker);
         }
       });
@@ -263,13 +281,29 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
                 </div>
 
                 <div class="mt-3">
-                  <a href="/events/${event.id}" class="inline-flex items-center px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-800 text-sm font-bold no-underline">
+                  <a data-tf-link="event-detail" href="/events/${event.id}" class="inline-flex items-center px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-800 text-sm font-bold no-underline">
                     Zum Event
                   </a>
                 </div>
               </div>
             </div>
           `);
+
+          marker.on("popupopen", (ev: L.PopupEvent) => {
+            const el = ev.popup.getElement();
+            if (!el) return;
+
+            const link = el.querySelector<HTMLAnchorElement>('a[data-tf-link="event-detail"]');
+            if (!link) return;
+            if (link.dataset.tfBound === "1") return;
+            link.dataset.tfBound = "1";
+
+            L.DomEvent.on(link, "click", (e: Event) => {
+              L.DomEvent.stop(e);
+              router.push(`/events/${event.id}`);
+            });
+          });
+
           markersRef.current.push(marker);
         }
       });

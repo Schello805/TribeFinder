@@ -90,10 +90,43 @@ export async function GET() {
 
   checks.push(
     await runCheck("migrations", "Migrationen/Tables", async () => {
-      const migrations = await prisma.$queryRawUnsafe<{ count: number }[]>(
-        "SELECT COUNT(*) as count FROM _prisma_migrations"
+      const dbUrl = (process.env.DATABASE_URL || "").replace(/\r?\n/g, "").trim();
+      const isSqlite = dbUrl.startsWith("file:");
+
+      if (isSqlite) {
+        const existsRows = await prisma.$queryRawUnsafe<{ count: number }[]>(
+          "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='_prisma_migrations'"
+        );
+        const exists = Number(existsRows?.[0]?.count ?? 0) > 0;
+        if (!exists) {
+          return {
+            status: "warn",
+            message: "_prisma_migrations Tabelle fehlt (ok bei Import/Seed ohne Prisma Migrations)",
+          };
+        }
+
+        const migrations = await prisma.$queryRawUnsafe<{ count: number }[]>(
+          "SELECT COUNT(*) as count FROM _prisma_migrations"
+        );
+        const count = Number(migrations?.[0]?.count ?? 0);
+        return { status: "ok", message: `OK (${count} Migrationen)` };
+      }
+
+      const existsRows = await prisma.$queryRawUnsafe<{ exists: boolean }[]>(
+        "SELECT to_regclass('public._prisma_migrations') IS NOT NULL as exists"
       );
-      const count = migrations?.[0]?.count ?? 0;
+      const exists = Boolean(existsRows?.[0]?.exists);
+      if (!exists) {
+        return {
+          status: "warn",
+          message: "_prisma_migrations Tabelle fehlt (ok bei pgloader Data-Import ohne Prisma History)",
+        };
+      }
+
+      const migrations = await prisma.$queryRawUnsafe<{ count: number }[]>(
+        'SELECT COUNT(*)::int as count FROM "_prisma_migrations"'
+      );
+      const count = Number(migrations?.[0]?.count ?? 0);
       return { status: "ok", message: `OK (${count} Migrationen)` };
     })
   );

@@ -23,9 +23,9 @@ const defaultSqliteUrl = `file:${path.join(projectRoot, "prisma", "dev.db")}`;
 
 const collapseDuplicatePrismaDir = (p: string) => p.replace(/\/(?:prisma\/)+/g, "/prisma/");
 
-if (!normalizedDatabaseUrl || !normalizedDatabaseUrl.startsWith("file:")) {
+if (!normalizedDatabaseUrl) {
   process.env.DATABASE_URL = defaultSqliteUrl;
-} else {
+} else if (normalizedDatabaseUrl.startsWith("file:")) {
   const rawSqlitePath = normalizedDatabaseUrl.replace(/^file:/, "");
   const resolved = (() => {
     if (path.isAbsolute(rawSqlitePath)) return rawSqlitePath;
