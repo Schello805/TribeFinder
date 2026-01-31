@@ -19,14 +19,28 @@ const normalizedDatabaseUrl = process.env.DATABASE_URL
   ? process.env.DATABASE_URL.replace(/\r?\n/g, "").trim()
   : null;
 
+const stripWrappingQuotes = (v: string) => {
+  const s = String(v ?? "").trim();
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    return s.slice(1, -1).trim();
+  }
+  return s;
+};
+
 const defaultSqliteUrl = `file:${path.join(projectRoot, "prisma", "dev.db")}`;
 
 const collapseDuplicatePrismaDir = (p: string) => p.replace(/\/(?:prisma\/)+/g, "/prisma/");
 
-if (!normalizedDatabaseUrl || !normalizedDatabaseUrl.startsWith("file:")) {
+const cleanedDatabaseUrl = normalizedDatabaseUrl ? stripWrappingQuotes(normalizedDatabaseUrl) : null;
+
+// If DATABASE_URL is missing, fall back to local sqlite dev DB.
+// If DATABASE_URL is provided and is NOT sqlite (file:...), keep it as-is (e.g. postgresql://...).
+if (!cleanedDatabaseUrl) {
   process.env.DATABASE_URL = defaultSqliteUrl;
+} else if (!cleanedDatabaseUrl.startsWith("file:")) {
+  process.env.DATABASE_URL = cleanedDatabaseUrl;
 } else {
-  const rawSqlitePath = normalizedDatabaseUrl.replace(/^file:/, "");
+  const rawSqlitePath = cleanedDatabaseUrl.replace(/^file:/, "");
   const resolved = (() => {
     if (path.isAbsolute(rawSqlitePath)) return rawSqlitePath;
 
