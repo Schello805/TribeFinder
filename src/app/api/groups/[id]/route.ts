@@ -277,7 +277,23 @@ export async function DELETE(
     }
 
     if (existingGroup.ownerId !== session.user.id) {
-      return NextResponse.json({ message: "Nur der Besitzer kann diese Gruppe löschen" }, { status: 403 });
+      const membership = await prisma.groupMember.findUnique({
+        where: {
+          userId_groupId: {
+            userId: session.user.id,
+            groupId: id,
+          },
+        },
+        select: { role: true, status: true },
+      });
+
+      const isAdmin = membership?.role === "ADMIN" && membership?.status === "APPROVED";
+      if (!isAdmin) {
+        return NextResponse.json(
+          { message: "Nur der Besitzer oder Gruppen-Admins können diese Gruppe löschen" },
+          { status: 403 }
+        );
+      }
     }
 
     await prisma.group.delete({

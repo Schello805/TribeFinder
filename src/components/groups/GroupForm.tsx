@@ -20,9 +20,10 @@ interface GroupFormProps {
   });
   isEditing?: boolean;
   isOwner?: boolean;
+  canDelete?: boolean;
 }
 
-export default function GroupForm({ initialData, isEditing = false, isOwner = false }: GroupFormProps) {
+export default function GroupForm({ initialData, isEditing = false, isOwner = false, canDelete = false }: GroupFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -62,6 +63,35 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
   });
 
   void isOwner;
+  void canDelete;
+
+  const handleDelete = async () => {
+    if (!isEditing || !groupId) {
+      setError("Fehlende Gruppen-ID");
+      return;
+    }
+
+    const ok = window.confirm("Gruppe wirklich löschen? Dieser Vorgang kann nicht rückgängig gemacht werden.");
+    if (!ok) return;
+
+    setIsLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/groups/${groupId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Fehler beim Löschen der Gruppe");
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ein Fehler ist aufgetreten");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Auto-add https:// to URLs if missing
   const normalizeUrl = (url: string): string => {
@@ -599,6 +629,18 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
         >
           Abbrechen
         </button>
+
+        {isEditing && canDelete ? (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isLoading}
+            className="mr-3 px-4 py-2 border border-red-200 dark:border-red-800 rounded-md shadow-sm text-sm font-medium text-red-700 dark:text-red-200 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+          >
+            Gruppe löschen
+          </button>
+        ) : null}
+
         <button
           type="submit"
           disabled={isLoading}
