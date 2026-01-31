@@ -149,19 +149,23 @@ html.dark body ::placeholder {
 }
 
 .leaflet-container .leaflet-tile-pane {
-  z-index: 200;
+  z-index: 10;
 }
 
 .leaflet-container .leaflet-overlay-pane {
-  z-index: 400;
+  z-index: 20;
 }
 
 .leaflet-container .leaflet-marker-pane {
-  z-index: 600;
+  z-index: 30;
 }
 
 .leaflet-container .leaflet-popup-pane {
-  z-index: 700;
+  z-index: 40;
+}
+
+.leaflet-container .leaflet-control {
+  z-index: 45;
 }
 
 .tf-location-marker {

@@ -39,7 +39,7 @@ export default function LocationPicker({
   );
 
   const markerOptionsRef = useRef<L.MarkerOptions>({
-    zIndexOffset: 1000,
+    zIndexOffset: 0,
   });
 
   useEffect(() => {
