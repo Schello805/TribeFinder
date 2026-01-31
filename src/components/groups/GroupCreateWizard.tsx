@@ -34,8 +34,8 @@ interface FormData {
 type WizardStep = "basics" | "details";
 
 const STEPS: { id: WizardStep; label: string; icon: string }[] = [
-  { id: "basics", label: "Pflichtfelder", icon: "1" },
-  { id: "details", label: "Optional", icon: "2" },
+  { id: "basics", label: "Pflicht: Name & Ort", icon: "1" },
+  { id: "details", label: "Optional & Erstellen", icon: "2" },
 ];
 
 export default function GroupCreateWizard() {
@@ -247,10 +247,10 @@ export default function GroupCreateWizard() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Grundlagen
+                Pflichtfelder
               </h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                Name, Beschreibung und Trainingsort sind Pflicht.
+                Name, Beschreibung und Trainingsort sind Pflicht. Alles andere kommt im nächsten Schritt.
               </p>
             </div>
 
@@ -282,37 +282,6 @@ export default function GroupCreateWizard() {
               <p className="text-xs text-gray-400 mt-1">
                 {formData.description.length}/10 Zeichen (Minimum)
               </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Gruppengröße
-              </label>
-              <div className="grid grid-cols-5 gap-2">
-                {[
-                  { value: "SOLO", label: "Solo", icon: "👤" },
-                  { value: "DUO", label: "Duo", icon: "👥" },
-                  { value: "TRIO", label: "Trio", icon: "👥" },
-                  { value: "SMALL", label: "4-10", icon: "👨‍👩‍👧" },
-                  { value: "LARGE", label: ">10", icon: "👨‍👩‍👧‍👦" },
-                ].map((size) => (
-                  <button
-                    key={size.value}
-                    type="button"
-                    onClick={() => updateField("size", size.value as FormData["size"])}
-                    className={`p-3 rounded-lg border-2 text-center transition-all ${
-                      formData.size === size.value
-                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30"
-                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
-                    }`}
-                  >
-                    <span className="text-xl block">{size.icon}</span>
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                      {size.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
@@ -372,11 +341,42 @@ export default function GroupCreateWizard() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Weitere Details
+                Optional
               </h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                Diese Angaben sind optional, helfen aber anderen, euch besser zu finden.
+                Diese Angaben sind optional – du kannst sie auch später im Profil ergänzen.
               </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                Gruppengröße (optional)
+              </label>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { value: "SOLO", label: "Solo", icon: "👤" },
+                  { value: "DUO", label: "Duo", icon: "👥" },
+                  { value: "TRIO", label: "Trio", icon: "👥" },
+                  { value: "SMALL", label: "4-10", icon: "👨‍👩‍👧" },
+                  { value: "LARGE", label: ">10", icon: "👨‍👩‍👧‍👦" },
+                ].map((size) => (
+                  <button
+                    key={size.value}
+                    type="button"
+                    onClick={() => updateField("size", size.value as FormData["size"])}
+                    className={`p-3 rounded-lg border-2 text-center transition-all ${
+                      formData.size === size.value
+                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30"
+                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
+                    }`}
+                  >
+                    <span className="text-xl block">{size.icon}</span>
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                      {size.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div>
