@@ -65,7 +65,9 @@ function runCommand(cmd: string, args: string[], cwd: string): Promise<{ stdout:
 function parseSqlitePathFromDatabaseUrl(databaseUrl: string, projectRoot: string): string {
   const trimmed = databaseUrl.trim();
   if (!trimmed.startsWith("file:")) {
-    throw new Error("DATABASE_URL ist kein SQLite file:-Pfad");
+    throw new Error(
+      "DATABASE_URL ist kein SQLite file:-Pfad. Der integrierte Restore überschreibt nur eine SQLite-Datei (file:...). Für PostgreSQL musst du das Backup (db.sqlite) extrahieren und per pgloader in Postgres importieren."
+    );
   }
   const withoutScheme = trimmed.replace(/^file:/, "");
   const cleaned = withoutScheme.replace(/^\/\//, "");
