@@ -196,7 +196,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsUserMenuOpen((v) => !v)}
-                    className="inline-flex items-center gap-2 bg-white/10 text-white border border-white/20 px-3 py-2 rounded-md hover:bg-white/15 transition font-medium"
+                    className="inline-flex items-center gap-2 bg-white/15 text-white border border-white/25 px-3 py-2 rounded-md hover:bg-white/20 transition font-medium"
                     aria-haspopup="menu"
                     aria-expanded={isUserMenuOpen}
                     title="Profil & Einstellungen"
@@ -207,6 +207,9 @@ export default function Navbar() {
                       <span className="h-7 w-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm">👤</span>
                     )}
                     <span className="hidden lg:inline">Konto</span>
+                    <svg className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                    </svg>
                     {pendingRequestsCount > 0 && (
                       <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
                         {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
@@ -215,10 +218,10 @@ export default function Navbar() {
                   </button>
 
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg overflow-hidden z-50">
+                    <div className="absolute right-0 mt-2 w-64 rounded-lg border border-white/15 bg-indigo-700 dark:bg-indigo-900 shadow-xl overflow-hidden z-50">
                       <Link
                         href="/dashboard"
-                        className="flex items-center justify-between px-4 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        className="flex items-center justify-between px-4 py-2 text-sm text-indigo-50 hover:bg-white/10"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <span>Profil</span>
@@ -229,14 +232,14 @@ export default function Navbar() {
                         ) : null}
                       </Link>
 
-                      <div className="px-2 py-2 border-t border-gray-100 dark:border-gray-800">
-                        <div className="px-2 pb-1 text-xs font-semibold text-gray-500 dark:text-gray-400">Design</div>
-                        <div className="flex items-center rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                      <div className="px-3 py-3 border-t border-white/10">
+                        <div className="px-1 pb-2 text-xs font-semibold text-indigo-100/70">Design</div>
+                        <div className="flex items-center rounded-md border border-white/15 bg-white/10 overflow-hidden">
                           <button
                             type="button"
                             onClick={() => setTheme("light")}
-                            className={`flex-1 px-2 py-1.5 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                              theme === "light" ? "bg-gray-100 dark:bg-gray-800" : ""
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-indigo-50 hover:bg-white/10 ${
+                              theme === "light" ? "bg-white/15" : ""
                             }`}
                           >
                             Hell
@@ -244,8 +247,8 @@ export default function Navbar() {
                           <button
                             type="button"
                             onClick={() => setTheme("dark")}
-                            className={`flex-1 px-2 py-1.5 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                              theme === "dark" ? "bg-gray-100 dark:bg-gray-800" : ""
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-indigo-50 hover:bg-white/10 ${
+                              theme === "dark" ? "bg-white/15" : ""
                             }`}
                           >
                             Dunkel
@@ -253,8 +256,8 @@ export default function Navbar() {
                           <button
                             type="button"
                             onClick={() => setTheme("system")}
-                            className={`flex-1 px-2 py-1.5 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                              theme === "system" ? "bg-gray-100 dark:bg-gray-800" : ""
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-indigo-50 hover:bg-white/10 ${
+                              theme === "system" ? "bg-white/15" : ""
                             }`}
                             title={`System (${resolvedTheme === "dark" ? "Dunkel" : "Hell"})`}
                           >
@@ -269,7 +272,7 @@ export default function Navbar() {
                           setIsUserMenuOpen(false);
                           signOut();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
+                        className="w-full text-left px-4 py-2 text-sm text-red-100 hover:bg-white/10"
                       >
                         Abmelden
                       </button>

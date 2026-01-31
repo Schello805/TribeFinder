@@ -27,43 +27,82 @@ export default async function MessagesPage({ searchParams }: { searchParams?: Pr
 
   const groupIds = approvedGroupIds.map((g) => g.groupId);
 
-  const threads = await prisma.groupThread.findMany({
-    where: {
-      OR: [{ createdByUserId: userId }, { groupId: { in: groupIds } }],
-    },
-    orderBy: { lastMessageAt: "desc" },
-    take: 100,
-    include: {
-      group: { select: { id: true, name: true, image: true } },
-      createdBy: { select: { id: true, name: true } },
-      messages: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        select: { content: true, createdAt: true, authorId: true },
-      },
-      readStates: {
-        where: { userId },
-        select: { archivedAt: true },
-        take: 1,
-      },
-    },
-  });
+  let supportsArchive = true;
+  let threads = [] as Array<{
+    id: string;
+    subject: string | null;
+    group: { id: string; name: string; image: string | null };
+    messages: Array<{ content: string; createdAt: Date; authorId: string }>;
+    readStates?: Array<{ archivedAt: Date | null }>;
+  }>;
 
-  const filteredThreads = threads.filter((t) => {
-    const archivedAt = t.readStates[0]?.archivedAt;
-    return archived ? Boolean(archivedAt) : !archivedAt;
-  });
+  try {
+    threads = await prisma.groupThread.findMany({
+      where: {
+        OR: [{ createdByUserId: userId }, { groupId: { in: groupIds } }],
+      },
+      orderBy: { lastMessageAt: "desc" },
+      take: 100,
+      include: {
+        group: { select: { id: true, name: true, image: true } },
+        createdBy: { select: { id: true, name: true } },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { content: true, createdAt: true, authorId: true },
+        },
+        readStates: {
+          where: { userId },
+          select: { archivedAt: true },
+          take: 1,
+        },
+      },
+    });
+  } catch {
+    supportsArchive = false;
+    threads = await prisma.groupThread.findMany({
+      where: {
+        OR: [{ createdByUserId: userId }, { groupId: { in: groupIds } }],
+      },
+      orderBy: { lastMessageAt: "desc" },
+      take: 100,
+      include: {
+        group: { select: { id: true, name: true, image: true } },
+        createdBy: { select: { id: true, name: true } },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { content: true, createdAt: true, authorId: true },
+        },
+      },
+    });
+  }
+
+  const filteredThreads = supportsArchive
+    ? threads.filter((t) => {
+        const archivedAt = t.readStates?.[0]?.archivedAt;
+        return archived ? Boolean(archivedAt) : !archivedAt;
+      })
+    : archived
+      ? []
+      : threads;
+
+  if (archived && !supportsArchive) {
+    redirect("/messages");
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{archived ? "Archiv" : "Nachrichten"}</h1>
-        <Link
-          href={archived ? "/messages" : "/messages?archived=1"}
-          className="text-sm text-indigo-600 dark:text-indigo-300 font-medium hover:underline"
-        >
-          {archived ? "Zur Inbox" : "Archiv"}
-        </Link>
+        {supportsArchive ? (
+          <Link
+            href={archived ? "/messages" : "/messages?archived=1"}
+            className="text-sm text-indigo-600 dark:text-indigo-300 font-medium hover:underline"
+          >
+            {archived ? "Zur Inbox" : "Archiv"}
+          </Link>
+        ) : null}
       </div>
 
       <div
