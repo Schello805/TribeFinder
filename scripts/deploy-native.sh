@@ -127,9 +127,25 @@ fi
 
 MIGRATE_OK=0
 for i in 1 2 3; do
-    if npm run db:migrate; then
+    MIGRATE_OUTPUT=""
+    set +e
+    MIGRATE_OUTPUT=$(npm run db:migrate 2>&1)
+    MIGRATE_EXIT=$?
+    set -e
+
+    echo "$MIGRATE_OUTPUT"
+
+    if [ "$MIGRATE_EXIT" -eq 0 ]; then
         MIGRATE_OK=1
         break
+    fi
+
+    if echo "$MIGRATE_OUTPUT" | grep -q "Error: P3019"; then
+        echo -e "${YELLOW}Hinweis: Prisma Provider-Switch erkannt (P3019). Führe stattdessen db push aus...${NC}"
+        if npm run db:push -- --accept-data-loss; then
+            MIGRATE_OK=1
+            break
+        fi
     fi
     echo -e "${YELLOW}Migration fehlgeschlagen (Versuch $i/3). Warte kurz und versuche erneut...${NC}"
     sleep 2
@@ -137,7 +153,8 @@ done
 
 if [ "$MIGRATE_OK" -ne 1 ]; then
     echo -e "${RED}Fehler: Migrationen sind nach mehreren Versuchen fehlgeschlagen.${NC}"
-    echo "Hinweis: Prüfe, ob noch ein Prozess prod.db offen hält (z.B. per: sudo lsof /home/tribefinder/TribeFinder/prod.db)"
+    echo "Hinweis: Bei PostgreSQL-Cutover kann P3019 auftreten (Provider-Switch). Dann einmalig ausführen: npm run db:push -- --accept-data-loss"
+    echo "Hinweis: Bei SQLite: Prüfe, ob noch ein Prozess prod.db offen hält (z.B. per: sudo lsof /home/tribefinder/TribeFinder/prod.db)"
     exit 1
 fi
 
