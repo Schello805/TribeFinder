@@ -158,6 +158,7 @@ echo ""
 # Auto-Backup Timer/Service aktualisieren (falls vorhanden)
 echo -e "${YELLOW}[6.1/7] Aktualisiere Auto-Backup Timer...${NC}"
 if [ "$CAN_SUDO" -eq 1 ]; then
+    sudo cp -f config/tribefinder.service /etc/systemd/system/tribefinder.service || true
     sudo cp -f config/tribefinder-auto-backup.service /etc/systemd/system/tribefinder-auto-backup.service || true
     sudo cp -f config/tribefinder-auto-backup.timer /etc/systemd/system/tribefinder-auto-backup.timer || true
     sudo systemctl daemon-reload || true
@@ -166,6 +167,7 @@ if [ "$CAN_SUDO" -eq 1 ]; then
 else
     echo -e "${YELLOW}Hinweis: Auto-Backup Timer übersprungen (User 'tribefinder' hat kein sudo).${NC}"
     echo "Einmalig als root ausführen:"
+    echo "  cp -f config/tribefinder.service /etc/systemd/system/tribefinder.service"
     echo "  cp -f config/tribefinder-auto-backup.service /etc/systemd/system/tribefinder-auto-backup.service"
     echo "  cp -f config/tribefinder-auto-backup.timer /etc/systemd/system/tribefinder-auto-backup.timer"
     echo "  systemctl daemon-reload"

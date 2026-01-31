@@ -9,6 +9,8 @@ Group=tribefinder
 WorkingDirectory=/home/tribefinder/TribeFinder
 Environment=NODE_ENV=production
 EnvironmentFile=/home/tribefinder/TribeFinder/.env
+ExecStartPre=/usr/bin/npm run db:generate
+ExecStartPre=/usr/bin/npm run db:migrate
 ExecStart=/usr/bin/npm run start
 Restart=always
 RestartSec=10
