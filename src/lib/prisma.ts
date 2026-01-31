@@ -15,8 +15,19 @@ const resolveProjectRoot = () => {
 
 const projectRoot = resolveProjectRoot();
 
+const stripWrappingQuotes = (value: string) => {
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+};
+
 const normalizedDatabaseUrl = process.env.DATABASE_URL
-  ? process.env.DATABASE_URL.replace(/\r?\n/g, "").trim()
+  ? stripWrappingQuotes(process.env.DATABASE_URL.replace(/\r?\n/g, "").trim())
   : null;
 
 const defaultSqliteUrl = `file:${path.join(projectRoot, "prisma", "dev.db")}`;
