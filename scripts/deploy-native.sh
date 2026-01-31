@@ -131,6 +131,21 @@ for i in 1 2 3; do
         MIGRATE_OK=1
         break
     fi
+
+    DBURL="${DATABASE_URL:-}"
+    LOCK_PROVIDER=""
+    if [ -f "prisma/migrations/migration_lock.toml" ]; then
+        LOCK_PROVIDER=$(grep -E '^provider\s*=\s*"' prisma/migrations/migration_lock.toml | sed -E 's/^provider\s*=\s*"([^"]+)".*/\1/')
+    fi
+    if echo "$DBURL" | grep -q '^postgresql://\|^postgres://'; then
+        if [ "$LOCK_PROVIDER" = "sqlite" ]; then
+            echo -e "${YELLOW}Hinweis: Migrationen sind für SQLite gelockt, aber DATABASE_URL ist Postgres. Verwende 'prisma db push' als Baseline...${NC}"
+            if npx prisma db push --accept-data-loss; then
+                MIGRATE_OK=1
+                break
+            fi
+        fi
+    fi
     echo -e "${YELLOW}Migration fehlgeschlagen (Versuch $i/3). Warte kurz und versuche erneut...${NC}"
     sleep 2
 done
