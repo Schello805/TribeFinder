@@ -6,6 +6,20 @@ import os from "os";
 import fs from "node:fs";
 import prisma from "@/lib/prisma";
 
+function sanitizeDatabaseUrlForCli(databaseUrl: string) {
+  try {
+    const u = new URL(databaseUrl);
+    // Prisma supports ?schema=... but Postgres CLI tools reject it.
+    u.searchParams.delete("schema");
+    return u.toString();
+  } catch {
+    // Fallback for non-standard URLs: remove `schema=...` from query if present.
+    return databaseUrl
+      .replace(/([?&])schema=[^&]+(&?)/i, (_m, p1, p2) => (p2 ? p1 : ""))
+      .replace(/\?$/, "");
+  }
+}
+
  async function getBackupRetentionCount(): Promise<number> {
    try {
      const row = await prisma.systemSetting.findUnique({ where: { key: "BACKUP_RETENTION_COUNT" } });
@@ -112,6 +126,7 @@ export async function createBackup() {
   const projectRoot = resolveProjectRoot();
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
+  const databaseUrlForCli = sanitizeDatabaseUrlForCli(databaseUrl);
   const uploadsDir = await resolveUploadsDir(projectRoot);
 
   const backupDir = await resolveBackupDir(projectRoot);
@@ -129,7 +144,7 @@ export async function createBackup() {
     await new Promise<void>((resolve, reject) => {
       const proc = spawn(
         "pg_dump",
-        ["--no-owner", "--no-privileges", "--format=p", "-f", tmpDb, "-d", databaseUrl],
+        ["--no-owner", "--no-privileges", "--format=p", "-f", tmpDb, "-d", databaseUrlForCli],
         { cwd: projectRoot, env: process.env }
       );
       let stderr = "";
@@ -314,6 +329,7 @@ export async function restoreBackup(filename: string) {
 
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
+  const databaseUrlForCli = sanitizeDatabaseUrlForCli(databaseUrl);
   const uploadsDir = await resolveUploadsDir(projectRoot);
   const relUploads = path.relative(projectRoot, uploadsDir);
 
@@ -384,8 +400,8 @@ export async function restoreBackup(filename: string) {
     }
 
     const sqlPath = extractedDb!;
-    await runPsql(["-c", "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"], projectRoot, databaseUrl);
-    await runPsql(["-f", sqlPath], projectRoot, databaseUrl);
+    await runPsql(["-c", "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"], projectRoot, databaseUrlForCli);
+    await runPsql(["-f", sqlPath], projectRoot, databaseUrlForCli);
     // Restore uploads into the resolved uploads directory (symlink target), not into the symlink itself.
     await replaceDirectory(extractedUploads!, uploadsDir);
 
