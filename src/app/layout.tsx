@@ -154,10 +154,17 @@ export default async function RootLayout({
   const appCommit = (process.env.NEXT_PUBLIC_APP_COMMIT || "").trim();
   const appVersion = ((process.env.NEXT_PUBLIC_APP_VERSION || "").trim() || (await readAppVersionFallback()));
 
+  const maintenanceModeEnabled = String(process.env.MAINTENANCE_MODE || "").toLowerCase() === "true";
+
   const siteBannerEnabled = String(config.SITE_BANNER_ENABLED || "").toLowerCase() === "true";
   const siteBannerText = (config.SITE_BANNER_TEXT || "").trim();
   const siteBannerBg = (config.SITE_BANNER_BG || "").trim() || "#f59e0b";
   const siteBannerTextColor = (config.SITE_BANNER_TEXT_COLOR || "").trim() || "#ffffff";
+
+  const effectiveBannerEnabled = maintenanceModeEnabled ? true : siteBannerEnabled;
+  const effectiveBannerText = maintenanceModeEnabled
+    ? (siteBannerText || "Wartungsmodus aktiv – Änderungen/Uploads sind vorübergehend deaktiviert.")
+    : siteBannerText;
 
   return (
     <html lang="de" suppressHydrationWarning>
@@ -177,15 +184,15 @@ export default async function RootLayout({
                   siteId={config.MATOMO_SITE_ID}
                   trackingCode={config.MATOMO_TRACKING_CODE}
                 />
-                {siteBannerEnabled && siteBannerText ? (
+                {effectiveBannerEnabled && effectiveBannerText ? (
                   <div
                     className="fixed top-0 left-0 w-full text-xs leading-none px-3 h-6 flex items-center justify-center z-50"
                     style={{ backgroundColor: siteBannerBg, color: siteBannerTextColor }}
                   >
-                    <span className="truncate">{siteBannerText}</span>
+                    <span className="truncate">{effectiveBannerText}</span>
                   </div>
                 ) : null}
-                <div className={siteBannerEnabled && siteBannerText ? "pt-6" : undefined}>
+                <div className={effectiveBannerEnabled && effectiveBannerText ? "pt-6" : undefined}>
                   <Navbar />
                   <main className="flex-grow container mx-auto px-4 py-8">
                     {children}

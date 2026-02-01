@@ -251,11 +251,18 @@ export default function AdminDesignBrandingBanner() {
             <input
               type="checkbox"
               checked={bannerEnabled}
+              disabled={maintenanceEnabled}
               onChange={(e) => setBannerEnabled(e.target.checked)}
               className="h-4 w-4"
             />
             Banner aktivieren
           </label>
+
+          {maintenanceEnabled ? (
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Während der Wartungsmodus aktiv ist, wird der Banner automatisch erzwungen.
+            </div>
+          ) : null}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Text</label>
