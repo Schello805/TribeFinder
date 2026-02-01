@@ -31,6 +31,7 @@ export default function AdminBackupsPanel() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [backups, setBackups] = useState<BackupItem[]>([]);
+  const [backupDir, setBackupDir] = useState<string | null>(null);
 
   const [isRestoring, setIsRestoring] = useState(false);
   const [restoreFilename, setRestoreFilename] = useState("");
@@ -61,6 +62,7 @@ export default function AdminBackupsPanel() {
         throw new Error(msg);
       }
       setBackups(Array.isArray(data?.backups) ? data.backups : []);
+      setBackupDir(typeof data?.backupDir === "string" ? data.backupDir : null);
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Fehler beim Laden der Backups", "error");
     } finally {
@@ -154,6 +156,7 @@ export default function AdminBackupsPanel() {
         console.error("/api/admin/backups POST failed", { status: res.status, data });
         throw new Error(msg);
       }
+      if (typeof data?.backupDir === "string") setBackupDir(data.backupDir);
       showToast("Backup erstellt", "success");
       await loadBackups();
     } catch (e) {
@@ -333,6 +336,9 @@ export default function AdminBackupsPanel() {
           <div>
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">Backup erstellen</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">Sichert Datenbank + Uploads als .tar.gz</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Speicherort: <code>{backupDir || "(unbekannt)"}</code>
+            </p>
           </div>
           <button
             type="button"

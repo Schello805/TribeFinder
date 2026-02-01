@@ -68,7 +68,7 @@ export async function GET() {
 
     backups.sort((a, b) => b.createdAt - a.createdAt);
 
-    return NextResponse.json({ backups });
+    return NextResponse.json({ backups, backupDir });
   } catch (error) {
     return NextResponse.json(
       {
@@ -85,9 +85,10 @@ export async function POST() {
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
   try {
+    const backupDir = await resolveBackupDir();
     const result = await createBackup();
     const purged = await purgeOldBackups();
-    return NextResponse.json({ ...result, purged }, { status: 201 });
+    return NextResponse.json({ ...result, purged, backupDir }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { message: "Backup fehlgeschlagen", details: error instanceof Error ? error.message : String(error) },
