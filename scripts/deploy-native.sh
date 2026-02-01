@@ -140,7 +140,7 @@ else
 fi
 
 echo -e "${YELLOW}Synchronisiere DB Schema (Prisma db push)...${NC}"
-./scripts/db-migrate-safe.sh
+bash ./scripts/db-migrate-safe.sh
 
 echo -e "${YELLOW}Starte Service nach Migration...${NC}"
 sudo systemctl start tribefinder || true
