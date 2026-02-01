@@ -70,6 +70,15 @@ else
     echo -e "${GREEN}User 'tribefinder' erstellt.${NC}"
 fi
 
+# Stelle sicher, dass tribefinder sudo nutzen kann (für Deploy/Update Scripts)
+if getent group sudo >/dev/null 2>&1; then
+    usermod -aG sudo tribefinder
+    echo "tribefinder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/tribefinder
+    chmod 440 /etc/sudoers.d/tribefinder
+else
+    echo -e "${YELLOW}Warnung: 'sudo' Gruppe nicht gefunden – sudo Rechte für 'tribefinder' wurden nicht gesetzt.${NC}"
+fi
+
 PASS_STATUS="$(passwd -S tribefinder 2>/dev/null | awk '{print $2}' || true)"
 if [ "$PASS_STATUS" != "P" ]; then
     echo -e "${YELLOW}Bitte setze jetzt ein Passwort für den User 'tribefinder' (wird für sudo/Updates benötigt).${NC}"
