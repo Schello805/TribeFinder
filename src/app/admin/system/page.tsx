@@ -152,18 +152,15 @@ export default function AdminSystemPage() {
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">Datenbank</h2>
         </div>
         <div className="px-4 pb-5 sm:px-6 space-y-2 text-sm text-gray-700 dark:text-gray-200">
-          <div>
-            <span className="font-semibold">Provider:</span> {info?.database?.url?.provider ?? "-"}
-          </div>
-          <div>
-            <span className="font-semibold">DATABASE_URL (maskiert):</span>{" "}
-            <span className="font-mono text-xs break-all">{info?.database?.url?.maskedUrl ?? "-"}</span>
-          </div>
-          {info?.database?.url?.filePath ? (
+          <div className="space-y-1">
             <div>
-              <span className="font-semibold">SQLite Datei:</span> <span className="font-mono text-xs break-all">{info.database.url.filePath}</span>
+              <span className="font-semibold">Provider:</span> {info?.database?.url?.provider ?? "-"}
             </div>
-          ) : null}
+            <div>
+              <span className="font-semibold">URL:</span>{" "}
+              <span className="font-mono text-xs break-all">{info?.database?.url?.maskedUrl ?? "-"}</span>
+            </div>
+          </div>
           <div>
             <span className="font-semibold">DB Ping:</span>{" "}
             {info?.database?.checks?.dbPingOk ? (

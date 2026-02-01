@@ -24,16 +24,6 @@ function runCommand(cmd, args, cwd) {
   });
 }
 
-function parseSqlitePathFromDatabaseUrl(databaseUrl) {
-  const trimmed = String(databaseUrl || "").trim();
-  if (!trimmed.startsWith("file:")) {
-    throw new Error("DATABASE_URL ist kein SQLite file:-Pfad");
-  }
-  const withoutScheme = trimmed.replace(/^file:/, "");
-  const cleaned = withoutScheme.replace(/^\/\//, "");
-  return path.isAbsolute(cleaned) ? cleaned : path.join(process.cwd(), cleaned);
-}
-
 async function createTarGz(outPath, cwd, files) {
   await new Promise((resolve, reject) => {
     const proc = spawn("tar", ["-czf", outPath, ...files], { cwd });
@@ -53,7 +43,6 @@ async function createServerBackup(settingsPayload) {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
 
-  const dbPath = parseSqlitePathFromDatabaseUrl(databaseUrl);
   const uploadsDir = path.join(process.cwd(), "public/uploads");
 
   const backupDir = path.join(process.cwd(), "backups");
@@ -63,17 +52,28 @@ async function createServerBackup(settingsPayload) {
   const filename = `tribefinder-backup-${timestamp}.tar.gz`;
   const outPath = path.join(backupDir, filename);
 
-  await fs.stat(dbPath).catch(() => {
-    throw new Error(`DB nicht gefunden: ${dbPath}`);
-  });
-
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "tribefinder-backup-"));
   try {
-    const tmpDb = path.join(tmpRoot, "db.sqlite");
+    const tmpDb = path.join(tmpRoot, "db.sql");
     const tmpUploads = path.join(tmpRoot, "uploads");
     const tmpSettings = path.join(tmpRoot, "settings.json");
 
-    await fs.cp(dbPath, tmpDb);
+    await new Promise((resolve, reject) => {
+      const proc = spawn(
+        "pg_dump",
+        ["--no-owner", "--no-privileges", "--format=p", "-f", tmpDb, "-d", databaseUrl],
+        { cwd: process.cwd(), env: process.env }
+      );
+      let stderr = "";
+      proc.stderr.on("data", (d) => {
+        stderr += d.toString();
+      });
+      proc.on("error", reject);
+      proc.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(stderr || `pg_dump exited with code ${code}`));
+      });
+    });
 
     const uploadsExists = await fs
       .stat(uploadsDir)
@@ -92,7 +92,7 @@ async function createServerBackup(settingsPayload) {
       await fs.writeFile(tmpSettings, "{}\n", "utf8");
     }
 
-    await createTarGz(outPath, tmpRoot, ["db.sqlite", "uploads", "settings.json"]);
+    await createTarGz(outPath, tmpRoot, ["db.sql", "uploads", "settings.json"]);
   } finally {
     await fs.rm(tmpRoot, { recursive: true, force: true });
   }

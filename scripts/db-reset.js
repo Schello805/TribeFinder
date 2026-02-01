@@ -42,13 +42,24 @@ console.log('');
 
 try {
   const projectRoot = path.resolve(__dirname, '..');
-  const dbPath = path.join(projectRoot, 'prisma', 'dev.db');
-  process.env.DATABASE_URL = `file:${dbPath}`;
 
-  console.log('🔄 Running: prisma migrate reset --force');
-  execSync('npx prisma migrate reset --force', {
+  if (!process.env.DATABASE_URL) {
+    console.error('❌ ERROR: DATABASE_URL is required (PostgreSQL-only setup)');
+    process.exit(1);
+  }
+
+  console.log('🧨 Resetting Postgres schema public (DROP SCHEMA public CASCADE)');
+  execSync(`psql -v ON_ERROR_STOP=1 -d "${process.env.DATABASE_URL}" -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"`, {
     stdio: 'inherit',
     env: process.env,
+    cwd: projectRoot,
+  });
+
+  console.log('🔄 Running: prisma db push --accept-data-loss');
+  execSync('npx prisma db push --accept-data-loss', {
+    stdio: 'inherit',
+    env: process.env,
+    cwd: projectRoot,
   });
   console.log('');
   console.log('✅ Database reset complete.');

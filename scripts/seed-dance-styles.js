@@ -20,7 +20,6 @@ function loadDotEnv() {
         value = value.slice(1, -1).trim();
       }
 
-      // For Prisma/SQLite the DATABASE_URL must be an unquoted file: URL
       if (key === "DATABASE_URL") {
         process.env[key] = value;
       } else if (!process.env[key]) {
@@ -32,14 +31,6 @@ function loadDotEnv() {
 
 if (!process.env.DATABASE_URL) {
   loadDotEnv();
-}
-
-// Normalize SQLite DATABASE_URL to absolute file path to avoid sqlite error code 14
-if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith("file:")) {
-  let p = process.env.DATABASE_URL.replace(/^file:/, "");
-  p = p.replace(/^\/\//, "");
-  const abs = path.isAbsolute(p) ? p : path.join(process.cwd(), p);
-  process.env.DATABASE_URL = `file:${abs}`;
 }
 
 const { PrismaClient } = require("@prisma/client");

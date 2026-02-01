@@ -65,8 +65,7 @@ if command -v sudo >/dev/null 2>&1; then
     fi
 fi
 
-# Stelle sicher, dass Postgres Client Tools verfügbar sind (für Backup/Restore bei PostgreSQL)
-# (Bei SQLite ist es nicht nötig, aber schadet auch nicht.)
+# Stelle sicher, dass Postgres Client Tools verfügbar sind (für Backup/Restore)
 if ! command -v psql >/dev/null 2>&1 || ! command -v pg_dump >/dev/null 2>&1; then
     echo -e "${YELLOW}Hinweis: PostgreSQL Client Tools (psql/pg_dump) fehlen. Versuche Installation...${NC}"
     if [ "$CAN_SUDO" -eq 1 ]; then
@@ -82,7 +81,7 @@ fi
 
 # Backup erstellen
 echo -e "${YELLOW}[1/7] Erstelle Datenbank-Backup...${NC}"
-npm run db:backup || echo "Backup fehlgeschlagen (möglicherweise keine DB vorhanden oder DATABASE_URL nicht SQLite)"
+npm run db:backup || echo "Backup fehlgeschlagen (möglicherweise keine DB vorhanden oder DATABASE_URL ist nicht gesetzt)"
 echo ""
 
 # Git Updates holen
@@ -130,7 +129,7 @@ echo ""
 # Migrationen ausführen
 echo -e "${YELLOW}[5/7] Führe Datenbank-Migrationen aus...${NC}"
 if [ "$CAN_SUDO" -eq 1 ]; then
-    echo -e "${YELLOW}Stoppe Service für Migration (verhindert SQLite Lock)...${NC}"
+    echo -e "${YELLOW}Stoppe Service für DB Update...${NC}"
     sudo systemctl stop tribefinder || true
     sleep 2
 else
@@ -140,38 +139,8 @@ else
     exit 1
 fi
 
-MIGRATE_OK=0
-for i in 1 2 3; do
-    MIGRATE_OUTPUT=""
-    set +e
-    MIGRATE_OUTPUT=$(npm run db:migrate 2>&1)
-    MIGRATE_EXIT=$?
-    set -e
-
-    echo "$MIGRATE_OUTPUT"
-
-    if [ "$MIGRATE_EXIT" -eq 0 ]; then
-        MIGRATE_OK=1
-        break
-    fi
-
-    if echo "$MIGRATE_OUTPUT" | grep -q "Error: P3019"; then
-        echo -e "${YELLOW}Hinweis: Prisma Provider-Switch erkannt (P3019). Führe stattdessen db push aus...${NC}"
-        if npm run db:push -- --accept-data-loss; then
-            MIGRATE_OK=1
-            break
-        fi
-    fi
-    echo -e "${YELLOW}Migration fehlgeschlagen (Versuch $i/3). Warte kurz und versuche erneut...${NC}"
-    sleep 2
-done
-
-if [ "$MIGRATE_OK" -ne 1 ]; then
-    echo -e "${RED}Fehler: Migrationen sind nach mehreren Versuchen fehlgeschlagen.${NC}"
-    echo "Hinweis: Bei PostgreSQL-Cutover kann P3019 auftreten (Provider-Switch). Dann einmalig ausführen: npm run db:push -- --accept-data-loss"
-    echo "Hinweis: Bei SQLite: Prüfe, ob noch ein Prozess prod.db offen hält (z.B. per: sudo lsof /home/tribefinder/TribeFinder/prod.db)"
-    exit 1
-fi
+echo -e "${YELLOW}Synchronisiere DB Schema (Prisma db push)...${NC}"
+./scripts/db-migrate-safe.sh
 
 echo -e "${YELLOW}Starte Service nach Migration...${NC}"
 sudo systemctl start tribefinder || true

@@ -11,16 +11,6 @@ function maskDatabaseUrl(url: string | undefined) {
   if (!url) return null;
   const trimmed = url.replace(/\r?\n/g, "").trim();
 
-  // SQLite style: file:/abs/path or file:./relative
-  if (trimmed.startsWith("file:")) {
-    const filePath = trimmed.replace(/^file:/, "");
-    return {
-      provider: "sqlite",
-      maskedUrl: `file:${filePath}`,
-      filePath,
-    };
-  }
-
   try {
     const u = new URL(trimmed);
     const provider = u.protocol.replace(/:$/, "");
@@ -94,7 +84,6 @@ export async function GET() {
 
   const checks: { dbPingOk: boolean; dbPingError?: string } = { dbPingOk: false };
   try {
-    // Works on SQLite and Postgres.
     await prisma.$queryRaw`SELECT 1`;
     checks.dbPingOk = true;
   } catch (e) {

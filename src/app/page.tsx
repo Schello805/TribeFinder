@@ -28,7 +28,7 @@ export default async function Home() {
     }, {});
     brandingLogoUrl = normalizeUploadedImageUrl(map.BRANDING_LOGO_URL) ?? "";
   } catch {
-    // Intentionally ignore to keep homepage functional even if Prisma/SQLite is unhealthy.
+    // Intentionally ignore to keep homepage functional even if Prisma is unhealthy.
   }
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)]">

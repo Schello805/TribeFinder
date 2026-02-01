@@ -54,7 +54,6 @@ Das Script führt automatisch aus:
 
 Hinweise:
 
-- Für SQLite in Produktion sollte `DATABASE_URL` ein **absoluter Pfad** sein (z.B. `file:/home/tribefinder/TribeFinder/prod.db`), damit Build/Runtime immer dieselbe DB verwenden.
 - Für reproduzierbare Builds nutzt das Setup/Deploy vorzugsweise `npm ci --include=optional` (u.a. wegen Tailwind/Turbo optional dependencies).
 - Uploads werden in `public/uploads` gespeichert. Wichtig sind korrekte Dateirechte (Owner: `tribefinder`).
 
@@ -82,7 +81,7 @@ Hinweise:
    ```
    Die App ist nun unter `http://localhost:3000` erreichbar.
 
-Hinweis: Wenn du sowohl `.env` als auch `.env.local` verwendest, überschreibt `.env.local` die Werte aus `.env`. Achte darauf, dass `DATABASE_URL` konsistent ist (empfohlen: `file:./prisma/dev.db`), damit nicht versehentlich eine leere `./dev.db` im Repo-Root verwendet wird.
+Hinweis: Wenn du sowohl `.env` als auch `.env.local` verwendest, überschreibt `.env.local` die Werte aus `.env`. Achte darauf, dass `DATABASE_URL` konsistent ist.
 
 5. **E2E Tests (Playwright, optional)**
    ```bash
@@ -106,12 +105,6 @@ Erstelle eine `.env` Datei im Hauptverzeichnis (siehe `.env.example`):
 ```env
 # PostgreSQL
 DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schema=public"
-
-# Oder SQLite für einfache lokale Entwicklung:
-#
-# Wichtig: Verwende in diesem Repo standardmäßig `prisma/dev.db`.
-# (Ein `./dev.db` im Repo-Root kann leicht zu Verwechslungen führen.)
-# DATABASE_URL="file:./prisma/dev.db"
 
 NEXTAUTH_SECRET="dein-geheimes-random-secret"
 NEXTAUTH_URL="http://localhost:3000"

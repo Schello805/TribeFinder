@@ -19,7 +19,7 @@ Das Script übernimmt:
 - Klonen nach `/home/tribefinder/TribeFinder` inkl. korrekter Ownership (kein Git "dubious ownership")
 - `.env` Erstellung (inkl. `NEXTAUTH_SECRET`)
 - Reproduzierbare Dependency-Installation (`npm ci --include=optional`)
-- Prisma generate + migrate
+- Prisma generate + db push
 - Production Build
 - Uploads unter `/var/www/tribefinder/uploads`
 - systemd Service
@@ -93,10 +93,6 @@ Wichtige Einstellungen in `.env`:
 # PostgreSQL
 DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schema=public"
 
-# Hinweis (lokale Entwicklung):
-# Für Development im Repo wird standardmäßig `prisma/dev.db` verwendet.
-# Vermeide `file:./dev.db` im Repo-Root, da das leicht zu Verwechslungen führen kann.
-
 # NextAuth Konfiguration
 NEXTAUTH_SECRET="GENERIERE_EIN_LANGES_ZUFÄLLIGES_SECRET_HIER"
 NEXTAUTH_URL="http://localhost:3000"
@@ -122,7 +118,7 @@ npm ci --include=optional
 ### Datenbank initialisieren
 ```bash
 npm run db:generate
-npm run db:migrate
+npm run db:push
 ```
 
 ### Production Build erstellen
@@ -245,7 +241,7 @@ Das Script führt je nach Stand automatisch u.a. aus:
 
 - `git pull`
 - `npm ci --include=optional`
-- `npm run db:generate` / `npm run db:migrate`
+- `npm run db:generate` / `npm run db:push`
 - `npm run build`
 - `sudo systemctl restart tribefinder`
 
@@ -268,8 +264,6 @@ sudo su - tribefinder
 cd ~/TribeFinder
 npm run db:backup
 ```
-
-Hinweis: `npm run db:backup` nutzt `DATABASE_URL` aus `.env`, um die richtige SQLite-Datei (z.B. `prod.db`) zu sichern.
 
 ### Automatische Backups via Cron
 ```bash
@@ -330,13 +324,11 @@ Wenn du einen externen Reverse Proxy verwendest: prüfe zuerst, ob TribeFinder a
 
 ### Datenbank-Probleme
 ```bash
-# Datenbank-Status prüfen
-sudo su - tribefinder
-cd ~/TribeFinder
-npm run db:status
+# DB Verbindung testen
+psql -v ON_ERROR_STOP=1 -d "$DATABASE_URL" -c "SELECT 1;"
 
-# Migrationen neu ausführen
-npm run db:migrate
+# Schema synchronisieren
+npm run db:push
 ```
 
 ### Upload-Fehler

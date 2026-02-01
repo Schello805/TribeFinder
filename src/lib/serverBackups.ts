@@ -87,22 +87,6 @@ function runCommand(cmd: string, args: string[], cwd: string): Promise<{ stdout:
   });
 }
 
-function parseSqlitePathFromDatabaseUrl(databaseUrl: string, projectRoot: string): string {
-  const trimmed = databaseUrl.trim();
-  if (!trimmed.startsWith("file:")) {
-    throw new Error(
-      "DATABASE_URL ist kein SQLite file:-Pfad. Der integrierte Restore überschreibt nur eine SQLite-Datei (file:...). Für PostgreSQL musst du das Backup (db.sqlite) extrahieren und per pgloader in Postgres importieren."
-    );
-  }
-  const withoutScheme = trimmed.replace(/^file:/, "");
-  const cleaned = withoutScheme.replace(/^\/\//, "");
-  return path.isAbsolute(cleaned) ? cleaned : path.join(projectRoot, cleaned);
-}
-
-function isSqliteDatabaseUrl(databaseUrl: string) {
-  return databaseUrl.trim().startsWith("file:");
-}
-
 function runPsql(args: string[], cwd: string, databaseUrl: string): Promise<{ stdout: string; stderr: string }> {
   return runCommand("psql", ["-v", "ON_ERROR_STOP=1", "-d", databaseUrl, ...args], cwd);
 }
@@ -126,9 +110,6 @@ export async function createBackup() {
   const projectRoot = resolveProjectRoot();
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
-
-  const isSqlite = isSqliteDatabaseUrl(databaseUrl);
-  const dbPath = isSqlite ? parseSqlitePathFromDatabaseUrl(databaseUrl, projectRoot) : null;
   const uploadsDir = await resolveUploadsDir(projectRoot);
 
   const backupDir = await resolveBackupDir(projectRoot);
@@ -137,38 +118,28 @@ export async function createBackup() {
   const filename = `tribefinder-backup-${timestamp}.tar.gz`;
   const outPath = path.join(backupDir, filename);
 
-  if (dbPath) {
-    await stat(dbPath).catch(() => {
-      throw new Error(`DB nicht gefunden: ${dbPath}`);
-    });
-  }
-
   const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "tribefinder-backup-"));
   try {
-    const tmpDb = path.join(tmpRoot, isSqlite ? "db.sqlite" : "db.sql");
+    const tmpDb = path.join(tmpRoot, "db.sql");
     const tmpUploads = path.join(tmpRoot, "uploads");
     const tmpSettings = path.join(tmpRoot, "settings.json");
 
-    if (isSqlite) {
-      await cp(dbPath!, tmpDb);
-    } else {
-      await new Promise<void>((resolve, reject) => {
-        const proc = spawn(
-          "pg_dump",
-          ["--no-owner", "--no-privileges", "--format=p", "-f", tmpDb, "-d", databaseUrl],
-          { cwd: projectRoot, env: process.env }
-        );
-        let stderr = "";
-        proc.stderr.on("data", (d) => {
-          stderr += d.toString();
-        });
-        proc.on("error", reject);
-        proc.on("close", (code) => {
-          if (code === 0) resolve();
-          else reject(new Error(stderr || `pg_dump exited with code ${code}`));
-        });
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn(
+        "pg_dump",
+        ["--no-owner", "--no-privileges", "--format=p", "-f", tmpDb, "-d", databaseUrl],
+        { cwd: projectRoot, env: process.env }
+      );
+      let stderr = "";
+      proc.stderr.on("data", (d) => {
+        stderr += d.toString();
       });
-    }
+      proc.on("error", reject);
+      proc.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(stderr || `pg_dump exited with code ${code}`));
+      });
+    });
 
     const settings = await prisma.systemSetting.findMany({ orderBy: { key: "asc" } });
     const payload = settings.reduce((acc: Record<string, string>, s) => {
@@ -263,25 +234,15 @@ export async function inspectBackup(filename: string) {
 
   const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "tribefinder-inspect-"));
   try {
-    // Try to extract db.sqlite (new format). Legacy archives might not have it.
-    try {
-      await runTar(["-xzf", archivePath, "-C", tmpRoot, "db.sqlite"], projectRoot);
-    } catch {
-      // ignore
-    }
-
-    // Try to extract db.sql (PostgreSQL backups)
+    // Extract db.sql (PostgreSQL backups)
     try {
       await runTar(["-xzf", archivePath, "-C", tmpRoot, "db.sql"], projectRoot);
     } catch {
       // ignore
     }
-
-    const sqliteDbPath = path.join(tmpRoot, "db.sqlite");
     const sqlDbPath = path.join(tmpRoot, "db.sql");
-    const hasSqliteDb = await stat(sqliteDbPath).then(() => true).catch(() => false);
     const hasSqlDump = await stat(sqlDbPath).then(() => true).catch(() => false);
-    const hasDb = hasSqliteDb || hasSqlDump;
+    const hasDb = hasSqlDump;
 
     const uploadsList = await runCommand("tar", ["-tzf", archivePath], projectRoot);
     const uploadFiles = uploadsList.stdout
@@ -292,31 +253,6 @@ export async function inspectBackup(filename: string) {
       .filter((p) => p !== "uploads/.gitkeep");
 
     const counts: Record<string, number> = {};
-
-    if (hasSqliteDb) {
-      const q = [
-        "select 'User' as t, count(*) as c from User",
-        "select 'Group' as t, count(*) as c from 'Group'",
-        "select 'Event' as t, count(*) as c from Event",
-        "select 'DanceStyle' as t, count(*) as c from DanceStyle",
-        "select 'UserDanceStyle' as t, count(*) as c from UserDanceStyle",
-        "select 'GalleryImage' as t, count(*) as c from GalleryImage",
-        "select 'SystemSetting' as t, count(*) as c from SystemSetting",
-        "select 'Feedback' as t, count(*) as c from Feedback",
-      ].join(" union all ") + ";";
-
-      const res = await runCommand("sqlite3", [sqliteDbPath, q], projectRoot);
-      res.stdout
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean)
-        .forEach((line) => {
-          const [t, c] = line.split("|");
-          if (!t) return;
-          const n = Number(c);
-          counts[t] = Number.isFinite(n) ? n : 0;
-        });
-    }
 
     return {
       filename,
@@ -368,26 +304,6 @@ async function replaceDirectory(srcDir: string, destDir: string) {
   }
 }
 
-async function replaceFile(srcFile: string, destFile: string) {
-  await mkdir(path.dirname(destFile), { recursive: true });
-  const backupFile = `${destFile}.previous-${Date.now()}`;
-  const hasCurrent = await pathExists(destFile);
-  if (hasCurrent) {
-    await rename(destFile, backupFile);
-  }
-
-  try {
-    await rename(srcFile, destFile);
-  } catch {
-    await cp(srcFile, destFile);
-    await rm(srcFile, { force: true });
-  }
-
-  if (hasCurrent) {
-    await rm(backupFile, { force: true });
-  }
-}
-
 export async function restoreBackup(filename: string) {
   const projectRoot = resolveProjectRoot();
   if (!isSafeBackupFilename(filename)) {
@@ -396,11 +312,7 @@ export async function restoreBackup(filename: string) {
 
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
-
-  const isSqlite = isSqliteDatabaseUrl(databaseUrl);
-  const dbPath = isSqlite ? parseSqlitePathFromDatabaseUrl(databaseUrl, projectRoot) : null;
   const uploadsDir = await resolveUploadsDir(projectRoot);
-  const relDb = dbPath ? path.relative(projectRoot, dbPath) : null;
   const relUploads = path.relative(projectRoot, uploadsDir);
 
   const backupDir = await resolveBackupDir(projectRoot);
@@ -413,8 +325,7 @@ export async function restoreBackup(filename: string) {
   try {
     await runTar(["-xzf", archivePath, "-C", tmpRoot], projectRoot);
 
-    // Preferred (new) layouts: db.sqlite (sqlite) or db.sql (postgres) + uploads/
-    const extractedDbNewSqlite = path.join(tmpRoot, "db.sqlite");
+    // Preferred layout: db.sql + uploads/
     const extractedDbNewPostgres = path.join(tmpRoot, "db.sql");
     const extractedUploadsNew = path.join(tmpRoot, "uploads");
 
@@ -427,27 +338,18 @@ export async function restoreBackup(filename: string) {
     let extractedDb: string | null = null;
     let extractedUploads: string | null = null;
 
-    if (await pathExists(extractedDbNewSqlite)) extractedDb = extractedDbNewSqlite;
-    if (!extractedDb && (await pathExists(extractedDbNewPostgres))) extractedDb = extractedDbNewPostgres;
+    if (await pathExists(extractedDbNewPostgres)) extractedDb = extractedDbNewPostgres;
     if (await pathExists(extractedUploadsNew)) extractedUploads = extractedUploadsNew;
 
     // Fallback (legacy) layout: relative DB path + public/uploads
     if (!extractedDb || !extractedUploads) {
-      const extractedDbLegacy = relDb ? safeResolve(tmpRoot, relDb) : null;
       const extractedUploadsLegacy = safeResolve(tmpRoot, relUploads);
-      extractedDb = extractedDb ?? extractedDbLegacy;
       extractedUploads = extractedUploads ?? extractedUploadsLegacy;
     }
 
-    // Additional fallback for older backups where DB path resolution changed
+    // Additional fallback for older backups
     if (!extractedDb || !(await pathExists(extractedDb))) {
-      const candidates = [
-        ...(dbPath ? [path.join(tmpRoot, path.basename(dbPath))] : []),
-        path.join(tmpRoot, "dev.db"),
-        path.join(tmpRoot, "prisma", "dev.db"),
-        path.join(tmpRoot, "db.sqlite"),
-        path.join(tmpRoot, "db.sql"),
-      ];
+      const candidates = [path.join(tmpRoot, "db.sql")];
       for (const c of candidates) {
         if (await pathExists(c)) {
           extractedDb = c;
@@ -470,7 +372,7 @@ export async function restoreBackup(filename: string) {
     }
 
     const missing: string[] = [];
-    if (!extractedDb || !(await pathExists(extractedDb))) missing.push(isSqlite ? "db.sqlite" : "db.sql");
+    if (!extractedDb || !(await pathExists(extractedDb))) missing.push("db.sql");
     if (!extractedUploads || !(await pathExists(extractedUploads))) missing.push("uploads");
     if (missing.length > 0) {
       const available = await readdir(tmpRoot).catch(() => []);
@@ -479,13 +381,9 @@ export async function restoreBackup(filename: string) {
       );
     }
 
-    if (isSqlite) {
-      await replaceFile(extractedDb!, dbPath!);
-    } else {
-      const sqlPath = extractedDb!;
-      await runPsql(["-c", "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"], projectRoot, databaseUrl);
-      await runPsql(["-f", sqlPath], projectRoot, databaseUrl);
-    }
+    const sqlPath = extractedDb!;
+    await runPsql(["-c", "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"], projectRoot, databaseUrl);
+    await runPsql(["-f", sqlPath], projectRoot, databaseUrl);
     // Restore uploads into the resolved uploads directory (symlink target), not into the symlink itself.
     await replaceDirectory(extractedUploads!, uploadsDir);
 

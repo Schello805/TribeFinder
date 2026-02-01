@@ -32,10 +32,6 @@ cat > .env << 'EOF'
 # Database
 DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schema=public"
 
-# Hinweis (lokale Entwicklung):
-# Für Development im Repo wird standardmäßig `prisma/dev.db` verwendet.
-# Vermeide `file:./dev.db` im Repo-Root, da das leicht zu Verwechslungen führen kann.
-
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="CHANGE_THIS_TO_RANDOM_STRING"
@@ -63,7 +59,7 @@ npm ci --include=optional
 
 ```bash
 npm run db:generate
-npm run db:migrate
+npm run db:push
 ```
 
 ### 6. Production Build erstellen
@@ -186,10 +182,6 @@ npm run build
 ```bash
 # Prüfe .env Datei
 cat .env | grep DATABASE_URL
-# Sollte sein: DATABASE_URL="file:./prod.db"
-
-# Falls falsch, korrigiere:
-echo 'DATABASE_URL="file:./prod.db"' >> .env
 ```
 
 ### Service startet nicht

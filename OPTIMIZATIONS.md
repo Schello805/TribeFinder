@@ -119,7 +119,7 @@ const normalized = sanitizeInput(userInput);
 ---
 
 ### 5. Datenbank-Backup Script
-**Beschreibung:** Automatische Backups der SQLite-Datenbank.
+**Beschreibung:** Automatische Backups der PostgreSQL-Datenbank.
 
 **Verwendung:**
 ```bash

@@ -140,7 +140,7 @@ export async function POST(req: Request) {
         {
           message: "Benutzer nicht in der Datenbank gefunden",
           details:
-            "Deine Session passt vermutlich nicht zur aktuellen SQLite-Datenbank. Bitte einmal abmelden und wieder anmelden (oder DATABASE_URL prüfen).",
+            "Deine Session passt vermutlich nicht zur aktuellen Datenbank. Bitte einmal abmelden und wieder anmelden (oder DATABASE_URL prüfen).",
         },
         { status: 409 }
       );
