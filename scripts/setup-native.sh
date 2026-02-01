@@ -387,6 +387,13 @@ echo "Erstelle Production Build..."
 cd "$INSTALL_DIR"
 sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run build'
 
+# Next.js standalone served static files live under .next/standalone/public
+# Ensure uploads are reachable under /uploads/* in production
+mkdir -p "$INSTALL_DIR/.next/standalone/public"
+rm -rf "$INSTALL_DIR/.next/standalone/public/uploads" || true
+ln -sfn "$UPLOADS_DIR" "$INSTALL_DIR/.next/standalone/public/uploads"
+chown -h tribefinder:tribefinder "$INSTALL_DIR/.next/standalone/public/uploads" || true
+
 # Rechte setzen
 chown -R tribefinder:tribefinder "$INSTALL_DIR"
 
@@ -418,21 +425,13 @@ else
     echo "Prüfe: journalctl -u tribefinder -n 50"
 fi
 echo ""
-
-sed -i "s|NEXTAUTH_URL=.*|NEXTAUTH_URL=\"http://localhost:3000\"|" "$INSTALL_DIR/.env"
-
-echo ""
 echo "=========================================="
 echo -e "${GREEN}Installation abgeschlossen!${NC}"
 echo "=========================================="
 echo ""
 echo "Nächste Schritte:"
-echo "1. Öffne http://localhost:3000 in deinem Browser"
-echo "2. Registriere einen Account"
-echo "3. Mache dich zum Admin:"
-echo "   sudo su - tribefinder"
-echo "   cd /home/tribefinder/TribeFinder"
-echo "   node ./make-admin.js deine@email.de"
+echo "1. Öffne die im Setup gesetzte NEXTAUTH_URL in deinem Browser"
+echo "2. Registriere einen Account (mit DEFAULT_ADMIN_EMAIL wirst du automatisch ADMIN)"
 echo ""
 echo "Nützliche Befehle:"
 echo "  Status:  sudo systemctl status tribefinder"

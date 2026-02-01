@@ -31,12 +31,9 @@ Es installiert automatisch:
 
 ```bash
 # Registriere dich über die Website
-# Öffne: http://localhost:3000
-
-# Mache dich zum Admin
-sudo su - tribefinder
-cd ~/TribeFinder
-node make-admin.js deine@email.de
+# Öffne die im Setup gesetzte URL (Standard: http://localhost:3000)
+# Tipp: Registriere dich mit der im Setup gesetzten DEFAULT_ADMIN_EMAIL,
+# dann wirst du automatisch ADMIN und (falls konfiguriert) auch direkt verifiziert.
 ```
 
 **Fertig!** 🎉

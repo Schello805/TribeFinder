@@ -154,6 +154,13 @@ echo ""
 # Production Build
 echo -e "${YELLOW}[6/7] Erstelle Production Build...${NC}"
 npm run build
+
+# Next.js standalone served static files live under .next/standalone/public
+# Ensure uploads are reachable under /uploads/* in production
+mkdir -p .next/standalone/public
+rm -rf .next/standalone/public/uploads || true
+ln -sfn "$UPLOADS_DIR" .next/standalone/public/uploads
+chown -h tribefinder:tribefinder .next/standalone/public/uploads || true
 echo ""
 
 # Auto-Backup Timer/Service aktualisieren (falls vorhanden)
