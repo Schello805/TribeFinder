@@ -143,6 +143,9 @@ echo "Arbeitsverzeichnis: $(pwd)"
 
 # Upload-Verzeichnis früh anlegen (damit Uploads ab dem ersten Start funktionieren)
 UPLOADS_DIR="/var/www/tribefinder/uploads"
+mkdir -p "/var/www/tribefinder"
+chown -R tribefinder:tribefinder "/var/www/tribefinder"
+chmod 755 "/var/www/tribefinder" || true
 mkdir -p "$UPLOADS_DIR"
 chown -R tribefinder:tribefinder "$UPLOADS_DIR"
 chmod 755 "$UPLOADS_DIR"
