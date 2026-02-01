@@ -5,6 +5,7 @@ import L from "leaflet";
 import { useToast } from "@/components/ui/Toast";
 import "leaflet/dist/leaflet.css";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 interface MapTag {
   name: string;
@@ -236,7 +237,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         });
 
         const organizerName = ((event.organizer || '').trim() || (event.group?.name || '').trim());
-        const flyerUrl = (event.flyer1 || event.flyer2 || '').trim();
+        const flyerUrl = normalizeUploadedImageUrl((event.flyer1 || event.flyer2 || '').trim()) || '';
         
         const marker = L.marker([event.lat, event.lng], { icon: eventIcon })
           .addTo(mapRef.current!)

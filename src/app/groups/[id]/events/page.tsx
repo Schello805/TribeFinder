@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteEventButton from "@/components/events/DeleteEventButton";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 export default async function GroupEventsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -96,7 +97,7 @@ export default async function GroupEventsPage({ params }: { params: Promise<{ id
                     <div className="flex gap-3 mt-1">
                       {event.flyer1 && (
                         <a 
-                          href={event.flyer1} 
+                          href={normalizeUploadedImageUrl(event.flyer1) ?? ""} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
@@ -107,7 +108,7 @@ export default async function GroupEventsPage({ params }: { params: Promise<{ id
                       )}
                       {event.flyer2 && (
                         <a 
-                          href={event.flyer2} 
+                          href={normalizeUploadedImageUrl(event.flyer2) ?? ""} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"

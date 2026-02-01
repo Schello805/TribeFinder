@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 import logger from "@/lib/logger";
 import { notifyUsersAboutNewEvent } from "@/lib/notifications";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 // Rate limiting imports available if needed
 // import { rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 
@@ -102,6 +103,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const validatedData = eventSchema.parse(body);
 
+    const flyer1 = normalizeUploadedImageUrl(validatedData.flyer1) ?? undefined;
+    const flyer2 = normalizeUploadedImageUrl(validatedData.flyer2) ?? undefined;
+
     // Verify group ownership if a group is selected
     if (validatedData.groupId) {
       const group = await prisma.group.findUnique({
@@ -143,8 +147,8 @@ export async function POST(req: Request) {
         address: validatedData.address,
         lat: validatedData.lat,
         lng: validatedData.lng,
-        flyer1: validatedData.flyer1,
-        flyer2: validatedData.flyer2,
+        flyer1,
+        flyer2,
         website: validatedData.website,
         ticketLink: validatedData.ticketLink,
         ticketPrice: validatedData.ticketPrice,

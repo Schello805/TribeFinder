@@ -4,6 +4,7 @@ import { eventSchema } from "@/lib/validations/event";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 export async function GET(
   req: Request,
@@ -61,6 +62,9 @@ export async function PUT(
     const body = await req.json();
     console.log("[api/events/[id]] PUT body keys", { id, keys: Object.keys(body ?? {}) });
     const validatedData = eventSchema.parse(body);
+
+    const flyer1 = normalizeUploadedImageUrl(validatedData.flyer1) ?? undefined;
+    const flyer2 = normalizeUploadedImageUrl(validatedData.flyer2) ?? undefined;
 
     const event = await prisma.event.findUnique({
       where: { id },
@@ -122,8 +126,8 @@ export async function PUT(
         address: validatedData.address,
         lat: validatedData.lat,
         lng: validatedData.lng,
-        flyer1: validatedData.flyer1,
-        flyer2: validatedData.flyer2,
+        flyer1,
+        flyer2,
         website: validatedData.website,
         ticketLink: validatedData.ticketLink,
         ticketPrice: validatedData.ticketPrice,
