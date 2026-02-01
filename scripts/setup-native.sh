@@ -190,9 +190,57 @@ EOF
 fi
 
 if grep -q 'CHANGE_ME' .env; then
-    echo -e "${RED}Fehler: Bitte setze DATABASE_URL in $INSTALL_DIR/.env (PostgreSQL) und starte das Setup danach erneut.${NC}"
-    echo "Beispiel: DATABASE_URL=\"postgresql://tribefinder:passwort@localhost:5432/tribefinder?schema=public\""
-    exit 1
+    echo -e "${YELLOW}PostgreSQL Setup: DATABASE_URL ist noch nicht konfiguriert.${NC}"
+
+    if ! command -v psql >/dev/null 2>&1; then
+        echo -e "${RED}Fehler: psql fehlt. Bitte installiere postgresql-client und starte erneut.${NC}"
+        exit 1
+    fi
+
+    if ! command -v systemctl >/dev/null 2>&1; then
+        echo -e "${RED}Fehler: systemctl nicht gefunden. Dieses Setup erwartet systemd (Ubuntu/Debian).${NC}"
+        exit 1
+    fi
+
+    if ! systemctl status postgresql >/dev/null 2>&1; then
+        echo -e "${YELLOW}Installiere PostgreSQL Server...${NC}"
+        apt update
+        apt install -y postgresql postgresql-contrib
+        systemctl enable --now postgresql
+    fi
+
+    echo
+    read -r -p "PostgreSQL DB Name [tribefinder]: " PG_DB
+    PG_DB="${PG_DB:-tribefinder}"
+
+    read -r -p "PostgreSQL User [tribefinder]: " PG_USER
+    PG_USER="${PG_USER:-tribefinder}"
+
+    echo
+    read -r -s -p "PostgreSQL Passwort für User '$PG_USER': " PG_PASS
+    echo
+    if [ -z "$PG_PASS" ]; then
+        echo -e "${RED}Fehler: Passwort darf nicht leer sein.${NC}"
+        exit 1
+    fi
+
+    echo -e "${YELLOW}Lege DB/User an (idempotent)...${NC}"
+    sudo -u postgres psql -v ON_ERROR_STOP=1 -tAc "SELECT 1 FROM pg_roles WHERE rolname='${PG_USER}'" | grep -q 1 || \
+      sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE USER \"${PG_USER}\" WITH PASSWORD '${PG_PASS}';"
+
+    sudo -u postgres psql -v ON_ERROR_STOP=1 -c "ALTER USER \"${PG_USER}\" WITH PASSWORD '${PG_PASS}';"
+
+    sudo -u postgres psql -v ON_ERROR_STOP=1 -tAc "SELECT 1 FROM pg_database WHERE datname='${PG_DB}'" | grep -q 1 || \
+      sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"${PG_DB}\" OWNER \"${PG_USER}\";"
+
+    sudo -u postgres psql -v ON_ERROR_STOP=1 -c "GRANT ALL PRIVILEGES ON DATABASE \"${PG_DB}\" TO \"${PG_USER}\";"
+
+    PG_URL="postgresql://${PG_USER}:${PG_PASS}@localhost:5432/${PG_DB}?schema=public"
+    sed -i "s|^DATABASE_URL=.*|DATABASE_URL=\"$PG_URL\"|" .env
+    chown tribefinder:tribefinder .env
+    chmod 600 .env
+
+    echo -e "${GREEN}✓ DATABASE_URL gesetzt.${NC}"
 fi
 
 # Dependencies installieren
