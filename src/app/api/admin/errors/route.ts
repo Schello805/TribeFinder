@@ -32,7 +32,14 @@ export async function GET() {
     if (err?.code === "P2021" || err?.code === "P2022") {
       return NextResponse.json({ errors: [], message: "ErrorLog Tabelle fehlt (Migration noch nicht gelaufen?)" });
     }
-    throw e;
+    return NextResponse.json(
+      {
+        errors: [],
+        message: "Fehler konnten nicht geladen werden",
+        details: err?.message || String(e),
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -48,6 +55,13 @@ export async function DELETE() {
     if (err?.code === "P2021" || err?.code === "P2022") {
       return NextResponse.json({ deleted: 0, message: "ErrorLog Tabelle fehlt (Migration noch nicht gelaufen?)" });
     }
-    throw e;
+    return NextResponse.json(
+      {
+        deleted: 0,
+        message: "Löschen fehlgeschlagen",
+        details: err?.message || String(e),
+      },
+      { status: 500 }
+    );
   }
 }

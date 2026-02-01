@@ -70,17 +70,21 @@ export default function AdminErrorsPanel() {
     try {
       const res = await fetch("/api/admin/errors");
       const data = await res.json().catch(() => null);
-      const msg =
-        getStringProp(data, "message") ?? "Fehler konnten nicht geladen werden";
+      const msg = getStringProp(data, "message") ?? "Fehler konnten nicht geladen werden";
+      const details = getStringProp(data, "details");
 
-      if (!res.ok) throw new Error(msg);
+      if (!res.ok) {
+        console.error("/api/admin/errors GET failed", { status: res.status, data });
+        throw new Error(details ? `${msg}: ${details}` : msg);
+      }
 
       const list =
         getArrayProp(data, "errors") ?? [];
 
       setErrors((list as unknown[]).filter(isErrorLogRow));
-      setInfoMessage(msg);
+      setInfoMessage(getStringProp(data, "message") ?? "");
     } catch (e) {
+      console.error("AdminErrorsPanel load failed", e);
       showToast(e instanceof Error ? e.message : "Fehler konnten nicht geladen werden", "error");
     } finally {
       setIsLoading(false);

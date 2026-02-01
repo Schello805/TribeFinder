@@ -23,7 +23,9 @@ function resolveProjectRoot() {
   let dir = process.cwd();
   for (let i = 0; i < 10; i++) {
     try {
-      if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+      const hasPackageJson = fs.existsSync(path.join(dir, "package.json"));
+      const hasPrismaSchema = fs.existsSync(path.join(dir, "prisma", "schema.prisma"));
+      if (hasPackageJson && hasPrismaSchema) return dir;
     } catch {
       // ignore
     }

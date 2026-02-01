@@ -89,12 +89,19 @@ export async function GET() {
   );
 
   checks.push(
-    await runCheck("migrations", "Migrationen/Tables", async () => {
-      const migrations = await prisma.$queryRawUnsafe<{ count: number }[]>(
-        "SELECT COUNT(*) as count FROM _prisma_migrations"
+    await runCheck("schema", "Schema/Tables", async () => {
+      const rows = await prisma.$queryRawUnsafe<{ table_name: string }[]>(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('User','Group','Event','SystemSetting')"
       );
-      const count = migrations?.[0]?.count ?? 0;
-      return { status: "ok", message: `OK (${count} Migrationen)` };
+
+      const present = new Set((rows ?? []).map((r) => String(r.table_name)));
+      const required = ["User", "Group", "Event", "SystemSetting"];
+      const missing = required.filter((t) => !present.has(t));
+      if (missing.length > 0) {
+        throw new Error(`Fehlende Tabellen: ${missing.join(", ")}`);
+      }
+
+      return { status: "ok", message: "OK" };
     })
   );
 

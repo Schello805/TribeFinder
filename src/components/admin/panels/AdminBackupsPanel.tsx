@@ -54,8 +54,12 @@ export default function AdminBackupsPanel() {
   const loadBackups = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/backups");
-      if (!res.ok) throw new Error("Backups konnten nicht geladen werden");
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        const msg = data?.details ? `${data?.message || "Backups konnten nicht geladen werden"}: ${data.details}` : (data?.message || "Backups konnten nicht geladen werden");
+        console.error("/api/admin/backups GET failed", { status: res.status, data });
+        throw new Error(msg);
+      }
       setBackups(Array.isArray(data?.backups) ? data.backups : []);
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Fehler beim Laden der Backups", "error");
@@ -145,7 +149,11 @@ export default function AdminBackupsPanel() {
     try {
       const res = await fetch("/api/admin/backups", { method: "POST" });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+      if (!res.ok) {
+        const msg = data?.details ? `${data?.message || "Backup fehlgeschlagen"}: ${data.details}` : (data?.message || `HTTP ${res.status}`);
+        console.error("/api/admin/backups POST failed", { status: res.status, data });
+        throw new Error(msg);
+      }
       showToast("Backup erstellt", "success");
       await loadBackups();
     } catch (e) {
