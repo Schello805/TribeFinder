@@ -16,31 +16,65 @@ function resolveProjectRoot() {
   return process.cwd();
 }
 
+async function resolveBackupDir() {
+  const envDir = (process.env.BACKUP_DIR || "").trim();
+  const projectRoot = resolveProjectRoot();
+  const candidates = [
+    ...(envDir ? [envDir] : []),
+    "/var/www/tribefinder/backups",
+    path.join(projectRoot, "backups"),
+  ];
+
+  let lastError: unknown = null;
+  for (const dir of candidates) {
+    try {
+      await mkdir(dir, { recursive: true });
+      return dir;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+
+  throw new Error(
+    `Konnte kein Backup-Verzeichnis anlegen. Kandidaten: ${candidates.join(", ")}. ` +
+      (lastError instanceof Error ? lastError.message : String(lastError))
+  );
+}
+
 export async function GET() {
   const session = await requireAdminSession();
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
-  const backupDir = path.join(resolveProjectRoot(), "backups");
-  await mkdir(backupDir, { recursive: true });
+  try {
+    const backupDir = await resolveBackupDir();
 
-  const entries = await readdir(backupDir).catch(() => []);
-  const backups = await Promise.all(
-    entries
-      .filter((f) => f.endsWith(".tar.gz"))
-      .map(async (filename) => {
-        const full = path.join(backupDir, filename);
-        const s = await stat(full);
-        return {
-          filename,
-          size: s.size,
-          createdAt: s.mtimeMs,
-        };
-      })
-  );
+    const entries = await readdir(backupDir).catch(() => []);
+    const backups = await Promise.all(
+      entries
+        .filter((f) => f.endsWith(".tar.gz"))
+        .map(async (filename) => {
+          const full = path.join(backupDir, filename);
+          const s = await stat(full);
+          return {
+            filename,
+            size: s.size,
+            createdAt: s.mtimeMs,
+          };
+        })
+    );
 
-  backups.sort((a, b) => b.createdAt - a.createdAt);
+    backups.sort((a, b) => b.createdAt - a.createdAt);
 
-  return NextResponse.json({ backups });
+    return NextResponse.json({ backups });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: "Backups konnten nicht geladen werden",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST() {

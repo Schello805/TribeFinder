@@ -34,6 +34,30 @@ function resolveProjectRoot() {
   return process.cwd();
 }
 
+async function resolveBackupDir(projectRoot: string) {
+  const envDir = (process.env.BACKUP_DIR || "").trim();
+  const candidates = [
+    ...(envDir ? [envDir] : []),
+    "/var/www/tribefinder/backups",
+    path.join(projectRoot, "backups"),
+  ];
+
+  let lastError: unknown = null;
+  for (const dir of candidates) {
+    try {
+      await mkdir(dir, { recursive: true });
+      return dir;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+
+  throw new Error(
+    `Konnte kein Backup-Verzeichnis anlegen. Kandidaten: ${candidates.join(", ")}. ` +
+      (lastError instanceof Error ? lastError.message : String(lastError))
+  );
+}
+
 async function resolveUploadsDir(projectRoot: string) {
   const uploadsDir = path.join(projectRoot, "public", "uploads");
   try {
@@ -106,8 +130,7 @@ export async function createBackup() {
   const dbPath = isSqlite ? parseSqlitePathFromDatabaseUrl(databaseUrl, projectRoot) : null;
   const uploadsDir = await resolveUploadsDir(projectRoot);
 
-  const backupDir = path.join(projectRoot, "backups");
-  await mkdir(backupDir, { recursive: true });
+  const backupDir = await resolveBackupDir(projectRoot);
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const filename = `tribefinder-backup-${timestamp}.tar.gz`;
@@ -177,19 +200,17 @@ export async function createBackup() {
   };
 }
 
- export async function purgeOldBackups(keepLast?: number, includeUploads?: boolean) {
-   const projectRoot = resolveProjectRoot();
-   const backupDir = path.join(projectRoot, "backups");
-   await mkdir(backupDir, { recursive: true });
+ export async function purgeOldBackups() {
+  const projectRoot = resolveProjectRoot();
+  const backupDir = await resolveBackupDir(projectRoot);
 
-   const effectiveKeepLast =
-     typeof keepLast === "number" && Number.isFinite(keepLast) ? Math.floor(keepLast) : await getBackupRetentionCount();
+  const effectiveKeepLast = await getBackupRetentionCount();
 
-   if (effectiveKeepLast <= 0) {
+  if (effectiveKeepLast <= 0) {
     return { deleted: 0, kept: 0, keepLast: effectiveKeepLast };
   }
 
-   const entries = await readdir(backupDir).catch(() => []);
+  const entries = await readdir(backupDir).catch(() => []);
   const backups = await Promise.all(
     entries
       .filter((f) => f.endsWith(".tar.gz"))
@@ -200,11 +221,10 @@ export async function createBackup() {
       })
   );
 
-  const candidates = includeUploads
-    ? backups
-    : backups.filter((b) => b.filename.startsWith("tribefinder-backup-"));
+  // Purge only backups created by this server (keep uploaded archives intact)
+  const candidates = backups.filter((b) => b.filename.startsWith("tribefinder-backup-"));
 
-   candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
   const toDelete = candidates.slice(effectiveKeepLast);
   for (const b of toDelete) {
     await rm(b.full, { force: true });
@@ -234,7 +254,7 @@ export async function inspectBackup(filename: string) {
     throw new Error("Ungültiger Backup-Dateiname");
   }
 
-  const backupDir = path.join(projectRoot, "backups");
+  const backupDir = await resolveBackupDir(projectRoot);
   const archivePath = path.join(backupDir, filename);
   await stat(archivePath).catch(() => {
     throw new Error("Backup nicht gefunden");
@@ -382,7 +402,7 @@ export async function restoreBackup(filename: string) {
   const relDb = dbPath ? path.relative(projectRoot, dbPath) : null;
   const relUploads = path.relative(projectRoot, uploadsDir);
 
-  const backupDir = path.join(projectRoot, "backups");
+  const backupDir = await resolveBackupDir(projectRoot);
   const archivePath = path.join(backupDir, filename);
   await stat(archivePath).catch(() => {
     throw new Error("Backup nicht gefunden");
