@@ -1,4 +1,4 @@
-import { cp, mkdir, mkdtemp, readdir, rename, rm, stat, writeFile } from "fs/promises";
+import { access, cp, mkdir, mkdtemp, readdir, rename, rm, stat, writeFile } from "fs/promises";
 import { realpath } from "fs/promises";
 import path from "path";
 import { spawn } from "child_process";
@@ -46,6 +46,7 @@ async function resolveBackupDir(projectRoot: string) {
   for (const dir of candidates) {
     try {
       await mkdir(dir, { recursive: true });
+      await access(dir, fs.constants.W_OK | fs.constants.X_OK);
       return dir;
     } catch (e) {
       lastError = e;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { mkdir, readdir, rm, stat } from "fs/promises";
+import { access, mkdir, readdir, rm, stat } from "fs/promises";
 import path from "path";
 import fs from "node:fs";
 import { requireAdminSession } from "@/lib/requireAdmin";
@@ -29,6 +29,7 @@ async function resolveBackupDir() {
   for (const dir of candidates) {
     try {
       await mkdir(dir, { recursive: true });
+      await access(dir, fs.constants.W_OK | fs.constants.X_OK);
       return dir;
     } catch (e) {
       lastError = e;
