@@ -7,7 +7,7 @@ export async function POST() {
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
   try {
-    const result = await purgeOldBackups(undefined, true);
+    const result = await purgeOldBackups();
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     return NextResponse.json(
