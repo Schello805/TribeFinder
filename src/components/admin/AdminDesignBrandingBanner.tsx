@@ -16,6 +16,8 @@ export default function AdminDesignBrandingBanner() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLogoSaving, setIsLogoSaving] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isMaintenanceLoading, setIsMaintenanceLoading] = useState(false);
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
 
   const [brandingLogoUrl, setBrandingLogoUrl] = useState<string>("");
   const [bannerEnabled, setBannerEnabled] = useState<boolean>(false);
@@ -44,6 +46,14 @@ export default function AdminDesignBrandingBanner() {
         setBannerText(text);
         setBannerBg(bg || "#f59e0b");
         setBannerTextColor(textColor || "#ffffff");
+
+        const resMaint = await fetch("/api/admin/maintenance", { cache: "no-store" }).catch(() => null);
+        if (resMaint && resMaint.ok) {
+          const maint = await resMaint.json().catch(() => null);
+          if (!cancelled && maint) {
+            setMaintenanceEnabled(Boolean((maint as { enabled?: unknown }).enabled));
+          }
+        }
       } catch (e) {
         showToast(e instanceof Error ? e.message : "Fehler beim Laden", "error");
       } finally {
@@ -57,6 +67,33 @@ export default function AdminDesignBrandingBanner() {
       cancelled = true;
     };
   }, [showToast]);
+
+  const setMaintenance = async (enabled: boolean) => {
+    setIsMaintenanceLoading(true);
+    try {
+      const res = await fetch("/api/admin/maintenance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      });
+      const data: unknown = await res.json().catch(() => null);
+      const errMsg =
+        getStringProp(data, "message") ||
+        getStringProp(data, "error") ||
+        `HTTP ${res.status}`;
+      if (!res.ok) throw new Error(errMsg);
+      setMaintenanceEnabled(enabled);
+      showToast(
+        getStringProp(data, "message") ||
+          "Gespeichert. Bitte Service neu starten (sudo systemctl restart tribefinder).",
+        "success"
+      );
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Fehler beim Umschalten", "error");
+    } finally {
+      setIsMaintenanceLoading(false);
+    }
+  };
 
   const handleLogoUpload = async (file: File) => {
     setIsLogoSaving(true);
@@ -176,6 +213,30 @@ export default function AdminDesignBrandingBanner() {
 
           <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
             Empfohlen: quadratisches Bild, max. 5MB (PNG/JPG/WebP/GIF). Wird in <code>public/uploads</code> gespeichert.
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-transparent dark:border-gray-700">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Wartungsmodus</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Blockiert Schreibaktionen (POST/PUT/PATCH/DELETE) für Nicht-Admins, Lesen und Suche bleibt möglich.
+          </p>
+        </div>
+        <div className="p-6 space-y-3">
+          <label className="flex items-center justify-between gap-4 text-sm text-gray-700 dark:text-gray-200">
+            <span>Wartungsmodus aktiv</span>
+            <input
+              type="checkbox"
+              checked={maintenanceEnabled}
+              disabled={isMaintenanceLoading}
+              onChange={(e) => void setMaintenance(e.target.checked)}
+              className="h-4 w-4"
+            />
+          </label>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Hinweis: Nach dem Umschalten muss der Service neu gestartet werden (z.B. <code>sudo systemctl restart tribefinder</code>).
           </div>
         </div>
       </div>
