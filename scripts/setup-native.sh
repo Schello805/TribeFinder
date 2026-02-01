@@ -276,7 +276,7 @@ fi
 echo "Initialisiere Datenbank-Schema (Prisma)..."
 cd "$INSTALL_DIR"
 sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:generate'
-sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:migrate'
+sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && ./scripts/db-migrate-safe.sh'
 
 # Default DanceStyles seeden (für Erstinstallation)
 sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:seed-styles'

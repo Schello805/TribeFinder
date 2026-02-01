@@ -33,8 +33,9 @@ if [[ "$DATABASE_URL_RAW" == file:* ]]; then
 fi
 
 if [ -n "$LOCK_PROVIDER" ] && [ "$LOCK_PROVIDER" = "sqlite" ] && [ "$IS_SQLITE_URL" -ne 1 ]; then
-  echo "Prisma provider switch detected (migration_lock.toml=sqlite, DATABASE_URL!=file:). Skipping migrations on startup." >&2
-  echo "Hint: Prepare the Postgres schema/data via pgloader import. After cutover, reset migration history properly." >&2
+  echo "Prisma provider switch detected (migration_lock.toml=sqlite, DATABASE_URL!=file:)." >&2
+  echo "Running db push instead of migrate deploy (fresh Postgres install / provider switch)." >&2
+  npm run db:push -- --accept-data-loss
   exit 0
 fi
 
