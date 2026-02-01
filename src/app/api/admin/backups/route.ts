@@ -21,8 +21,8 @@ async function resolveBackupDir() {
   const projectRoot = resolveProjectRoot();
   const candidates = [
     ...(envDir ? [envDir] : []),
-    "/var/www/tribefinder/backups",
     path.join(projectRoot, "backups"),
+    "/var/www/tribefinder/backups",
   ];
 
   let lastError: unknown = null;
@@ -105,10 +105,18 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ message: "Ungültiger Dateiname" }, { status: 400 });
   }
 
-  const fullPath = path.join(resolveProjectRoot(), "backups", filename);
-  const exists = await stat(fullPath).then(() => true).catch(() => false);
-  if (!exists) return NextResponse.json({ message: "Nicht gefunden" }, { status: 404 });
+  try {
+    const backupDir = await resolveBackupDir();
+    const fullPath = path.join(backupDir, filename);
+    const exists = await stat(fullPath).then(() => true).catch(() => false);
+    if (!exists) return NextResponse.json({ message: "Nicht gefunden" }, { status: 404 });
 
-  await rm(fullPath, { force: true });
-  return NextResponse.json({ ok: true });
+    await rm(fullPath, { force: true });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Löschen fehlgeschlagen", details: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
+  }
 }

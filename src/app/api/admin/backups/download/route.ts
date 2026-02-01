@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import path from "path";
-import { readFile } from "fs/promises";
+import { access, mkdir, readFile } from "fs/promises";
 import fs from "node:fs";
 import { requireAdminSession } from "@/lib/requireAdmin";
 
@@ -15,6 +15,32 @@ function resolveProjectRoot() {
   return process.cwd();
 }
 
+async function resolveBackupDir() {
+  const envDir = (process.env.BACKUP_DIR || "").trim();
+  const projectRoot = resolveProjectRoot();
+  const candidates = [
+    ...(envDir ? [envDir] : []),
+    path.join(projectRoot, "backups"),
+    "/var/www/tribefinder/backups",
+  ];
+
+  let lastError: unknown = null;
+  for (const dir of candidates) {
+    try {
+      await mkdir(dir, { recursive: true });
+      await access(dir, fs.constants.W_OK | fs.constants.X_OK);
+      return dir;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+
+  throw new Error(
+    `Konnte kein Backup-Verzeichnis anlegen. Kandidaten: ${candidates.join(", ")}. ` +
+      (lastError instanceof Error ? lastError.message : String(lastError))
+  );
+}
+
 export async function GET(req: Request) {
   const session = await requireAdminSession();
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
@@ -26,7 +52,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ message: "Ungültiger Dateiname" }, { status: 400 });
   }
 
-  const fullPath = path.join(resolveProjectRoot(), "backups", filename);
+  const backupDir = await resolveBackupDir();
+  const fullPath = path.join(backupDir, filename);
   const data = await readFile(fullPath).catch(() => null);
   if (!data) return NextResponse.json({ message: "Nicht gefunden" }, { status: 404 });
 

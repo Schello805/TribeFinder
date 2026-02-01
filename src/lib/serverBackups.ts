@@ -38,8 +38,8 @@ async function resolveBackupDir(projectRoot: string) {
   const envDir = (process.env.BACKUP_DIR || "").trim();
   const candidates = [
     ...(envDir ? [envDir] : []),
-    "/var/www/tribefinder/backups",
     path.join(projectRoot, "backups"),
+    "/var/www/tribefinder/backups",
   ];
 
   let lastError: unknown = null;
