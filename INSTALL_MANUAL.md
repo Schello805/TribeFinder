@@ -36,12 +36,15 @@ DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schem
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="CHANGE_THIS_TO_RANDOM_STRING"
 
-# Optional: SMTP
+# SMTP (erforderlich für E-Mail-Verifizierung)
 # SMTP_HOST=
 # SMTP_PORT=587
 # SMTP_USER=
 # SMTP_PASS=
 # SMTP_FROM=
+
+# E-Mail-Adresse, die bei der Registrierung automatisch ADMIN wird
+# DEFAULT_ADMIN_EMAIL=
 EOF
 
 # Generiere ein sicheres Secret

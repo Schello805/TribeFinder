@@ -97,7 +97,10 @@ DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schem
 NEXTAUTH_SECRET="GENERIERE_EIN_LANGES_ZUFÄLLIGES_SECRET_HIER"
 NEXTAUTH_URL="http://localhost:3000"
 
-# SMTP (optional, kann später im Admin-Bereich konfiguriert werden)
+# E-Mail-Adresse, die bei der Registrierung automatisch ADMIN wird
+DEFAULT_ADMIN_EMAIL="admin@example.com"
+
+# SMTP (erforderlich für E-Mail-Verifizierung; kann später im Admin-Bereich geändert werden)
 SMTP_HOST=""
 SMTP_PORT=""
 SMTP_USER=""
@@ -220,10 +223,7 @@ cd ~/TribeFinder
 npm run db:studio
 ```
 
-Oder via Script:
-```bash
-node make-admin.js deine@email.de
-```
+Registriere dich mit der im Setup gesetzten `DEFAULT_ADMIN_EMAIL` (diese wird automatisch `ADMIN`).
 
 ## 9. Wartung & Updates
 

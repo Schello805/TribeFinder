@@ -40,8 +40,16 @@ export async function POST(req: Request) {
     const verificationToken = uuidv4();
     const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    const userCount = await prisma.user.count();
-    const role = userCount === 0 ? "ADMIN" : "USER";
+    const defaultAdminEmail = (process.env.DEFAULT_ADMIN_EMAIL || "").trim().toLowerCase();
+    const requestedEmail = email.trim().toLowerCase();
+
+    let role: "ADMIN" | "USER" = "USER";
+    if (defaultAdminEmail) {
+      role = requestedEmail === defaultAdminEmail ? "ADMIN" : "USER";
+    } else {
+      const userCount = await prisma.user.count();
+      role = userCount === 0 ? "ADMIN" : "USER";
+    }
 
     const user = await prisma.user.create({
       data: {

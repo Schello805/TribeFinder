@@ -189,6 +189,84 @@ EOF
     echo -e "${YELLOW}Hinweis: Du kannst später NEXTAUTH_URL und SMTP in /home/tribefinder/TribeFinder/.env anpassen${NC}"
 fi
 
+set_env_var() {
+    local key="$1"
+    local value="$2"
+    if grep -qE "^${key}=" .env; then
+        sed -i "s|^${key}=.*|${key}=\"${value}\"|" .env
+    else
+        echo "${key}=\"${value}\"" >> .env
+    fi
+}
+
+get_env_var() {
+    local key="$1"
+    grep -E "^${key}=" .env | head -n 1 | sed -E 's/^[^=]+=//; s/^\"//; s/\"$//'
+}
+
+ADMIN_EMAIL_CURRENT="$(get_env_var DEFAULT_ADMIN_EMAIL)"
+if [ -z "${ADMIN_EMAIL_CURRENT}" ]; then
+    echo
+    read -r -p "Admin E-Mail (wird beim Registrieren automatisch ADMIN) : " DEFAULT_ADMIN_EMAIL
+    if [ -z "${DEFAULT_ADMIN_EMAIL}" ] || ! echo "${DEFAULT_ADMIN_EMAIL}" | grep -q "@"; then
+        echo -e "${RED}Fehler: Bitte eine gültige E-Mail-Adresse angeben.${NC}"
+        exit 1
+    fi
+    set_env_var DEFAULT_ADMIN_EMAIL "${DEFAULT_ADMIN_EMAIL}"
+fi
+
+SMTP_HOST_CURRENT="$(get_env_var SMTP_HOST)"
+SMTP_USER_CURRENT="$(get_env_var SMTP_USER)"
+SMTP_PASSWORD_CURRENT="$(get_env_var SMTP_PASSWORD)"
+
+if [ -z "${SMTP_HOST_CURRENT}" ] || [ -z "${SMTP_USER_CURRENT}" ] || [ -z "${SMTP_PASSWORD_CURRENT}" ]; then
+    echo
+    echo -e "${YELLOW}SMTP Setup (erforderlich für E-Mail-Bestätigung)${NC}"
+
+    read -r -p "SMTP Host: " SMTP_HOST
+    if [ -z "${SMTP_HOST}" ]; then
+        echo -e "${RED}Fehler: SMTP Host darf nicht leer sein.${NC}"
+        exit 1
+    fi
+
+    read -r -p "SMTP Port [587]: " SMTP_PORT
+    SMTP_PORT="${SMTP_PORT:-587}"
+
+    read -r -p "SMTP User: " SMTP_USER
+    if [ -z "${SMTP_USER}" ]; then
+        echo -e "${RED}Fehler: SMTP User darf nicht leer sein.${NC}"
+        exit 1
+    fi
+
+    read -r -s -p "SMTP Passwort: " SMTP_PASSWORD
+    echo
+    if [ -z "${SMTP_PASSWORD}" ]; then
+        echo -e "${RED}Fehler: SMTP Passwort darf nicht leer sein.${NC}"
+        exit 1
+    fi
+
+    read -r -p "SMTP Secure (true/false) [false]: " SMTP_SECURE
+    SMTP_SECURE="${SMTP_SECURE:-false}"
+    if [ "${SMTP_SECURE}" != "true" ] && [ "${SMTP_SECURE}" != "false" ]; then
+        echo -e "${RED}Fehler: SMTP_SECURE muss true oder false sein.${NC}"
+        exit 1
+    fi
+
+    read -r -p "SMTP From [\"TribeFinder\" <noreply@tribefinder.de>]: " SMTP_FROM
+    SMTP_FROM="${SMTP_FROM:-\"TribeFinder\" <noreply@tribefinder.de>}"
+
+    set_env_var SMTP_HOST "${SMTP_HOST}"
+    set_env_var SMTP_PORT "${SMTP_PORT}"
+    set_env_var SMTP_USER "${SMTP_USER}"
+    set_env_var SMTP_PASSWORD "${SMTP_PASSWORD}"
+    set_env_var SMTP_SECURE "${SMTP_SECURE}"
+    set_env_var SMTP_FROM "${SMTP_FROM}"
+
+    chown tribefinder:tribefinder .env
+    chmod 600 .env
+    echo -e "${GREEN}✓ SMTP konfiguriert.${NC}"
+fi
+
 if grep -q 'CHANGE_ME' .env; then
     echo -e "${YELLOW}PostgreSQL Setup: DATABASE_URL ist noch nicht konfiguriert.${NC}"
 

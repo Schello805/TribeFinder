@@ -109,11 +109,14 @@ DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schem
 NEXTAUTH_SECRET="dein-geheimes-random-secret"
 NEXTAUTH_URL="http://localhost:3000"
 
+# E-Mail-Adresse, die bei der Registrierung automatisch ADMIN wird
+DEFAULT_ADMIN_EMAIL="admin@example.com"
+
 # Optional (SEO): Wird für Canonical-URL, OpenGraph und die Generierung von robots.txt/sitemap.xml verwendet.
 # Fallback ist NEXTAUTH_URL.
 SITE_URL="http://localhost:3000"
 
-# Optional: SMTP (wird durch Admin-Einstellungen überschrieben)
+# SMTP (erforderlich für E-Mail-Verifizierung; kann später im Admin-Bereich geändert werden)
 SMTP_HOST=""
 SMTP_PORT=""
 SMTP_USER=""
@@ -137,7 +140,7 @@ Der erste registrierte Benutzer sollte manuell in der Datenbank zum ADMIN beför
 ```bash
 npm run db:studio
 ```
-Ändere die Rolle des Users in der Tabelle `User` auf `ADMIN`.
+Registriere dich mit der im Setup gesetzten `DEFAULT_ADMIN_EMAIL` (diese wird automatisch `ADMIN`).
 
 Im Admin-Bereich (`/admin`) können konfiguriert werden:
 - **SMTP-Server**: Für den Versand von E-Mails.
