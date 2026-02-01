@@ -29,12 +29,20 @@ export default function DatenschutzPage() {
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">2. Hosting</h2>
           <p>
-            Wir hosten die Inhalte unserer Website bei einem Anbieter in Deutschland.
+            Diese Website wird privat betrieben und auf einem Server in Deutschland gehostet.
           </p>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">3. Allgemeine Hinweise und Pflichtinformationen</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">3. Öffentliche Inhalte</h2>
+          <p>
+            Inhalte wie Gruppenprofile, Events und Beiträge können öffentlich sichtbar sein und von Suchmaschinen indexiert werden. Bitte veröffentliche keine personenbezogenen Daten,
+            die nicht öffentlich werden sollen.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">4. Allgemeine Hinweise und Pflichtinformationen</h2>
           <h3 className="font-medium text-gray-900 mt-4">Datenschutz</h3>
           <p>
             Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.
@@ -42,7 +50,7 @@ export default function DatenschutzPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">4. Datenerfassung auf dieser Website</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">5. Datenerfassung auf dieser Website</h2>
           <h3 className="font-medium text-gray-900 mt-4">Cookies</h3>
           <p>
             Unsere Internetseiten verwenden so genannte „Cookies“. Cookies sind kleine Textdateien und richten auf Ihrem Endgerät keinen Schaden an. Sie werden entweder vorübergehend für die Dauer einer Sitzung (Session-Cookies) oder dauerhaft (permanente Cookies) auf Ihrem Endgerät gespeichert. Session-Cookies werden nach Ende Ihres Besuchs automatisch gelöscht.
@@ -50,7 +58,7 @@ export default function DatenschutzPage() {
           
           <h3 className="font-medium text-gray-900 mt-4">Matomo (ehemals Piwik)</h3>
           <p>
-            Diese Website benutzt den Open Source Webanalysedienst Matomo. Matomo verwendet Technologien, die die seitenübergreifende Wiedererkennung des Nutzers zur Analyse des Nutzerverhaltens ermöglichen (z. B. Cookies oder Device-Fingerprinting). Die durch Matomo erhobenen Informationen über die Benutzung dieser Website werden auf unserem Server gespeichert. Die IP-Adresse wird vor der Speicherung anonymisiert.
+            Diese Website benutzt den Open Source Webanalysedienst Matomo. Matomo wird von uns selbst betrieben (Self-Hosting). Die durch Matomo erhobenen Informationen über die Benutzung dieser Website werden auf unserem Server gespeichert. Die IP-Adresse wird vor der Speicherung anonymisiert.
           </p>
           <p className="mt-2">
             Mit Hilfe von Matomo sind wir in der Lage, Daten über die Nutzung unserer Website durch die Websitebesucher zu erfassen und zu analysieren. Hierdurch können wir u. a. herausfinden, wann welche Seitenaufrufe getätigt wurden und aus welcher Region sie kommen. Außerdem erfassen wir verschiedene Logdateien (z. B. IP-Adresse, Referrer, verwendete Browser und Betriebssysteme) und können messen, ob unsere Websitebesucher bestimmte Aktionen durchführen (z. B. Klicks).
@@ -61,7 +69,25 @@ export default function DatenschutzPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">5. Plugins und Tools</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">6. Registrierung und Nutzerkonto</h2>
+          <p>
+            Wenn du ein Nutzerkonto erstellst, verarbeiten wir die von dir angegebenen Daten (z. B. Name, E-Mail-Adresse und Passwort in gehashter Form), um dein Konto zu erstellen,
+            dich zu authentifizieren und dir die Nutzung der Plattform zu ermöglichen.
+          </p>
+          <p className="mt-2">
+            Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertrag/vertragsähnliches Nutzungsverhältnis).
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">7. E-Mails</h2>
+          <p>
+            Für bestimmte Funktionen (z. B. Passwort-Reset) versenden wir E-Mails an die von dir angegebene Adresse. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">8. Plugins und Tools</h2>
           <h3 className="font-medium text-gray-900 mt-4">OpenStreetMap</h3>
           <p>
             Wir nutzen den Kartendienst von OpenStreetMap (OSM). Anbieterin ist die Open-Street-Map Foundation (OSMF), 132 Maney Hill Road, Sutton Coldfield, West Midlands, B72 1JU, United Kingdom.
@@ -74,6 +100,30 @@ export default function DatenschutzPage() {
           </p>
           <p className="mt-2">
             Die Nutzung von OpenStreetMap erfolgt im Interesse einer ansprechenden Darstellung unserer Online-Angebote und einer leichten Auffindbarkeit der von uns auf der Website angegebenen Orte. Dies stellt ein berechtigtes Interesse im Sinne von Art. 6 Abs. 1 lit. f DSGVO dar.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">9. Server-Fehlerprotokollierung</h2>
+          <p>
+            Zur Sicherstellung der technischen Stabilität und zur Fehleranalyse protokollieren wir Serverfehler (z. B. Statuscode, betroffene Route, Fehlermeldung und technische Details). Die Protokollierung erfolgt grundsätzlich in pseudonymisierter Form; offensichtliche personenbezogene Daten (z. B. E-Mail-Adressen oder IP-Adressen) werden vor der Speicherung bestmöglich entfernt.
+          </p>
+          <p className="mt-2">
+            Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der sicheren Bereitstellung des Dienstes).
+          </p>
+          <p className="mt-2">
+            Die Fehlerprotokolle werden nur so lange gespeichert, wie dies für die Fehleranalyse erforderlich ist, und können durch Administratoren gelöscht werden.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">10. Deine Rechte</h2>
+          <p>
+            Du hast im Rahmen der geltenden gesetzlichen Bestimmungen jederzeit das Recht auf unentgeltliche Auskunft über deine gespeicherten personenbezogenen Daten, deren Herkunft
+            und Empfänger und den Zweck der Datenverarbeitung und ggf. ein Recht auf Berichtigung, Sperrung oder Löschung dieser Daten.
+          </p>
+          <p className="mt-2">
+            Hierzu sowie zu weiteren Fragen zum Thema Datenschutz kannst du dich jederzeit an die im Impressum angegebenen Kontaktdaten wenden.
           </p>
         </section>
       </div>

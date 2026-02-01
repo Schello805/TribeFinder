@@ -22,7 +22,7 @@ const getTransporter = async () => {
   const user = config.SMTP_USER || process.env.SMTP_USER;
   const pass = config.SMTP_PASSWORD || process.env.SMTP_PASSWORD;
   const secure = (config.SMTP_SECURE || process.env.SMTP_SECURE) === 'true';
-  const from = config.SMTP_FROM || process.env.SMTP_FROM || '"Dance Connect" <noreply@dance-connect.com>';
+  const from = config.SMTP_FROM || process.env.SMTP_FROM || '"TribeFinder" <noreply@tribefinder.de>';
 
   if (!host || !user || !pass) {
     throw new Error('SMTP Konfiguration fehlt (DB oder ENV)');
@@ -101,6 +101,10 @@ export const emailTemplate = async (content: string, preheader?: string) => {
                 <tr>
                   <td style="color: #9ca3af; font-size: 12px; text-align: center;">
                     <p style="margin: 0 0 8px 0;">Diese E-Mail wurde automatisch von TribeFinder versendet.</p>
+                    <p style="margin: 0 0 8px 0;">
+                      Du kannst diese Benachrichtigungen im Profil (Mein Bereich) unter <strong>Benachrichtigungen</strong> deaktivieren:
+                      <a href="${process.env.NEXTAUTH_URL}/dashboard/notifications" style="color: #6366f1; text-decoration: none;">Einstellungen öffnen</a>
+                    </p>
                     <p style="margin: 0;">
                       <a href="${process.env.NEXTAUTH_URL}" style="color: #6366f1; text-decoration: none;">TribeFinder besuchen</a>
                     </p>

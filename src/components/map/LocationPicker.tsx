@@ -27,6 +27,24 @@ export default function LocationPicker({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  const onLocationSelectRef = useRef(onLocationSelect);
+
+  const markerIconRef = useRef(
+    L.divIcon({
+      className: "",
+      html: '<div class="tf-location-marker"></div>',
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
+    })
+  );
+
+  const markerOptionsRef = useRef<L.MarkerOptions>({
+    zIndexOffset: 0,
+  });
+
+  useEffect(() => {
+    onLocationSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
 
   // Initialize map
   useEffect(() => {
@@ -41,8 +59,20 @@ export default function LocationPicker({
 
     mapRef.current.on("click", (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      onLocationSelect(lat, lng);
+
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      } else if (mapRef.current) {
+        markerRef.current = L.marker([lat, lng], { ...markerOptionsRef.current, icon: markerIconRef.current }).addTo(mapRef.current);
+      }
+
+      onLocationSelectRef.current(lat, lng);
     });
+
+    if (Number.isFinite(initialLat) && Number.isFinite(initialLng)) {
+      markerRef.current = L.marker([initialLat, initialLng], { ...markerOptionsRef.current, icon: markerIconRef.current }).addTo(mapRef.current);
+      mapRef.current.setView([initialLat, initialLng], 13);
+    }
     
     // Cleanup
     return () => {
@@ -51,16 +81,18 @@ export default function LocationPicker({
         mapRef.current = null;
       }
     };
-  }, [initialLat, initialLng, onLocationSelect]);
+  }, [initialLat, initialLng]);
 
   // React to coordinate changes
   useEffect(() => {
     if (!mapRef.current) return;
 
+    if (!Number.isFinite(initialLat) || !Number.isFinite(initialLng)) return;
+
     if (markerRef.current) {
         markerRef.current.setLatLng([initialLat, initialLng]);
     } else {
-        markerRef.current = L.marker([initialLat, initialLng]).addTo(mapRef.current);
+        markerRef.current = L.marker([initialLat, initialLng], { ...markerOptionsRef.current, icon: markerIconRef.current }).addTo(mapRef.current);
     }
     
     mapRef.current.setView([initialLat, initialLng], 13);

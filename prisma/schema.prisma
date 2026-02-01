@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -15,9 +15,12 @@ model User {
   name          String?
   email         String    @unique
   emailVerified DateTime?
+  verificationToken       String?
+  verificationTokenExpiry DateTime?
   password      String
   image         String?
   role          String    @default("USER") // "USER" or "ADMIN"
+  isBlocked     Boolean   @default(false)
   
   // Profile Fields
   firstName     String?
@@ -38,6 +41,7 @@ model User {
   
   // Notification Preferences
   emailNotifications Boolean @default(true)
+  notifyInboxMessages Boolean @default(false)
   
   // Location-based Notification Preferences
   notifyNewGroups    Boolean @default(false)
@@ -66,9 +70,14 @@ model User {
   // Dance Styles
   danceStyles         UserDanceStyle[]
 
-  // Messages
+  // Private Messages
   sentMessages        Message[]     @relation("MessageSender")
   receivedMessages    Message[]     @relation("MessageReceiver")
+
+  // Group contact inbox
+  createdGroupThreads  GroupThread[]        @relation("GroupThreadCreator")
+  groupThreadMessages  GroupThreadMessage[] @relation("GroupThreadMessageAuthor")
+  groupThreadReadStates GroupThreadReadState[]
 
   // Event Registrations
   eventRegistrations  EventRegistration[]
@@ -112,6 +121,10 @@ model Group {
   website       String?
   contactEmail  String?
   image         String?
+  headerImage   String?
+  headerImageFocusY Int?
+  headerGradientFrom String?
+  headerGradientTo String?
   videoUrl      String?   // YouTube Link
   size          String    @default("SMALL") // SOLO, DUO, TRIO, SMALL (<10), LARGE (>10)
   
@@ -132,6 +145,9 @@ model Group {
   
   // Gallery (max 5 images)
   galleryImages GalleryImage[]
+
+  // Contact inbox
+  threads       GroupThread[]
   
   // Favorites
   favoritedBy   FavoriteGroup[]
@@ -263,6 +279,27 @@ model Feedback {
   @@index([archivedAt])
 }
 
+model ErrorLog {
+  id       String   @id @default(cuid())
+  fingerprint String @unique
+
+  route    String?
+  status   Int?
+
+  message  String
+  details  String?
+  stack    String?
+
+  count    Int      @default(1)
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  lastEmailSentAt DateTime?
+
+  @@index([lastSeenAt])
+  @@index([status])
+}
+
 // ===== NEW FEATURES =====
 
 // Gallery Images for Groups (max 5 per group)
@@ -337,4 +374,63 @@ model Message {
   
   @@index([senderId])
   @@index([receiverId])
+}
+
+// Group Contact Threads (Inbox)
+model GroupThread {
+  id              String   @id @default(cuid())
+
+  groupId         String
+  group           Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  createdByUserId String
+  createdBy       User     @relation("GroupThreadCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  subject         String?
+  status          String   @default("OPEN") // OPEN, CLOSED
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lastMessageAt   DateTime @default(now())
+
+  messages        GroupThreadMessage[]
+  readStates      GroupThreadReadState[]
+
+  @@index([groupId])
+  @@index([createdByUserId])
+  @@index([lastMessageAt])
+}
+
+model GroupThreadMessage {
+  id        String   @id @default(cuid())
+
+  threadId  String
+  thread    GroupThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  authorId  String
+  author    User     @relation("GroupThreadMessageAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([threadId])
+  @@index([authorId])
+}
+
+model GroupThreadReadState {
+  id         String   @id @default(cuid())
+
+  threadId   String
+  thread     GroupThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lastReadAt DateTime @default(now())
+  archivedAt DateTime?
+  updatedAt  DateTime @updatedAt
+
+  @@unique([threadId, userId])
+  @@index([userId])
+  @@index([threadId])
 }

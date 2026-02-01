@@ -1,18 +1,30 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/components/ui/Toast";
+import { useSearchParams } from "next/navigation";
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const verified = searchParams.get("verified");
+    if (verified === "true") {
+      const msg = "E-Mail-Adresse bestätigt. Du kannst dich jetzt anmelden.";
+      setSuccess(msg);
+      showToast(msg, "success");
+    }
+  }, [searchParams, showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +39,10 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        const errorMsg = "Ungültige E-Mail oder Passwort";
+        const errorMsg =
+          result.error === "EMAIL_NOT_VERIFIED"
+            ? "Bitte bestätige zuerst deine E-Mail-Adresse (Link in deiner E-Mail)."
+            : "Ungültige E-Mail oder Passwort";
         setError(errorMsg);
         showToast(errorMsg, "error");
       } else {
@@ -48,6 +63,12 @@ export default function SignInPage() {
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
       <h1 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">Anmelden</h1>
+
+      {success && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+          <span className="block sm:inline">{success}</span>
+        </div>
+      )}
       
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">

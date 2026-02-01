@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { groupSchema } from "@/lib/validations/group";
+import { groupCreateSchema } from "@/lib/validations/group";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 import { notifyAdminsAboutNewTags, notifyUsersAboutNewGroup } from "@/lib/notifications";
 import logger from "@/lib/logger";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
+import { revalidatePath } from "next/cache";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
@@ -14,6 +15,13 @@ const MAX_PAGE_SIZE = 100;
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("query");
+  const tag = searchParams.get("tag");
+  const latRaw = searchParams.get("lat");
+  const lngRaw = searchParams.get("lng");
+  const radiusRaw = searchParams.get("radius");
+  const lat = latRaw ? Number(latRaw) : NaN;
+  const lng = lngRaw ? Number(lngRaw) : NaN;
+  const radiusKm = radiusRaw ? Number(radiusRaw) : NaN;
   
   // Pagination params
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
@@ -23,7 +31,15 @@ export async function GET(req: Request) {
   );
   const skip = (page - 1) * limit;
   
-  const whereClause: { OR?: Array<{ name?: { contains: string }; description?: { contains: string }; tags?: { some: { name: { contains: string } } } }> } = {};
+  const whereClause: {
+    OR?: Array<{
+      name?: { contains: string };
+      description?: { contains: string };
+      tags?: { some: { name: { contains: string } } };
+    }>;
+    tags?: { some: { name: { equals: string } } };
+    location?: { lat: { gte: number; lte: number }; lng: { gte: number; lte: number } };
+  } = {};
   
   if (query) {
     whereClause.OR = [
@@ -31,6 +47,21 @@ export async function GET(req: Request) {
       { description: { contains: query } },
       { tags: { some: { name: { contains: query } } } }
     ];
+  }
+
+  if (tag) {
+    whereClause.tags = { some: { name: { equals: tag } } };
+  }
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    const r = Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : 50;
+    const latDelta = r / 111;
+    const lngDelta = r / (111 * Math.cos((lat * Math.PI) / 180) || 1);
+
+    whereClause.location = {
+      lat: { gte: lat - latDelta, lte: lat + latDelta },
+      lng: { gte: lng - lngDelta, lte: lng + lngDelta },
+    };
   }
 
   try {
@@ -67,6 +98,18 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
+    if (error && typeof error === "object" && "name" in error && (error as { name?: string }).name === "PrismaClientRustPanicError") {
+      return NextResponse.json({
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+          hasMore: false,
+        },
+      });
+    }
     logger.error({ error }, "Error fetching groups");
     return NextResponse.json({ message: "Fehler beim Laden der Gruppen" }, { status: 500 });
   }
@@ -106,7 +149,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     logger.debug({ body }, "POST /api/groups - Received body");
 
-    const validatedData = groupSchema.parse(body);
+    const validatedData = groupCreateSchema.parse(body);
     logger.debug({ validatedData }, "POST /api/groups - Validated data");
 
     // Prüfen auf neue Tags für Benachrichtigung
@@ -130,6 +173,10 @@ export async function POST(req: Request) {
         videoUrl: validatedData.videoUrl,
         size: validatedData.size,
         image: validatedData.image,
+        headerImage: validatedData.headerImage,
+        headerImageFocusY: validatedData.headerImageFocusY,
+        headerGradientFrom: validatedData.headerGradientFrom,
+        headerGradientTo: validatedData.headerGradientTo,
         
         trainingTime: validatedData.trainingTime,
         performances: validatedData.performances || false,
@@ -174,8 +221,16 @@ export async function POST(req: Request) {
         .catch(err => logger.error({ err }, "New group notification error"));
     }
 
+    revalidatePath("/map");
+
     return NextResponse.json(group, { status: 201 });
   } catch (error) {
+    if (error && typeof error === "object" && "name" in error && (error as { name?: string }).name === "PrismaClientRustPanicError") {
+      return NextResponse.json(
+        { message: "Datenbankfehler (Prisma Engine)" },
+        { status: 503 }
+      );
+    }
     if (error instanceof z.ZodError) {
       logger.warn({ errors: error.issues }, "POST /api/groups - Validation error");
       return NextResponse.json({ message: "Ungültige Daten", errors: error.issues }, { status: 400 });

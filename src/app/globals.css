@@ -137,3 +137,42 @@ html.dark body ::placeholder {
   background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
   background-size: 200% 100%;
 }
+
+/* Leaflet marker icons can break due to global/tailwind img rules (e.g. max-width: 100%). */
+.leaflet-container img {
+  max-width: none !important;
+}
+
+.leaflet-container .leaflet-marker-icon,
+.leaflet-container .leaflet-marker-shadow {
+  max-width: none !important;
+}
+
+.leaflet-container .leaflet-tile-pane {
+  z-index: 10;
+}
+
+.leaflet-container .leaflet-overlay-pane {
+  z-index: 20;
+}
+
+.leaflet-container .leaflet-marker-pane {
+  z-index: 30;
+}
+
+.leaflet-container .leaflet-popup-pane {
+  z-index: 40;
+}
+
+.leaflet-container .leaflet-control {
+  z-index: 45;
+}
+
+.tf-location-marker {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #2563eb;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}

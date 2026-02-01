@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 interface UserProfile {
   firstName?: string | null;
@@ -22,8 +23,10 @@ export default function ProfileForm() {
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [passwordForm, setPasswordForm] = useState({ password: "", confirmPassword: "" });
   
   const [formData, setFormData] = useState<UserProfile>({
     firstName: "",
@@ -40,18 +43,28 @@ export default function ProfileForm() {
   const fetchProfile = useCallback(async () => {
     try {
       const res = await fetch("/api/user/profile");
-      if (!res.ok) throw new Error("Fehler beim Laden des Profils");
+      if (res.status === 401) {
+        router.push("/auth/signin");
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.message || data?.error || "Fehler beim Laden des Profils");
+      }
       const data = await res.json();
-      setFormData(data);
+      setFormData({
+        ...data,
+        image: normalizeUploadedImageUrl(data?.image) ?? "",
+      });
     } catch (err) {
       console.error(err);
-      const errorMsg = "Profil konnte nicht geladen werden.";
+      const errorMsg = err instanceof Error ? err.message : "Profil konnte nicht geladen werden.";
       setError(errorMsg);
       showToast(errorMsg, "error");
     } finally {
       setIsLoading(false);
     }
-  }, [showToast]);
+  }, [router, showToast]);
 
   useEffect(() => {
     fetchProfile();
@@ -60,6 +73,45 @@ export default function ProfileForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsChangingPassword(true);
+
+    if (passwordForm.password.length < 8) {
+      showToast("Passwort muss mindestens 8 Zeichen lang sein", "error");
+      setIsChangingPassword(false);
+      return;
+    }
+
+    if (passwordForm.password !== passwordForm.confirmPassword) {
+      showToast("Passwörter stimmen nicht überein", "error");
+      setIsChangingPassword(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/user/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: passwordForm.password }),
+      });
+
+      const data = (await res.json().catch(() => null)) as { message?: string } | null;
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Passwort ändern fehlgeschlagen");
+      }
+
+      showToast(data?.message || "Passwort erfolgreich geändert", "success");
+      setPasswordForm({ password: "", confirmPassword: "" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Passwort ändern fehlgeschlagen";
+      showToast(msg, "error");
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +131,7 @@ export default function ProfileForm() {
       if (!res.ok) throw new Error("Upload fehlgeschlagen");
 
       const data = await res.json();
-      setFormData((prev) => ({ ...prev, image: data.url }));
+      setFormData((prev) => ({ ...prev, image: normalizeUploadedImageUrl(data.url) ?? "" }));
     } catch (err) {
       console.error(err);
       const errorMsg = "Fehler beim Bild-Upload";
@@ -124,7 +176,8 @@ export default function ProfileForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+    <div className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
       {error && (
         <div className="bg-red-50 text-red-600 p-3 rounded-md border border-red-200 text-sm">
           {error}
@@ -219,7 +272,7 @@ export default function ProfileForm() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       className="h-24 w-24 object-cover rounded-full border border-gray-200 dark:border-gray-600"
-                      src={formData.image}
+                      src={normalizeUploadedImageUrl(formData.image) ?? ""}
                       alt="Profilbild"
                     />
                   </>
@@ -360,6 +413,62 @@ export default function ProfileForm() {
           {isSaving ? "Speichere..." : "Speichern"}
         </button>
       </div>
-    </form>
+      </form>
+
+      <form onSubmit={handlePasswordChange} className="space-y-4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div>
+          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Passwort ändern</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Setze ein neues Passwort für dein Konto.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
+          <div>
+            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Neues Passwort
+            </label>
+            <div className="mt-1">
+              <input
+                id="newPassword"
+                type="password"
+                value={passwordForm.password}
+                onChange={(e) => setPasswordForm((p) => ({ ...p, password: e.target.value }))}
+                minLength={8}
+                required
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Neues Passwort bestätigen
+            </label>
+            <div className="mt-1">
+              <input
+                id="confirmNewPassword"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                minLength={8}
+                required
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            disabled={isChangingPassword}
+            className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {isChangingPassword ? "Speichere..." : "Passwort ändern"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

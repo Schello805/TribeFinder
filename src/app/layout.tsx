@@ -5,6 +5,7 @@ import AuthProvider from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import Navbar from "@/components/layout/Navbar";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
@@ -13,6 +14,8 @@ import MatomoTracker from "@/components/analytics/MatomoTracker";
 import ForceThemeStyles from "@/components/layout/ForceThemeStyles";
 import Image from "next/image";
 import FeedbackWidget from "@/components/feedback/FeedbackWidget";
+import { unstable_cache } from "next/cache";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,16 +26,65 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export const metadata: Metadata = {
-  title: "TribeFinder",
-  description: "Finde und verwalte deine Tanzgruppe",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "TribeFinder",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const baseUrl = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+
+  let brandingLogoUrl = "";
+  try {
+    const setting = await prisma.systemSetting.findUnique({
+      where: { key: "BRANDING_LOGO_URL" },
+      select: { value: true },
+    });
+    brandingLogoUrl = normalizeUploadedImageUrl(setting?.value) ?? "";
+  } catch {
+    brandingLogoUrl = "";
+  }
+
+  const appleIcon = brandingLogoUrl || undefined;
+  const socialImageUrl = brandingLogoUrl || "/icons/icon.svg";
+
+  return {
+    metadataBase: new URL(baseUrl),
+    title: {
+      default: "TribeFinder",
+      template: "%s | TribeFinder",
+    },
+    description:
+      "Finde Tanzgruppen, Workshops und News zu Tribal Style Dance und Bauchtanz auf Tribefinder.de. Deine Online-Plattform für den Austausch und die Vernetzung innerhalb der deutschsprachigen Tanzszene.",
+    alternates: {
+      canonical: baseUrl,
+    },
+    openGraph: {
+      type: "website",
+      locale: "de_DE",
+      url: baseUrl,
+      siteName: "TribeFinder",
+      title: "TribeFinder",
+      description:
+        "Finde Tanzgruppen, Workshops und News zu Tribal Style Dance und Bauchtanz auf Tribefinder.de. Deine Online-Plattform für den Austausch und die Vernetzung innerhalb der deutschsprachigen Tanzszene.",
+      images: [{
+        url: socialImageUrl,
+      }],
+    },
+    twitter: {
+      card: "summary",
+      title: "TribeFinder",
+      description:
+        "Finde Tanzgruppen, Workshops und News zu Tribal Style Dance und Bauchtanz auf Tribefinder.de. Deine Online-Plattform für den Austausch und die Vernetzung innerhalb der deutschsprachigen Tanzszene.",
+      images: [socialImageUrl],
+    },
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "TribeFinder",
+    },
+    icons: {
+      icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+      apple: appleIcon ? [{ url: appleIcon }] : undefined,
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -41,19 +93,41 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession(authOptions);
 
-  // Fetch Matomo settings
-  const settings = await prisma.systemSetting.findMany({
-    where: {
-      key: {
-        in: ['MATOMO_URL', 'MATOMO_SITE_ID', 'BRANDING_LOGO_URL']
-      }
-    }
-  });
+  const getCachedSystemConfig = unstable_cache(
+    async () => {
+      const settings = await prisma.systemSetting.findMany({
+        where: {
+          key: {
+            in: [
+              "MATOMO_URL",
+              "MATOMO_SITE_ID",
+              "MATOMO_TRACKING_CODE",
+              "BRANDING_LOGO_URL",
+              "SITE_BANNER_ENABLED",
+              "SITE_BANNER_TEXT",
+              "SITE_BANNER_BG",
+              "SITE_BANNER_TEXT_COLOR",
+            ],
+          },
+        },
+      });
 
-  const config = settings.reduce((acc: Record<string, string>, setting) => {
-    acc[setting.key] = setting.value;
-    return acc;
-  }, {});
+      return settings.reduce((acc: Record<string, string>, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {});
+    },
+    ["system-settings", "layout"],
+    { revalidate: 10 }
+  );
+
+  const config = await getCachedSystemConfig();
+  const brandingLogoUrl = normalizeUploadedImageUrl(config.BRANDING_LOGO_URL) ?? "";
+
+  const siteBannerEnabled = String(config.SITE_BANNER_ENABLED || "").toLowerCase() === "true";
+  const siteBannerText = (config.SITE_BANNER_TEXT || "").trim();
+  const siteBannerBg = (config.SITE_BANNER_BG || "").trim() || "#f59e0b";
+  const siteBannerTextColor = (config.SITE_BANNER_TEXT_COLOR || "").trim() || "#ffffff";
 
   return (
     <html lang="de" suppressHydrationWarning>
@@ -67,18 +141,34 @@ export default async function RootLayout({
           <ForceThemeStyles />
           <AuthProvider>
             <ToastProvider>
-              <MatomoTracker url={config.MATOMO_URL} siteId={config.MATOMO_SITE_ID} />
-              <Navbar />
-              <main className="flex-grow container mx-auto px-4 py-8">
-                {children}
-              </main>
-              <FeedbackWidget />
+              <ErrorBoundary>
+                <MatomoTracker
+                  url={config.MATOMO_URL}
+                  siteId={config.MATOMO_SITE_ID}
+                  trackingCode={config.MATOMO_TRACKING_CODE}
+                />
+                {siteBannerEnabled && siteBannerText ? (
+                  <div
+                    className="fixed top-0 left-0 w-full text-xs leading-none px-3 h-6 flex items-center justify-center z-50"
+                    style={{ backgroundColor: siteBannerBg, color: siteBannerTextColor }}
+                  >
+                    <span className="truncate">{siteBannerText}</span>
+                  </div>
+                ) : null}
+                <div className={siteBannerEnabled && siteBannerText ? "pt-6" : undefined}>
+                  <Navbar />
+                  <main className="flex-grow container mx-auto px-4 py-8">
+                    {children}
+                  </main>
+                  <FeedbackWidget />
+                </div>
+              </ErrorBoundary>
             </ToastProvider>
             <footer className="bg-gray-900 border-t border-gray-800 py-10 text-center text-gray-400 text-sm mt-auto">
               <div className="flex flex-col items-center gap-4">
                 <div className="flex items-center gap-2 mb-2">
-                  {config.BRANDING_LOGO_URL ? (
-                    <Image src={config.BRANDING_LOGO_URL} alt="TribeFinder" width={28} height={28} className="h-7 w-7 rounded" />
+                  {brandingLogoUrl ? (
+                    <Image src={brandingLogoUrl} alt="TribeFinder" width={28} height={28} className="h-7 w-7 rounded" unoptimized />
                   ) : (
                     <span className="text-2xl">💃</span>
                   )}
@@ -96,10 +186,11 @@ export default async function RootLayout({
 
                 <div className="w-full max-w-xs h-px bg-gray-800 my-2"></div>
 
-                {/* Debug Info */}
-                <div className="text-xs text-gray-600">
-                  Status: {session ? 'Eingeloggt' : 'Gast'} | Rolle: {session?.user?.role || 'Keine'}
-                </div>
+                {process.env.NODE_ENV !== "production" ? (
+                  <div className="text-xs text-gray-600">
+                    Status: {session ? 'Eingeloggt' : 'Gast'} | Rolle: {session?.user?.role || 'Keine'}
+                  </div>
+                ) : null}
 
                 {session?.user?.role === 'ADMIN' && (
                   <Link href="/admin" className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">

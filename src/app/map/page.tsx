@@ -23,17 +23,27 @@ export default async function MapPage() {
             name: true,
           },
         },
+        creator: {
+          select: {
+            name: true,
+          },
+        },
       },
     }),
     prisma.tag.findMany({
-      where: { isApproved: true },
+      where: {
+        isApproved: true,
+        groups: { some: {} },
+      },
       orderBy: { name: 'asc' }
     })
   ]);
 
+  const availableTags = tags.map((t) => ({ id: t.id, name: t.name }));
+
   return (
     <div className="h-full w-full">
-       <DynamicMap groups={groups as any[]} events={events as any[]} availableTags={tags as { id: string; name: string }[]} />
+       <DynamicMap groups={groups} events={events} availableTags={availableTags} />
     </div>
   );
 }

@@ -3,12 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import AdminEmailTest from '@/components/admin/AdminEmailTest';
 import AdminNav from '@/components/admin/AdminNav';
+import AdminEmbedMode from '@/components/admin/AdminEmbedMode';
+import { normalizeUploadedImageUrl } from '@/lib/normalizeUploadedImageUrl';
 
 export default function AdminSettingsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEmbed = searchParams.get('embed') === '1';
+  const section = searchParams.get('section') || '';
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isLogoSaving, setIsLogoSaving] = useState(false);
@@ -17,12 +23,16 @@ export default function AdminSettingsPage() {
     SMTP_PORT: '587',
     SMTP_USER: '',
     SMTP_PASSWORD: '',
-    SMTP_FROM: '"TribeFinder" <noreply@tribefinder.com>',
+    SMTP_FROM: '"TribeFinder" <noreply@tribefinder.de>',
     SMTP_SECURE: 'false',
     MATOMO_URL: '',
     MATOMO_SITE_ID: '',
     MATOMO_TRACKING_CODE: '',
     BRANDING_LOGO_URL: '',
+    SITE_BANNER_ENABLED: 'false',
+    SITE_BANNER_TEXT: '',
+    SITE_BANNER_BG: '#f59e0b',
+    SITE_BANNER_TEXT_COLOR: '#ffffff',
   });
   const [message, setMessage] = useState('');
 
@@ -114,6 +124,11 @@ export default function AdminSettingsPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: checked ? 'true' : 'false' }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -141,7 +156,7 @@ export default function AdminSettingsPage() {
   };
 
   if (status === 'loading' || isLoading) {
-    return <div className="p-8 text-center">Laden...</div>;
+    return <div className="p-8 text-center text-gray-900 dark:text-gray-100">Laden...</div>;
   }
 
   if (session?.user?.role !== 'ADMIN') {
@@ -149,14 +164,20 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">System Einstellungen</h1>
+    <div className="relative left-1/2 -translate-x-1/2 w-[90vw] py-8 px-4">
+      <AdminEmbedMode />
 
-      <div className="mb-6">
-        <AdminNav />
-      </div>
+      {!isEmbed ? (
+        <>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">System Einstellungen</h1>
 
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
+          <div className="mb-6">
+            <AdminNav />
+          </div>
+        </>
+      ) : null}
+
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8 border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Branding</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Webapp Logo (Navbar/Footer).</p>
@@ -166,7 +187,7 @@ export default function AdminSettingsPage() {
             <div className="w-16 h-16 rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
               {formData.BRANDING_LOGO_URL ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={formData.BRANDING_LOGO_URL} alt="Logo" className="w-full h-full object-cover" />
+                <img src={normalizeUploadedImageUrl(formData.BRANDING_LOGO_URL) ?? ""} alt="Logo" className="w-full h-full object-cover" />
               ) : (
                 <span className="text-3xl">💃</span>
               )}
@@ -210,6 +231,86 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Banner</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Seitenübergreifender Hinweis ganz oben (z.B. Wartungen ankündigen).</p>
+        </div>
+        <div className="p-6 space-y-4">
+          <label className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-200">
+            <input
+              type="checkbox"
+              name="SITE_BANNER_ENABLED"
+              checked={String(formData.SITE_BANNER_ENABLED).toLowerCase() === 'true'}
+              onChange={handleCheckboxChange}
+              className="h-4 w-4"
+            />
+            Banner aktivieren
+          </label>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Text</label>
+            <input
+              type="text"
+              name="SITE_BANNER_TEXT"
+              value={formData.SITE_BANNER_TEXT}
+              onChange={handleChange}
+              placeholder="Wartung heute 22:00-22:10"
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hintergrundfarbe</label>
+            <div className="mt-1 flex items-center gap-3">
+              <input
+                type="color"
+                name="SITE_BANNER_BG"
+                value={formData.SITE_BANNER_BG || '#f59e0b'}
+                onChange={handleChange}
+                className="h-10 w-14 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+              />
+              <input
+                type="text"
+                name="SITE_BANNER_BG"
+                value={formData.SITE_BANNER_BG}
+                onChange={handleChange}
+                placeholder="#f59e0b"
+                className="block w-40 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Textfarbe</label>
+            <div className="mt-1 flex items-center gap-3">
+              <input
+                type="color"
+                name="SITE_BANNER_TEXT_COLOR"
+                value={formData.SITE_BANNER_TEXT_COLOR || '#ffffff'}
+                onChange={handleChange}
+                className="h-10 w-14 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+              />
+              <input
+                type="text"
+                name="SITE_BANNER_TEXT_COLOR"
+                value={formData.SITE_BANNER_TEXT_COLOR}
+                onChange={handleChange}
+                placeholder="#ffffff"
+                className="block w-40 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+          </div>
+
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Vorschau: wird direkt nach dem Speichern oben auf jeder Seite angezeigt.
+          </div>
+        </div>
+      </div>
+
+      {isEmbed && section === 'design' ? null : (
+        <>
+
       <form onSubmit={handleSubmit}>
         <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
@@ -236,11 +337,12 @@ export default function AdminSettingsPage() {
               <div className="sm:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Port</label>
                 <input
-                  type="number"
+                  type="text"
                   name="SMTP_PORT"
                   value={formData.SMTP_PORT}
                   onChange={handleChange}
                   placeholder="587"
+                  inputMode="numeric"
                   className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
                 />
               </div>
@@ -274,7 +376,7 @@ export default function AdminSettingsPage() {
                   name="SMTP_FROM"
                   value={formData.SMTP_FROM}
                   onChange={handleChange}
-                  placeholder='"Dance Connect" <noreply@example.com>'
+                  placeholder='"TribeFinder" <noreply@tribefinder.de>'
                   className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
                 />
               </div>
@@ -287,10 +389,11 @@ export default function AdminSettingsPage() {
                   onChange={handleChange}
                   className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
                 >
-                  <option value="false">Nein (STARTTLS / Port 587)</option>
-                  <option value="true">Ja (SSL / Port 465)</option>
+                  <option value="false">Nein (STARTTLS)</option>
+                  <option value="true">Ja (SSL/TLS)</option>
                 </select>
               </div>
+
             </div>
           </div>
         </div>
@@ -309,7 +412,7 @@ export default function AdminSettingsPage() {
         </div>
       </form>
 
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8 border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Verbindung testen</h3>
         </div>
@@ -322,7 +425,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Analytics / Matomo Section */}
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Analytics (Matomo)</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -391,6 +494,9 @@ export default function AdminSettingsPage() {
           </form>
         </div>
       </div>
+
+        </>
+      )}
     </div>
   );
 }

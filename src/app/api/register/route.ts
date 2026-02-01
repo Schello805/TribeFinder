@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
+import { v4 as uuidv4 } from "uuid";
+import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight } from "@/lib/email";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -35,6 +37,9 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const verificationToken = uuidv4();
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     const userCount = await prisma.user.count();
     const role = userCount === 0 ? "ADMIN" : "USER";
 
@@ -45,15 +50,32 @@ export async function POST(req: Request) {
         name,
         dancerName: name, // Use name as default dancer name
         role,
+        notifyInboxMessages: true,
+        emailVerified: null,
+        verificationToken,
+        verificationTokenExpiry,
       },
     });
+
+    const verifyUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
+    const emailContent = `
+      ${emailHeading('E-Mail-Adresse bestätigen ✅')}
+      ${emailText('Willkommen bei TribeFinder! Bitte bestätige deine E-Mail-Adresse, damit du dich anmelden kannst.')}
+      ${emailText('Klicke auf den Button unten, um deine E-Mail-Adresse zu bestätigen:')}
+      ${emailButton('E-Mail bestätigen', verifyUrl)}
+      ${emailHighlight('⏰ Dieser Link ist aus Sicherheitsgründen nur <strong>24 Stunden</strong> gültig.')}
+      ${emailText('Wenn du dich nicht registriert hast, kannst du diese E-Mail ignorieren.')}
+    `;
+
+    const html = await emailTemplate(emailContent, 'Bestätige deine E-Mail-Adresse');
+    await sendEmail(email, 'E-Mail bestätigen - TribeFinder', html);
 
     // Entferne das Passwort aus der Antwort
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _password, ...userWithoutPassword } = user;
 
     return NextResponse.json(
-      { message: "Benutzer erfolgreich erstellt", user: userWithoutPassword },
+      { message: "Registrierung erfolgreich. Bitte bestätige deine E-Mail-Adresse (Link 24h gültig), bevor du dich anmelden kannst.", user: userWithoutPassword },
       { status: 201 }
     );
   } catch (error) {

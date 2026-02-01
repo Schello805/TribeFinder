@@ -12,7 +12,7 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
-  const [currentUser, groups] = await Promise.all([
+  const [currentUser, groups, manageableGroups] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id }
     }) as unknown as {
@@ -36,8 +36,36 @@ export default async function DashboardPage() {
       orderBy: {
         createdAt: 'desc'
       }
+    }),
+    prisma.group.findMany({
+      where: {
+        OR: [
+          { ownerId: session.user.id },
+          { members: { some: { userId: session.user.id, status: "APPROVED" } } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        members: {
+          where: { status: "PENDING" },
+          select: { id: true },
+        },
+      },
+      take: 250,
     })
   ]);
+
+  const pendingGroups = manageableGroups
+    .map((g) => ({
+      id: g.id,
+      name: g.name,
+      image: g.image,
+      pendingCount: g.members.length,
+    }))
+    .filter((g) => g.pendingCount > 0)
+    .sort((a, b) => b.pendingCount - a.pendingCount);
 
   return (
     <div className="space-y-8">
@@ -91,6 +119,48 @@ export default async function DashboardPage() {
             </Link>
          </div>
       </div>
+
+      {pendingGroups.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Offene Beitrittsanfragen</h2>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Bearbeite Anfragen direkt in der jeweiligen Gruppe.</p>
+          </div>
+          <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
+            {pendingGroups.slice(0, 10).map((g) => (
+              <li key={g.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                <div className="flex items-center justify-between gap-4">
+                  <Link href={`/groups/${g.id}`} className="min-w-0 flex-1">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-md overflow-hidden bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                        {g.image ? (
+                          <ImageWithFallback src={g.image} alt={g.name} className="h-full w-full object-contain p-0.5" />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-gray-400 font-bold text-lg bg-gray-50">
+                            {g.name.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-900 dark:text-white truncate">{g.name}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{g.pendingCount} offene Anfrage{g.pendingCount === 1 ? "" : "n"}</div>
+                      </div>
+                    </div>
+                  </Link>
+                  <Link href={`/groups/${g.id}`} className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">
+                    Öffnen
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {pendingGroups.length > 10 && (
+            <div className="px-4 py-4 sm:px-6 text-sm text-gray-500 dark:text-gray-400">
+              Weitere offene Anfragen: {pendingGroups.length - 10}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">

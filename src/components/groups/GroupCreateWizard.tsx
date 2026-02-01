@@ -11,8 +11,6 @@ const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), 
   loading: () => <div className="h-48 w-full bg-gray-100 dark:bg-gray-700 animate-pulse rounded-md flex items-center justify-center text-gray-400">Karte wird geladen...</div>
 });
 
-type WizardStep = "basics" | "details" | "location" | "finish";
-
 interface FormData {
   name: string;
   description: string;
@@ -33,11 +31,11 @@ interface FormData {
   tags: string[];
 }
 
+type WizardStep = "basics" | "details";
+
 const STEPS: { id: WizardStep; label: string; icon: string }[] = [
-  { id: "basics", label: "Grundlagen", icon: "1" },
-  { id: "details", label: "Details", icon: "2" },
-  { id: "location", label: "Standort", icon: "3" },
-  { id: "finish", label: "Fertig", icon: "✓" },
+  { id: "basics", label: "Pflicht: Name & Ort", icon: "1" },
+  { id: "details", label: "Optional & Erstellen", icon: "2" },
 ];
 
 export default function GroupCreateWizard() {
@@ -74,11 +72,17 @@ export default function GroupCreateWizard() {
           setError("Die Beschreibung muss mindestens 10 Zeichen lang sein.");
           return false;
         }
+        if (!formData.location?.address || !formData.location.address.trim()) {
+          setError("Bitte gib einen Trainingsort (Adresse oder Stadt/PLZ) ein.");
+          return false;
+        }
+        if (!Number.isFinite(formData.location?.lat) || !Number.isFinite(formData.location?.lng)) {
+          setError("Bitte wähle einen Standort auf der Karte oder nutze die Suche.");
+          return false;
+        }
         return true;
       case "details":
         return true; // All optional
-      case "location":
-        return true; // Optional but recommended
       default:
         return true;
     }
@@ -243,10 +247,10 @@ export default function GroupCreateWizard() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Wie heißt deine Gruppe?
+                Pflichtfelder
               </h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                Gib deiner Gruppe einen Namen und beschreibe sie kurz.
+                Name, Beschreibung und Trainingsort sind Pflicht. Alles andere kommt im nächsten Schritt.
               </p>
             </div>
 
@@ -280,9 +284,73 @@ export default function GroupCreateWizard() {
               </p>
             </div>
 
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+              <div className="mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  Trainingsort (Adresse oder Stadt/PLZ) *
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.location?.address || ""}
+                    onChange={(e) =>
+                      updateField("location", {
+                        lat: formData.location?.lat || 51.1657,
+                        lng: formData.location?.lng || 10.4515,
+                        address: e.target.value,
+                      })
+                    }
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 dark:bg-gray-700 dark:text-white"
+                    placeholder="z.B. 10115 Berlin"
+                  />
+                  <button
+                    type="button"
+                    onClick={geocodeAddress}
+                    disabled={!formData.location?.address || isLoading}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    Suchen
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+                <LocationPicker
+                  initialLat={formData.location?.lat}
+                  initialLng={formData.location?.lng}
+                  onLocationSelect={(lat, lng) =>
+                    updateField("location", {
+                      ...formData.location,
+                      lat,
+                      lng,
+                    })
+                  }
+                />
+              </div>
+
+              {formData.location?.lat && formData.location?.lng && (
+                <p className="text-sm text-gray-500 text-center mt-2">
+                  📍 Koordinaten: {formData.location.lat.toFixed(4)}, {formData.location.lng.toFixed(4)}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {currentStep === "details" && (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Optional
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                Diese Angaben sind optional – du kannst sie auch später im Profil ergänzen.
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Gruppengröße
+                Gruppengröße (optional)
               </label>
               <div className="grid grid-cols-5 gap-2">
                 {[
@@ -309,19 +377,6 @@ export default function GroupCreateWizard() {
                   </button>
                 ))}
               </div>
-            </div>
-          </div>
-        )}
-
-        {currentStep === "details" && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Weitere Details
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                Diese Angaben sind optional, helfen aber anderen, euch besser zu finden.
-              </p>
             </div>
 
             <div>
@@ -447,101 +502,7 @@ export default function GroupCreateWizard() {
           </div>
         )}
 
-        {currentStep === "location" && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Wo seid ihr zu finden?
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                Damit andere euch auf der Karte finden können.
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={formData.location?.address || ""}
-                onChange={(e) =>
-                  updateField("location", {
-                    lat: formData.location?.lat || 51.1657,
-                    lng: formData.location?.lng || 10.4515,
-                    address: e.target.value,
-                  })
-                }
-                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 dark:bg-gray-700 dark:text-white"
-                placeholder="Stadt oder Adresse eingeben..."
-              />
-              <button
-                type="button"
-                onClick={geocodeAddress}
-                disabled={!formData.location?.address || isLoading}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-              >
-                Suchen
-              </button>
-            </div>
-
-            <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
-              <LocationPicker
-                initialLat={formData.location?.lat}
-                initialLng={formData.location?.lng}
-                onLocationSelect={(lat, lng) =>
-                  updateField("location", {
-                    ...formData.location,
-                    lat,
-                    lng,
-                  })
-                }
-              />
-            </div>
-
-            {formData.location?.lat && formData.location?.lng && (
-              <p className="text-sm text-gray-500 text-center">
-                📍 Koordinaten: {formData.location.lat.toFixed(4)}, {formData.location.lng.toFixed(4)}
-              </p>
-            )}
-          </div>
-        )}
-
-        {currentStep === "finish" && (
-          <div className="space-y-6 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-              <span className="text-4xl">🎉</span>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Fast geschafft!
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400">
-              Überprüfe deine Angaben und erstelle deine Gruppe.
-            </p>
-
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-left space-y-3">
-              <div className="flex items-center gap-3">
-                {formData.image ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={formData.image} alt="" className="w-12 h-12 rounded-lg object-cover" />
-                  </>
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-xl font-bold text-indigo-600">
-                    {formData.name.charAt(0)}
-                  </div>
-                )}
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white">{formData.name}</h3>
-                  <p className="text-sm text-gray-500">{formData.tags.join(", ") || "Keine Tanzstile"}</p>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                {formData.description}
-              </p>
-              {formData.location?.address && (
-                <p className="text-sm text-gray-500">📍 {formData.location.address}</p>
-              )}
-            </div>
-          </div>
-        )}
+        {/* details step doubles as review + submit */}
       </div>
 
       {/* Navigation Buttons */}
@@ -554,7 +515,7 @@ export default function GroupCreateWizard() {
           {currentStepIndex === 0 ? "Abbrechen" : "Zurück"}
         </button>
 
-        {currentStep === "finish" ? (
+        {currentStep === "details" ? (
           <button
             type="button"
             onClick={handleSubmit}

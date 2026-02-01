@@ -12,6 +12,12 @@ export default function ImpressumPage() {
             Michael Schellenberger<br />
             91572 Bechhofen
           </p>
+          <p className="mt-2">
+            Privatperson / Betreiber dieser Website
+          </p>
+          <p className="mt-2">
+            Online-Angebot: tribefinder.de
+          </p>
         </section>
 
         <section>

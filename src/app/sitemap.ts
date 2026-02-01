@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const baseUrl = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
@@ -44,32 +44,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Dynamic group pages
-  const groups = await prisma.group.findMany({
-    select: { id: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-  });
+  try {
+    // Dynamic group pages
+    const groups = await prisma.group.findMany({
+      select: { id: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    });
 
-  const groupPages: MetadataRoute.Sitemap = groups.map((group) => ({
-    url: `${baseUrl}/groups/${group.id}`,
-    lastModified: group.updatedAt,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+    const groupPages: MetadataRoute.Sitemap = groups.map((group) => ({
+      url: `${baseUrl}/groups/${group.id}`,
+      lastModified: group.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
 
-  // Dynamic event pages
-  const events = await prisma.event.findMany({
-    select: { id: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-    take: 100, // Limit to recent events
-  });
+    // Dynamic event pages
+    const events = await prisma.event.findMany({
+      select: { id: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+      take: 100, // Limit to recent events
+    });
 
-  const eventPages: MetadataRoute.Sitemap = events.map((event) => ({
-    url: `${baseUrl}/events/${event.id}`,
-    lastModified: event.updatedAt,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+    const eventPages: MetadataRoute.Sitemap = events.map((event) => ({
+      url: `${baseUrl}/events/${event.id}`,
+      lastModified: event.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
 
-  return [...staticPages, ...groupPages, ...eventPages];
+    return [...staticPages, ...groupPages, ...eventPages];
+  } catch {
+    return staticPages;
+  }
 }

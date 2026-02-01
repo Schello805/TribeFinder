@@ -32,6 +32,11 @@ public/uploads/*
 *.db
 *.sqlite
 *.sqlite3
+*.db-wal
+*.db-shm
+
+# legacy nested prisma folder (can appear due to misconfigured DATABASE_URL / old setups)
+prisma/prisma/
 
 # debug
 npm-debug.log*
@@ -60,9 +65,11 @@ next-env.d.ts
 *.db
 *.sqlite
 *.sqlite3
+*.db-wal
+*.db-shm
 
 # backups
-backups/
+/backups/
 *.db.gz
 
 # legacy nested app folder

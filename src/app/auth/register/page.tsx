@@ -14,6 +14,7 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
   });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,6 +29,12 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+
+    if (!acceptedTerms) {
+      showToast("Bitte bestätige die Hinweise zur Nutzung und zu Uploads.", "error");
+      setIsLoading(false);
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       showToast("Passwörter stimmen nicht überein", "error");
@@ -129,6 +136,25 @@ export default function RegisterPage() {
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder:text-gray-400"
           />
+        </div>
+
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1"
+              required
+            />
+            <span>
+              Ich bestätige, dass ich nur Inhalte hochlade, an denen ich die nötigen Rechte habe (z. B. Urheberrechte, Persönlichkeitsrechte) und dass ich die Hinweise in der{" "}
+              <Link href="/datenschutz" className="text-indigo-600 hover:underline">Datenschutzerklärung</Link>
+              {" "}und im{" "}
+              <Link href="/impressum" className="text-indigo-600 hover:underline">Impressum</Link>
+              {" "}zur Kenntnis genommen habe.
+            </span>
+          </label>
         </div>
 
         <button

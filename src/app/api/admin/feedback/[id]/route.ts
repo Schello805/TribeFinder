@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/requireAdmin";
 import { z } from "zod";
+import { jsonBadRequest, jsonServerError, jsonUnauthorized } from "@/lib/apiResponse";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -11,10 +11,9 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: Request, { params }: RouteParams) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  const session = await requireAdminSession();
+  if (!session) {
+    return jsonUnauthorized();
   }
 
   try {
@@ -34,23 +33,9 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { message: "Ungültige Daten", errors: error.issues },
-        { status: 400 }
-      );
+      return jsonBadRequest("Ungültige Daten", { errors: error.issues });
     }
 
-    return NextResponse.json(
-      {
-        message: "Feedback konnte nicht aktualisiert werden",
-        details:
-          process.env.NODE_ENV !== "production"
-            ? error instanceof Error
-              ? { name: error.name, message: error.message, stack: error.stack }
-              : { value: error }
-            : undefined,
-      },
-      { status: 500 }
-    );
+    return jsonServerError("Feedback konnte nicht aktualisiert werden", error);
   }
 }

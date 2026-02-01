@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 // Note: Type assertion needed due to custom Prisma client output path
 // This is a known compatibility issue between @next-auth/prisma-adapter and custom client paths
@@ -30,6 +31,14 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
+        if (!user.emailVerified) {
+          throw new Error("EMAIL_NOT_VERIFIED")
+        }
+
+        if ((user as { isBlocked?: boolean }).isBlocked) {
+          return null
+        }
+
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password
@@ -43,14 +52,15 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-          image: user.image,
+          image: normalizeUploadedImageUrl(user.image),
           role: user.role,
         }
       }
     })
   ],
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
+    maxAge: 60 * 60 * 24,
   },
   pages: {
     signIn: "/auth/signin",
@@ -59,6 +69,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
+        token.image = (user as { image?: string | null }).image ?? null
       }
       return token
     },
@@ -66,6 +77,7 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.sub!
         session.user.role = token.role as string
+        session.user.image = normalizeUploadedImageUrl((token as { image?: string | null }).image ?? null)
       }
       return session
     }

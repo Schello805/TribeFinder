@@ -1,32 +1,88 @@
 import { PrismaClient } from "@prisma/client";
+import fs from "node:fs";
 import path from "node:path";
+
+const resolveProjectRoot = () => {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+};
+
+const projectRoot = resolveProjectRoot();
 
 const normalizedDatabaseUrl = process.env.DATABASE_URL
   ? process.env.DATABASE_URL.replace(/\r?\n/g, "").trim()
   : null;
 
-const defaultSqliteUrl = `file:${path.join(process.cwd(), "dev.db")}`;
+const stripWrappingQuotes = (v: string) => {
+  const s = String(v ?? "").trim();
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    return s.slice(1, -1).trim();
+  }
+  return s;
+};
 
-const normalizedSqliteUrl = normalizedDatabaseUrl
-  ? normalizedDatabaseUrl
-      .replace(/^file:\.\.\/dev\.db$/, "file:./dev.db")
-      .replace(/^file:\.\.\/\.\.\/dev\.db$/, "file:./dev.db")
-      .replace(/^file:prisma\/dev\.db$/, "file:./dev.db")
-      .replace(/^file:\.\/prisma\/dev\.db$/, "file:./dev.db")
-      .replace(/^file:\.\.\/prisma\/dev\.db$/, "file:./dev.db")
-  : null;
+const defaultSqliteUrl = `file:${path.join(projectRoot, "prisma", "dev.db")}`;
 
-if (!normalizedSqliteUrl || !normalizedSqliteUrl.startsWith("file:")) {
+const collapseDuplicatePrismaDir = (p: string) => p.replace(/\/(?:prisma\/)+/g, "/prisma/");
+
+const cleanedDatabaseUrl = normalizedDatabaseUrl ? stripWrappingQuotes(normalizedDatabaseUrl) : null;
+
+// If DATABASE_URL is missing, fall back to local sqlite dev DB.
+// If DATABASE_URL is provided and is NOT sqlite (file:...), keep it as-is (e.g. postgresql://...).
+if (!cleanedDatabaseUrl) {
   process.env.DATABASE_URL = defaultSqliteUrl;
+} else if (!cleanedDatabaseUrl.startsWith("file:")) {
+  process.env.DATABASE_URL = cleanedDatabaseUrl;
 } else {
-  // If the URL is relative (file:./..., file:../...), force it to the absolute root dev.db.
-  process.env.DATABASE_URL = /^file:\.\.?\//.test(normalizedSqliteUrl)
-    ? defaultSqliteUrl
-    : normalizedSqliteUrl;
+  const rawSqlitePath = cleanedDatabaseUrl.replace(/^file:/, "");
+  const resolved = (() => {
+    if (path.isAbsolute(rawSqlitePath)) return rawSqlitePath;
+
+    const asProjectRoot = path.resolve(projectRoot, rawSqlitePath);
+
+    const stripped = rawSqlitePath.replace(/^\.\//, "");
+    const asPrismaDir = path.resolve(projectRoot, "prisma", stripped);
+
+    // Prisma CLI resolves relative sqlite paths against the schema directory (./prisma).
+    // In runtime we prefer the prisma/ directory if it exists to avoid creating a second dev.db in repo root.
+    if (fs.existsSync(asPrismaDir)) return asPrismaDir;
+    if (stripped === "dev.db" && fs.existsSync(path.join(projectRoot, "prisma"))) return asPrismaDir;
+
+    return asProjectRoot;
+  })();
+  const normalized = collapseDuplicatePrismaDir(resolved);
+  process.env.DATABASE_URL = `file:${normalized}`;
 }
 
 const prismaClientSingleton = () => {
-  return new PrismaClient()
+  const client = new PrismaClient();
+
+  if (process.env.DATABASE_URL?.startsWith("file:")) {
+    const globalForSqlitePragmas = globalThis as unknown as {
+      __tf_sqlite_pragmas_applied?: boolean;
+    };
+
+    if (!globalForSqlitePragmas.__tf_sqlite_pragmas_applied) {
+      globalForSqlitePragmas.__tf_sqlite_pragmas_applied = true;
+      void (async () => {
+        try {
+          await client.$executeRawUnsafe("PRAGMA foreign_keys = ON;");
+          await client.$executeRawUnsafe("PRAGMA journal_mode = WAL;");
+          await client.$executeRawUnsafe("PRAGMA busy_timeout = 5000;");
+        } catch {
+          // best-effort only
+        }
+      })();
+    }
+  }
+
+  return client;
 }
 
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>

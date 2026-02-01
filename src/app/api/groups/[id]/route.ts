@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { groupSchema } from "@/lib/validations/group";
+import { groupUpdateSchema } from "@/lib/validations/group";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 import { notifyAdminsAboutNewTags } from "@/lib/notifications";
 import logger from "@/lib/logger";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   req: Request,
@@ -13,8 +14,58 @@ export async function GET(
 ) {
   const id = (await params).id;
 
+  const session = await getServerSession(authOptions);
+
   try {
-    const group = await prisma.group.findUnique({
+    const base = await prisma.group.findUnique({
+      where: { id },
+      include: {
+        location: true,
+        tags: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        members: {
+          select: {
+            id: true,
+            role: true,
+            status: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!base) {
+      return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
+    }
+
+    const isOwner = !!session?.user?.id && session.user.id === base.ownerId;
+    const isAdminMember =
+      !!session?.user?.id &&
+      base.members.some((m) => m.user.id === session.user.id && m.role === "ADMIN" && m.status === "APPROVED");
+    const canSeeEmails = isOwner || isAdminMember;
+
+    if (!canSeeEmails) {
+      return NextResponse.json({
+        ...base,
+        contactEmail: null,
+        owner: { ...base.owner, email: null },
+        members: base.members.map((m) => ({ ...m, user: { ...m.user, email: null } })),
+      });
+    }
+
+    const full = await prisma.group.findUnique({
       where: { id },
       include: {
         location: true,
@@ -25,7 +76,7 @@ export async function GET(
             name: true,
             email: true,
             image: true,
-          }
+          },
         },
         members: {
           select: {
@@ -38,19 +89,22 @@ export async function GET(
                 name: true,
                 image: true,
                 email: true,
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     });
 
-    if (!group) {
+    if (!full) {
       return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
     }
 
-    return NextResponse.json(group);
+    return NextResponse.json(full);
   } catch (error) {
+    if (error && typeof error === "object" && "name" in error && (error as { name?: string }).name === "PrismaClientRustPanicError") {
+      return NextResponse.json({ message: "Datenbankfehler (Prisma Engine)" }, { status: 503 });
+    }
     logger.error({ error, groupId: id }, "Error fetching group");
     return NextResponse.json({ message: "Fehler beim Laden der Gruppe" }, { status: 500 });
   }
@@ -78,7 +132,7 @@ export async function PUT(
     }
 
     if (existingGroup.ownerId !== session.user.id) {
-      // Check if user is an admin member
+      // Check if user is an approved member
       const membership = await prisma.groupMember.findUnique({
         where: {
           userId_groupId: {
@@ -88,9 +142,9 @@ export async function PUT(
         },
       });
 
-      if (!membership || membership.role !== "ADMIN" || membership.status !== "APPROVED") {
+      if (!membership || membership.status !== "APPROVED") {
         return NextResponse.json(
-          { message: "Nur Administratoren können diese Gruppe bearbeiten" },
+          { message: "Nur bestätigte Mitglieder können diese Gruppe bearbeiten" },
           { status: 403 }
         );
       }
@@ -99,7 +153,7 @@ export async function PUT(
     const body = await req.json();
     logger.debug({ body, groupId: id }, "PUT /api/groups - Received body");
 
-    const validatedData = groupSchema.parse(body);
+    const validatedData = groupUpdateSchema.parse(body);
     logger.debug({ validatedData, groupId: id }, "PUT /api/groups - Validated data");
 
     // Prüfen auf neue Tags für Benachrichtigung
@@ -127,6 +181,10 @@ export async function PUT(
         videoUrl: validatedData.videoUrl,
         size: validatedData.size,
         image: validatedData.image,
+        headerImage: validatedData.headerImage,
+        headerImageFocusY: validatedData.headerImageFocusY,
+        headerGradientFrom: validatedData.headerGradientFrom,
+        headerGradientTo: validatedData.headerGradientTo,
         
         trainingTime: validatedData.trainingTime,
         performances: validatedData.performances ?? false,
@@ -162,6 +220,8 @@ export async function PUT(
     if (newTagsToNotify.length > 0) {
       notifyAdminsAboutNewTags(newTagsToNotify, session.user.name || session.user.email || "Unbekannt").catch(err => console.error("Notification error:", err));
     }
+
+    revalidatePath("/map");
 
     return NextResponse.json(group);
   } catch (error) {
@@ -215,12 +275,30 @@ export async function DELETE(
     }
 
     if (existingGroup.ownerId !== session.user.id) {
-      return NextResponse.json({ message: "Nur der Besitzer kann diese Gruppe löschen" }, { status: 403 });
+      const membership = await prisma.groupMember.findUnique({
+        where: {
+          userId_groupId: {
+            userId: session.user.id,
+            groupId: id,
+          },
+        },
+        select: { role: true, status: true },
+      });
+
+      const isAdmin = membership?.role === "ADMIN" && membership?.status === "APPROVED";
+      if (!isAdmin) {
+        return NextResponse.json(
+          { message: "Nur der Besitzer oder Gruppen-Admins können diese Gruppe löschen" },
+          { status: 403 }
+        );
+      }
     }
 
     await prisma.group.delete({
       where: { id }
     });
+
+    revalidatePath("/map");
 
     return NextResponse.json({ message: "Gruppe erfolgreich gelöscht" });
   } catch (error) {

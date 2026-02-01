@@ -25,9 +25,10 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
   }
 
   const isOwner = group.ownerId === session.user.id;
+  let canDelete = isOwner;
 
   if (!isOwner) {
-    // Check if user is an admin member
+    // Check if user is an approved member
     const membership = await prisma.groupMember.findUnique({
       where: {
         userId_groupId: {
@@ -37,9 +38,11 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
       },
     });
 
-    if (!membership || membership.role !== "ADMIN" || membership.status !== "APPROVED") {
+    if (!membership || membership.status !== "APPROVED") {
       redirect("/dashboard");
     }
+
+    canDelete = membership.role === "ADMIN" && membership.status === "APPROVED";
   }
 
   // Serialisiere die Daten für den Client Component
@@ -47,8 +50,8 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Gruppe bearbeiten</h1>
-      <GroupForm initialData={serializedGroup} isEditing={true} isOwner={isOwner} />
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Gruppe bearbeiten</h1>
+      <GroupForm initialData={serializedGroup} isEditing={true} isOwner={isOwner} canDelete={canDelete} />
     </div>
   );
 }

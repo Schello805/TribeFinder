@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 interface Participation {
   id: string;
@@ -36,7 +37,7 @@ export default function EventParticipantsList({ participations }: EventParticipa
             {p.group.image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={p.group.image}
+                src={normalizeUploadedImageUrl(p.group.image) ?? ""}
                 alt={p.group.name}
                 className="w-12 h-12 rounded-full object-cover border border-gray-100"
               />

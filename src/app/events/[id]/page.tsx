@@ -3,11 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
-import DynamicEventMap from "@/components/map/DynamicEventMap";
-import EventRegistration from "@/components/events/EventRegistration";
+import DeleteEventButton from '@/components/events/DeleteEventButton';
+import EventRegistration from '@/components/events/EventRegistration';
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
+import DynamicEventMap from "@/components/map/DynamicEventMap";
+
+const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
 type EventGroupLike = {
   id: string;
@@ -129,8 +130,34 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   if (session?.user?.id) {
     if (event.creatorId === session.user.id) canEdit = true;
     if (event.group && event.group.ownerId === session.user.id) canEdit = true;
-    // Add logic for group admins if needed
+    if (!canEdit && event.groupId) {
+      const membership = await prisma.groupMember.findUnique({
+        where: {
+          userId_groupId: {
+            userId: session.user.id,
+            groupId: event.groupId,
+          },
+        },
+        select: {
+          role: true,
+          status: true,
+        },
+      });
+      if (membership?.role === "ADMIN" && membership?.status === "APPROVED") {
+        canEdit = true;
+      }
+    }
   }
+
+  const formatBerlin = (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions) => {
+    if (!value) return "";
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    return new Intl.DateTimeFormat("de-DE", { ...options, timeZone: TZ_EUROPE_BERLIN }).format(d);
+  };
+
+  const isDefaultLatLng = event.lat === 51.1657 && event.lng === 10.4515;
+  const hasLocation = Boolean((event.address || "").trim()) || (!isDefaultLatLng && Number.isFinite(event.lat) && Number.isFinite(event.lng));
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12 px-4 sm:px-0">
@@ -174,17 +201,17 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <div className="flex items-center gap-2">
                   <span>🗓️</span> 
                   <span className="font-medium text-gray-900 dark:text-gray-200">
-                    {format(new Date(event.startDate), "EEEE, d. MMMM yyyy", { locale: de })}
+                    {formatBerlin(event.startDate, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                   </span>
                 </div>
                 <div className="hidden sm:block text-gray-300 dark:text-gray-600">•</div>
                 <div className="flex items-center gap-2">
                   <span>⏰</span>
                   <span className="font-medium text-gray-900 dark:text-gray-200">
-                    {format(new Date(event.startDate), "HH:mm")} Uhr
+                    {formatBerlin(event.startDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} Uhr
                   </span>
                   {event.endDate && (
-                    <span className="text-gray-500"> - {format(new Date(event.endDate), "HH:mm")}</span>
+                    <span className="text-gray-500"> - {formatBerlin(event.endDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span>
                   )}
                 </div>
               </div>
@@ -210,6 +237,20 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               >
                 <span>📅</span> Zum Kalender hinzufügen
               </a>
+
+              {canEdit && (
+                <>
+                  <Link
+                    href={event.group ? `/groups/${event.group.id}/events/${event.id}/edit` : `/events/${event.id}/edit`}
+                    className="w-full py-3 px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white text-center rounded-md font-bold hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm flex items-center justify-center"
+                  >
+                    Bearbeiten
+                  </Link>
+                  <div className="flex items-center justify-end pt-1">
+                    <DeleteEventButton eventId={event.id} redirectTo="/events" />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -242,20 +283,24 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <p className="font-semibold text-lg">{event.locationName}</p>
                 {event.address && <p>{event.address}</p>}
                 
-                <div className="pt-3">
-                  <a 
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white text-center rounded-md font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm items-center gap-2 border border-gray-200 dark:border-gray-600 text-sm"
-                  >
-                    <span>📍</span> Navigation starten
-                  </a>
+                {hasLocation && (
+                  <div className="pt-3">
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white text-center rounded-md font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm items-center gap-2 border border-gray-200 dark:border-gray-600 text-sm"
+                    >
+                      <span>📍</span> Navigation starten
+                    </a>
+                  </div>
+                )}
+              </div>
+              {hasLocation && (
+                <div className="h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 shadow-sm relative z-0">
+                  <DynamicEventMap lat={event.lat} lng={event.lng} />
                 </div>
-              </div>
-              <div className="h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 shadow-sm relative z-0">
-                 <DynamicEventMap lat={event.lat} lng={event.lng} />
-              </div>
+              )}
             </div>
 
             {/* Organizer */}

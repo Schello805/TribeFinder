@@ -1,101 +1,91 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import GroupFilter from "@/components/groups/GroupFilter";
 import GroupListAnimated from "@/components/groups/GroupListAnimated";
-import prisma from "@/lib/prisma";
+import { GroupListSkeleton } from "@/components/ui/SkeletonLoader";
 import Link from "next/link";
 
-export const revalidate = 0; // Dynamic page
+type GroupTag = { id: string; name: string };
+type GroupListItem = {
+  id: string;
+  name: string;
+  description: string;
+  image?: string | null;
+  createdAt: string | Date;
+  size?: 'SOLO' | 'SMALL' | 'LARGE' | null;
+  location?: { address?: string | null } | null;
+  tags: GroupTag[];
+};
 
-export default async function GroupsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
-  const resolvedSearchParams = await searchParams;
-  const query = typeof resolvedSearchParams.query === 'string' ? resolvedSearchParams.query : undefined;
-  const tagParam = typeof resolvedSearchParams.tag === 'string' ? resolvedSearchParams.tag : undefined;
-  const latParam = typeof resolvedSearchParams.lat === 'string' ? resolvedSearchParams.lat : undefined;
-  const lngParam = typeof resolvedSearchParams.lng === 'string' ? resolvedSearchParams.lng : undefined;
-  const radiusParam = typeof resolvedSearchParams.radius === 'string' ? resolvedSearchParams.radius : '50';
+function isGroupListItem(v: unknown): v is GroupListItem {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return typeof o.id === "string" && typeof o.name === "string" && typeof o.description === "string" && Array.isArray(o.tags);
+}
 
-  const whereClause: {
-    AND: Array<{
-      OR?: Array<{ name?: { contains: string }; description?: { contains: string }; tags?: { some: { name: { contains: string } } } }>;
-      tags?: { some: { name: string } };
-    }>;
-  } = {
-    AND: []
-  };
-  
-  if (query) {
-    whereClause.AND.push({
-      OR: [
-        { name: { contains: query } },
-        { description: { contains: query } },
-        { tags: { some: { name: { contains: query } } } }
-      ]
-    });
-  }
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
 
-  if (tagParam) {
-    whereClause.AND.push({
-      tags: { some: { name: tagParam } }
-    });
-  }
-
-  let groups = await prisma.group.findMany({
-    where: whereClause,
-    include: {
-      location: true,
-      tags: true,
-      owner: {
-        select: {
-          name: true,
-          image: true,
-        }
+export default function GroupsPage() {
+  const searchParams = useSearchParams();
+  const [groups, setGroups] = useState<GroupListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const fetchGroups = async () => {
+      const address = searchParams.get('address');
+      const lat = searchParams.get('lat');
+      const lng = searchParams.get('lng');
+      const hasPendingGeocode = Boolean(address) && (!lat || !lng);
+      if (hasPendingGeocode) {
+        setIsLoading(true);
+        return;
       }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  });
 
-  // Geo-Filtering
-  if (latParam && lngParam) {
-    const lat = parseFloat(latParam);
-    const lng = parseFloat(lngParam);
-    const radius = parseFloat(radiusParam);
-
-    if (!isNaN(lat) && !isNaN(lng) && !isNaN(radius)) {
-      groups = groups.filter((group) => {
-        if (!group.location) return false;
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams();
+        const query = searchParams.get('query');
+        const tag = searchParams.get('tag');
+        const lat = searchParams.get('lat');
+        const lng = searchParams.get('lng');
+        const radius = searchParams.get('radius') || '50';
         
-        const R = 6371; // Erdradius in km
-        const dLat = (group.location.lat - lat) * Math.PI / 180;
-        const dLng = (group.location.lng - lng) * Math.PI / 180;
-        const a = 
-          Math.sin(dLat/2) * Math.sin(dLat/2) +
-          Math.cos(lat * Math.PI / 180) * Math.cos(group.location.lat * Math.PI / 180) * 
-          Math.sin(dLng/2) * Math.sin(dLng/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-        const distance = R * c;
+        if (query) params.append('query', query);
+        if (tag) params.append('tag', tag);
+        if (lat) params.append('lat', lat);
+        if (lng) params.append('lng', lng);
+        if (radius) params.append('radius', radius);
+        
+        const res = await fetch(`/api/groups?${params.toString()}`);
+        if (!res.ok) {
+          setGroups([]);
+          return;
+        }
 
-        return distance <= radius;
-      });
+        const json: unknown = await res.json().catch(() => null);
+        const arr = Array.isArray(json)
+          ? json
+          : (isRecord(json) && Array.isArray(json.data) ? json.data : []);
+        setGroups((arr as unknown[]).filter(isGroupListItem));
+      } catch (error) {
+        console.error('Error fetching groups:', error);
+        setGroups([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchGroups();
+  }, [searchParams]);
 
-      // Sortieren nach Distanz
-      groups.sort((a, b) => {
-        if (!a.location || !b.location) return 0;
-        const distA = Math.sqrt(Math.pow(a.location.lat - lat, 2) + Math.pow(a.location.lng - lng, 2));
-        const distB = Math.sqrt(Math.pow(b.location.lat - lat, 2) + Math.pow(b.location.lng - lng, 2));
-        return distA - distB;
-      });
-    }
-  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Tanzgruppen finden</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tanzgruppen finden</h1>
         <Link
           href="/groups/create"
           className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
@@ -106,7 +96,11 @@ export default async function GroupsPage({
 
       <GroupFilter />
 
-      <GroupListAnimated groups={groups as any[]} />
+      {isLoading ? (
+        <GroupListSkeleton count={6} />
+      ) : (
+        <GroupListAnimated groups={groups} />
+      )}
     </div>
   );
 }

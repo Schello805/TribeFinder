@@ -2,7 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
+import { useToast } from "@/components/ui/Toast";
 import "leaflet/dist/leaflet.css";
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "/images/markers/marker-icon-2x-blue.png",
+  iconUrl: "/images/markers/marker-icon-2x-blue.png",
+  shadowUrl: "/images/markers/marker-shadow.png",
+});
 
 type Props = {
   lat: number | null;
@@ -16,7 +23,7 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const circleRef = useRef<L.Circle | null>(null);
-
+  const { showToast } = useToast();
   const [isLocating, setIsLocating] = useState(false);
 
   const center = useMemo<[number, number]>(() => {
@@ -88,7 +95,7 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
 
   const locateMe = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation wird nicht unterstützt.");
+      showToast('Geolocation wird nicht unterstützt', 'warning');
       return;
     }
 
@@ -100,7 +107,7 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
       },
       () => {
         setIsLocating(false);
-        alert("Standort konnte nicht ermittelt werden.");
+        showToast('Standort konnte nicht ermittelt werden', 'error');
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -109,7 +116,7 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 dark:text-gray-300">
           {hasCenter ? (
             <span className="font-mono text-xs">{lat?.toFixed(6)}, {lng?.toFixed(6)}</span>
           ) : (
@@ -120,17 +127,17 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
           type="button"
           onClick={locateMe}
           disabled={isLocating}
-          className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+          className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
         >
           {isLocating ? "Suche Standort..." : "Meinen Standort verwenden"}
         </button>
       </div>
 
-      <div className="rounded-lg overflow-hidden border border-gray-200">
+      <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
         <div ref={mapContainerRef} className="h-72 w-full" />
       </div>
 
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-gray-500 dark:text-gray-400">
         Tipp: Mittelpunkt per Klick setzen. Der Kreis zeigt deinen Benachrichtigungs-Umkreis.
       </div>
     </div>

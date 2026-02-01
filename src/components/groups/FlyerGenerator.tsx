@@ -28,18 +28,20 @@ export default function FlyerGenerator({ group }: FlyerGeneratorProps) {
   const { showToast } = useToast();
 
   const handlePreview = async () => {
+    const url = `/api/groups/${group.id}/flyer?disposition=inline`;
+    const win = window.open("about:blank", "_blank");
+    if (!win) {
+      showToast("Popup blockiert", "error");
+      return;
+    }
+
     setIsGenerating(true);
-    
     try {
-      const url = `/api/groups/${group.id}/flyer?disposition=inline`;
-      const win = window.open(url, "_blank", "noopener,noreferrer");
-      if (!win) {
-        throw new Error("Popup blockiert");
-      }
+      win.opener = null;
+      win.location.href = url;
       showToast("Flyer-Vorschau geöffnet", "success");
     } catch (error) {
       console.error("Flyer preview failed:", error);
-      showToast("Fehler beim Öffnen der Flyer-Vorschau", "error");
     } finally {
       setIsGenerating(false);
     }

@@ -2,6 +2,17 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { jsPDF } from "jspdf";
 
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const h = hex.trim().replace(/^#/, "");
+  if (!/^[0-9a-f]{6}$/i.test(h)) return null;
+  const n = parseInt(h, 16);
+  return {
+    r: (n >> 16) & 255,
+    g: (n >> 8) & 255,
+    b: n & 255,
+  };
+}
+
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
@@ -61,13 +72,16 @@ const getSizeLabel = (size: string | null) => {
 export async function GET(req: Request, { params }: RouteParams) {
   const { id } = await params;
   const requestUrl = new URL(req.url);
-  const origin = requestUrl.origin;
+  const forwardedProto = req.headers.get("x-forwarded-proto") || "";
+  const forwardedHost = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+  const envBase = (process.env.NEXTAUTH_URL || "").replace(/\/$/, "");
+  const origin = forwardedProto && forwardedHost ? `${forwardedProto}://${forwardedHost}` : (envBase || requestUrl.origin);
 
-  const drawGradientHeader = (doc: jsPDF, pageWidth: number) => {
+  const drawGradientHeader = (doc: jsPDF, pageWidth: number, startHex?: string | null, endHex?: string | null) => {
     const topH = 52;
     const steps = 26;
-    const start = { r: 79, g: 70, b: 229 }; // Indigo-600
-    const end = { r: 168, g: 85, b: 247 }; // Fuchsia-ish
+    const start = hexToRgb(startHex || "") || { r: 79, g: 70, b: 229 }; // Indigo-600
+    const end = hexToRgb(endHex || "") || { r: 168, g: 85, b: 247 }; // Fuchsia-ish
     const stepH = topH / steps;
 
     for (let i = 0; i < steps; i++) {
@@ -144,8 +158,44 @@ export async function GET(req: Request, { params }: RouteParams) {
     const contentWidth = pageWidth - 2 * margin;
     let y = margin;
 
-    // Header (gradient)
-    drawGradientHeader(doc, pageWidth);
+    // Header (group banner or gradient)
+    const headerTopH = 52;
+    if ((group as unknown as { headerImage?: string | null }).headerImage) {
+      const raw = String((group as unknown as { headerImage?: string | null }).headerImage || "");
+      const imageUrl = raw.startsWith("/") ? `${origin}${raw}` : raw;
+      const banner = await tryFetchImageAsDataUrl(imageUrl);
+      if (banner) {
+        const focusYRaw = (group as unknown as { headerImageFocusY?: number | null }).headerImageFocusY;
+        const focusY = typeof focusYRaw === "number" && Number.isFinite(focusYRaw) ? Math.min(100, Math.max(0, focusYRaw)) : 50;
+
+        const props = doc.getImageProperties(banner.dataUrl);
+        const scale = Math.max(pageWidth / props.width, headerTopH / props.height);
+        const w = props.width * scale;
+        const h = props.height * scale;
+        const x = (pageWidth - w) / 2;
+        const extraY = Math.max(0, h - headerTopH);
+        const top = (extraY * focusY) / 100;
+
+        // Clip to the header area so the image does not overlap content below
+        (doc as unknown as { saveGraphicsState?: () => void }).saveGraphicsState?.();
+        doc.rect(0, 0, pageWidth, headerTopH);
+        (doc as unknown as { clip?: () => void }).clip?.();
+
+        doc.addImage(banner.dataUrl, banner.format, x, -top, w, h);
+
+        (doc as unknown as { restoreGraphicsState?: () => void }).restoreGraphicsState?.();
+      } else {
+        drawGradientHeader(doc, pageWidth,
+          (group as unknown as { headerGradientFrom?: string | null }).headerGradientFrom,
+          (group as unknown as { headerGradientTo?: string | null }).headerGradientTo
+        );
+      }
+    } else {
+      drawGradientHeader(doc, pageWidth,
+        (group as unknown as { headerGradientFrom?: string | null }).headerGradientFrom,
+        (group as unknown as { headerGradientTo?: string | null }).headerGradientTo
+      );
+    }
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(28);
@@ -299,7 +349,7 @@ export async function GET(req: Request, { params }: RouteParams) {
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(67, 56, 202);
-      const tagsText = group.tags.map(t => t.name).join(" • ");
+      const tagsText = group.tags.map((t: { name: string }) => t.name).join(" • ");
       const tagLines = clampLines(doc.splitTextToSize(tagsText, innerW), 2);
       doc.text(tagLines, innerX, y);
       y += tagLines.length * 5 + 8;

@@ -29,6 +29,7 @@ export default function FeedbackWidget() {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [inlineError, setInlineError] = useState("");
 
   const recognitionRef = useRef<SpeechRecognitionType | null>(null);
 
@@ -111,15 +112,24 @@ export default function FeedbackWidget() {
     setOpen(false);
     setIsSending(false);
     setIsRecording(false);
+    setInlineError("");
     recognitionRef.current?.stop();
   };
 
   const submit = async () => {
     const trimmed = message.trim();
     if (trimmed.length < 3) {
-      showToast("Bitte ein kurzes Feedback schreiben", "warning");
+      setInlineError("Bitte ein kurzes Feedback schreiben");
       return;
     }
+
+    const email = reporterEmail.trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setInlineError("Bitte eine gültige E-Mail eingeben oder das Feld leer lassen");
+      return;
+    }
+
+    setInlineError("");
 
     setIsSending(true);
     try {
@@ -129,14 +139,21 @@ export default function FeedbackWidget() {
         body: JSON.stringify({
           message: trimmed,
           reporterName: reporterName.trim() ? reporterName.trim() : undefined,
-          reporterEmail: reporterEmail.trim() ? reporterEmail.trim() : undefined,
+          reporterEmail: email ? email : undefined,
           pageUrl: typeof window !== "undefined" ? window.location.href : undefined,
         }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        const details = data?.details?.message || data?.message || `HTTP ${res.status}`;
+        const details =
+          data?.details?.message ||
+          data?.details ||
+          (Array.isArray(data?.errors) && data.errors.length > 0
+            ? `${data.errors[0]?.path?.join?.(".") || "field"}: ${data.errors[0]?.message || "Ungültig"}`
+            : null) ||
+          data?.message ||
+          `HTTP ${res.status}`;
         throw new Error(String(details));
       }
 
@@ -147,7 +164,7 @@ export default function FeedbackWidget() {
       close();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Feedback konnte nicht gespeichert werden";
-      showToast(msg, "error");
+      setInlineError(msg);
     } finally {
       setIsSending(false);
     }
@@ -189,6 +206,12 @@ export default function FeedbackWidget() {
                 Schreibe kurz, was gut/schlecht ist oder was fehlt. Optional kannst du diktieren.
               </div>
 
+              {inlineError ? (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200">
+                  {inlineError}
+                </div>
+              ) : null}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
                   value={reporterName}
@@ -200,8 +223,8 @@ export default function FeedbackWidget() {
                   value={reporterEmail}
                   onChange={(e) => setReporterEmail(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Email (optional)"
-                  inputMode="email"
+                  placeholder="E-Mail (optional)"
+                  type="email"
                 />
               </div>
 

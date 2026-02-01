@@ -5,13 +5,22 @@ import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import ThemeToggle from "./ThemeToggle";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import { useTheme } from "next-themes";
 
 export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const { setTheme, resolvedTheme, theme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
+
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string>("");
+  const userImageUrl = userAvatarUrl || (session?.user?.image ? (normalizeUploadedImageUrl(String(session.user.image)) ?? "") : "");
 
   useEffect(() => {
     let cancelled = false;
@@ -19,7 +28,7 @@ export default function Navbar() {
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return;
-        if (data?.logoUrl) setLogoUrl(String(data.logoUrl));
+        if (data?.logoUrl) setLogoUrl(normalizeUploadedImageUrl(String(data.logoUrl)) ?? "");
       })
       .catch(() => undefined);
 
@@ -28,10 +37,126 @@ export default function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!session?.user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUserAvatarUrl("");
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    fetch("/api/user/profile")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        const img = data?.image ? (normalizeUploadedImageUrl(String(data.image)) ?? "") : "";
+        setUserAvatarUrl(img);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user]);
+
+  useEffect(() => {
+    if (!session?.user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUnreadCount(0);
+      return;
+    }
+
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/messages/unread-count", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json().catch(() => null)) as { unreadCount?: number } | null;
+        if (cancelled) return;
+        const next = typeof data?.unreadCount === "number" ? data.unreadCount : 0;
+        setUnreadCount(next);
+      } catch {
+        // ignore
+      }
+    };
+
+    const interval: ReturnType<typeof setInterval> = setInterval(() => {
+      void load();
+    }, 45_000);
+
+    void load();
+
+    const onFocus = () => load();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") load();
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("tribefinder:messages-read", onFocus as EventListener);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("tribefinder:messages-read", onFocus as EventListener);
+    };
+  }, [session?.user, pathname]);
+
+  useEffect(() => {
+    if (!session?.user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPendingRequestsCount(0);
+      return;
+    }
+
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/groups/pending-requests", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json().catch(() => null)) as { pendingCount?: number } | null;
+        if (cancelled) return;
+        const next = typeof data?.pendingCount === "number" ? data.pendingCount : 0;
+        setPendingRequestsCount(next);
+      } catch {
+        // ignore
+      }
+    };
+
+    const interval: ReturnType<typeof setInterval> = setInterval(() => {
+      void load();
+    }, 60_000);
+
+    void load();
+
+    const onFocus = () => load();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") load();
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [session?.user, pathname]);
+
   // Close mobile menu on route change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMenuOpen(false);
+    const t = window.setTimeout(() => {
+      setIsMenuOpen(false);
+      setIsUserMenuOpen(false);
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [pathname]);
 
   return (
@@ -40,7 +165,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="text-xl font-bold text-white flex items-center gap-2">
             {logoUrl ? (
-              <Image src={logoUrl} alt="TribeFinder" width={56} height={56} className="h-14 w-14 rounded" />
+              <Image src={logoUrl} alt="TribeFinder" width={56} height={56} className="h-14 w-14 rounded" unoptimized />
             ) : (
               <span className="text-2xl">💃</span>
             )}
@@ -57,20 +182,104 @@ export default function Navbar() {
             <Link href="/map" className="text-indigo-100 hover:text-white transition font-medium">
               Karte
             </Link>
-            
-            <ThemeToggle />
 
             {session ? (
               <>
-                <Link href="/dashboard" className="text-indigo-100 hover:text-white transition font-medium">
-                  Mein Bereich
+                <Link href="/messages" className="text-indigo-100 hover:text-white transition font-medium inline-flex items-center gap-2">
+                  Nachrichten
+                  {unreadCount > 0 && (
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
-                <button
-                  onClick={() => signOut()}
-                  className="bg-white/10 text-white border border-white/20 px-4 py-2 rounded-md hover:bg-white hover:text-indigo-600 transition font-medium"
-                >
-                  Abmelden
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsUserMenuOpen((v) => !v)}
+                    className="inline-flex items-center gap-2 bg-white/15 text-white border border-white/25 px-3 py-2 rounded-md hover:bg-white/20 transition font-medium"
+                    aria-haspopup="menu"
+                    aria-expanded={isUserMenuOpen}
+                    title="Profil & Einstellungen"
+                  >
+                    {userImageUrl ? (
+                      <Image src={userImageUrl} alt="Profil" width={28} height={28} className="h-7 w-7 rounded-full object-cover border border-white/20" unoptimized />
+                    ) : (
+                      <span className="h-7 w-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm">👤</span>
+                    )}
+                    <span className="hidden lg:inline">Konto</span>
+                    <svg className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                    </svg>
+                    {pendingRequestsCount > 0 && (
+                      <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                        {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-64 rounded-lg border border-white/15 bg-indigo-700 dark:bg-indigo-900 shadow-xl overflow-hidden z-50">
+                      <Link
+                        href="/dashboard"
+                        className="flex items-center justify-between px-4 py-2 text-sm text-indigo-50 hover:bg-white/10"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <span>Profil</span>
+                        {pendingRequestsCount > 0 ? (
+                          <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                            {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
+                          </span>
+                        ) : null}
+                      </Link>
+
+                      <div className="px-3 py-3 border-t border-white/10">
+                        <div className="px-1 pb-2 text-xs font-semibold text-indigo-100/70">Design</div>
+                        <div className="flex items-center rounded-md border border-white/15 bg-white/10 overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => setTheme("light")}
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-indigo-50 hover:bg-white/10 ${
+                              theme === "light" ? "bg-white/15" : ""
+                            }`}
+                          >
+                            Hell
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTheme("dark")}
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-indigo-50 hover:bg-white/10 ${
+                              theme === "dark" ? "bg-white/15" : ""
+                            }`}
+                          >
+                            Dunkel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTheme("system")}
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-indigo-50 hover:bg-white/10 ${
+                              theme === "system" ? "bg-white/15" : ""
+                            }`}
+                            title={`System (${resolvedTheme === "dark" ? "Dunkel" : "Hell"})`}
+                          >
+                            System
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          signOut();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-red-100 hover:bg-white/10"
+                      >
+                        Abmelden
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -88,7 +297,6 @@ export default function Navbar() {
           </div>
 
           <div className="md:hidden flex items-center gap-4">
-            <ThemeToggle />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-indigo-100 hover:text-white focus:outline-none"
@@ -117,11 +325,66 @@ export default function Navbar() {
             <Link href="/map" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
               Karte
             </Link>
+            <div className="px-3 py-2">
+              <div className="text-xs font-semibold text-indigo-100/70 mb-2">Design</div>
+              <div className="inline-flex items-center rounded-md border border-white/15 bg-white/10 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setTheme("light")}
+                  className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
+                    theme === "light" ? "bg-white/15 text-white" : ""
+                  }`}
+                >
+                  Hell
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme("dark")}
+                  className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
+                    theme === "dark" ? "bg-white/15 text-white" : ""
+                  }`}
+                >
+                  Dunkel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme("system")}
+                  className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
+                    theme === "system" ? "bg-white/15 text-white" : ""
+                  }`}
+                  title={`System (${resolvedTheme === "dark" ? "Dunkel" : "Hell"})`}
+                >
+                  System
+                </button>
+              </div>
+            </div>
             {session ? (
               <>
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
-                  Mein Bereich
+                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+                  <span>Nachrichten</span>
+                  {unreadCount > 0 && (
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
+
+                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+                  <span className="flex items-center gap-2">
+                    {userImageUrl ? (
+                      <Image src={userImageUrl} alt="Profil" width={24} height={24} className="h-6 w-6 rounded-full object-cover border border-white/20" unoptimized />
+                    ) : (
+                      <span className="h-6 w-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs">👤</span>
+                    )}
+                    Profil
+                  </span>
+                  {pendingRequestsCount > 0 && (
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                      {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
+                    </span>
+                  )}
+                </Link>
+
                 <button
                   onClick={() => signOut()}
                   className="w-full text-left block px-3 py-2 text-red-200 hover:bg-indigo-600 hover:text-white rounded-md"

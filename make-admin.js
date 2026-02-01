@@ -2,12 +2,20 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  // Finde den ersten User
-  const user = await prisma.user.findFirst();
+  const emailArg = process.argv[2];
+
+  const user = emailArg
+    ? await prisma.user.findUnique({ where: { email: String(emailArg) } })
+    : await prisma.user.findFirst();
   
   if (!user) {
-    console.log('❌ Kein Benutzer in der Datenbank gefunden.');
-    console.log('Bitte registriere dich erst auf der Webseite.');
+    if (emailArg) {
+      console.log(`❌ Kein Benutzer mit Email '${emailArg}' gefunden.`);
+      console.log('Bitte prüfe die Email oder registriere dich erst auf der Webseite.');
+    } else {
+      console.log('❌ Kein Benutzer in der Datenbank gefunden.');
+      console.log('Bitte registriere dich erst auf der Webseite.');
+    }
     return;
   }
 

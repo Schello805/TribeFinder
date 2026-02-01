@@ -1,13 +1,18 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { requireAdminSession } from '@/lib/requireAdmin';
+import { jsonServerError, jsonUnauthorized } from "@/lib/apiResponse";
+
+const DEFAULT_SMTP_FROM = '"TribeFinder" <noreply@tribefinder.de>';
+const LEGACY_SMTP_FROM_VALUES = new Set([
+  '"TribeFinder" <noreply@tribefinder.com>',
+  '"Dance Connect" <noreply@dance-connect.com>',
+]);
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  const session = await requireAdminSession();
+  if (!session) {
+    return jsonUnauthorized();
   }
 
   try {
@@ -17,23 +22,45 @@ export async function GET() {
       return acc;
     }, {} as Record<string, string>);
 
+    const currentFrom = settingsMap.SMTP_FROM;
+    const shouldMigrateDefault =
+      !currentFrom ||
+      currentFrom.trim() === '' ||
+      LEGACY_SMTP_FROM_VALUES.has(currentFrom.trim());
+
+    if (shouldMigrateDefault) {
+      await prisma.systemSetting.upsert({
+        where: { key: 'SMTP_FROM' },
+        update: { value: DEFAULT_SMTP_FROM },
+        create: { key: 'SMTP_FROM', value: DEFAULT_SMTP_FROM },
+      });
+      settingsMap.SMTP_FROM = DEFAULT_SMTP_FROM;
+    }
+
     // Sensible Daten maskieren? Hier nicht, da Admin sie sehen/bearbeiten muss
     return NextResponse.json(settingsMap);
   } catch (error) {
     console.error('Error fetching settings:', error);
-    return NextResponse.json({ error: 'Fehler beim Laden der Einstellungen' }, { status: 500 });
+    return jsonServerError('Fehler beim Laden der Einstellungen', error);
   }
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  const session = await requireAdminSession();
+  if (!session) {
+    return jsonUnauthorized();
   }
 
   try {
     const body = await req.json();
+
+    if (Object.prototype.hasOwnProperty.call(body, 'SMTP_FROM')) {
+      const v = typeof body.SMTP_FROM === 'string' ? body.SMTP_FROM.trim() : '';
+      if (!v) body.SMTP_FROM = DEFAULT_SMTP_FROM;
+      if (LEGACY_SMTP_FROM_VALUES.has(String(body.SMTP_FROM).trim())) {
+        body.SMTP_FROM = DEFAULT_SMTP_FROM;
+      }
+    }
     
     // Transaktion für alle Updates
     await prisma.$transaction(
@@ -49,6 +76,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Einstellungen gespeichert' });
   } catch (error) {
     console.error('Error saving settings:', error);
-    return NextResponse.json({ error: 'Fehler beim Speichern der Einstellungen' }, { status: 500 });
+    return jsonServerError('Fehler beim Speichern der Einstellungen', error);
   }
 }

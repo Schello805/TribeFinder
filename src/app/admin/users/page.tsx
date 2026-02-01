@@ -20,29 +20,35 @@ export default async function AdminUsersPage() {
       id: true,
       name: true,
       email: true,
+      emailVerified: true,
       role: true,
+      isBlocked: true,
       createdAt: true
     }
   });
 
   // Convert dates to strings for client component
-  const formattedUsers = users.map(user => ({
-    ...user,
-    createdAt: user.createdAt.toISOString()
+  const formattedUsers = users.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    emailVerified: user.emailVerified ? user.emailVerified.toISOString() : null,
+    role: user.role,
+    isBlocked: user.isBlocked,
+    createdAt: user.createdAt.toISOString(),
   }));
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Benutzerverwaltung</h1>
+    <div className="relative left-1/2 -translate-x-1/2 w-[90vw] py-8 px-4 space-y-6">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Benutzerverwaltung</h1>
 
       <AdminNav />
 
-      <p className="text-gray-500">
-        Hier kannst du Benutzer verwalten und als &quot;Test-User&quot; markieren. 
-        Test-User können über die Systemeinstellungen global ausgeblendet werden.
+      <p className="text-gray-500 dark:text-gray-400">
+        Hier kannst du Benutzer einsehen.
       </p>
 
-      <UsersList initialUsers={formattedUsers} />
+      <UsersList initialUsers={formattedUsers} currentUserId={session.user.id} />
     </div>
   );
 }

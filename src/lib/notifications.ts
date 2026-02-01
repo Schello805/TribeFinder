@@ -10,7 +10,7 @@ export async function notifyGroupAboutNewMember(groupId: string, applicantName: 
       include: {
         owner: { select: { email: true, emailNotifications: true } },
         members: {
-          where: { role: 'ADMIN', status: 'APPROVED' },
+          where: { status: 'APPROVED' },
           include: { user: { select: { email: true, emailNotifications: true } } }
         }
       }
@@ -45,6 +45,105 @@ export async function notifyGroupAboutNewMember(groupId: string, applicantName: 
     logger.info({ groupId, applicantEmail, recipientCount: recipients.length }, "Membership request notification sent");
   } catch (error) {
     logger.error({ error, groupId }, "Error sending membership request notification");
+  }
+}
+
+export async function notifyUserRemovedFromGroup(params: {
+  userId: string;
+  groupId: string;
+  removedByName: string;
+}) {
+  try {
+    const [user, group] = await Promise.all([
+      prisma.user.findUnique({ where: { id: params.userId }, select: { email: true, emailNotifications: true } }),
+      prisma.group.findUnique({ where: { id: params.groupId }, select: { name: true } }),
+    ]);
+
+    if (!user?.email || !user.emailNotifications || !group) return;
+
+    const subject = `Du wurdest aus ${group.name} entfernt`;
+    const content = `
+      ${emailHeading('Mitgliedschaft beendet')}
+      ${emailText(`Du wurdest von <strong>${params.removedByName}</strong> aus der Gruppe <strong>${group.name}</strong> entfernt.`)}
+      ${emailText('Wenn das ein Fehler war, kannst du der Gruppe jederzeit erneut beitreten:')}
+      ${emailButton('Zur Gruppe', `${process.env.NEXTAUTH_URL}/groups/${params.groupId}`)}
+    `;
+
+    const html = await emailTemplate(content, `Entfernt aus ${group.name}`);
+    await sendEmail(user.email, subject, html);
+    logger.info({ userId: params.userId, groupId: params.groupId }, "Removed-from-group notification sent");
+  } catch (error) {
+    logger.error({ error, userId: params.userId, groupId: params.groupId }, "Error sending removed-from-group notification");
+  }
+}
+
+export async function notifyGroupAboutInboxMessage(params: {
+  groupId: string;
+  threadId: string;
+  authorId: string;
+  authorName: string;
+  preview: string;
+  subject?: string | null;
+}) {
+  try {
+    const group = await prisma.group.findUnique({
+      where: { id: params.groupId },
+      select: {
+        id: true,
+        name: true,
+        owner: { select: { id: true, email: true, emailNotifications: true, notifyInboxMessages: true } },
+        members: {
+          where: { status: "APPROVED" },
+          select: {
+            user: { select: { id: true, email: true, emailNotifications: true, notifyInboxMessages: true } },
+          },
+        },
+      },
+    });
+
+    if (!group) return;
+
+    const recipients = new Set<string>();
+    const shouldNotify = (u: { id: string; email: string | null; emailNotifications: boolean; notifyInboxMessages?: boolean }) => {
+      if (!u.email) return false;
+      if (u.id === params.authorId) return false;
+      if (!u.emailNotifications) return false;
+      if (!u.notifyInboxMessages) return false;
+      return true;
+    };
+
+    if (group.owner && shouldNotify(group.owner)) {
+      recipients.add(group.owner.email as string);
+    }
+
+    group.members.forEach((m) => {
+      const u = m.user;
+      if (shouldNotify(u)) {
+        recipients.add(u.email as string);
+      }
+    });
+
+    if (recipients.size === 0) return;
+
+    const subject = `Neue Nachricht in ${group.name}`;
+    const threadTitle = params.subject ? params.subject : `Nachricht an ${group.name}`;
+    const url = `${process.env.NEXTAUTH_URL}/messages/threads/${params.threadId}`;
+    const content = `
+      ${emailHeading('Neue Inbox-Nachricht 📬')}
+      ${emailText(`<strong>${params.authorName}</strong> hat in <strong>${group.name}</strong> geschrieben:`)}
+      ${emailText(`<em>"${params.preview}"</em>`)}
+      ${emailText(`Betreff: <strong>${threadTitle}</strong>`)}
+      ${emailButton('Thread öffnen', url)}
+    `;
+
+    const html = await emailTemplate(content, `Neue Nachricht in ${group.name}`);
+    await Promise.all(Array.from(recipients).map((email) => sendEmail(email, subject, html)));
+    logger.info({ groupId: params.groupId, threadId: params.threadId, recipientCount: recipients.size }, "Inbox notification sent");
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    // Best-effort: wenn DB noch nicht migriert ist (fehlende Spalte), nicht crashen.
+    if (err?.code === "P2022" || err?.code === "P2021") return;
+    logger.error({ error, groupId: params.groupId, threadId: params.threadId }, "Error sending inbox notification");
   }
 }
 

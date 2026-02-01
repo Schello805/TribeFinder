@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
 
 interface EventParticipationButtonProps {
   eventId: string;
@@ -11,6 +12,7 @@ interface EventParticipationButtonProps {
 export default function EventParticipationButton({ eventId }: EventParticipationButtonProps) {
   const { data: session } = useSession();
   const router = useRouter();
+  const { showToast } = useToast();
   const [managedGroups, setManagedGroups] = useState<{ id: string; name: string }[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,13 +50,13 @@ export default function EventParticipationButton({ eventId }: EventParticipation
         setIsOpen(false);
         setMessage("");
         router.refresh();
-        alert("Anfrage gesendet!");
+        showToast('Anfrage gesendet!', 'success');
       } else {
         const data = await res.json();
-        alert(data.message || "Fehler bei der Anfrage");
+        showToast(data.message || 'Fehler bei der Anfrage', 'error');
       }
     } catch {
-      alert("Ein Fehler ist aufgetreten");
+      showToast('Ein Fehler ist aufgetreten', 'error');
     } finally {
       setIsLoading(false);
     }

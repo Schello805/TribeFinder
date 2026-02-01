@@ -1,0 +1,30 @@
+[Unit]
+Description=TribeFinder - Tribal Dance Community Platform
+After=network.target
+
+[Service]
+Type=simple
+User=tribefinder
+Group=tribefinder
+WorkingDirectory=/home/tribefinder/TribeFinder
+Environment=NODE_ENV=production
+EnvironmentFile=/home/tribefinder/TribeFinder/.env
+ExecStartPre=/usr/bin/npm run db:generate
+ExecStartPre=/bin/bash /home/tribefinder/TribeFinder/scripts/db-migrate-safe.sh
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tribefinder
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits (optional)
+# LimitNOFILE=65536
+# Environment=NODE_OPTIONS="--max-old-space-size=2048"
+
+[Install]
+WantedBy=multi-user.target

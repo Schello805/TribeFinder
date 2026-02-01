@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
 
 interface JoinButtonProps {
   groupId: string;
@@ -10,6 +11,7 @@ interface JoinButtonProps {
 
 export default function JoinButton({ groupId, initialStatus }: JoinButtonProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [status, setStatus] = useState(initialStatus);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,18 +27,21 @@ export default function JoinButton({ groupId, initialStatus }: JoinButtonProps) 
 
       if (response.ok) {
         if (isJoining) {
-          setStatus('PENDING'); // Assume pending after join request
+          setStatus('PENDING');
+          showToast('Beitrittsanfrage gesendet!', 'success');
         } else {
           setStatus('NONE');
+          showToast('Mitgliedschaft beendet', 'info');
         }
         router.refresh();
       } else {
         const data = await response.json();
         console.error("Failed to update membership:", data.message);
-        alert(data.message || "Fehler beim Aktualisieren der Mitgliedschaft");
+        showToast(data.message || "Fehler beim Aktualisieren der Mitgliedschaft", 'error');
       }
     } catch (error) {
       console.error("Error updating membership:", error);
+      showToast("Fehler beim Aktualisieren der Mitgliedschaft", 'error');
     } finally {
       setIsLoading(false);
     }

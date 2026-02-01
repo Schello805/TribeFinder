@@ -25,6 +25,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json(tags);
   } catch (error) {
+    if (error && typeof error === "object" && "name" in error && (error as { name?: string }).name === "PrismaClientRustPanicError") {
+      return NextResponse.json([]);
+    }
     console.error('Error fetching tags:', error);
     return NextResponse.json({ error: 'Fehler beim Laden der Tags' }, { status: 500 });
   }
@@ -52,6 +55,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(tag);
   } catch (error) {
+    if (error && typeof error === "object" && "name" in error && (error as { name?: string }).name === "PrismaClientRustPanicError") {
+      return NextResponse.json({ error: "Datenbankfehler (Prisma Engine)" }, { status: 503 });
+    }
     console.error('Error creating tag:', error);
     return NextResponse.json({ error: 'Fehler beim Erstellen des Tags' }, { status: 500 });
   }

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 interface Participation {
   id: string;
@@ -21,6 +23,7 @@ interface EventParticipationManagerProps {
 
 export default function EventParticipationManager({ participations }: EventParticipationManagerProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
   const pending = participations.filter(p => p.status === "PENDING");
@@ -36,12 +39,13 @@ export default function EventParticipationManager({ participations }: EventParti
       });
 
       if (res.ok) {
+        showToast('Status aktualisiert', 'success');
         router.refresh();
       } else {
-        alert("Fehler beim Aktualisieren");
+        showToast('Fehler beim Aktualisieren', 'error');
       }
     } catch {
-      alert("Fehler");
+      showToast('Ein Fehler ist aufgetreten', 'error');
     } finally {
       setIsLoading(null);
     }
@@ -67,7 +71,7 @@ export default function EventParticipationManager({ participations }: EventParti
                     {p.group.image ? (
                         <>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={p.group.image} alt={p.group.name} className="w-10 h-10 rounded-full object-cover" />
+                          <img src={normalizeUploadedImageUrl(p.group.image) ?? ""} alt={p.group.name} className="w-10 h-10 rounded-full object-cover" />
                         </>
                     ) : (
                         <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center font-bold text-orange-500 border border-orange-200">

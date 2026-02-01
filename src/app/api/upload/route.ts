@@ -2,9 +2,21 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import fs from 'node:fs';
 import logger from '@/lib/logger';
 import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE, AllowedImageType } from '@/types';
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from '@/lib/rateLimit';
+
+const resolveProjectRoot = () => {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+};
 
 export async function POST(req: Request) {
   // Rate limiting
@@ -16,7 +28,8 @@ export async function POST(req: Request) {
 
   try {
     const formData = await req.formData();
-    const file = formData.get('file') as File;
+    const fileEntry = formData.get('file');
+    const file = fileEntry instanceof File ? fileEntry : null;
 
     if (!file) {
       return NextResponse.json({ error: 'Keine Datei hochgeladen' }, { status: 400 });
@@ -80,22 +93,34 @@ export async function POST(req: Request) {
     }
 
     const filename = `${crypto.randomUUID()}${ext}`;
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    const uploadDir = path.join(resolveProjectRoot(), 'public/uploads');
 
     // Sicherstellen, dass das Verzeichnis existiert
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch {
-      // Ignorieren, wenn existiert
-    }
+    await mkdir(uploadDir, { recursive: true, mode: 0o755 });
 
     const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
+    await writeFile(filepath, buffer, { mode: 0o644 });
 
     logger.info({ filename, size: file.size, type: file.type }, 'File uploaded successfully');
     return NextResponse.json({ url: `/uploads/${filename}` });
   } catch (error) {
-    logger.error({ error }, 'Upload error');
-    return NextResponse.json({ error: 'Fehler beim Upload' }, { status: 500 });
+    const uploadDir = path.join(resolveProjectRoot(), 'public/uploads');
+    logger.error(
+      {
+        error,
+        uploadDir,
+        cwd: process.cwd(),
+        nodeEnv: process.env.NODE_ENV,
+      },
+      'Upload error'
+    );
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json(
+      {
+        error: 'Fehler beim Upload',
+        ...(process.env.NODE_ENV !== 'production' ? { details: message } : {}),
+      },
+      { status: 500 }
+    );
   }
 }

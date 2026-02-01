@@ -40,8 +40,11 @@ export default function DanceStylesEditor() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/user/dance-styles");
-      if (!res.ok) return;
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMessage(data?.message || data?.error || "Fehler beim Laden der Tanzstile");
+        return;
+      }
       setAvailable(data.available || []);
       setSelected(data.selected || []);
     } finally {
@@ -130,21 +133,21 @@ export default function DanceStylesEditor() {
   );
 
   if (isLoading) {
-    return <div className="p-6 text-center">Laden...</div>;
+    return <div className="p-6 text-center text-gray-700 dark:text-gray-200">Laden...</div>;
   }
 
   return (
     <div className="space-y-4">
-      <div className="bg-white shadow sm:rounded-lg p-6 space-y-4">
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 space-y-4 border border-gray-100 dark:border-gray-700">
         <div className="text-sm font-medium text-green-600 min-h-[1.5rem]">{message}</div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Tanzstil hinzufügen</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Tanzstil hinzufügen</label>
             <select
               value={newStyleId}
               onChange={(e) => setNewStyleId(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border px-3 py-2 text-black"
+              className="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border appearance-none"
               disabled={isSaving}
             >
               <option value="">Bitte auswählen…</option>
@@ -157,11 +160,11 @@ export default function DanceStylesEditor() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Level</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Level</label>
             <select
               value={newLevel}
               onChange={(e) => setNewLevel(e.target.value as Level)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border px-3 py-2 text-black"
+              className="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border appearance-none"
               disabled={isSaving}
             >
               {(Object.keys(LEVEL_LABEL) as Level[]).map((lvl) => (
@@ -185,16 +188,16 @@ export default function DanceStylesEditor() {
         </div>
       </div>
 
-      <div className="bg-white shadow sm:rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Deine Tanzstile</h3>
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 border border-gray-100 dark:border-gray-700">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Deine Tanzstile</h3>
         {selected.length === 0 ? (
-          <div className="text-gray-600">Noch keine Tanzstile ausgewählt.</div>
+          <div className="text-gray-600 dark:text-gray-300">Noch keine Tanzstile ausgewählt.</div>
         ) : (
           <div className="space-y-3">
             {selected.map((s) => (
-              <div key={s.id} className="flex items-center justify-between gap-4 flex-wrap border-b border-gray-100 pb-3">
+              <div key={s.id} className="flex items-center justify-between gap-4 flex-wrap border-b border-gray-100 dark:border-gray-700 pb-3">
                 <div className="min-w-0">
-                  <div className="font-medium text-gray-900">{s.style.name}</div>
+                  <div className="font-medium text-gray-900 dark:text-white">{s.style.name}</div>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -202,7 +205,7 @@ export default function DanceStylesEditor() {
                     value={s.level}
                     onChange={(e) => updateLevel(s.id, e.target.value as Level)}
                     disabled={isSaving}
-                    className="rounded-md border-gray-300 shadow-sm sm:text-sm border px-3 py-2 text-black"
+                    className="rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border appearance-none"
                   >
                     {(Object.keys(LEVEL_LABEL) as Level[]).map((lvl) => (
                       <option key={lvl} value={lvl}>
@@ -215,7 +218,7 @@ export default function DanceStylesEditor() {
                     type="button"
                     onClick={() => remove(s.id)}
                     disabled={isSaving}
-                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-3 text-sm font-medium text-red-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+                    className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 text-sm font-medium text-red-700 dark:text-red-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                   >
                     Entfernen
                   </button>
