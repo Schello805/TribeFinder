@@ -1,21 +1,32 @@
-import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
-import fs from 'node:fs';
-import logger from '@/lib/logger';
-import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE, AllowedImageType } from '@/types';
-import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from '@/lib/rateLimit';
+import { NextResponse } from "next/server";
+import { writeFile, mkdir, realpath } from "fs/promises";
+import path from "path";
+import crypto from "crypto";
+import fs from "node:fs";
+import logger from "@/lib/logger";
+import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE, AllowedImageType } from "@/types";
+import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 
 const resolveProjectRoot = () => {
   let dir = process.cwd();
   for (let i = 0; i < 10; i++) {
-    if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    const hasPackageJson = fs.existsSync(path.join(dir, "package.json"));
+    const hasPrismaSchema = fs.existsSync(path.join(dir, "prisma", "schema.prisma"));
+    if (hasPackageJson && hasPrismaSchema) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
   return process.cwd();
+};
+
+const resolveUploadsDir = async () => {
+  const uploadsDir = path.join(resolveProjectRoot(), "public", "uploads");
+  try {
+    return await realpath(uploadsDir);
+  } catch {
+    return uploadsDir;
+  }
 };
 
 export async function POST(req: Request) {
@@ -93,7 +104,7 @@ export async function POST(req: Request) {
     }
 
     const filename = `${crypto.randomUUID()}${ext}`;
-    const uploadDir = path.join(resolveProjectRoot(), 'public/uploads');
+    const uploadDir = await resolveUploadsDir();
 
     // Sicherstellen, dass das Verzeichnis existiert
     await mkdir(uploadDir, { recursive: true, mode: 0o755 });
@@ -104,7 +115,7 @@ export async function POST(req: Request) {
     logger.info({ filename, size: file.size, type: file.type }, 'File uploaded successfully');
     return NextResponse.json({ url: `/uploads/${filename}` });
   } catch (error) {
-    const uploadDir = path.join(resolveProjectRoot(), 'public/uploads');
+    const uploadDir = await resolveUploadsDir();
     logger.error(
       {
         error,

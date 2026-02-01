@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile, mkdir, realpath } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import fs from "node:fs";
@@ -14,12 +14,23 @@ const TARGET_H = 300;
 const resolveProjectRoot = () => {
   let dir = process.cwd();
   for (let i = 0; i < 10; i++) {
-    if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    const hasPackageJson = fs.existsSync(path.join(dir, "package.json"));
+    const hasPrismaSchema = fs.existsSync(path.join(dir, "prisma", "schema.prisma"));
+    if (hasPackageJson && hasPrismaSchema) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
   return process.cwd();
+};
+
+const resolveUploadsDir = async () => {
+  const uploadsDir = path.join(resolveProjectRoot(), "public", "uploads");
+  try {
+    return await realpath(uploadsDir);
+  } catch {
+    return uploadsDir;
+  }
 };
 
 export async function POST(req: Request) {
@@ -70,7 +81,7 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     const filename = `banner-${crypto.randomUUID()}.jpg`;
-    const uploadDir = path.join(resolveProjectRoot(), "public/uploads");
+    const uploadDir = await resolveUploadsDir();
     await mkdir(uploadDir, { recursive: true });
 
     const filepath = path.join(uploadDir, filename);
@@ -99,7 +110,7 @@ export async function POST(req: Request) {
     logger.info({ filename, size: out.length, type: file.type }, "Banner uploaded successfully");
     return NextResponse.json({ url: `/uploads/${filename}`, width: TARGET_W, height: TARGET_H });
   } catch (error) {
-    const uploadDir = path.join(resolveProjectRoot(), "public/uploads");
+    const uploadDir = await resolveUploadsDir();
     logger.error(
       {
         error,
