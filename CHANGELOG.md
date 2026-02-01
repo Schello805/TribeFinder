@@ -6,6 +6,13 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ## [Unreleased] - 2026-01-28
 
+### 🔧 Deployment / Datenbank
+
+- PostgreSQL-only: SQLite komplett entfernt
+  - Entfernte Prisma SQLite-Migrations-History (`prisma/migrations` inkl. `migration_lock.toml`)
+  - Setup/Deploy nutzen `prisma db push`
+  - Backup/Restore/Auto-Backup via `pg_dump`/`psql`
+
 ### 🧪 Tests
 
 - Playwright E2E: Neuer Test für Inbox-Thread (Edit/Delete bis gelesen)
@@ -145,4 +152,4 @@ Siehe `INSTALL_NATIVE.md` für Details.
 
 ----
 
-**Letzte Aktualisierung:** 19. Januar 2026
+**Letzte Aktualisierung:** 01. Februar 2026

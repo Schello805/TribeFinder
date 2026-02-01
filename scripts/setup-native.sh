@@ -3,7 +3,7 @@
 # Führt die komplette Installation durch
 
 # Script Version
-SCRIPT_VERSION="1.0.9"
+SCRIPT_VERSION="1.1.0"
 
 set -e
 
