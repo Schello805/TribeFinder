@@ -37,9 +37,6 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const verificationToken = uuidv4();
-    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
     const defaultAdminEmail = (process.env.DEFAULT_ADMIN_EMAIL || "").trim().toLowerCase();
     const requestedEmail = email.trim().toLowerCase();
 
@@ -51,6 +48,11 @@ export async function POST(req: Request) {
       role = userCount === 0 ? "ADMIN" : "USER";
     }
 
+    const autoVerify = Boolean(defaultAdminEmail) && requestedEmail === defaultAdminEmail && role === "ADMIN";
+
+    const verificationToken = autoVerify ? null : uuidv4();
+    const verificationTokenExpiry = autoVerify ? null : new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     const user = await prisma.user.create({
       data: {
         email,
@@ -59,14 +61,15 @@ export async function POST(req: Request) {
         dancerName: name, // Use name as default dancer name
         role,
         notifyInboxMessages: true,
-        emailVerified: null,
+        emailVerified: autoVerify ? new Date() : null,
         verificationToken,
         verificationTokenExpiry,
       },
     });
 
-    const verifyUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
-    const emailContent = `
+    if (!autoVerify) {
+      const verifyUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
+      const emailContent = `
       ${emailHeading('E-Mail-Adresse bestätigen ✅')}
       ${emailText('Willkommen bei TribeFinder! Bitte bestätige deine E-Mail-Adresse, damit du dich anmelden kannst.')}
       ${emailText('Klicke auf den Button unten, um deine E-Mail-Adresse zu bestätigen:')}
@@ -75,15 +78,21 @@ export async function POST(req: Request) {
       ${emailText('Wenn du dich nicht registriert hast, kannst du diese E-Mail ignorieren.')}
     `;
 
-    const html = await emailTemplate(emailContent, 'Bestätige deine E-Mail-Adresse');
-    await sendEmail(email, 'E-Mail bestätigen - TribeFinder', html);
+      const html = await emailTemplate(emailContent, 'Bestätige deine E-Mail-Adresse');
+      await sendEmail(email, 'E-Mail bestätigen - TribeFinder', html);
+    }
 
     // Entferne das Passwort aus der Antwort
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _password, ...userWithoutPassword } = user;
 
     return NextResponse.json(
-      { message: "Registrierung erfolgreich. Bitte bestätige deine E-Mail-Adresse (Link 24h gültig), bevor du dich anmelden kannst.", user: userWithoutPassword },
+      {
+        message: autoVerify
+          ? "Registrierung erfolgreich. Admin-Account ist bereits verifiziert."
+          : "Registrierung erfolgreich. Bitte bestätige deine E-Mail-Adresse (Link 24h gültig), bevor du dich anmelden kannst.",
+        user: userWithoutPassword,
+      },
       { status: 201 }
     );
   } catch (error) {

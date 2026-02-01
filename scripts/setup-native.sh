@@ -350,6 +350,13 @@ if [ ! -d "node_modules/@tailwindcss/oxide-linux-x64-gnu" ]; then
     sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && npm install --no-save @tailwindcss/oxide-linux-x64-gnu@4.1.18'
 fi
 
+echo "Teste SMTP Konfiguration..."
+sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && set -a && . ./.env && set +a && node -e "const nodemailer=require(\"nodemailer\"); const host=process.env.SMTP_HOST; const port=Number(process.env.SMTP_PORT||587); const user=process.env.SMTP_USER; const pass=process.env.SMTP_PASSWORD; const secure=(process.env.SMTP_SECURE===\"true\"); if(!host||!user||!pass){console.error(\"SMTP Konfiguration fehlt (SMTP_HOST/SMTP_USER/SMTP_PASSWORD)\"); process.exit(1);} const t=nodemailer.createTransport({host,port,secure,auth:{user,pass}}); t.verify().then(()=>{console.log(\"✓ SMTP OK\");}).catch((e)=>{console.error(\"SMTP Fehler:\", e && (e.message||e)); process.exit(1);});"'
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Fehler: SMTP Test fehlgeschlagen. Bitte korrigiere SMTP_* in .env und starte das Setup erneut.${NC}"
+    exit 1
+fi
+
 # Prisma Setup
 echo "Initialisiere Datenbank-Schema (Prisma)..."
 cd "$INSTALL_DIR"
