@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir, realpath } from "fs/promises";
+import { writeFile, mkdir, realpath, stat } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import fs from "node:fs";
@@ -32,6 +32,15 @@ const resolveUploadsDir = async () => {
     return uploadsDir;
   }
 };
+
+async function fileExists(p: string) {
+  try {
+    await stat(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(req: Request) {
   const clientId = getClientIdentifier(req);
@@ -81,10 +90,14 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     const filename = `banner-${crypto.randomUUID()}.jpg`;
+    const projectRoot = resolveProjectRoot();
     const uploadDir = await resolveUploadsDir();
     await mkdir(uploadDir, { recursive: true });
 
     const filepath = path.join(uploadDir, filename);
+
+    const publicUploadsPath = path.join(projectRoot, "public", "uploads");
+    const standaloneUploadsPath = path.join(projectRoot, ".next", "standalone", "public", "uploads");
 
     const pipeline = sharp(buffer).rotate().resize({ width: TARGET_W });
     const resizedMeta = await pipeline.metadata();
@@ -107,7 +120,27 @@ export async function POST(req: Request) {
 
     await writeFile(filepath, out);
 
-    logger.info({ filename, size: out.length, type: file.type }, "Banner uploaded successfully");
+    const exists = await fileExists(filepath);
+    const publicUploadsExists = await fileExists(publicUploadsPath);
+    const standaloneUploadsExists = await fileExists(standaloneUploadsPath);
+
+    logger.info(
+      {
+        filename,
+        size: out.length,
+        type: file.type,
+        projectRoot,
+        uploadDir,
+        filepath,
+        exists,
+        publicUploadsPath,
+        publicUploadsExists,
+        standaloneUploadsPath,
+        standaloneUploadsExists,
+        cwd: process.cwd(),
+      },
+      "Banner uploaded successfully"
+    );
     return NextResponse.json({ url: `/uploads/${filename}`, width: TARGET_W, height: TARGET_H });
   } catch (error) {
     const uploadDir = await resolveUploadsDir();

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir, realpath } from "fs/promises";
+import { writeFile, mkdir, realpath, stat } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import fs from "node:fs";
@@ -28,6 +28,15 @@ const resolveUploadsDir = async () => {
     return uploadsDir;
   }
 };
+
+async function fileExists(p: string) {
+  try {
+    await stat(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(req: Request) {
   // Rate limiting
@@ -104,7 +113,11 @@ export async function POST(req: Request) {
     }
 
     const filename = `${crypto.randomUUID()}${ext}`;
+    const projectRoot = resolveProjectRoot();
     const uploadDir = await resolveUploadsDir();
+
+    const publicUploadsPath = path.join(projectRoot, "public", "uploads");
+    const standaloneUploadsPath = path.join(projectRoot, ".next", "standalone", "public", "uploads");
 
     // Sicherstellen, dass das Verzeichnis existiert
     await mkdir(uploadDir, { recursive: true, mode: 0o755 });
@@ -112,7 +125,27 @@ export async function POST(req: Request) {
     const filepath = path.join(uploadDir, filename);
     await writeFile(filepath, buffer, { mode: 0o644 });
 
-    logger.info({ filename, size: file.size, type: file.type }, 'File uploaded successfully');
+    const exists = await fileExists(filepath);
+    const publicUploadsExists = await fileExists(publicUploadsPath);
+    const standaloneUploadsExists = await fileExists(standaloneUploadsPath);
+
+    logger.info(
+      {
+        filename,
+        size: file.size,
+        type: file.type,
+        projectRoot,
+        uploadDir,
+        filepath,
+        exists,
+        publicUploadsPath,
+        publicUploadsExists,
+        standaloneUploadsPath,
+        standaloneUploadsExists,
+        cwd: process.cwd(),
+      },
+      "File uploaded successfully"
+    );
     return NextResponse.json({ url: `/uploads/${filename}` });
   } catch (error) {
     const uploadDir = await resolveUploadsDir();
