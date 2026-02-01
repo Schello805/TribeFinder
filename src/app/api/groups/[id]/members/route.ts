@@ -18,7 +18,7 @@ export async function PUT(
 
   try {
     const body = await req.json();
-    const { userId, action, role } = body;
+    const { userId, action } = body;
 
     const group = await prisma.group.findUnique({
       where: { id },

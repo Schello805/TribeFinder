@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import { useToast } from "@/components/ui/Toast";
 
+function getStringProp(obj: unknown, key: string): string | null {
+  if (typeof obj !== "object" || obj === null) return null;
+  const v = (obj as Record<string, unknown>)[key];
+  return typeof v === "string" ? v : null;
+}
+
 export default function AdminDesignBrandingBanner() {
   const { showToast } = useToast();
 
@@ -24,14 +30,14 @@ export default function AdminDesignBrandingBanner() {
       try {
         const res = await fetch("/api/admin/settings", { cache: "no-store" });
         const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error((data as any)?.message || `HTTP ${res.status}`);
+        if (!res.ok) throw new Error(getStringProp(data, "message") || `HTTP ${res.status}`);
         if (cancelled) return;
 
-        const logo = typeof (data as any)?.BRANDING_LOGO_URL === "string" ? (data as any).BRANDING_LOGO_URL : "";
-        const enabledRaw = typeof (data as any)?.SITE_BANNER_ENABLED === "string" ? (data as any).SITE_BANNER_ENABLED : "false";
-        const text = typeof (data as any)?.SITE_BANNER_TEXT === "string" ? (data as any).SITE_BANNER_TEXT : "";
-        const bg = typeof (data as any)?.SITE_BANNER_BG === "string" ? (data as any).SITE_BANNER_BG : "#f59e0b";
-        const textColor = typeof (data as any)?.SITE_BANNER_TEXT_COLOR === "string" ? (data as any).SITE_BANNER_TEXT_COLOR : "#ffffff";
+        const logo = getStringProp(data, "BRANDING_LOGO_URL") || "";
+        const enabledRaw = getStringProp(data, "SITE_BANNER_ENABLED") || "false";
+        const text = getStringProp(data, "SITE_BANNER_TEXT") || "";
+        const bg = getStringProp(data, "SITE_BANNER_BG") || "#f59e0b";
+        const textColor = getStringProp(data, "SITE_BANNER_TEXT_COLOR") || "#ffffff";
 
         setBrandingLogoUrl(logo);
         setBannerEnabled(String(enabledRaw).toLowerCase() === "true");
@@ -58,10 +64,11 @@ export default function AdminDesignBrandingBanner() {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/admin/branding/logo", { method: "POST", body: fd });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as any)?.error || (data as any)?.message || "Fehler beim Logo-Upload");
+      const data: unknown = await res.json().catch(() => null);
+      const errMsg = getStringProp(data, "error") || getStringProp(data, "message") || "Fehler beim Logo-Upload";
+      if (!res.ok) throw new Error(errMsg);
 
-      const next = typeof (data as any)?.logoUrl === "string" ? (data as any).logoUrl : "";
+      const next = getStringProp(data, "logoUrl") || "";
       setBrandingLogoUrl(next);
       showToast("Logo gespeichert", "success");
     } catch (e) {
@@ -75,8 +82,9 @@ export default function AdminDesignBrandingBanner() {
     setIsLogoSaving(true);
     try {
       const res = await fetch("/api/admin/branding/logo", { method: "DELETE" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as any)?.error || (data as any)?.message || "Fehler beim Entfernen");
+      const data: unknown = await res.json().catch(() => null);
+      const errMsg = getStringProp(data, "error") || getStringProp(data, "message") || "Fehler beim Entfernen";
+      if (!res.ok) throw new Error(errMsg);
       setBrandingLogoUrl("");
       showToast("Logo entfernt", "success");
     } catch (e) {
@@ -103,7 +111,7 @@ export default function AdminDesignBrandingBanner() {
       });
 
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error((data as any)?.message || `HTTP ${res.status}`);
+      if (!res.ok) throw new Error(getStringProp(data, "message") || `HTTP ${res.status}`);
       showToast("Gespeichert", "success");
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Fehler beim Speichern", "error");

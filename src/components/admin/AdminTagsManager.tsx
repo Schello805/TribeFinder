@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
 
 type Tag = {
@@ -9,6 +9,33 @@ type Tag = {
   isApproved: boolean;
   _count: { groups: number };
 };
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+function isTag(v: unknown): v is Tag {
+  if (!isRecord(v)) return false;
+  return (
+    typeof v.id === "string" &&
+    typeof v.name === "string" &&
+    typeof v.isApproved === "boolean" &&
+    isRecord(v._count) &&
+    typeof v._count.groups === "number"
+  );
+}
+
+function applyTagUpdate(current: Tag, update: Record<string, unknown>): Tag {
+  return {
+    ...current,
+    name: typeof update.name === "string" ? update.name : current.name,
+    isApproved: typeof update.isApproved === "boolean" ? update.isApproved : current.isApproved,
+    _count:
+      isRecord(update._count) && typeof update._count.groups === "number"
+        ? { groups: update._count.groups }
+        : current._count,
+  };
+}
 
 export default function AdminTagsManager() {
   const { showToast } = useToast();
@@ -21,24 +48,23 @@ export default function AdminTagsManager() {
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editError, setEditError] = useState("");
 
-  const fetchTags = async () => {
+  const fetchTags = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/tags");
       if (res.ok) {
-        const data = await res.json();
-        setTags(Array.isArray(data) ? data : []);
+        const data: unknown = await res.json().catch(() => null);
+        setTags(Array.isArray(data) ? (data as unknown[]).filter(isTag) : []);
       }
     } catch (error) {
       console.error("Error fetching tags:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void fetchTags();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchTags]);
 
   const startEdit = (tag: Tag) => {
     setEditError("");
@@ -70,13 +96,27 @@ export default function AdminTagsManager() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setEditError((data as any)?.error || (data as any)?.message || "Fehler beim Speichern");
+        const data: unknown = await res.json().catch(() => null);
+        const msg =
+          isRecord(data) && typeof data.error === "string"
+            ? data.error
+            : isRecord(data) && typeof data.message === "string"
+              ? data.message
+              : "Fehler beim Speichern";
+        setEditError(msg);
         return;
       }
 
-      const updated = await res.json();
-      setTags((prev) => prev.map((t) => (t.id === tag.id ? { ...t, ...updated } : t)).sort((a, b) => a.name.localeCompare(b.name)));
+      const updated: unknown = await res.json().catch(() => null);
+      if (!isRecord(updated)) {
+        setEditError("Fehler beim Speichern");
+        return;
+      }
+      setTags((prev) =>
+        prev
+          .map((t) => (t.id === tag.id ? applyTagUpdate(t, updated) : t))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      );
       cancelEdit();
     } catch (error) {
       console.error("Error renaming tag:", error);
@@ -99,13 +139,32 @@ export default function AdminTagsManager() {
       });
 
       if (res.ok) {
-        const newTag = await res.json();
+        const newTag: unknown = await res.json().catch(() => null);
+        if (!isRecord(newTag)) {
+          showToast("Fehler beim Hinzufügen", "error");
+          return;
+        }
+
+        const newId = newTag.id;
+        if (typeof newId !== "string") {
+          showToast("Fehler beim Hinzufügen", "error");
+          return;
+        }
+
+        const newName = typeof newTag.name === "string" ? newTag.name : newId;
+        const newApproved = typeof newTag.isApproved === "boolean" ? newTag.isApproved : true;
         setTags((prev) => {
-          const exists = prev.find((t) => t.id === (newTag as any).id);
+          const exists = prev.find((t) => t.id === newId);
           if (exists) {
-            return prev.map((t) => (t.id === (newTag as any).id ? { ...t, ...(newTag as any) } : t));
+            return prev.map((t) => (t.id === newId ? applyTagUpdate(t, newTag) : t));
           }
-          return [...prev, { ...(newTag as any), _count: { groups: 0 } }].sort((a, b) => a.name.localeCompare(b.name));
+          const created: Tag = {
+            id: newId,
+            name: newName,
+            isApproved: newApproved,
+            _count: { groups: 0 },
+          };
+          return [...prev, created].sort((a, b) => a.name.localeCompare(b.name));
         });
         setNewTagName("");
         showToast("Tag hinzugefügt", "success");

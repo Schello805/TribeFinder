@@ -21,21 +21,26 @@ import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { GET, DELETE } from "@/app/api/admin/errors/route";
 
+type AdminSession = Awaited<ReturnType<typeof requireAdminSession>>;
+type PrismaMock = { errorLog: { findMany: (args?: unknown) => unknown; deleteMany: (args?: unknown) => unknown } };
+
 describe("/api/admin/errors", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("returns 401 if not authorized", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValueOnce(null as any);
+    vi.mocked(requireAdminSession).mockResolvedValueOnce(null as unknown as AdminSession);
     const res = await GET();
     expect(res.status).toBe(401);
   });
 
   it("returns errors list for admin", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValueOnce({ user: { id: "admin", role: "ADMIN" } } as any);
+    vi.mocked(requireAdminSession).mockResolvedValueOnce({ user: { id: "admin", role: "ADMIN" } } as unknown as AdminSession);
 
-    vi.mocked((prisma as any).errorLog.findMany).mockResolvedValueOnce([
+    const prismaMock = prisma as unknown as PrismaMock;
+
+    vi.mocked(prismaMock.errorLog.findMany).mockResolvedValueOnce([
       { id: "1", fingerprint: "f", message: "boom", count: 1, lastSeenAt: new Date().toISOString() },
     ]);
 
@@ -48,8 +53,9 @@ describe("/api/admin/errors", () => {
   });
 
   it("clears errors for admin", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValueOnce({ user: { id: "admin", role: "ADMIN" } } as any);
-    vi.mocked((prisma as any).errorLog.deleteMany).mockResolvedValueOnce({ count: 3 });
+    vi.mocked(requireAdminSession).mockResolvedValueOnce({ user: { id: "admin", role: "ADMIN" } } as unknown as AdminSession);
+    const prismaMock = prisma as unknown as PrismaMock;
+    vi.mocked(prismaMock.errorLog.deleteMany).mockResolvedValueOnce({ count: 3 });
 
     const res = await DELETE();
     expect(res.status).toBe(200);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
@@ -19,6 +19,42 @@ type ErrorLogRow = {
   lastEmailSentAt: string | null;
 };
 
+function isErrorLogRow(v: unknown): v is ErrorLogRow {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return (
+    typeof o.id === "string" &&
+    typeof o.fingerprint === "string" &&
+    (o.route === null || typeof o.route === "string") &&
+    (o.status === null || typeof o.status === "number") &&
+    typeof o.message === "string" &&
+    (o.details === null || typeof o.details === "string") &&
+    (o.stack === null || typeof o.stack === "string") &&
+    typeof o.count === "number" &&
+    typeof o.firstSeenAt === "string" &&
+    typeof o.lastSeenAt === "string" &&
+    (o.lastEmailSentAt === null || typeof o.lastEmailSentAt === "string")
+  );
+}
+
+function getStringProp(obj: unknown, key: string): string | null {
+  if (typeof obj !== "object" || obj === null) return null;
+  const v = (obj as Record<string, unknown>)[key];
+  return typeof v === "string" ? v : null;
+}
+
+function getNumberProp(obj: unknown, key: string): number | null {
+  if (typeof obj !== "object" || obj === null) return null;
+  const v = (obj as Record<string, unknown>)[key];
+  return typeof v === "number" ? v : null;
+}
+
+function getArrayProp(obj: unknown, key: string): unknown[] | null {
+  if (typeof obj !== "object" || obj === null) return null;
+  const v = (obj as Record<string, unknown>)[key];
+  return Array.isArray(v) ? v : null;
+}
+
 export default function AdminErrorsPanel() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -29,20 +65,27 @@ export default function AdminErrorsPanel() {
   const [errors, setErrors] = useState<ErrorLogRow[]>([]);
   const [infoMessage, setInfoMessage] = useState<string>("");
 
-  async function load() {
+  const load = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/admin/errors");
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error((data as any)?.message || "Fehler konnten nicht geladen werden");
-      setErrors(Array.isArray((data as any)?.errors) ? (data as any).errors : []);
-      setInfoMessage(typeof (data as any)?.message === "string" ? (data as any).message : "");
+      const msg =
+        getStringProp(data, "message") ?? "Fehler konnten nicht geladen werden";
+
+      if (!res.ok) throw new Error(msg);
+
+      const list =
+        getArrayProp(data, "errors") ?? [];
+
+      setErrors((list as unknown[]).filter(isErrorLogRow));
+      setInfoMessage(msg);
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Fehler konnten nicht geladen werden", "error");
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [showToast]);
 
   async function clearAll() {
     if (!confirm("Wirklich alle Fehler löschen?")) return;
@@ -50,8 +93,13 @@ export default function AdminErrorsPanel() {
     try {
       const res = await fetch("/api/admin/errors", { method: "DELETE" });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error((data as any)?.message || "Löschen fehlgeschlagen");
-      const deleted = typeof (data as any)?.deleted === "number" ? (data as any).deleted : 0;
+      const msg =
+        getStringProp(data, "message") ?? "Löschen fehlgeschlagen";
+
+      if (!res.ok) throw new Error(msg);
+
+      const deleted =
+        getNumberProp(data, "deleted") ?? 0;
       showToast(`Fehlerliste geleert (${deleted})`, "success");
       await load();
     } catch (e) {
@@ -73,7 +121,7 @@ export default function AdminErrorsPanel() {
     if (status === "authenticated" && session?.user?.role === "ADMIN") {
       void load();
     }
-  }, [status, session, router]);
+  }, [status, session, router, load]);
 
   if (status === "loading" || isLoading) {
     return <div className="p-8 text-center text-gray-900 dark:text-gray-100">Laden...</div>;

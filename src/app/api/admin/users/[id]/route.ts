@@ -13,17 +13,17 @@ const patchSchema = z.object({
 });
 
 async function ensureNotLastUnblockedAdmin(targetUserId: string) {
-  const target = (await (prisma as any).user.findUnique({
+  const target = await prisma.user.findUnique({
     where: { id: targetUserId },
     select: { role: true, isBlocked: true },
-  })) as { role: string; isBlocked: boolean } | null;
+  });
   if (!target) return;
   if (target.role !== "ADMIN") return;
 
   // We only need to protect when the target is currently an unblocked admin.
   if (target.isBlocked) return;
 
-  const otherUnblockedAdmins = await (prisma as any).user.count({
+  const otherUnblockedAdmins = await prisma.user.count({
     where: {
       role: "ADMIN",
       isBlocked: false,
@@ -66,7 +66,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       await ensureNotLastUnblockedAdmin(id);
     }
 
-    const updated = (await (prisma as any).user.update({
+    const updated = await prisma.user.update({
       where: { id },
       data: {
         ...(parsed.data.role !== undefined ? { role: parsed.data.role } : {}),
@@ -92,15 +92,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         isBlocked: true,
         createdAt: true,
       },
-    })) as {
-      id: string;
-      name: string | null;
-      email: string;
-      emailVerified: Date | null;
-      role: string;
-      isBlocked: boolean;
-      createdAt: Date;
-    };
+    });
 
     return NextResponse.json({
       ...updated,

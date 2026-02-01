@@ -169,8 +169,9 @@ export default async function GroupDetailPage({
   const displayUrl = group.website ? group.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
 
   const headerImageUrl = normalizeUploadedImageUrl(group.headerImage) ?? null;
-  const headerFrom = (((group as any).headerGradientFrom as string | null) || "").trim();
-  const headerTo = (((group as any).headerGradientTo as string | null) || "").trim();
+  const groupAny = group as unknown as Record<string, unknown>;
+  const headerFrom = (typeof groupAny.headerGradientFrom === "string" ? groupAny.headerGradientFrom : "").trim();
+  const headerTo = (typeof groupAny.headerGradientTo === "string" ? groupAny.headerGradientTo : "").trim();
   const headerFocusYRaw = group.headerImageFocusY;
   const headerFocusY = typeof headerFocusYRaw === "number" && Number.isFinite(headerFocusYRaw) ? Math.min(100, Math.max(0, headerFocusYRaw)) : 50;
   const headerStyle = !headerImageUrl && headerFrom && headerTo ? { backgroundImage: `linear-gradient(to right, ${headerFrom}, ${headerTo})` } : undefined;

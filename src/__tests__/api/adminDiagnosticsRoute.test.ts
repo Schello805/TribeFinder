@@ -37,39 +37,64 @@ import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { GET } from "@/app/api/admin/diagnostics/route";
 
+type AdminSession = Awaited<ReturnType<typeof requireAdminSession>>;
+type PrismaMock = {
+  user: { count: (args?: unknown) => unknown };
+  group: {
+    count: (args?: unknown) => unknown;
+    create: (args?: unknown) => unknown;
+    update: (args?: unknown) => unknown;
+    findUnique: (args?: unknown) => unknown;
+    delete: (args?: unknown) => unknown;
+  };
+  event: { count: (args?: unknown) => unknown };
+  $queryRawUnsafe: (query: unknown) => unknown;
+  danceStyle: {
+    count: (args?: unknown) => unknown;
+    create: (args?: unknown) => unknown;
+    findUnique: (args?: unknown) => unknown;
+    update: (args?: unknown) => unknown;
+    delete: (args?: unknown) => unknown;
+  };
+  tag: { create: (args?: unknown) => unknown; delete: (args?: unknown) => unknown };
+  errorLog: { count: (args?: unknown) => unknown };
+};
+
 describe("GET /api/admin/diagnostics", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("returns 401 if not authorized", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValueOnce(null as any);
+    vi.mocked(requireAdminSession).mockResolvedValueOnce(null as unknown as AdminSession);
     const res = await GET();
     expect(res.status).toBe(401);
   });
 
   it("includes errors check", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValueOnce({ user: { id: "admin", role: "ADMIN" } } as any);
+    vi.mocked(requireAdminSession).mockResolvedValueOnce({ user: { id: "admin", role: "ADMIN" } } as unknown as AdminSession);
 
-    vi.mocked((prisma as any).user.count).mockResolvedValueOnce(1);
-    vi.mocked((prisma as any).group.count).mockResolvedValueOnce(1);
-    vi.mocked((prisma as any).event.count).mockResolvedValueOnce(1);
-    vi.mocked((prisma as any).$queryRawUnsafe).mockResolvedValueOnce([{ count: 1 }]);
-    vi.mocked((prisma as any).danceStyle.count).mockResolvedValueOnce(1);
-    vi.mocked((prisma as any).errorLog.count).mockResolvedValueOnce(2);
+    const prismaMock = prisma as unknown as PrismaMock;
+
+    vi.mocked(prismaMock.user.count).mockResolvedValueOnce(1);
+    vi.mocked(prismaMock.group.count).mockResolvedValueOnce(1);
+    vi.mocked(prismaMock.event.count).mockResolvedValueOnce(1);
+    vi.mocked(prismaMock.$queryRawUnsafe).mockResolvedValueOnce([{ count: 1 }]);
+    vi.mocked(prismaMock.danceStyle.count).mockResolvedValueOnce(1);
+    vi.mocked(prismaMock.errorLog.count).mockResolvedValueOnce(2);
 
     // For the CRUD checks, just no-op and let them throw? We mock minimal to keep them from failing.
-    vi.mocked((prisma as any).tag.create).mockResolvedValueOnce({ id: "t" });
-    vi.mocked((prisma as any).group.create).mockResolvedValueOnce({ id: "g" });
-    vi.mocked((prisma as any).group.update).mockResolvedValueOnce({});
-    vi.mocked((prisma as any).group.findUnique).mockResolvedValueOnce({ tags: [{ id: "t" }], members: [{ userId: "admin" }] });
-    vi.mocked((prisma as any).group.delete).mockResolvedValueOnce({});
-    vi.mocked((prisma as any).tag.delete).mockResolvedValueOnce({});
+    vi.mocked(prismaMock.tag.create).mockResolvedValueOnce({ id: "t" });
+    vi.mocked(prismaMock.group.create).mockResolvedValueOnce({ id: "g" });
+    vi.mocked(prismaMock.group.update).mockResolvedValueOnce({});
+    vi.mocked(prismaMock.group.findUnique).mockResolvedValueOnce({ tags: [{ id: "t" }], members: [{ userId: "admin" }] });
+    vi.mocked(prismaMock.group.delete).mockResolvedValueOnce({});
+    vi.mocked(prismaMock.tag.delete).mockResolvedValueOnce({});
 
-    vi.mocked((prisma as any).danceStyle.create).mockResolvedValueOnce({ id: "ds" });
-    vi.mocked((prisma as any).danceStyle.findUnique).mockResolvedValueOnce({ id: "ds" });
-    vi.mocked((prisma as any).danceStyle.update).mockResolvedValueOnce({});
-    vi.mocked((prisma as any).danceStyle.delete).mockResolvedValueOnce({});
+    vi.mocked(prismaMock.danceStyle.create).mockResolvedValueOnce({ id: "ds" });
+    vi.mocked(prismaMock.danceStyle.findUnique).mockResolvedValueOnce({ id: "ds" });
+    vi.mocked(prismaMock.danceStyle.update).mockResolvedValueOnce({});
+    vi.mocked(prismaMock.danceStyle.delete).mockResolvedValueOnce({});
 
     const res = await GET();
     expect(res.status).toBe(200);

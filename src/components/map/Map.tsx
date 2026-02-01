@@ -22,7 +22,7 @@ interface MapGroup {
   name: string;
   image?: string | null;
   website?: string | null;
-  size?: "SOLO" | "SMALL" | "LARGE" | null;
+  size?: string | null;
   location?: MapLocation | null;
   tags: MapTag[];
 }

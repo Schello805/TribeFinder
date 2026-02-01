@@ -1,6 +1,6 @@
 # TribeFinder - Native Ubuntu LXC Installation
 
-Diese Anleitung beschreibt die Installation von TribeFinder **ohne Docker** direkt auf einem Ubuntu LXC Container.
+Diese Anleitung beschreibt die Installation von TribeFinder direkt auf einem Ubuntu LXC Container.
 
 ## TL;DR (empfohlen: vollautomatisch)
 
@@ -21,8 +21,8 @@ Das Script übernimmt:
 - Reproduzierbare Dependency-Installation (`npm ci --include=optional`)
 - Prisma generate + migrate
 - Production Build
-- Uploads unter `/var/www/tribefinder/uploads` (robust für Nginx in LXC)
-- systemd Service + optional Nginx/SSL
+- Uploads unter `/var/www/tribefinder/uploads`
+- systemd Service
 
 ## Voraussetzungen
 
@@ -40,7 +40,7 @@ sudo apt update && sudo apt upgrade -y
 
 ### Benötigte System-Pakete installieren
 ```bash
-sudo apt install -y git curl ca-certificates openssl nginx certbot python3-certbot-nginx acl
+sudo apt install -y git curl ca-certificates openssl acl
 ```
 
 ## 2. Node.js installieren
@@ -90,8 +90,8 @@ nano .env
 
 Wichtige Einstellungen in `.env`:
 ```env
-# SQLite für einfache Installation
-DATABASE_URL="file:/home/tribefinder/TribeFinder/prod.db"
+# PostgreSQL
+DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schema=public"
 
 # Hinweis (lokale Entwicklung):
 # Für Development im Repo wird standardmäßig `prisma/dev.db` verwendet.
@@ -99,7 +99,7 @@ DATABASE_URL="file:/home/tribefinder/TribeFinder/prod.db"
 
 # NextAuth Konfiguration
 NEXTAUTH_SECRET="GENERIERE_EIN_LANGES_ZUFÄLLIGES_SECRET_HIER"
-NEXTAUTH_URL="https://deine-domain.de"
+NEXTAUTH_URL="http://localhost:3000"
 
 # SMTP (optional, kann später im Admin-Bereich konfiguriert werden)
 SMTP_HOST=""
@@ -206,87 +206,11 @@ sudo systemctl status tribefinder
 sudo journalctl -u tribefinder -f
 ```
 
-## 6. Nginx als Reverse Proxy einrichten
+## Reverse Proxy / HTTPS
 
-### Nginx Konfiguration erstellen
-```bash
-sudo nano /etc/nginx/sites-available/tribefinder
-```
+TribeFinder läuft lokal/serverseitig auf `http://localhost:3000`.
 
-Inhalt (siehe `config/nginx.conf` im Repo):
-```nginx
-server {
-    listen 80;
-    server_name deine-domain.de;
-
-    # Weiterleitung zu HTTPS (wird nach SSL-Setup aktiv)
-    # return 301 https://$server_name$request_uri;
-
-    # Uploads direkt ausliefern (empfohlen)
-    location ^~ /uploads/ {
-        alias /var/www/tribefinder/uploads/;
-        access_log off;
-        expires 30d;
-        add_header Cache-Control "public";
-    }
-
-    location ^~ /_next/ {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        
-        # Timeouts für große Uploads
-        proxy_read_timeout 300;
-        proxy_connect_timeout 300;
-        proxy_send_timeout 300;
-    }
-
-    # Upload-Limit
-    client_max_body_size 10M;
-}
-```
-
-Hinweis: In LXC-Setups kann Nginx Zugriffe auf Pfade unter `/home/...` trotz ACLs blocken (403). Deshalb werden Uploads standardmäßig unter `/var/www/tribefinder/uploads` gehalten.
-
-### Konfiguration aktivieren
-```bash
-sudo ln -s /etc/nginx/sites-available/tribefinder /etc/nginx/sites-enabled/
-
-# Default-Site deaktivieren (sonst matcht evtl. der falsche vHost)
-sudo rm -f /etc/nginx/sites-enabled/default
-
-sudo nginx -t  # Konfiguration testen
-sudo systemctl restart nginx
-```
-
-## 7. SSL-Zertifikat mit Let's Encrypt (optional, aber empfohlen)
-
-### Certbot ausführen
-```bash
-sudo certbot --nginx -d deine-domain.de
-```
-
-Folge den Anweisungen. Certbot konfiguriert automatisch HTTPS und Redirects.
-
-### Auto-Renewal testen
-```bash
-sudo certbot renew --dry-run
-```
+Wenn du HTTPS oder einen Reverse Proxy brauchst, setze das **extern** um (beliebiger Reverse Proxy). Das ist bewusst nicht Teil dieses Repos.
 
 ## 8. Ersten Admin-User erstellen
 
@@ -401,14 +325,8 @@ sudo lsof -i :3000
 sudo kill -9 <PID>
 ```
 
-### Nginx 502 Bad Gateway
-```bash
-# Prüfen ob TribeFinder läuft
-sudo systemctl status tribefinder
-
-# Nginx Logs prüfen
-sudo tail -f /var/log/nginx/error.log
-```
+### Reverse Proxy Fehler
+Wenn du einen externen Reverse Proxy verwendest: prüfe zuerst, ob TribeFinder auf `http://localhost:3000` erreichbar ist.
 
 ### Datenbank-Probleme
 ```bash
@@ -458,11 +376,10 @@ pm2 save
 
 - [ ] `.env` Datei ist nicht öffentlich zugänglich
 - [ ] NEXTAUTH_SECRET ist ein starkes, zufälliges Secret
-- [ ] SSL/HTTPS ist aktiviert
+- [ ] SSL/HTTPS ist extern (Reverse Proxy) aktiviert (optional)
 - [ ] Firewall ist konfiguriert
 - [ ] Regelmäßige Backups sind eingerichtet
 - [ ] System-Updates werden regelmäßig eingespielt
-- [ ] Nginx Upload-Limit ist gesetzt
 - [ ] Service läuft nicht als root
 
 ## Ressourcen-Anforderungen

@@ -14,6 +14,31 @@ type CheckResult = {
   durationMs: number;
 };
 
+function isCheckResult(v: unknown): v is CheckResult {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return (
+    typeof o.id === "string" &&
+    typeof o.label === "string" &&
+    (o.status === "ok" || o.status === "warn" || o.status === "fail") &&
+    typeof o.message === "string" &&
+    typeof o.durationMs === "number" &&
+    (o.details === undefined || typeof o.details === "string")
+  );
+}
+
+function getStringProp(obj: unknown, key: string): string | null {
+  if (typeof obj !== "object" || obj === null) return null;
+  const v = (obj as Record<string, unknown>)[key];
+  return typeof v === "string" ? v : null;
+}
+
+function getArrayProp(obj: unknown, key: string): unknown[] | null {
+  if (typeof obj !== "object" || obj === null) return null;
+  const v = (obj as Record<string, unknown>)[key];
+  return Array.isArray(v) ? v : null;
+}
+
 export default function AdminDiagnosticsPanel() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -40,8 +65,16 @@ export default function AdminDiagnosticsPanel() {
     try {
       const res = await fetch("/api/admin/diagnostics");
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error((data as any)?.message || "Diagnose fehlgeschlagen");
-      setResults(Array.isArray((data as any)?.checks) ? (data as any).checks : []);
+
+      const msg =
+        getStringProp(data, "message") ?? "Diagnose fehlgeschlagen";
+
+      if (!res.ok) throw new Error(msg);
+
+      const checks =
+        getArrayProp(data, "checks") ?? [];
+
+      setResults((checks as unknown[]).filter(isCheckResult));
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Diagnose fehlgeschlagen", "error");
     } finally {

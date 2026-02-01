@@ -127,14 +127,8 @@ export async function GET() {
 
   checks.push(
     await runCheck("errors", "Aktive Fehler (Server)", async () => {
-      const prismaAny = prisma as any;
-
-      if (!prismaAny?.errorLog?.count) {
-        return { status: "warn", message: "ErrorLog ist noch nicht verfügbar (Prisma generate/Migration fehlt)." };
-      }
-
       try {
-        const count = await prismaAny.errorLog.count({});
+        const count = await prisma.errorLog.count({});
         if (count === 0) {
           return { status: "ok", message: "Keine Fehler" };
         }

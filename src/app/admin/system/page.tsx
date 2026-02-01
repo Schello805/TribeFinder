@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import AdminNav from "@/components/admin/AdminNav";
@@ -83,7 +83,7 @@ export default function AdminSystemPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [info, setInfo] = useState<SystemInfo | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/system");
       const data = await res.json().catch(() => null);
@@ -95,7 +95,7 @@ export default function AdminSystemPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [showToast]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -109,7 +109,7 @@ export default function AdminSystemPage() {
     if (status === "authenticated" && session?.user?.role === "ADMIN") {
       load();
     }
-  }, [status, session, router]);
+  }, [status, session, router, load]);
 
   async function refresh() {
     setIsRefreshing(true);

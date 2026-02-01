@@ -43,7 +43,7 @@ export async function GET() {
         notifyRadius: true,
         notifyLat: true,
         notifyLng: true,
-      } as any,
+      },
     });
 
     if (!user) {
@@ -108,7 +108,7 @@ export async function PUT(req: Request) {
         notifyRadius: true,
         notifyLat: true,
         notifyLng: true,
-      } as any,
+      },
     });
 
     return NextResponse.json({

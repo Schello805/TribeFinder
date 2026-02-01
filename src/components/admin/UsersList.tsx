@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
 
 interface UserListItem {
@@ -24,17 +24,16 @@ export default function UsersList({
   const [users, setUsers] = useState<UserListItem[]>(initialUsers);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     const res = await fetch("/api/admin/users");
     if (!res.ok) return;
     const data = await res.json();
     if (Array.isArray(data)) setUsers(data);
-  };
+  }, []);
 
   useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    void refresh();
+  }, [refresh]);
 
   const patchUser = async (id: string, body: Record<string, unknown>) => {
     setBusyId(id);

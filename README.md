@@ -14,7 +14,7 @@ Eine moderne Plattform für Tanzgruppen (Tribal Style, Fusion & mehr) zur Verwal
 ## Tech Stack
 
 - **Framework**: Next.js 16+ (App Router)
-- **Database**: SQLite (via Prisma ORM)
+- **Database**: PostgreSQL (via Prisma ORM)
 - **Styling**: Tailwind CSS
 - **Maps**: Leaflet & OpenStreetMap
 - **Auth**: NextAuth.js
@@ -22,22 +22,14 @@ Eine moderne Plattform für Tanzgruppen (Tribal Style, Fusion & mehr) zur Verwal
 
 ## Installation & Setup
 
-TribeFinder kann auf verschiedene Arten installiert werden:
-
-1. **Native Installation (empfohlen)**: Direkt auf Ubuntu/Debian mit Node.js
-2. **Docker**: Für isolierte Container-Umgebungen
-3. **Lokal**: Für Entwicklung
+TribeFinder läuft lokal/serverseitig über HTTP auf Port 3000.
 
 ### Voraussetzungen
 
-**Für native Installation (empfohlen):**
+**Für Installation:**
 - Ubuntu 22.04/24.04 oder Debian 12
 - Node.js 20+
-- Nginx (für Reverse Proxy)
 - Git
-
-**Für Docker:**
-- Docker Engine + Docker Compose Plugin
 
 ### 🚀 Schnellstart: Native Installation (Ubuntu LXC)
 
@@ -53,12 +45,10 @@ sudo ./scripts/setup-native.sh
 ```
 
 Das Script führt automatisch aus:
-- Installation von Node.js, Nginx und Dependencies
+- Installation von Node.js und Dependencies
 - Erstellen des tribefinder Users
 - Datenbank-Setup
 - Systemd Service-Konfiguration
-- Nginx Reverse Proxy Setup
-- Optional: SSL mit Let's Encrypt
 
 **Detaillierte Anleitung:** Siehe `INSTALL_NATIVE.md`
 
@@ -68,55 +58,7 @@ Hinweise:
 - Für reproduzierbare Builds nutzt das Setup/Deploy vorzugsweise `npm ci --include=optional` (u.a. wegen Tailwind/Turbo optional dependencies).
 - Uploads werden in `public/uploads` gespeichert. Wichtig sind korrekte Dateirechte (Owner: `tribefinder`).
 
----
-
-### Alternative: Docker Installation
-
-Für isolierte Container-Umgebungen oder Multi-Service-Setups.
-
-**Detaillierte Docker-Anleitung:** Siehe `DEPLOY.md`
-
-**Kurzversion:**
-
-1. **Repository klonen**
-   ```bash
-   git clone https://github.com/Schello805/TribeFinder.git
-   cd TribeFinder
-   ```
-
-2. **Persistente Ordner anlegen**
-   ```bash
-   mkdir -p db
-   mkdir -p public/uploads
-   ```
-
-3. **Rechte setzen (wichtig für Uploads/DB im Container)**
-   Der Container läuft als User `1001`. Stelle sicher, dass dieser schreiben darf:
-   ```bash
-   sudo chown -R 1001:1001 db public/uploads
-   ```
-
-4. **Konfiguration (Secrets!)**
-   Passe in `docker-compose.yml` mindestens folgende Werte an:
-   - `NEXTAUTH_URL` (deine Domain)
-   - `NEXTAUTH_SECRET` (langes, zufälliges Secret)
-
-5. **Starten**
-   ```bash
-   docker compose up -d --build
-   ```
-
-6. **Updates einspielen (empfohlen: mit Testlauf + Backup)**
-   Im Repo liegt ein interaktives Update-Script:
-   ```bash
-   chmod +x scripts/update.sh
-   ./scripts/update.sh
-   ```
-   Das Script macht einen Testlauf (Build + Migrationen auf DB-Kopie) und fragt erst danach, ob es live einspielen soll.
-
-   Hinweis: `scripts/update.sh` ist für das **Docker** Setup gedacht. Für eine native Installation nutze `scripts/deploy-native.sh`.
-
-### Entwicklung (lokal, ohne Docker)
+### Entwicklung (lokal)
 
 1. **Repository klonen**
    ```bash
@@ -162,7 +104,7 @@ Hinweis: Wenn du sowohl `.env` als auch `.env.local` verwendest, überschreibt `
 Erstelle eine `.env` Datei im Hauptverzeichnis (siehe `.env.example`):
 
 ```env
-# PostgreSQL (empfohlen für Produktion)
+# PostgreSQL
 DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schema=public"
 
 # Oder SQLite für einfache lokale Entwicklung:
@@ -178,9 +120,6 @@ NEXTAUTH_URL="http://localhost:3000"
 # Fallback ist NEXTAUTH_URL.
 SITE_URL="http://localhost:3000"
 
-# PostgreSQL Passwort (für Docker Compose)
-POSTGRES_PASSWORD="sicheres-passwort"
-
 # Optional: SMTP (wird durch Admin-Einstellungen überschrieben)
 SMTP_HOST=""
 SMTP_PORT=""
@@ -189,26 +128,9 @@ SMTP_PASSWORD=""
 SMTP_FROM=""
 ```
 
-### Lokale Entwicklung mit PostgreSQL
-
-1. Starte PostgreSQL mit Docker:
-   ```bash
-   docker compose -f docker-compose.dev.yml up -d
-   ```
-
-2. Setze die DATABASE_URL in `.env`:
-   ```env
-   DATABASE_URL="postgresql://tribefinder:devpassword@localhost:5432/tribefinder?schema=public"
-   ```
-
-3. Führe Migrationen aus:
-   ```bash
-   npx prisma migrate dev
-   ```
-
 ### Hinweise für Serverbetrieb
 
-- PostgreSQL läuft als separater Container (siehe `docker-compose.yml`).
+- PostgreSQL läuft nativ (oder extern) und wird über `DATABASE_URL` angebunden.
 - Uploads werden unter `public/uploads` auf dem Host gespeichert.
 - Vor Updates, die Migrationen enthalten, sollte immer ein Backup der DB erstellt werden (das Update-Script übernimmt das).
 
@@ -230,7 +152,7 @@ Im Admin-Bereich (`/admin`) können konfiguriert werden:
 
 ## Datenschutzhinweise
 
-- **Hosting**: Die Anwendung ist für das Hosting auf eigenen Servern (z.B. VPS, Docker) ausgelegt. Alle Daten (Datenbank, Bilder) liegen lokal.
+- **Hosting**: Die Anwendung ist für das Hosting auf eigenen Servern ausgelegt. Alle Daten (Datenbank, Bilder) liegen lokal.
 - **Externe Dienste**:
   - **OpenStreetMap**: Die Kartenkacheln werden direkt von OSM-Servern geladen. Hierbei wird die IP-Adresse des Nutzers an OSM übermittelt.
   - **Matomo**: Optional. Wenn konfiguriert, wird das Tracking-Skript von *deiner* Matomo-Instanz geladen.
@@ -247,9 +169,6 @@ sudo su - tribefinder
 cd ~/TribeFinder
 npm run deploy  # Führt deploy-native.sh aus
 ```
-
-### Docker Installation
-Siehe `DEPLOY.md` für die vollständige Docker-Anleitung.
 
 ## Changelog
 

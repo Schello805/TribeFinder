@@ -3,8 +3,6 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-const db = prisma as any;
-
 async function canAccessThread(userId: string, threadId: string) {
   const thread = await prisma.groupThread.findUnique({
     where: { id: threadId },
@@ -41,7 +39,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ threadId
     return NextResponse.json({ message: "Kein Zugriff" }, { status: 403 });
   }
 
-  await db.groupThreadReadState.upsert({
+  await prisma.groupThreadReadState.upsert({
     where: { threadId_userId: { threadId, userId: session.user.id } },
     update: { lastReadAt: new Date() },
     create: { threadId, userId: session.user.id, lastReadAt: new Date() },
@@ -85,7 +83,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ thread
   }
 
   try {
-    await db.groupThreadReadState.upsert({
+    await prisma.groupThreadReadState.upsert({
       where: { threadId_userId: { threadId, userId: session.user.id } },
       update: { archivedAt: archived ? new Date() : null },
       create: { threadId, userId: session.user.id, lastReadAt: new Date(), archivedAt: archived ? new Date() : null },

@@ -30,7 +30,7 @@ cd TribeFinder
 ```bash
 cat > .env << 'EOF'
 # Database
-DATABASE_URL="file:/home/tribefinder/TribeFinder/prod.db"
+DATABASE_URL="postgresql://tribefinder:password@localhost:5432/tribefinder?schema=public"
 
 # Hinweis (lokale Entwicklung):
 # Für Development im Repo wird standardmäßig `prisma/dev.db` verwendet.
@@ -129,71 +129,9 @@ sudo systemctl status tribefinder
 
 ---
 
-## Nginx Reverse Proxy (optional)
+## Reverse Proxy / HTTPS
 
-### Für localhost (nur lokal erreichbar)
-
-Die App läuft bereits auf Port 3000. Kein Nginx nötig.
-
-### Für Domain mit SSL
-
-```bash
-# Nginx Config erstellen
-sudo tee /etc/nginx/sites-available/tribefinder > /dev/null << 'EOF'
-server {
-    listen 80;
-    server_name deine-domain.de;
-
-    location ^~ /uploads/ {
-        alias /var/www/tribefinder/uploads/;
-        access_log off;
-        expires 30d;
-        add_header Cache-Control "public";
-    }
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-EOF
-
-# Domain anpassen
-sudo sed -i 's|deine-domain.de|DEINE_DOMAIN_HIER|g' /etc/nginx/sites-available/tribefinder
-
-# Aktivieren
-sudo ln -sf /etc/nginx/sites-available/tribefinder /etc/nginx/sites-enabled/
-
-# Default-Site deaktivieren (sonst matcht evtl. der falsche vHost)
-sudo rm -f /etc/nginx/sites-enabled/default
-
-sudo nginx -t
-sudo systemctl restart nginx
-
-# SSL mit Let's Encrypt
-sudo certbot --nginx -d DEINE_DOMAIN_HIER
-```
-
-**Wichtig:** NEXTAUTH_URL in `.env` anpassen:
-```bash
-sudo su - tribefinder
-cd ~/TribeFinder
-nano .env
-# Ändere NEXTAUTH_URL auf https://deine-domain.de
-```
-
-Dann Service neustarten:
-```bash
-exit
-sudo systemctl restart tribefinder
-```
+Die App läuft auf `http://localhost:3000`. Reverse Proxy / HTTPS ist extern nach Wahl und nicht Teil dieses Projekts.
 
 ---
 
@@ -219,8 +157,7 @@ npm run db:studio
 # Service-Logs
 sudo journalctl -u tribefinder -f
 
-# Nginx-Logs
-sudo tail -f /var/log/nginx/error.log
+# Wenn du einen externen Reverse Proxy verwendest, prüfe dessen Logs separat.
 ```
 
 ---

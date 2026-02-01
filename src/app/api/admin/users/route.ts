@@ -7,7 +7,7 @@ export async function GET() {
   const session = await requireAdminSession();
   if (!session) return jsonUnauthorized();
 
-  const users = (await (prisma as any).user.findMany({
+  const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -18,15 +18,7 @@ export async function GET() {
       isBlocked: true,
       createdAt: true,
     },
-  })) as unknown as Array<{
-    id: string;
-    name: string | null;
-    email: string;
-    emailVerified: Date | null;
-    role: string;
-    isBlocked: boolean;
-    createdAt: Date;
-  }>;
+  });
 
   return NextResponse.json(
     users.map((u) => ({

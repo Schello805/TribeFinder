@@ -136,12 +136,10 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     if (process.env.NODE_ENV === "production") return;
 
     const onError = (e: ErrorEvent) => {
-      // eslint-disable-next-line no-console
       console.error("[EventForm] window.error", e.message, e.error);
     };
 
     const onUnhandledRejection = (e: PromiseRejectionEvent) => {
-      // eslint-disable-next-line no-console
       console.error("[EventForm] window.unhandledrejection", e.reason);
     };
 
@@ -157,20 +155,18 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     if (process.env.NODE_ENV === "production") return;
     if (typeof window === "undefined") return;
 
-    const origFetch = window.fetch.bind(window);
+    const origFetch: typeof window.fetch = window.fetch.bind(window);
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === "string" ? input : (input instanceof URL ? input.toString() : input.url);
       const method = (init?.method || (typeof input === "string" ? "GET" : (input instanceof URL ? "GET" : input.method)) || "GET").toUpperCase();
       const start = performance.now();
       try {
-        const res = await origFetch(input as any, init);
+        const res = await origFetch(input, init);
         const ms = Math.round(performance.now() - start);
-        // eslint-disable-next-line no-console
         console.warn("[fetch]", method, url, res.status, `${ms}ms`);
         return res;
       } catch (e) {
         const ms = Math.round(performance.now() - start);
-        // eslint-disable-next-line no-console
         console.error("[fetch]", method, url, "FAILED", `${ms}ms`, e);
         throw e;
       }
@@ -244,7 +240,6 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
         const url = buildNominatimUrl(normalized, 5);
         if (!url) return;
         if (process.env.NODE_ENV !== "production") {
-          // eslint-disable-next-line no-console
           console.warn("[EventForm] geocode (debounced)", { query: normalized, url });
         }
         const res = await fetch(url, { signal: controller.signal });
@@ -279,7 +274,6 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     }, 650);
 
     return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.address]);
 
   const initialStartParts = splitLocalDateTime(isEditing ? (formData.startDate || "") : "");
@@ -346,8 +340,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     setEndTimeTouched(true);
     const initialStart = joinLocalDateTime(normalizeDateOnly(sp.date), normalizeTimeOnly(sp.time));
     lastStartRef.current = initialStart ? new Date(initialStart) : null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing]);
+  }, [isEditing, formData.startDate, formData.endDate]);
 
   // Auto-add https:// to URLs if missing
   const normalizeUrl = (url: string): string => {
@@ -373,8 +366,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     if (normalized !== formData.endDate) {
       setFormData((prev) => ({ ...prev, endDate: normalized }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.startDate]);
+  }, [formData.startDate, formData.endDate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -382,7 +374,6 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       const next = { ...prev, [name]: value } as EventFormData;
 
       if (process.env.NODE_ENV !== "production" && (name === "startDate" || name === "endDate")) {
-        // eslint-disable-next-line no-console
         console.warn(`[EventForm] ${name} changed:`, { value });
       }
 
@@ -507,33 +498,6 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     setFormData((prev) => ({ ...prev, endDate: combined } as EventFormData));
   };
 
-  const handleDateBlur = (field?: "startDate" | "endDate") => {
-    setFormData((prev) => {
-      const normalizedStart = normalizeDatetimeLocal(prev.startDate);
-      const normalizedEnd = prev.endDate ? normalizeDatetimeLocal(prev.endDate) : "";
-      const next = {
-        ...prev,
-        startDate: normalizedStart,
-        endDate: normalizedEnd,
-      };
-
-      if (field === "startDate" || field === "endDate") {
-        const candidateEnd = next.endDate || "";
-        next.endDate = normalizeEndDate(next.startDate, candidateEnd);
-      }
-
-      if (process.env.NODE_ENV !== "production" && field) {
-        // eslint-disable-next-line no-console
-        console.warn(`[EventForm] ${field} blur normalized:`, {
-          startDate: next.startDate,
-          endDate: next.endDate,
-        });
-      }
-
-      return next;
-    });
-  };
-
   const handleUrlBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (value) {
@@ -581,7 +545,6 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       const url = buildNominatimUrl(address, 5);
       if (!url) return;
       if (process.env.NODE_ENV !== "production") {
-        // eslint-disable-next-line no-console
         console.warn("[EventForm] geocodeAddress", { address, url });
       }
       const res = await fetch(url);
@@ -608,7 +571,6 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
   const applyGeocodeSelection = (result: NominatimSearchResult) => {
     if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
       console.warn("[EventForm] applyGeocodeSelection", {
         lat: result.lat,
         lon: result.lon,
@@ -784,7 +746,6 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Ein Fehler ist aufgetreten";
       if (process.env.NODE_ENV !== "production") {
-        // eslint-disable-next-line no-console
         console.error("[EventForm] submit error", err);
       }
       setError(errorMessage);

@@ -9,7 +9,26 @@ import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 import ArchiveThreadButton from "@/components/messages/ArchiveThreadButton";
 
-const db = prisma as any;
+type ThreadMessageItem = {
+  id: string;
+  authorId: string;
+  content: string;
+  createdAt: Date;
+  author: { id: string; name: string | null; image: string | null };
+};
+
+type ThreadReadStateItem = { userId: string; lastReadAt: Date; archivedAt?: Date | null };
+
+type ThreadData = {
+  id: string;
+  groupId: string;
+  createdByUserId: string;
+  subject: string | null;
+  group: { id: string; name: string; image: string | null };
+  createdBy: { id: string; name: string | null; image: string | null };
+  messages: ThreadMessageItem[];
+  readStates: ThreadReadStateItem[];
+};
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +39,9 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
   const threadId = (await params).threadId;
 
   let supportsArchive = true;
-  let thread = null as any;
+  let thread: ThreadData | null = null;
   try {
-    thread = await db.groupThread.findUnique({
+    thread = (await prisma.groupThread.findUnique({
       where: { id: threadId },
       include: {
         group: { select: { id: true, name: true, image: true } },
@@ -35,10 +54,10 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
           select: { userId: true, lastReadAt: true, archivedAt: true },
         },
       },
-    });
+    })) as ThreadData | null;
   } catch {
     supportsArchive = false;
-    thread = await db.groupThread.findUnique({
+    thread = (await prisma.groupThread.findUnique({
       where: { id: threadId },
       include: {
         group: { select: { id: true, name: true, image: true } },
@@ -51,7 +70,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
           select: { userId: true, lastReadAt: true },
         },
       },
-    });
+    })) as ThreadData | null;
   }
 
   if (!thread) notFound();
@@ -67,23 +86,17 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
     redirect("/messages");
   }
 
-  await db.groupThreadReadState.upsert({
+  await prisma.groupThreadReadState.upsert({
     where: { threadId_userId: { threadId, userId: session.user.id } },
     update: { lastReadAt: new Date() },
     create: { threadId, userId: session.user.id, lastReadAt: new Date() },
   });
 
   const groupImg = normalizeUploadedImageUrl(thread.group.image) ?? "";
-  const messages = thread.messages as Array<{
-    id: string;
-    authorId: string;
-    content: string;
-    createdAt: Date;
-    author: { id: string; name: string | null; image: string | null };
-  }>;
+  const messages = thread.messages;
 
-  const maxOtherReadAtMs = (thread.readStates as Array<{ userId: string; lastReadAt: Date }>).
-    filter((s) => s.userId !== session.user.id)
+  const maxOtherReadAtMs = thread.readStates
+    .filter((s) => s.userId !== session.user.id)
     .reduce<number | null>((acc, s) => {
       const ms = s.lastReadAt.getTime();
       if (Number.isNaN(ms)) return acc;
@@ -93,10 +106,8 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
 
   const maxOtherReadAtIso = maxOtherReadAtMs === null ? null : new Date(maxOtherReadAtMs).toISOString();
 
-  const currentReadState = (thread.readStates as Array<{ userId: string; lastReadAt: Date; archivedAt?: Date | null }>).find(
-    (s) => s.userId === session.user.id,
-  );
-  const initialArchived = supportsArchive ? Boolean(currentReadState && "archivedAt" in currentReadState && currentReadState.archivedAt) : false;
+  const currentReadState = thread.readStates.find((s) => s.userId === session.user.id);
+  const initialArchived = supportsArchive ? Boolean(currentReadState?.archivedAt) : false;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

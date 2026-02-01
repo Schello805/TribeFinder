@@ -105,40 +105,14 @@ npm run build
 
 ---
 
-## Nginx 502 Bad Gateway
+## HTTP / Reverse Proxy Probleme
 
-### Problem
-Website zeigt "502 Bad Gateway"
+Wenn du einen externen Reverse Proxy verwendest und die Website nicht erreichbar ist:
 
-### Diagnose
 ```bash
-# Prüfe ob TribeFinder läuft
+curl -i http://localhost:3000
 sudo systemctl status tribefinder
-
-# Nginx Logs
-sudo tail -f /var/log/nginx/error.log
-
-# TribeFinder Logs
-sudo journalctl -u tribefinder -f
-```
-
-### Lösungen
-
-#### TribeFinder läuft nicht
-```bash
-sudo systemctl start tribefinder
-```
-
-#### Nginx kann nicht zu localhost:3000 verbinden
-```bash
-# Prüfe ob Port 3000 offen ist
-curl http://localhost:3000
-
-# Nginx Config testen
-sudo nginx -t
-
-# Nginx neustarten
-sudo systemctl restart nginx
+sudo journalctl -u tribefinder -n 100 --no-pager
 ```
 
 ---
@@ -161,20 +135,6 @@ npm run db:backup
 # Dann manuell in der DB:
 npm run db:studio
 # Lösche Einträge in _prisma_migrations Tabelle
-```
-
-### SQLite Datenbank korrupt
-
-```bash
-# Backup wiederherstellen
-cd ~/TribeFinder
-ls -la backups/
-
-# Neuestes Backup entpacken
-gunzip -c backups/backup_YYYYMMDD_HHMMSS.db.gz > prod.db
-
-# Service neustarten
-sudo systemctl restart tribefinder
 ```
 
 ### PostgreSQL Verbindungsfehler
@@ -217,22 +177,7 @@ ls -la /home/tribefinder/TribeFinder/public/uploads
 # sollte ein Symlink auf /var/www/tribefinder/uploads sein
 ```
 
-#### Nginx Alias prüfen
-```bash
-sudo grep -n "location \^~ /uploads/" -n /etc/nginx/sites-available/tribefinder
-sudo grep -n "alias /var/www/tribefinder/uploads/;" -n /etc/nginx/sites-available/tribefinder
-```
-
-#### Upload-Limit in Nginx
-```bash
-sudo nano /etc/nginx/sites-available/tribefinder
-
-# Prüfe:
-client_max_body_size 10M;
-
-# Nginx neustarten
-sudo systemctl restart nginx
-```
+Wenn du einen externen Reverse Proxy verwendest, prüfe dort Upload-Limits und Routen (z.B. `/uploads/`).
 
 ---
 
@@ -240,27 +185,19 @@ sudo systemctl restart nginx
 
 ### Certbot schlägt fehl
 
+Wenn du TLS/HTTPS über einen externen Reverse Proxy machst:
+
 ```bash
-# Prüfe ob Port 80 offen ist
 sudo ufw status
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
-
-# DNS prüfen
 nslookup deine-domain.de
-
-# Certbot erneut versuchen
-sudo certbot --nginx -d deine-domain.de
 ```
 
 ### Zertifikat abgelaufen
 
 ```bash
-# Manuell erneuern
-sudo certbot renew
-
-# Auto-Renewal testen
-sudo certbot renew --dry-run
+# Prüfe und erneuere Zertifikate in deinem Reverse Proxy / TLS-Terminator.
 ```
 
 ---
@@ -343,12 +280,6 @@ npm install
 ```bash
 # TribeFinder Service Logs
 sudo journalctl -u tribefinder -f
-
-# Nginx Access Logs
-sudo tail -f /var/log/nginx/tribefinder_access.log
-
-# Nginx Error Logs
-sudo tail -f /var/log/nginx/tribefinder_error.log
 
 # System Logs
 sudo journalctl -xe

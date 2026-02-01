@@ -57,12 +57,11 @@ export async function GET(
     const canSeeEmails = isOwner || isAdminMember;
 
     if (!canSeeEmails) {
-      const { contactEmail: _contactEmail, ...rest } = base as any;
       return NextResponse.json({
-        ...rest,
+        ...base,
         contactEmail: null,
-        owner: { ...rest.owner, email: null },
-        members: rest.members.map((m: any) => ({ ...m, user: { ...m.user, email: null } })),
+        owner: { ...base.owner, email: null },
+        members: base.members.map((m) => ({ ...m, user: { ...m.user, email: null } })),
       });
     }
 
@@ -172,8 +171,7 @@ export async function PUT(
     // Note: detailed tag handling might be more complex in real app, simply replacing for now
     
     logger.debug({ groupId: id }, "PUT /api/groups - Updating group in DB...");
-    const prismaAny = prisma as any;
-    const group = await prismaAny.group.update({
+    const group = await prisma.group.update({
       where: { id },
       data: {
         name: validatedData.name,

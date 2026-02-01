@@ -3,7 +3,7 @@
 ## 🎉 Hauptverbesserungen
 
 ### 1. Native Ubuntu Installation (empfohlen)
-Docker ist jetzt **optional**. Die native Installation ist einfacher, ressourcenschonender und besser für einzelne Server geeignet.
+TribeFinder wird nativ betrieben. Die Installation ist einfacher, ressourcenschonender und besser für einzelne Server geeignet.
 
 **Installation in 3 Schritten:**
 ```bash
@@ -16,7 +16,6 @@ sudo ./scripts/setup-native.sh
 - ✅ Weniger RAM/CPU-Verbrauch
 - ✅ Einfacheres Debugging
 - ✅ Schnellere Entwicklung
-- ✅ Kein Docker-Overhead
 
 ### 2. Moderne UX
 - **Toast Notifications** statt Browser-Alerts (15+ Stellen aktualisiert)
@@ -39,8 +38,7 @@ sudo ./scripts/setup-native.sh
 - `INSTALL_NATIVE.md` - Vollständige native Installation
 - `TROUBLESHOOTING.md` - Häufige Probleme & Lösungen
 - `QUICKSTART.md` - 3-Schritte-Installation
-- `MIGRATION.md` - Docker → Native Migration
-- `DOCKER.md` - Docker als Alternative
+- `MIGRATION.md` - Umzug / Migration
 - `CHANGELOG.md` - Alle Änderungen
 
 ## 🔧 Wichtige Änderungen

@@ -37,14 +37,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Test Email gesendet' });
     }
 
-    const err = result.error as any;
+    const err: unknown = result.error;
+    const o = (typeof err === "object" && err !== null ? (err as Record<string, unknown>) : null);
     const details = err
       ? {
-          message: typeof err?.message === "string" ? err.message : String(err),
-          code: typeof err?.code === "string" ? err.code : undefined,
-          responseCode: typeof err?.responseCode === "number" ? err.responseCode : undefined,
-          response: typeof err?.response === "string" ? err.response : undefined,
-          command: typeof err?.command === "string" ? err.command : undefined,
+          message: o && typeof o.message === "string" ? o.message : String(err),
+          code: o && typeof o.code === "string" ? o.code : undefined,
+          responseCode: o && typeof o.responseCode === "number" ? o.responseCode : undefined,
+          response: o && typeof o.response === "string" ? o.response : undefined,
+          command: o && typeof o.command === "string" ? o.command : undefined,
         }
       : undefined;
 

@@ -20,13 +20,16 @@ import { getServerSession } from "next-auth";
 import prisma from "@/lib/prisma";
 import { GET } from "@/app/api/user/profile/route";
 
+type Session = Awaited<ReturnType<typeof getServerSession>>;
+type PrismaMock = { user: { findUnique: (args: unknown) => unknown } };
+
 describe("GET /api/user/profile", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("returns 401 when unauthenticated", async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce(null as any);
+    vi.mocked(getServerSession).mockResolvedValueOnce(null as unknown as Session);
     const res = await GET();
     expect(res.status).toBe(401);
   });
@@ -34,9 +37,10 @@ describe("GET /api/user/profile", () => {
   it("derives dancerName/firstName/lastName from legacy name when missing", async () => {
     vi.mocked(getServerSession).mockResolvedValueOnce({
       user: { id: "u1" },
-    } as any);
+    } as unknown as Session);
 
-    vi.mocked((prisma as any).user.findUnique).mockResolvedValueOnce({
+    const prismaMock = prisma as unknown as PrismaMock;
+    vi.mocked(prismaMock.user.findUnique).mockResolvedValueOnce({
       firstName: null,
       lastName: null,
       dancerName: null,

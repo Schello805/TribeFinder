@@ -7,9 +7,31 @@ import GroupListAnimated from "@/components/groups/GroupListAnimated";
 import { GroupListSkeleton } from "@/components/ui/SkeletonLoader";
 import Link from "next/link";
 
+type GroupTag = { id: string; name: string };
+type GroupListItem = {
+  id: string;
+  name: string;
+  description: string;
+  image?: string | null;
+  createdAt: string | Date;
+  size?: 'SOLO' | 'SMALL' | 'LARGE' | null;
+  location?: { address?: string | null } | null;
+  tags: GroupTag[];
+};
+
+function isGroupListItem(v: unknown): v is GroupListItem {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return typeof o.id === "string" && typeof o.name === "string" && typeof o.description === "string" && Array.isArray(o.tags);
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
 export default function GroupsPage() {
   const searchParams = useSearchParams();
-  const [groups, setGroups] = useState<any[]>([]);
+  const [groups, setGroups] = useState<GroupListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchGroups = async () => {
@@ -43,9 +65,11 @@ export default function GroupsPage() {
           return;
         }
 
-        const json = await res.json();
-        const nextGroups = Array.isArray(json) ? json : (json?.data ?? []);
-        setGroups(Array.isArray(nextGroups) ? nextGroups : []);
+        const json: unknown = await res.json().catch(() => null);
+        const arr = Array.isArray(json)
+          ? json
+          : (isRecord(json) && Array.isArray(json.data) ? json.data : []);
+        setGroups((arr as unknown[]).filter(isGroupListItem));
       } catch (error) {
         console.error('Error fetching groups:', error);
         setGroups([]);

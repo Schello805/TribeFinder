@@ -50,12 +50,30 @@ async function getNotifyEmail(): Promise<string> {
   return fromDb || (process.env.ERROR_NOTIFY_EMAIL || "").trim();
 }
 
+type ErrorLogUpsertResult = {
+  lastEmailSentAt: Date | null;
+};
+
+type ErrorLogDelegate = {
+  upsert: (args: unknown) => Promise<ErrorLogUpsertResult>;
+  update: (args: unknown) => Promise<unknown>;
+};
+
+function getErrorLogDelegate(): ErrorLogDelegate | null {
+  const p = prisma as unknown;
+  if (typeof p !== "object" || p === null) return null;
+  const maybe = (p as { errorLog?: unknown }).errorLog;
+  if (typeof maybe !== "object" || maybe === null) return null;
+  const d = maybe as { upsert?: unknown; update?: unknown };
+  if (typeof d.upsert !== "function" || typeof d.update !== "function") return null;
+  return maybe as ErrorLogDelegate;
+}
+
 export async function recordServerError(input: ErrorReportInput) {
   try {
-    const prismaAny = prisma as any;
-
     // If Prisma Client is not generated yet or DB not migrated, do not break the app.
-    if (!prismaAny?.errorLog?.upsert) return;
+    const errorLog = getErrorLogDelegate();
+    if (!errorLog) return;
 
     const fingerprint = fingerprintOf(input);
 
@@ -64,7 +82,7 @@ export async function recordServerError(input: ErrorReportInput) {
     const details = input.details ? redactPII(input.details.slice(0, 10000)) : null;
     const stack = input.stack ? redactPII(input.stack.slice(0, 20000)) : null;
 
-    const row = await prismaAny.errorLog
+    const row = await errorLog
       .upsert({
         where: { fingerprint },
         update: {
@@ -119,7 +137,7 @@ export async function recordServerError(input: ErrorReportInput) {
       const result = await sendEmail(notifyEmail, subject, html);
 
       if (result.success) {
-        await prismaAny.errorLog
+        await errorLog
           .update({ where: { fingerprint }, data: { lastEmailSentAt: now } })
           .catch(() => undefined);
       } else {

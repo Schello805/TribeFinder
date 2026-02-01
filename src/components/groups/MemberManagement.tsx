@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/Toast";
 import ObfuscatedEmail from "@/components/ui/ObfuscatedEmail";

@@ -60,24 +60,21 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
   - Permissions-Policy
 
 #### Installation & Deployment
-- **Native Ubuntu LXC Installation** (empfohlen statt Docker)
+- **Native Ubuntu LXC Installation**
   - Automatisches Setup-Script (`scripts/setup-native.sh`)
   - Deployment-Script (`scripts/deploy-native.sh`)
   - Systemd Service-Konfiguration
-  - Nginx Reverse Proxy Konfiguration
   - Vollständige Dokumentation in `INSTALL_NATIVE.md`
 
 - **Troubleshooting Guide** (`TROUBLESHOOTING.md`)
   - Prisma Version-Konflikte
   - Service-Probleme
-  - Nginx-Fehler
   - Datenbank-Probleme
   - Upload-Fehler
 
 - **Weitere Dokumentation**
   - `QUICKSTART.md` - 3-Schritte-Installation
-  - `MIGRATION.md` - Docker → Native Migration
-  - `DOCKER.md` - Docker als Alternative
+  - `MIGRATION.md` - Umzug / Migration
 
 ### 🔧 Geändert
 
@@ -146,9 +143,6 @@ sudo ./scripts/setup-native.sh
 
 Siehe `INSTALL_NATIVE.md` für Details.
 
-### Docker (Alternative)
-Siehe `DOCKER.md` für Docker-Installation.
-
----
+----
 
 **Letzte Aktualisierung:** 19. Januar 2026

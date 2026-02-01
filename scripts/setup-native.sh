@@ -27,11 +27,10 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 echo -e "${BLUE}Dieses Script führt folgende Schritte aus:${NC}"
-echo "1. System-Pakete installieren (Node.js, Nginx, etc.)"
+echo "1. System-Pakete installieren (Node.js, etc.)"
 echo "2. tribefinder User erstellen"
 echo "3. TribeFinder installieren und konfigurieren"
 echo "4. Systemd Service einrichten"
-echo "5. Nginx konfigurieren"
 echo ""
 read -p "Fortfahren? (y/n) " -n 1 -r
 echo
@@ -43,7 +42,7 @@ echo ""
 # 1. System-Pakete
 echo -e "${YELLOW}[1/5] Installiere System-Pakete...${NC}"
 apt update
-apt install -y git curl ca-certificates openssl nginx certbot python3-certbot-nginx acl sqlite3
+apt install -y git curl ca-certificates openssl acl postgresql-client
 
 # Node.js installieren
 if ! command -v node &> /dev/null; then
@@ -139,7 +138,7 @@ mkdir -p "$UPLOADS_DIR"
 chown -R tribefinder:tribefinder "$UPLOADS_DIR"
 chmod 755 "$UPLOADS_DIR"
 
-# public/uploads als Symlink auf /var/www/... (verhindert 403 durch Nginx Policies auf /home)
+# public/uploads als Symlink auf /var/www/...
 if [ -L "public/uploads" ]; then
     :
 elif [ -d "public/uploads" ]; then
@@ -169,7 +168,7 @@ if [ ! -f ".env" ]; then
     # Erstelle .env direkt (statt .env.example zu kopieren)
     cat > .env << EOF
 # Database
-DATABASE_URL="file:$INSTALL_DIR/prod.db"
+DATABASE_URL="postgresql://tribefinder:CHANGE_ME@localhost:5432/tribefinder?schema=public"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
@@ -190,11 +189,10 @@ EOF
     echo -e "${YELLOW}Hinweis: Du kannst später NEXTAUTH_URL und SMTP in /home/tribefinder/TribeFinder/.env anpassen${NC}"
 fi
 
-# Stelle sicher, dass DATABASE_URL absolut ist (sonst kann beim Build/Prerender eine leere DB im falschen CWD entstehen)
-if [ -f ".env" ]; then
-    if grep -q '^DATABASE_URL="file:./prod.db"' .env; then
-        sed -i "s|^DATABASE_URL=\"file:./prod.db\"|DATABASE_URL=\"file:$INSTALL_DIR/prod.db\"|" .env
-    fi
+if grep -q 'CHANGE_ME' .env; then
+    echo -e "${RED}Fehler: Bitte setze DATABASE_URL in $INSTALL_DIR/.env (PostgreSQL) und starte das Setup danach erneut.${NC}"
+    echo "Beispiel: DATABASE_URL=\"postgresql://tribefinder:passwort@localhost:5432/tribefinder?schema=public\""
+    exit 1
 fi
 
 # Dependencies installieren
@@ -227,7 +225,7 @@ if [ ! -d "node_modules/@tailwindcss/oxide-linux-x64-gnu" ]; then
 fi
 
 # Prisma Setup
-echo "Initialisiere Datenbank..."
+echo "Initialisiere Datenbank-Schema (Prisma)..."
 cd "$INSTALL_DIR"
 sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:generate'
 sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run db:migrate'
@@ -272,58 +270,7 @@ else
 fi
 echo ""
 
-# 5. Nginx
-echo -e "${YELLOW}[5/5] Konfiguriere Nginx...${NC}"
-
-read -p "Domain-Name (z.B. tribefinder.example.com, oder Enter für localhost): " DOMAIN
-
-if [ -z "$DOMAIN" ]; then
-    DOMAIN="localhost"
-    echo "Keine Domain angegeben, nutze localhost (nur lokal erreichbar)"
-    
-    # Setze NEXTAUTH_URL auf localhost
-    sed -i "s|NEXTAUTH_URL=.*|NEXTAUTH_URL=\"http://localhost:3000\"|" "$INSTALL_DIR/.env"
-else
-    # Setze NEXTAUTH_URL auf die eingegebene Domain
-    sed -i "s|NEXTAUTH_URL=.*|NEXTAUTH_URL=\"https://$DOMAIN\"|" "$INSTALL_DIR/.env"
-    echo -e "${GREEN}NEXTAUTH_URL gesetzt auf: https://$DOMAIN${NC}"
-fi
-
-if [ "$DOMAIN" != "localhost" ]; then
-    # Nginx Config erstellen
-    cp config/nginx.conf /etc/nginx/sites-available/tribefinder
-    sed -i "s|deine-domain.de|$DOMAIN|g" /etc/nginx/sites-available/tribefinder
-    
-    # Aktivieren
-    ln -sf /etc/nginx/sites-available/tribefinder /etc/nginx/sites-enabled/
-
-    # Default-Site deaktivieren (sonst matcht /uploads evtl. falscher vHost)
-    if [ -e /etc/nginx/sites-enabled/default ]; then
-        rm -f /etc/nginx/sites-enabled/default
-    fi
-    
-    # Test
-    nginx -t
-    systemctl restart nginx
-
-    # Stelle sicher, dass Uploads-Pfad existiert (Nginx alias zeigt auf /var/www/...)
-    mkdir -p "$UPLOADS_DIR"
-    chown -R tribefinder:tribefinder "$UPLOADS_DIR"
-    chmod 755 "$UPLOADS_DIR"
-    
-    echo -e "${GREEN}✓ Nginx konfiguriert für $DOMAIN${NC}"
-    echo ""
-    
-    # SSL Setup anbieten
-    read -p "SSL-Zertifikat mit Let's Encrypt einrichten? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        certbot --nginx -d "$DOMAIN"
-    fi
-else
-    echo "Localhost-Modus: Nginx-Setup übersprungen"
-    echo "Die App wird auf http://localhost:3000 laufen"
-fi
+sed -i "s|NEXTAUTH_URL=.*|NEXTAUTH_URL=\"http://localhost:3000\"|" "$INSTALL_DIR/.env"
 
 echo ""
 echo "=========================================="
@@ -331,7 +278,7 @@ echo -e "${GREEN}Installation abgeschlossen!${NC}"
 echo "=========================================="
 echo ""
 echo "Nächste Schritte:"
-echo "1. Öffne https://$DOMAIN in deinem Browser"
+echo "1. Öffne http://localhost:3000 in deinem Browser"
 echo "2. Registriere einen Account"
 echo "3. Mache dich zum Admin:"
 echo "   sudo su - tribefinder"

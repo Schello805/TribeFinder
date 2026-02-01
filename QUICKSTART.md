@@ -6,7 +6,6 @@ Die schnellste Methode, um TribeFinder auf einem Ubuntu LXC Container zu install
 
 - Ubuntu 22.04/24.04 LXC Container
 - Root-Zugriff
-- Domain oder Subdomain (für SSL)
 
 ## Installation in 3 Schritten
 
@@ -23,22 +22,16 @@ cd TribeFinder
 sudo ./scripts/setup-native.sh
 ```
 
-Das Script fragt dich nach:
-- Domain-Name
-- SSL-Zertifikat (optional)
-
 Es installiert automatisch:
 - Node.js 20
-- Nginx
 - TribeFinder
 - Systemd Service
-- SSL (optional)
 
 ### 3. Admin-Account erstellen
 
 ```bash
 # Registriere dich über die Website
-# Öffne: https://deine-domain.de
+# Öffne: http://localhost:3000
 
 # Mache dich zum Admin
 sudo su - tribefinder
@@ -96,11 +89,9 @@ sudo journalctl -u tribefinder -n 50
 
 ### Website nicht erreichbar
 ```bash
-# Nginx Status
-sudo systemctl status nginx
-
-# Nginx Logs
-sudo tail -f /var/log/nginx/error.log
+curl -i http://localhost:3000
+sudo systemctl status tribefinder
+sudo journalctl -u tribefinder -n 100 --no-pager
 ```
 
 ### Port 3000 bereits belegt
@@ -113,8 +104,6 @@ sudo systemctl restart tribefinder
 ## Weitere Dokumentation
 
 - **Detaillierte Installation:** `INSTALL_NATIVE.md`
-- **Docker Alternative:** `DOCKER.md`
-- **Migration von Docker:** `MIGRATION.md`
 - **Optimierungen:** `OPTIMIZATIONS.md`
 
 ## Support

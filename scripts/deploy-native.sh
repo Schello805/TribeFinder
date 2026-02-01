@@ -1,6 +1,6 @@
 #!/bin/bash
 # TribeFinder - Native Deployment Script
-# Für Ubuntu LXC ohne Docker
+# Für Ubuntu LXC
 
 set -e
 
@@ -40,7 +40,7 @@ if [ ! -w "$UPLOADS_DIR" ]; then
     exit 1
 fi
 
-# public/uploads als Symlink auf /var/www/... (robust für Nginx in LXC)
+# public/uploads als Symlink auf /var/www/...
 if [ -L "public/uploads" ]; then
     :
 elif [ -d "public/uploads" ]; then

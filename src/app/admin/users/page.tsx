@@ -14,7 +14,7 @@ export default async function AdminUsersPage() {
     redirect("/");
   }
 
-  const users = (await (prisma as any).user.findMany({
+  const users = await prisma.user.findMany({
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
@@ -25,15 +25,7 @@ export default async function AdminUsersPage() {
       isBlocked: true,
       createdAt: true
     }
-  })) as unknown as Array<{
-    id: string;
-    name: string | null;
-    email: string;
-    emailVerified: Date | null;
-    role: string;
-    isBlocked: boolean;
-    createdAt: Date;
-  }>;
+  });
 
   // Convert dates to strings for client component
   const formattedUsers = users.map((user) => ({
