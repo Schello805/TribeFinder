@@ -65,6 +65,14 @@ if command -v sudo >/dev/null 2>&1; then
     fi
 fi
 
+if [ "$CAN_SUDO" -eq 1 ]; then
+    # Ensure service user can rename within /var/www/tribefinder during backup restore
+    sudo mkdir -p /var/www/tribefinder/uploads /var/www/tribefinder/backups
+    sudo chown -R tribefinder:tribefinder /var/www/tribefinder
+    sudo chmod 755 /var/www/tribefinder || true
+    sudo chmod 755 /var/www/tribefinder/uploads /var/www/tribefinder/backups || true
+fi
+
 # Stelle sicher, dass Postgres Client Tools verfügbar sind (für Backup/Restore)
 if ! command -v psql >/dev/null 2>&1 || ! command -v pg_dump >/dev/null 2>&1; then
     echo -e "${YELLOW}Hinweis: PostgreSQL Client Tools (psql/pg_dump) fehlen. Versuche Installation...${NC}"

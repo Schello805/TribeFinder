@@ -305,12 +305,33 @@ async function replaceDirectory(srcDir: string, destDir: string) {
   const backupDir = `${destDir}.previous-${Date.now()}`;
   const hasCurrent = await pathExists(destDir);
   if (hasCurrent) {
-    await rename(destDir, backupDir);
+    try {
+      await rename(destDir, backupDir);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes("EACCES") || msg.includes("EPERM")) {
+        throw new Error(
+          `Restore fehlgeschlagen: Keine Rechte um '${destDir}' umzubenennen. ` +
+            `Für das Umbenennen muss der Service-User im Parent-Verzeichnis '${parent}' schreiben dürfen. ` +
+            `Fix (als root): sudo mkdir -p '${parent}' && sudo chown -R tribefinder:tribefinder '${parent}' && sudo chmod 755 '${parent}'. ` +
+            `Original: ${msg}`
+        );
+      }
+      throw e;
+    }
   }
 
   try {
     await rename(srcDir, destDir);
-  } catch {
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("EACCES") || msg.includes("EPERM")) {
+      throw new Error(
+        `Restore fehlgeschlagen: Keine Rechte um '${destDir}' zu überschreiben. ` +
+          `Fix (als root): sudo mkdir -p '${parent}' && sudo chown -R tribefinder:tribefinder '${parent}' && sudo chmod 755 '${parent}'. ` +
+          `Original: ${msg}`
+      );
+    }
     await mkdir(destDir, { recursive: true });
     await cp(srcDir, destDir, { recursive: true });
     await rm(srcDir, { recursive: true, force: true });

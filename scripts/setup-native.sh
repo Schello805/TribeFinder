@@ -147,6 +147,12 @@ mkdir -p "$UPLOADS_DIR"
 chown -R tribefinder:tribefinder "$UPLOADS_DIR"
 chmod 755 "$UPLOADS_DIR"
 
+# Backups-Verzeichnis auf dem Server-Dateisystem (für Backup/Restore API)
+SERVER_BACKUPS_DIR="/var/www/tribefinder/backups"
+mkdir -p "$SERVER_BACKUPS_DIR"
+chown -R tribefinder:tribefinder "$SERVER_BACKUPS_DIR"
+chmod 755 "$SERVER_BACKUPS_DIR"
+
 # public/uploads als Symlink auf /var/www/...
 if [ -L "public/uploads" ]; then
     :
