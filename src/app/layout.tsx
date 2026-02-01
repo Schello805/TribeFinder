@@ -124,6 +124,9 @@ export default async function RootLayout({
   const config = await getCachedSystemConfig();
   const brandingLogoUrl = normalizeUploadedImageUrl(config.BRANDING_LOGO_URL) ?? "";
 
+  const appVersion = (process.env.NEXT_PUBLIC_APP_VERSION || "").trim();
+  const appCommit = (process.env.NEXT_PUBLIC_APP_COMMIT || "").trim();
+
   const siteBannerEnabled = String(config.SITE_BANNER_ENABLED || "").toLowerCase() === "true";
   const siteBannerText = (config.SITE_BANNER_TEXT || "").trim();
   const siteBannerBg = (config.SITE_BANNER_BG || "").trim() || "#f59e0b";
@@ -185,6 +188,13 @@ export default async function RootLayout({
                 </div>
 
                 <div className="w-full max-w-xs h-px bg-gray-800 my-2"></div>
+
+                {appVersion || appCommit ? (
+                  <div className="text-xs text-gray-600">
+                    Version: {appVersion ? `v${appVersion}` : "(unbekannt)"}
+                    {appCommit ? ` (${appCommit})` : ""}
+                  </div>
+                ) : null}
 
                 {process.env.NODE_ENV !== "production" ? (
                   <div className="text-xs text-gray-600">

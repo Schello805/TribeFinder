@@ -73,6 +73,25 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
+if [ -f ".env" ]; then
+    APP_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+    APP_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "")
+    if [ -n "$APP_VERSION" ]; then
+        if grep -q '^NEXT_PUBLIC_APP_VERSION=' .env; then
+            sed -i "s|^NEXT_PUBLIC_APP_VERSION=.*|NEXT_PUBLIC_APP_VERSION=\"$APP_VERSION\"|" .env
+        else
+            echo "NEXT_PUBLIC_APP_VERSION=\"$APP_VERSION\"" >> .env
+        fi
+    fi
+    if [ -n "$APP_COMMIT" ]; then
+        if grep -q '^NEXT_PUBLIC_APP_COMMIT=' .env; then
+            sed -i "s|^NEXT_PUBLIC_APP_COMMIT=.*|NEXT_PUBLIC_APP_COMMIT=\"$APP_COMMIT\"|" .env
+        else
+            echo "NEXT_PUBLIC_APP_COMMIT=\"$APP_COMMIT\"" >> .env
+        fi
+    fi
+fi
+
 # Stelle sicher, dass Postgres Client Tools verfügbar sind (für Backup/Restore)
 if ! command -v psql >/dev/null 2>&1 || ! command -v pg_dump >/dev/null 2>&1; then
     echo -e "${YELLOW}Hinweis: PostgreSQL Client Tools (psql/pg_dump) fehlen. Versuche Installation...${NC}"

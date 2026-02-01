@@ -207,6 +207,26 @@ EOF
     echo -e "${YELLOW}Hinweis: Du kannst später NEXTAUTH_URL und SMTP in /home/tribefinder/TribeFinder/.env anpassen${NC}"
 fi
 
+# App Version/Commit für Footer (damit Instanzen vergleichbar sind)
+APP_VERSION=$(sudo -u tribefinder node -p "require('./package.json').version" 2>/dev/null || echo "")
+APP_COMMIT=$(sudo -u tribefinder git rev-parse --short HEAD 2>/dev/null || echo "")
+
+if [ -n "$APP_VERSION" ]; then
+    if grep -q '^NEXT_PUBLIC_APP_VERSION=' .env; then
+        sed -i "s|^NEXT_PUBLIC_APP_VERSION=.*|NEXT_PUBLIC_APP_VERSION=\"$APP_VERSION\"|" .env
+    else
+        echo "NEXT_PUBLIC_APP_VERSION=\"$APP_VERSION\"" >> .env
+    fi
+fi
+
+if [ -n "$APP_COMMIT" ]; then
+    if grep -q '^NEXT_PUBLIC_APP_COMMIT=' .env; then
+        sed -i "s|^NEXT_PUBLIC_APP_COMMIT=.*|NEXT_PUBLIC_APP_COMMIT=\"$APP_COMMIT\"|" .env
+    else
+        echo "NEXT_PUBLIC_APP_COMMIT=\"$APP_COMMIT\"" >> .env
+    fi
+fi
+
 set_env_var() {
     local key="$1"
     local value="$2"
