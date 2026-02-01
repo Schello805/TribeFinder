@@ -16,6 +16,9 @@ import Image from "next/image";
 import FeedbackWidget from "@/components/feedback/FeedbackWidget";
 import { unstable_cache } from "next/cache";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import path from "path";
+import fs from "node:fs";
+import { readFile } from "fs/promises";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -88,10 +91,34 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   const session = await getServerSession(authOptions);
+
+  const resolveProjectRoot = () => {
+    let dir = process.cwd();
+    for (let i = 0; i < 10; i++) {
+      const hasPackageJson = fs.existsSync(path.join(dir, "package.json"));
+      const hasPrismaSchema = fs.existsSync(path.join(dir, "prisma", "schema.prisma"));
+      if (hasPackageJson && hasPrismaSchema) return dir;
+      const parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+    return process.cwd();
+  };
+
+  const readAppVersionFallback = async () => {
+    try {
+      const pkgPath = path.join(resolveProjectRoot(), "package.json");
+      const raw = await readFile(pkgPath, "utf8");
+      const pkg = JSON.parse(raw) as { version?: unknown };
+      return typeof pkg.version === "string" ? pkg.version.trim() : "";
+    } catch {
+      return "";
+    }
+  };
 
   const getCachedSystemConfig = unstable_cache(
     async () => {
@@ -124,8 +151,8 @@ export default async function RootLayout({
   const config = await getCachedSystemConfig();
   const brandingLogoUrl = normalizeUploadedImageUrl(config.BRANDING_LOGO_URL) ?? "";
 
-  const appVersion = (process.env.NEXT_PUBLIC_APP_VERSION || "").trim();
   const appCommit = (process.env.NEXT_PUBLIC_APP_COMMIT || "").trim();
+  const appVersion = ((process.env.NEXT_PUBLIC_APP_VERSION || "").trim() || (await readAppVersionFallback()));
 
   const siteBannerEnabled = String(config.SITE_BANNER_ENABLED || "").toLowerCase() === "true";
   const siteBannerText = (config.SITE_BANNER_TEXT || "").trim();

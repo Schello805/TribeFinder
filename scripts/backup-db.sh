@@ -27,6 +27,14 @@ if [ -z "${DATABASE_URL:-}" ]; then
     exit 1
 fi
 
+# Prisma URLs often include ?schema=public which pg_dump rejects.
+DATABASE_URL_CLI="$DATABASE_URL"
+if command -v node >/dev/null 2>&1; then
+    DATABASE_URL_CLI=$(DATABASE_URL="$DATABASE_URL" node -e 'try{const u=new URL(process.env.DATABASE_URL);u.searchParams.delete("schema");process.stdout.write(u.toString());}catch(e){process.stdout.write(process.env.DATABASE_URL||"");}' 2>/dev/null || echo "$DATABASE_URL")
+else
+    DATABASE_URL_CLI=$(echo "$DATABASE_URL" | sed -E 's/([?&])schema=[^&]+(&?)/\1/; s/[?&]$//')
+fi
+
 if ! command -v pg_dump >/dev/null 2>&1; then
     echo "❌ pg_dump not found. Please install postgresql-client."
     exit 1
@@ -49,7 +57,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-pg_dump --no-owner --no-privileges --format=p -f "$TMP_ROOT/db.sql" -d "$DATABASE_URL"
+pg_dump --no-owner --no-privileges --format=p -f "$TMP_ROOT/db.sql" -d "$DATABASE_URL_CLI"
 
 if [ -d "$UPLOADS_DIR" ]; then
     # -L dereferences any symlinks within uploads
