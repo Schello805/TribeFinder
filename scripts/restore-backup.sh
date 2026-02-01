@@ -40,27 +40,34 @@ if [ -z "${DATABASE_URL:-}" ]; then
   exit 1
 fi
 
-if [[ "$DATABASE_URL" != file:* ]]; then
-  echo "❌ This restore script currently supports SQLite only (DATABASE_URL must start with file:)."
-  exit 1
+IS_SQLITE=0
+if [[ "$DATABASE_URL" == file:* ]]; then
+  IS_SQLITE=1
 fi
 
-DB_REL=${DATABASE_URL#file:}
-DB_REL=${DB_REL#//}
+DB_REL=""
+DB_PATH=""
+if [ "$IS_SQLITE" -eq 1 ]; then
+  DB_REL=${DATABASE_URL#file:}
+  DB_REL=${DB_REL#//}
 
-if [[ "$DB_REL" == /* ]]; then
-  DB_PATH="$DB_REL"
-else
-  DB_PATH="$ROOT_DIR/$DB_REL"
+  if [[ "$DB_REL" == /* ]]; then
+    DB_PATH="$DB_REL"
+  else
+    DB_PATH="$ROOT_DIR/$DB_REL"
+  fi
 fi
 
 UPLOADS_DIR="$ROOT_DIR/public/uploads"
 
-REL_DB=$(python3 - <<PY
+REL_DB=""
+if [ "$IS_SQLITE" -eq 1 ]; then
+  REL_DB=$(python3 - <<PY
 import os
 print(os.path.relpath("$DB_PATH", "$ROOT_DIR"))
 PY
-)
+  )
+fi
 
 TMP_DIR=$(mktemp -d)
 cleanup() {
@@ -75,14 +82,24 @@ echo "📦 Extracting backup: $BACKUP_PATH"
 # (Backup was created relative to ROOT_DIR)
 tar -xzf "$BACKUP_PATH" -C "$TMP_DIR"
 
-EXTRACTED_DB="$TMP_DIR/$REL_DB"
-EXTRACTED_UPLOADS="$TMP_DIR/public/uploads"
-
-if [ ! -f "$EXTRACTED_DB" ]; then
-  echo "❌ Backup does not contain expected DB file: $REL_DB"
-  echo "   Expected: $EXTRACTED_DB"
-  exit 1
+EXTRACTED_DB=""
+if [ "$IS_SQLITE" -eq 1 ]; then
+  EXTRACTED_DB="$TMP_DIR/$REL_DB"
+  if [ ! -f "$EXTRACTED_DB" ]; then
+    echo "❌ Backup does not contain expected DB file: $REL_DB"
+    echo "   Expected: $EXTRACTED_DB"
+    exit 1
+  fi
+else
+  EXTRACTED_DB="$TMP_DIR/db.sql"
+  if [ ! -f "$EXTRACTED_DB" ]; then
+    echo "❌ Backup does not contain expected Postgres dump: db.sql"
+    echo "   Expected: $EXTRACTED_DB"
+    exit 1
+  fi
 fi
+
+EXTRACTED_UPLOADS="$TMP_DIR/public/uploads"
 
 if [ ! -d "$EXTRACTED_UPLOADS" ]; then
   echo "❌ Backup does not contain expected uploads directory: public/uploads"
@@ -93,14 +110,21 @@ fi
 STAMP=$(date +"%Y%m%d_%H%M%S")
 
 # Restore DB
-mkdir -p "$(dirname "$DB_PATH")"
-if [ -f "$DB_PATH" ]; then
-  echo "🧷 Saving current DB: ${DB_PATH}.previous-${STAMP}"
-  mv "$DB_PATH" "${DB_PATH}.previous-${STAMP}"
-fi
+if [ "$IS_SQLITE" -eq 1 ]; then
+  mkdir -p "$(dirname "$DB_PATH")"
+  if [ -f "$DB_PATH" ]; then
+    echo "🧷 Saving current DB: ${DB_PATH}.previous-${STAMP}"
+    mv "$DB_PATH" "${DB_PATH}.previous-${STAMP}"
+  fi
 
-echo "🗄️  Restoring DB -> $DB_PATH"
-mv "$EXTRACTED_DB" "$DB_PATH"
+  echo "🗄️  Restoring DB -> $DB_PATH"
+  mv "$EXTRACTED_DB" "$DB_PATH"
+else
+  echo "🧨 Resetting Postgres schema public (DROP SCHEMA public CASCADE)"
+  psql -v ON_ERROR_STOP=1 -d "$DATABASE_URL" -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
+  echo "🗄️  Restoring Postgres DB from db.sql"
+  psql -v ON_ERROR_STOP=1 -d "$DATABASE_URL" -f "$EXTRACTED_DB"
+fi
 
 # Restore uploads
 mkdir -p "$(dirname "$UPLOADS_DIR")"

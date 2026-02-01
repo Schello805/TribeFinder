@@ -65,6 +65,21 @@ if command -v sudo >/dev/null 2>&1; then
     fi
 fi
 
+# Stelle sicher, dass Postgres Client Tools verfügbar sind (für Backup/Restore bei PostgreSQL)
+# (Bei SQLite ist es nicht nötig, aber schadet auch nicht.)
+if ! command -v psql >/dev/null 2>&1 || ! command -v pg_dump >/dev/null 2>&1; then
+    echo -e "${YELLOW}Hinweis: PostgreSQL Client Tools (psql/pg_dump) fehlen. Versuche Installation...${NC}"
+    if [ "$CAN_SUDO" -eq 1 ]; then
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+    else
+        echo -e "${RED}Fehler: psql/pg_dump fehlen, aber sudo ist nicht verfügbar.${NC}"
+        echo "Bitte einmalig als root installieren:"
+        echo "  apt-get update && apt-get install -y postgresql-client"
+        exit 1
+    fi
+fi
+
 # Backup erstellen
 echo -e "${YELLOW}[1/7] Erstelle Datenbank-Backup...${NC}"
 npm run db:backup || echo "Backup fehlgeschlagen (möglicherweise keine DB vorhanden oder DATABASE_URL nicht SQLite)"

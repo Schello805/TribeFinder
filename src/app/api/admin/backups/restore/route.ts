@@ -15,7 +15,12 @@ export async function POST(req: Request) {
     return NextResponse.json(result);
   } catch (error) {
     const details = error instanceof Error ? error.message : String(error);
-    const status = details.includes("kein SQLite file:-Pfad") ? 400 : 500;
+    const status =
+      details.includes("Ungültiger Backup-Dateiname") ||
+      details.includes("Backup nicht gefunden") ||
+      details.includes("Backup-Inhalt passt nicht")
+        ? 400
+        : 500;
     return NextResponse.json(
       { message: "Restore fehlgeschlagen", details },
       { status }

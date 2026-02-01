@@ -120,7 +120,9 @@ Im Admin-Bereich:
 
 Das Backup enthält:
 
-- SQLite DB (Pfad aus `DATABASE_URL`)
+- Datenbank:
+  - SQLite: `db.sqlite` (Pfad aus `DATABASE_URL`)
+  - PostgreSQL: `db.sql` (erstellt via `pg_dump`)
 - `public/uploads`
 
 ### 2) Backup nach Staging bringen
@@ -149,6 +151,12 @@ Variante B: Notfall-Script (wenn App nicht startet)
 chmod +x scripts/restore-backup.sh
 ./scripts/restore-backup.sh backups/<backup>.tar.gz
 ```
+
+Hinweise:
+
+- Bei **PostgreSQL** stellt das Script den Dump über `psql` wieder her und setzt vorher das `public` Schema zurück
+  (`DROP SCHEMA public CASCADE; CREATE SCHEMA public;`). Das ist **destruktiv**.
+- Voraussetzung für PostgreSQL Backup/Restore: `pg_dump` und `psql` müssen installiert sein.
 
 3. Service manuell starten
 
