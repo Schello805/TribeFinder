@@ -196,6 +196,9 @@ NEXTAUTH_SECRET="$SECRET"
 UPLOADS_DIR="/var/www/tribefinder/uploads"
 BACKUP_DIR="/var/www/tribefinder/backups"
 
+# Maintenance
+MAINTENANCE_MODE="false"
+
 # Optional: SMTP für E-Mail-Versand
 # SMTP_HOST=
 # SMTP_PORT=587

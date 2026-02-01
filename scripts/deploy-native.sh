@@ -89,6 +89,10 @@ if [ -f ".env" ]; then
         echo "BACKUP_DIR=\"/var/www/tribefinder/backups\"" >> .env
     fi
 
+    if ! grep -q '^MAINTENANCE_MODE=' .env; then
+        echo "MAINTENANCE_MODE=\"false\"" >> .env
+    fi
+
     if [ -n "$APP_VERSION" ]; then
         if grep -q '^NEXT_PUBLIC_APP_VERSION=' .env; then
             sed -i "s|^NEXT_PUBLIC_APP_VERSION=.*|NEXT_PUBLIC_APP_VERSION=\"$APP_VERSION\"|" .env
