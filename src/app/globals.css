@@ -9,10 +9,30 @@
   color-scheme: light;
 }
 
+html[data-tf-theme="sahara"] {
+  --background: #f6efe4;
+  --foreground: #2b1d12;
+}
+
+html[data-tf-theme="copper"] {
+  --background: #f1e6d7;
+  --foreground: #2a1a10;
+}
+
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
   color-scheme: dark;
+}
+
+html.dark[data-tf-theme="sahara"] {
+  --background: #19110b;
+  --foreground: #f2e7db;
+}
+
+html.dark[data-tf-theme="copper"] {
+  --background: #140d08;
+  --foreground: #f1e6d7;
 }
 
 @theme inline {

@@ -130,6 +130,7 @@ export default async function RootLayout({
               "MATOMO_SITE_ID",
               "MATOMO_TRACKING_CODE",
               "BRANDING_LOGO_URL",
+              "SITE_THEME_PRESET",
               "SITE_BANNER_ENABLED",
               "SITE_BANNER_TEXT",
               "SITE_BANNER_BG",
@@ -150,6 +151,8 @@ export default async function RootLayout({
 
   const config = await getCachedSystemConfig();
   const brandingLogoUrl = normalizeUploadedImageUrl(config.BRANDING_LOGO_URL) ?? "";
+  const themePresetRaw = (config.SITE_THEME_PRESET || "").trim().toLowerCase();
+  const themePreset = themePresetRaw === "sahara" || themePresetRaw === "copper" ? themePresetRaw : "default";
 
   const appCommit = (process.env.NEXT_PUBLIC_APP_COMMIT || "").trim();
   const appVersion = ((process.env.NEXT_PUBLIC_APP_VERSION || "").trim() || (await readAppVersionFallback()));
@@ -167,7 +170,7 @@ export default async function RootLayout({
     : siteBannerText;
 
   return (
-    <html lang="de" suppressHydrationWarning>
+    <html lang="de" suppressHydrationWarning data-tf-theme={themePreset}>
       <body className={`${inter.className} min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"

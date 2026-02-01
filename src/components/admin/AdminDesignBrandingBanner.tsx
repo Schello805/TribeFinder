@@ -16,9 +16,11 @@ export default function AdminDesignBrandingBanner() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLogoSaving, setIsLogoSaving] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isThemeSaving, setIsThemeSaving] = useState(false);
   const [isMaintenanceLoading, setIsMaintenanceLoading] = useState(false);
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
 
+  const [themePreset, setThemePreset] = useState<string>("default");
   const [brandingLogoUrl, setBrandingLogoUrl] = useState<string>("");
   const [bannerEnabled, setBannerEnabled] = useState<boolean>(false);
   const [bannerText, setBannerText] = useState<string>("");
@@ -40,8 +42,10 @@ export default function AdminDesignBrandingBanner() {
         const text = getStringProp(data, "SITE_BANNER_TEXT") || "";
         const bg = getStringProp(data, "SITE_BANNER_BG") || "#f59e0b";
         const textColor = getStringProp(data, "SITE_BANNER_TEXT_COLOR") || "#ffffff";
+        const preset = (getStringProp(data, "SITE_THEME_PRESET") || "default").trim().toLowerCase();
 
         setBrandingLogoUrl(logo);
+        setThemePreset(preset === "sahara" || preset === "copper" ? preset : "default");
         setBannerEnabled(String(enabledRaw).toLowerCase() === "true");
         setBannerText(text);
         setBannerBg(bg || "#f59e0b");
@@ -67,6 +71,27 @@ export default function AdminDesignBrandingBanner() {
       cancelled = true;
     };
   }, [showToast]);
+
+  const saveThemePreset = async (nextPreset: string) => {
+    const normalized = String(nextPreset || "default").trim().toLowerCase();
+    const value = normalized === "sahara" || normalized === "copper" ? normalized : "default";
+    setIsThemeSaving(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ SITE_THEME_PRESET: value === "default" ? "" : value }),
+      });
+      const data: unknown = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(getStringProp(data, "message") || `HTTP ${res.status}`);
+      setThemePreset(value);
+      showToast("Theme gespeichert", "success");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Fehler beim Speichern", "error");
+    } finally {
+      setIsThemeSaving(false);
+    }
+  };
 
   const setMaintenance = async (enabled: boolean) => {
     setIsMaintenanceLoading(true);
@@ -163,6 +188,34 @@ export default function AdminDesignBrandingBanner() {
 
   return (
     <div className="space-y-8">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-transparent dark:border-gray-700">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Theme</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Wähle ein Farbschema für die gesamte Webapp (Light &amp; Dark).</p>
+        </div>
+        <div className="p-6 space-y-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Theme Preset</label>
+          <div className="flex items-center gap-3 flex-wrap">
+            <select
+              value={themePreset}
+              disabled={isThemeSaving}
+              onChange={(e) => {
+                const v = e.target.value;
+                void saveThemePreset(v);
+              }}
+              className="rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white bg-white dark:bg-gray-700"
+            >
+              <option value="default">Standard</option>
+              <option value="sahara">Sahara (warm &amp; hell)</option>
+              <option value="copper">Copper (warm &amp; kräftig)</option>
+            </select>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Tipp: nach Auswahl ggf. einmal neu laden (Cache: 10s).
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-transparent dark:border-gray-700">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Branding</h3>
