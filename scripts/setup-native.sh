@@ -192,6 +192,10 @@ DATABASE_URL="postgresql://tribefinder:CHANGE_ME@localhost:5432/tribefinder?sche
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="$SECRET"
 
+# File storage
+UPLOADS_DIR="/var/www/tribefinder/uploads"
+BACKUP_DIR="/var/www/tribefinder/backups"
+
 # Optional: SMTP für E-Mail-Versand
 # SMTP_HOST=
 # SMTP_PORT=587

@@ -76,6 +76,19 @@ fi
 if [ -f ".env" ]; then
     APP_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
     APP_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "")
+
+    # Persist server paths in .env so API + scripts behave consistently
+    if grep -q '^UPLOADS_DIR=' .env; then
+        sed -i "s|^UPLOADS_DIR=.*|UPLOADS_DIR=\"$UPLOADS_DIR\"|" .env
+    else
+        echo "UPLOADS_DIR=\"$UPLOADS_DIR\"" >> .env
+    fi
+    if grep -q '^BACKUP_DIR=' .env; then
+        sed -i "s|^BACKUP_DIR=.*|BACKUP_DIR=\"/var/www/tribefinder/backups\"|" .env
+    else
+        echo "BACKUP_DIR=\"/var/www/tribefinder/backups\"" >> .env
+    fi
+
     if [ -n "$APP_VERSION" ]; then
         if grep -q '^NEXT_PUBLIC_APP_VERSION=' .env; then
             sed -i "s|^NEXT_PUBLIC_APP_VERSION=.*|NEXT_PUBLIC_APP_VERSION=\"$APP_VERSION\"|" .env

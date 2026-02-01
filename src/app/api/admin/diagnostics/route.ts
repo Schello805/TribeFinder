@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { mkdir, readFile, unlink, writeFile } from "fs/promises";
+import { mkdir, readFile, unlink, writeFile, realpath } from "fs/promises";
 import path from "path";
 import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
@@ -52,6 +52,22 @@ export async function GET() {
         return {
           status: "fail",
           message: `Fehlende Variablen: ${missing.join(", ")}`,
+        };
+      }
+
+      const secret = (process.env.NEXTAUTH_SECRET || "").trim();
+      if (secret === "generate-a-random-secret-here") {
+        return {
+          status: "fail",
+          message: "NEXTAUTH_SECRET ist noch der Platzhalter",
+          details: "Setze NEXTAUTH_SECRET in .env auf einen zufälligen Wert (mind. 32 Zeichen).",
+        };
+      }
+      if (secret.length < 32) {
+        return {
+          status: "warn",
+          message: "NEXTAUTH_SECRET ist sehr kurz",
+          details: "Empfehlung: mind. 32 Zeichen (z.B. openssl rand -base64 32).",
         };
       }
 
@@ -119,7 +135,9 @@ export async function GET() {
 
   checks.push(
     await runCheck("uploads", "Uploads-Verzeichnis schreibbar", async () => {
-      const uploadDir = path.join(process.cwd(), "public/uploads");
+      const envDir = (process.env.UPLOADS_DIR || "").trim();
+      const uploadDirRaw = envDir || path.join(process.cwd(), "public/uploads");
+      const uploadDir = await realpath(uploadDirRaw).catch(() => uploadDirRaw);
       await mkdir(uploadDir, { recursive: true });
       const testFile = path.join(uploadDir, `.healthcheck-${Date.now()}.txt`);
       await writeFile(testFile, "ok", "utf8");

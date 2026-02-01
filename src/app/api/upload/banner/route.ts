@@ -25,7 +25,8 @@ const resolveProjectRoot = () => {
 };
 
 const resolveUploadsDir = async () => {
-  const uploadsDir = path.join(resolveProjectRoot(), "public", "uploads");
+  const envDir = (process.env.UPLOADS_DIR || "").trim();
+  const uploadsDir = envDir || path.join(resolveProjectRoot(), "public", "uploads");
   try {
     return await realpath(uploadsDir);
   } catch {

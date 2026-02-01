@@ -14,13 +14,20 @@ MAX_BACKUPS=10
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"
 
-# Load DATABASE_URL
+# Load .env (DATABASE_URL, BACKUP_DIR, UPLOADS_DIR)
 if [ -f ".env" ]; then
     set -a
     # shellcheck source=/dev/null
     source .env
     set +a
+
+    if [ -n "${BACKUP_DIR:-}" ]; then
+        BACKUP_FILE="${BACKUP_DIR}/tribefinder-backup-${TIMESTAMP}.tar.gz"
+    fi
 fi
+
+# Create backup directory if it doesn't exist (after env override)
+mkdir -p "$BACKUP_DIR"
 
 if [ -z "${DATABASE_URL:-}" ]; then
     echo "❌ DATABASE_URL is not set. Define it in .env or export it in the shell."
@@ -43,7 +50,7 @@ fi
 echo "📦 Creating Postgres dump..."
 
 # Determine uploads directory (public/uploads is often a symlink)
-UPLOADS_DIR="./public/uploads"
+UPLOADS_DIR="${UPLOADS_DIR:-./public/uploads}"
 if [ -L "$UPLOADS_DIR" ]; then
     # resolve symlink target
     UPLOADS_DIR="$(readlink -f "$UPLOADS_DIR")"

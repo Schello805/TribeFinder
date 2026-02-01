@@ -40,7 +40,12 @@ if [ -z "${DATABASE_URL:-}" ]; then
   exit 1
 fi
 
-UPLOADS_DIR="$ROOT_DIR/public/uploads"
+UPLOADS_DIR="${UPLOADS_DIR:-$ROOT_DIR/public/uploads}"
+
+if [ -L "$UPLOADS_DIR" ]; then
+  # resolve symlink target
+  UPLOADS_DIR="$(readlink -f "$UPLOADS_DIR")"
+fi
 
 TMP_DIR=$(mktemp -d)
 cleanup() {

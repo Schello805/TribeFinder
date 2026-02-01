@@ -76,12 +76,25 @@ async function resolveBackupDir(projectRoot: string) {
 }
 
 async function resolveUploadsDir(projectRoot: string) {
-  const uploadsDir = path.join(projectRoot, "public", "uploads");
-  try {
-    return await realpath(uploadsDir);
-  } catch {
-    return uploadsDir;
+  const envDir = (process.env.UPLOADS_DIR || "").trim();
+  const candidates = [
+    ...(envDir ? [envDir] : []),
+    path.join(projectRoot, "public", "uploads"),
+    "/var/www/tribefinder/uploads",
+  ];
+
+  for (const dir of candidates) {
+    try {
+      const resolved = await realpath(dir).catch(() => dir);
+      await mkdir(resolved, { recursive: true });
+      await access(resolved, fs.constants.W_OK | fs.constants.X_OK);
+      return resolved;
+    } catch {
+      // try next
+    }
   }
+
+  return path.join(projectRoot, "public", "uploads");
 }
 
 function runCommand(cmd: string, args: string[], cwd: string): Promise<{ stdout: string; stderr: string }> {
