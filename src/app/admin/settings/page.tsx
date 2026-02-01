@@ -18,6 +18,8 @@ export default function AdminSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isLogoSaving, setIsLogoSaving] = useState(false);
+  const [isMaintenanceLoading, setIsMaintenanceLoading] = useState(false);
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [formData, setFormData] = useState({
     SMTP_HOST: '',
     SMTP_PORT: '587',
@@ -43,6 +45,7 @@ export default function AdminSettingsPage() {
       router.push('/dashboard');
     } else if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
       fetchSettings();
+      fetchMaintenanceStatus();
     }
   }, [status, session, router]);
 
@@ -61,6 +64,46 @@ export default function AdminSettingsPage() {
       console.error('Error loading settings:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchMaintenanceStatus = async () => {
+    setIsMaintenanceLoading(true);
+    try {
+      const res = await fetch('/api/admin/maintenance');
+      if (!res.ok) return;
+      const data = await res.json().catch(() => null);
+      if (!data) return;
+      setMaintenanceEnabled(Boolean(data.enabled));
+    } catch (error) {
+      console.error('Error loading maintenance status:', error);
+    } finally {
+      setIsMaintenanceLoading(false);
+    }
+  };
+
+  const setMaintenance = async (enabled: boolean) => {
+    setIsMaintenanceLoading(true);
+    setMessage('');
+    try {
+      const res = await fetch('/api/admin/maintenance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMessage(data?.message || 'Fehler beim Umschalten des Wartungsmodus.');
+        return;
+      }
+      setMaintenanceEnabled(enabled);
+      setMessage(data?.message || 'Gespeichert. Bitte Service neu starten.');
+      setTimeout(() => setMessage(''), 6000);
+    } catch (error) {
+      console.error('Error setting maintenance mode:', error);
+      setMessage('Fehler beim Umschalten des Wartungsmodus.');
+    } finally {
+      setIsMaintenanceLoading(false);
     }
   };
 
@@ -227,6 +270,30 @@ export default function AdminSettingsPage() {
 
           <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
             Empfohlen: quadratisches Bild, max. 5MB (PNG/JPG/WebP/GIF). Wird in <code>public/uploads</code> gespeichert.
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Wartungsmodus</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Blockiert Schreibaktionen (POST/PUT/PATCH/DELETE) für Nicht-Admins, Lesen und Suche bleibt möglich.
+          </p>
+        </div>
+        <div className="p-6 space-y-3">
+          <label className="flex items-center justify-between gap-4 text-sm text-gray-700 dark:text-gray-200">
+            <span>Wartungsmodus aktiv</span>
+            <input
+              type="checkbox"
+              checked={maintenanceEnabled}
+              disabled={isMaintenanceLoading}
+              onChange={(e) => setMaintenance(e.target.checked)}
+              className="h-4 w-4"
+            />
+          </label>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Hinweis: Nach dem Umschalten muss der Service neu gestartet werden (z.B. <code>sudo systemctl restart tribefinder</code>).
           </div>
         </div>
       </div>
