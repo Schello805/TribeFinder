@@ -301,18 +301,25 @@ export default function GroupFilter() {
 
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Gruppengröße</label>
-          <select
-            value={groupSize}
-            onChange={(e) => setGroupSize(e.target.value)}
-            className="w-full px-4 py-2 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]"
-          >
-            <option value="">Alle Größen</option>
-            <option value="SOLO">Solo</option>
-            <option value="DUO">Duo</option>
-            <option value="TRIO">Trio</option>
-            <option value="SMALL">Kleine Gruppe (&lt; 10)</option>
-            <option value="LARGE">Große Gruppe (&gt; 10)</option>
-          </select>
+          <div className="relative">
+            <select
+              value={groupSize}
+              onChange={(e) => setGroupSize(e.target.value)}
+              className="w-full px-4 py-2 pr-10 min-h-11 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
+            >
+              <option value="">Alle Größen</option>
+              <option value="SOLO">Solo</option>
+              <option value="DUO">Duo</option>
+              <option value="TRIO">Trio</option>
+              <option value="SMALL">Kleine Gruppe (&lt; 10)</option>
+              <option value="LARGE">Große Gruppe (&gt; 10)</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--muted)]">
+              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         <div className="hidden md:block" />
