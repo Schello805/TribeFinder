@@ -73,7 +73,7 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
 
   return (
     <div className="w-full" ref={containerRef}>
-      <div className="flex flex-wrap gap-2 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 min-h-[42px]">
+      <div className="flex flex-wrap gap-2 p-2 border border-[var(--border)] rounded-md bg-[var(--surface)] focus-within:ring-2 focus-within:ring-[var(--primary)] focus-within:border-[var(--primary)] min-h-[42px]">
         <AnimatePresence>
           {selectedTags.map(tag => (
             <motion.span
@@ -81,13 +81,13 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200"
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)]"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => removeTag(tag)}
-                className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-indigo-400 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800 hover:text-indigo-600 dark:hover:text-indigo-100 focus:outline-none"
+                className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] focus:outline-none"
               >
                 ×
               </button>
@@ -106,7 +106,7 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}
             placeholder={selectedTags.length === 0 ? "Tanzstile suchen oder hinzufügen..." : ""}
-            className="w-full border-none focus:ring-0 p-0 text-sm text-black dark:text-white bg-transparent placeholder-gray-600 dark:placeholder-gray-400 h-7"
+            className="w-full border-none focus:ring-0 p-0 text-sm text-[var(--foreground)] bg-transparent placeholder-[var(--muted)] h-7"
           />
           
           <AnimatePresence>
@@ -115,17 +115,17 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-60 overflow-auto"
+                className="absolute left-0 right-0 top-full mt-1 bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-lg z-50 max-h-60 overflow-auto"
               >
                 {isLoading ? (
-                  <div className="p-2 text-sm text-gray-500 dark:text-gray-400">Laden...</div>
+                  <div className="p-2 text-sm text-[var(--muted)]">Laden...</div>
                 ) : suggestions.length > 0 ? (
                   <ul>
                     {suggestions.map((suggestion) => (
                       <li
                         key={suggestion.id}
                         onClick={() => addTag(suggestion.name)}
-                        className="px-3 py-2 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-sm text-gray-700 dark:text-gray-200"
+                        className="px-3 py-2 cursor-pointer hover:bg-[var(--surface-hover)] text-sm text-[var(--foreground)]"
                       >
                         {suggestion.name}
                       </li>
@@ -133,7 +133,7 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
                     {input && !suggestions.find(s => s.name.toLowerCase() === input.toLowerCase()) && input.length >= 2 && (
                       <li
                         onClick={() => addTag(input)}
-                        className="px-3 py-2 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-sm text-indigo-600 dark:text-indigo-400 border-t border-gray-100 dark:border-gray-700"
+                        className="px-3 py-2 cursor-pointer hover:bg-[var(--surface-hover)] text-sm text-[var(--link)] border-t border-[var(--border)]"
                       >
                          Neu hinzufügen: &quot;{input}&quot; (Wartet auf Freigabe)
                       </li>
@@ -142,19 +142,19 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
                 ) : input.length >= 2 ? (
                   <div 
                     onClick={() => addTag(input)}
-                    className="px-3 py-2 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-sm text-indigo-600 dark:text-indigo-400"
+                    className="px-3 py-2 cursor-pointer hover:bg-[var(--surface-hover)] text-sm text-[var(--link)]"
                   >
                     Neu hinzufügen: &quot;{input}&quot; (Wartet auf Freigabe)
                   </div>
                 ) : (
-                  <div className="p-2 text-sm text-gray-500 dark:text-gray-400 italic">Keine weiteren Vorschläge</div>
+                  <div className="p-2 text-sm text-[var(--muted)] italic">Keine weiteren Vorschläge</div>
                 )}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
-      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+      <p className="mt-1 text-xs text-[var(--muted)]">
         Wähle aus der Liste oder tippe Enter für neue Tanzarten.
       </p>
     </div>

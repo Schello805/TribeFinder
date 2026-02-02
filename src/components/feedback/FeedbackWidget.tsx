@@ -175,7 +175,7 @@ export default function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-[60] rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:opacity-95 transition px-5 py-3 font-semibold"
+        className="fixed bottom-6 right-6 z-[60] rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition px-5 py-3 font-semibold"
       >
         Feedback
       </button>
@@ -272,7 +272,7 @@ export default function FeedbackWidget() {
                     type="button"
                     onClick={submit}
                     disabled={isSending}
-                    className="px-4 py-2 rounded-md text-sm font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-95 disabled:opacity-50 transition"
+                    className="px-4 py-2 rounded-md text-sm font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition"
                   >
                     {isSending ? "Sende…" : "Absenden"}
                   </button>

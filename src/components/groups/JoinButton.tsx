@@ -62,7 +62,7 @@ export default function JoinButton({ groupId, initialStatus }: JoinButtonProps) 
       default:
         return {
           text: "Gruppe beitreten",
-          className: "bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-95 border border-transparent"
+          className: "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] border border-transparent"
         };
     }
   };

@@ -68,7 +68,7 @@ export default function EventParticipationButton({ eventId }: EventParticipation
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md font-medium hover:opacity-95 transition shadow-sm flex items-center gap-2"
+        className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md font-medium hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm flex items-center gap-2"
       >
         <span>🎭</span> Als Act teilnehmen
       </button>
@@ -115,7 +115,7 @@ export default function EventParticipationButton({ eventId }: EventParticipation
               <button
                 onClick={handleParticipate}
                 disabled={!selectedGroupId || isLoading}
-                className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:opacity-95 disabled:opacity-50"
+                className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50"
               >
                 {isLoading ? "Sende..." : "Anfragen"}
               </button>
