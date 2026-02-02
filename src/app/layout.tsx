@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cinzel_Decorative, Inter } from "next/font/google";
+import { Cinzel_Decorative, Inter, UnifrakturMaguntia } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -25,6 +25,12 @@ const display = Cinzel_Decorative({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-display",
+});
+
+const nocturneDisplay = UnifrakturMaguntia({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-display-nocturne",
 });
 
 export const viewport: Viewport = {
@@ -177,7 +183,7 @@ export default async function RootLayout({
 
   return (
     <html lang="de" suppressHydrationWarning data-tf-theme={themePreset}>
-      <body className={`${inter.className} ${display.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
+      <body className={`${inter.className} ${display.variable} ${nocturneDisplay.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
