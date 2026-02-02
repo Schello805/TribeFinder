@@ -166,7 +166,7 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <nav className="bg-[var(--nav-bg)] text-[var(--nav-fg)] shadow-lg transition-colors sticky top-0 z-50">
+    <nav className="bg-[var(--nav-bg)] text-[var(--nav-fg)] shadow-lg transition-colors sticky top-0 z-[1000]">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="text-xl font-bold flex items-center gap-2 tf-display">

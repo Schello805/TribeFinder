@@ -284,6 +284,11 @@ html.dark body ::placeholder {
   z-index: 10;
 }
 
+.leaflet-container .leaflet-top,
+.leaflet-container .leaflet-bottom {
+  z-index: 40;
+}
+
 .leaflet-container .leaflet-overlay-pane {
   z-index: 20;
 }
