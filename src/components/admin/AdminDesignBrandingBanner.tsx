@@ -85,6 +85,7 @@ export default function AdminDesignBrandingBanner() {
       const data: unknown = await res.json().catch(() => null);
       if (!res.ok) throw new Error(getStringProp(data, "message") || `HTTP ${res.status}`);
       setThemePreset(value);
+      document.documentElement.setAttribute("data-tf-theme", value);
       showToast("Theme gespeichert", "success");
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Fehler beim Speichern", "error");

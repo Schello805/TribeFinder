@@ -171,7 +171,7 @@ export default async function RootLayout({
 
   return (
     <html lang="de" suppressHydrationWarning data-tf-theme={themePreset}>
-      <body className={`${inter.className} min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col transition-colors duration-300`}>
+      <body className={`${inter.className} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
