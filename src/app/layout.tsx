@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cinzel_Decorative, Inter, UnifrakturMaguntia } from "next/font/google";
+import { Cinzel_Decorative, Grenze_Gotisch, Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -27,9 +27,9 @@ const display = Cinzel_Decorative({
   variable: "--font-display",
 });
 
-const nocturneDisplay = UnifrakturMaguntia({
+const nocturneDisplay = Grenze_Gotisch({
   subsets: ["latin"],
-  weight: ["400"],
+  weight: ["400", "700"],
   variable: "--font-display-nocturne",
 });
 

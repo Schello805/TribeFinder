@@ -175,7 +175,7 @@ export default function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="tf-gothic-btn fixed bottom-6 right-6 z-[2000] rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition px-5 py-3 font-semibold"
+        className="fixed bottom-6 right-6 left-auto z-[2000] rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition px-5 py-3 font-semibold"
       >
         Feedback
       </button>
