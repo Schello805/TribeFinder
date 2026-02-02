@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Cinzel_Decorative, Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -21,6 +21,11 @@ import fs from "node:fs";
 import { readFile } from "fs/promises";
 
 const inter = Inter({ subsets: ["latin"] });
+const display = Cinzel_Decorative({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-display",
+});
 
 export const viewport: Viewport = {
   themeColor: "#4f46e5",
@@ -171,7 +176,7 @@ export default async function RootLayout({
 
   return (
     <html lang="de" suppressHydrationWarning data-tf-theme={themePreset}>
-      <body className={`${inter.className} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
+      <body className={`${inter.className} ${display.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -204,7 +209,7 @@ export default async function RootLayout({
                 </div>
               </ErrorBoundary>
             </ToastProvider>
-            <footer className="bg-gray-900 border-t border-gray-800 py-10 text-center text-gray-400 text-sm mt-auto">
+            <footer className="bg-[var(--footer-bg)] border-t border-[var(--footer-border)] py-10 text-center text-[var(--footer-muted)] text-sm mt-auto">
               <div className="flex flex-col items-center gap-4">
                 <div className="flex items-center gap-2 mb-2">
                   {brandingLogoUrl ? (
@@ -212,35 +217,35 @@ export default async function RootLayout({
                   ) : (
                     <span className="text-2xl">💃</span>
                   )}
-                  <span className="text-lg font-bold text-white tracking-tight">TribeFinder</span>
+                  <span className="text-lg font-bold text-[var(--footer-fg)] tracking-tight tf-display">TribeFinder</span>
                 </div>
-                <p>&copy; {new Date().getFullYear()} TribeFinder. Alle Rechte vorbehalten.</p>
+                <p style={{ color: "var(--footer-fg)" }}>&copy; {new Date().getFullYear()} TribeFinder. Alle Rechte vorbehalten.</p>
                 
-                <div className="flex gap-4 text-xs text-gray-500">
-                  <Link href="/impressum" className="hover:text-gray-300 transition-colors">Impressum</Link>
-                  <Link href="/datenschutz" className="hover:text-gray-300 transition-colors">Datenschutz</Link>
-                  <a href="https://github.com/Schello805/TribeFinder" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors flex items-center gap-1">
+                <div className="flex gap-4 text-xs text-[var(--footer-muted)]">
+                  <Link href="/impressum" className="hover:text-[var(--footer-fg)] transition-colors">Impressum</Link>
+                  <Link href="/datenschutz" className="hover:text-[var(--footer-fg)] transition-colors">Datenschutz</Link>
+                  <a href="https://github.com/Schello805/TribeFinder" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--footer-fg)] transition-colors flex items-center gap-1">
                     GitHub
                   </a>
                 </div>
 
-                <div className="w-full max-w-xs h-px bg-gray-800 my-2"></div>
+                <div className="w-full max-w-xs h-px bg-[var(--footer-border)] my-2"></div>
 
                 {appVersion || appCommit ? (
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-[var(--footer-muted)]">
                     Version: {appVersion ? `v${appVersion}` : "(unbekannt)"}
                     {appCommit ? ` (${appCommit})` : ""}
                   </div>
                 ) : null}
 
                 {process.env.NODE_ENV !== "production" ? (
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-[var(--footer-muted)]">
                     Status: {session ? 'Eingeloggt' : 'Gast'} | Rolle: {session?.user?.role || 'Keine'}
                   </div>
                 ) : null}
 
                 {session?.user?.role === 'ADMIN' && (
-                  <Link href="/admin" className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
+                  <Link href="/admin" className="text-xs font-bold text-[var(--link)] hover:opacity-90 transition-colors flex items-center gap-1">
                     <span>🔧</span> Admin Bereich
                   </Link>
                 )}

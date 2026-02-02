@@ -12,6 +12,7 @@ export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const { setTheme, resolvedTheme, theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -21,6 +22,11 @@ export default function Navbar() {
 
   const [userAvatarUrl, setUserAvatarUrl] = useState<string>("");
   const userImageUrl = userAvatarUrl || (session?.user?.image ? (normalizeUploadedImageUrl(String(session.user.image)) ?? "") : "");
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -160,10 +166,10 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <nav className="bg-indigo-600 dark:bg-indigo-950 shadow-lg transition-colors sticky top-0 z-50">
+    <nav className="bg-[var(--nav-bg)] text-[var(--nav-fg)] shadow-lg transition-colors sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">
-          <Link href="/" className="text-xl font-bold text-white flex items-center gap-2">
+          <Link href="/" className="text-xl font-bold flex items-center gap-2 tf-display">
             {logoUrl ? (
               <Image src={logoUrl} alt="TribeFinder" width={56} height={56} className="h-14 w-14 rounded" unoptimized />
             ) : (
@@ -173,19 +179,19 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/groups" className="text-indigo-100 hover:text-white transition font-medium">
+            <Link href="/groups" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
               Gruppen finden
             </Link>
-            <Link href="/events" className="text-indigo-100 hover:text-white transition font-medium">
+            <Link href="/events" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
               Events
             </Link>
-            <Link href="/map" className="text-indigo-100 hover:text-white transition font-medium">
+            <Link href="/map" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
               Karte
             </Link>
 
             {session ? (
               <>
-                <Link href="/messages" className="text-indigo-100 hover:text-white transition font-medium inline-flex items-center gap-2">
+                <Link href="/messages" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium inline-flex items-center gap-2">
                   Nachrichten
                   {unreadCount > 0 && (
                     <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
@@ -197,7 +203,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsUserMenuOpen((v) => !v)}
-                    className="inline-flex items-center gap-2 bg-white/15 text-white border border-white/25 px-3 py-2 rounded-md hover:bg-white/20 transition font-medium"
+                    className="inline-flex items-center gap-2 bg-white/10 border border-[var(--nav-border)] px-3 py-2 rounded-md hover:bg-white/15 transition font-medium"
                     aria-haspopup="menu"
                     aria-expanded={isUserMenuOpen}
                     title="Profil & Einstellungen"
@@ -219,10 +225,10 @@ export default function Navbar() {
                   </button>
 
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-64 rounded-lg border border-white/15 bg-indigo-700 dark:bg-indigo-900 shadow-xl overflow-hidden z-50">
+                    <div className="absolute right-0 mt-2 w-64 rounded-lg border border-[var(--nav-border)] bg-[var(--nav-bg)] shadow-xl overflow-hidden z-50">
                       <Link
                         href="/dashboard"
-                        className="flex items-center justify-between px-4 py-2 text-sm text-indigo-50 hover:bg-white/10"
+                        className="flex items-center justify-between px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-white/10"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <span>Profil</span>
@@ -234,12 +240,12 @@ export default function Navbar() {
                       </Link>
 
                       <div className="px-3 py-3 border-t border-white/10">
-                        <div className="px-1 pb-2 text-xs font-semibold text-indigo-100/70">Design</div>
-                        <div className="flex items-center rounded-md border border-white/15 bg-white/10 overflow-hidden">
+                        <div className="px-1 pb-2 text-xs font-semibold text-[var(--nav-muted)]">Design</div>
+                        <div className="flex items-center rounded-md border border-[var(--nav-border)] bg-white/5 overflow-hidden">
                           <button
                             type="button"
                             onClick={() => setTheme("light")}
-                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-indigo-50 hover:bg-white/10 ${
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-white/10 ${
                               theme === "light" ? "bg-white/15" : ""
                             }`}
                           >
@@ -248,7 +254,7 @@ export default function Navbar() {
                           <button
                             type="button"
                             onClick={() => setTheme("dark")}
-                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-indigo-50 hover:bg-white/10 ${
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-white/10 ${
                               theme === "dark" ? "bg-white/15" : ""
                             }`}
                           >
@@ -257,7 +263,7 @@ export default function Navbar() {
                           <button
                             type="button"
                             onClick={() => setTheme("system")}
-                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-indigo-50 hover:bg-white/10 ${
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-white/10 ${
                               theme === "system" ? "bg-white/15" : ""
                             }`}
                             title={`System (${resolvedTheme === "dark" ? "Dunkel" : "Hell"})`}
@@ -283,12 +289,12 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/auth/signin" className="text-indigo-100 hover:text-white transition font-medium">
+                <Link href="/auth/signin" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
                   Anmelden
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="bg-white text-indigo-600 px-4 py-2 rounded-md hover:bg-indigo-50 transition font-medium shadow-sm"
+                  className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:opacity-95 transition font-medium shadow-sm"
                 >
                   Registrieren
                 </Link>
@@ -299,7 +305,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-4">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-indigo-100 hover:text-white focus:outline-none"
+              className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] focus:outline-none"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMenuOpen ? (
@@ -314,45 +320,47 @@ export default function Navbar() {
       </div>
 
       {isMenuOpen && (
-        <div className="md:hidden bg-indigo-700 dark:bg-indigo-900 border-t border-indigo-500">
+        <div className="md:hidden bg-[var(--nav-bg)] border-t border-[var(--nav-border)]">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link href="/groups" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+            <Link href="/groups" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
               Gruppen finden
             </Link>
-            <Link href="/events" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+            <Link href="/events" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
               Events
             </Link>
-            <Link href="/map" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+            <Link href="/map" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
               Karte
             </Link>
             <div className="px-3 py-2">
-              <div className="text-xs font-semibold text-indigo-100/70 mb-2">Design</div>
-              <div className="inline-flex items-center rounded-md border border-white/15 bg-white/10 overflow-hidden">
+              <div className="text-xs font-semibold text-[var(--nav-muted)] mb-2">Design</div>
+              <div className="inline-flex items-center rounded-md border border-[var(--nav-border)] bg-white/10 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setTheme("light")}
-                  className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
-                    theme === "light" ? "bg-white/15 text-white" : ""
+                  className={`px-2 py-1.5 text-[var(--nav-fg)] hover:text-[var(--nav-fg)] transition-colors duration-200 focus:outline-none ${
+                    theme === "light" ? "bg-white/15 text-[var(--nav-fg)]" : ""
                   }`}
+                  disabled={!mounted}
                 >
                   Hell
                 </button>
                 <button
                   type="button"
                   onClick={() => setTheme("dark")}
-                  className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
-                    theme === "dark" ? "bg-white/15 text-white" : ""
+                  className={`px-2 py-1.5 text-[var(--nav-fg)] hover:text-[var(--nav-fg)] transition-colors duration-200 focus:outline-none ${
+                    theme === "dark" ? "bg-white/15 text-[var(--nav-fg)]" : ""
                   }`}
+                  disabled={!mounted}
                 >
                   Dunkel
                 </button>
                 <button
                   type="button"
                   onClick={() => setTheme("system")}
-                  className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
-                    theme === "system" ? "bg-white/15 text-white" : ""
+                  className={`px-2 py-1.5 text-[var(--nav-fg)] hover:text-[var(--nav-fg)] transition-colors duration-200 focus:outline-none ${
+                    theme === "system" ? "bg-white/15 text-[var(--nav-fg)]" : ""
                   }`}
-                  title={`System (${resolvedTheme === "dark" ? "Dunkel" : "Hell"})`}
+                  disabled={!mounted}
                 >
                   System
                 </button>
@@ -360,7 +368,7 @@ export default function Navbar() {
             </div>
             {session ? (
               <>
-                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
                   <span>Nachrichten</span>
                   {unreadCount > 0 && (
                     <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
@@ -369,7 +377,7 @@ export default function Navbar() {
                   )}
                 </Link>
 
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
                   <span className="flex items-center gap-2">
                     {userImageUrl ? (
                       <Image src={userImageUrl} alt="Profil" width={24} height={24} className="h-6 w-6 rounded-full object-cover border border-white/20" unoptimized />
@@ -387,17 +395,17 @@ export default function Navbar() {
 
                 <button
                   onClick={() => signOut()}
-                  className="w-full text-left block px-3 py-2 text-red-200 hover:bg-indigo-600 hover:text-white rounded-md"
+                  className="w-full text-left block px-3 py-2 text-red-200 hover:bg-white/10 rounded-md"
                 >
                   Abmelden
                 </button>
               </>
             ) : (
               <>
-                <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-indigo-100 hover:text-white hover:bg-indigo-600 rounded-md">
+                <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
                   Anmelden
                 </Link>
-                <Link href="/auth/register" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-white font-bold hover:bg-indigo-600 rounded-md">
+                <Link href="/auth/register" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] font-bold hover:opacity-95 rounded-md">
                   Registrieren
                 </Link>
               </>
