@@ -12,8 +12,8 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-2">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Profil bearbeiten</h2>
-      <p className="text-gray-500 dark:text-gray-400">
+      <h2 className="tf-display text-2xl font-bold text-[var(--foreground)]">Profil bearbeiten</h2>
+      <p className="text-[var(--muted)]">
         Verwalte deine persönlichen Daten und wie du für andere sichtbar bist.
       </p>
 

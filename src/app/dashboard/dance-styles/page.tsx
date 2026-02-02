@@ -12,7 +12,7 @@ export default async function DashboardDanceStylesPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tanzstile</h2>
+      <h2 className="tf-display text-2xl font-bold text-[var(--foreground)]">Tanzstile</h2>
       <DanceStylesEditor />
     </div>
   );
