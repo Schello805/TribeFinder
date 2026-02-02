@@ -71,30 +71,30 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Profile Card */}
-        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6">
+        <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Mein Profil</h2>
+            <h2 className="text-lg font-medium text-[var(--foreground)]">Mein Profil</h2>
           </div>
           <div className="flex items-center gap-6">
-             <div className="h-20 w-20 bg-gray-100 dark:bg-gray-700 rounded-full flex-shrink-0 overflow-hidden border border-gray-200 dark:border-gray-600">
+             <div className="h-20 w-20 bg-[var(--surface-2)] rounded-full flex-shrink-0 overflow-hidden border border-[var(--border)]">
                 {currentUser?.image ? (
                   <>
                     <ImageWithFallback src={currentUser.image} alt={currentUser.name || "Profil"} className="h-full w-full object-cover" />
                   </>
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center text-gray-400 text-2xl">
+                  <div className="h-full w-full flex items-center justify-center text-[var(--muted)] text-2xl">
                     👤
                   </div>
                 )}
              </div>
              <div className="min-w-0 flex-1">
-                <p className="text-xl font-bold text-gray-900 dark:text-white truncate">
+                <p className="text-xl font-bold text-[var(--foreground)] truncate">
                   {currentUser?.dancerName || currentUser?.name || "Tänzer"}
                 </p>
                 {currentUser?.dancerName && currentUser?.name && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{currentUser.name}</p>
+                  <p className="text-sm text-[var(--muted)] truncate">{currentUser.name}</p>
                 )}
-                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{currentUser?.email}</p>
+                <p className="text-sm text-[var(--muted)] truncate">{currentUser?.email}</p>
                 
                 <div className="mt-2 flex gap-2">
                   {currentUser?.instagramUrl && <span className="text-lg opacity-70 hover:opacity-100" title="Instagram">📸</span>}
@@ -106,9 +106,9 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick Actions / Create Group */}
-         <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg p-6 flex flex-col justify-center">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Tanzgruppe verwalten</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+         <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg p-6 flex flex-col justify-center">
+            <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Tanzgruppe verwalten</h3>
+            <p className="text-sm text-[var(--muted)] mb-6">
               Möchtest du eine neue Tanzgruppe gründen oder eine bestehende verwalten?
             </p>
             <Link
@@ -121,29 +121,29 @@ export default async function DashboardPage() {
       </div>
 
       {pendingGroups.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Offene Beitrittsanfragen</h2>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Bearbeite Anfragen direkt in der jeweiligen Gruppe.</p>
+        <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6 border-b border-[var(--border)]">
+            <h2 className="text-lg leading-6 font-medium text-[var(--foreground)]">Offene Beitrittsanfragen</h2>
+            <p className="mt-1 max-w-2xl text-sm text-[var(--muted)]">Bearbeite Anfragen direkt in der jeweiligen Gruppe.</p>
           </div>
-          <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
+          <ul role="list" className="divide-y divide-[var(--border)]">
             {pendingGroups.slice(0, 10).map((g) => (
-              <li key={g.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+              <li key={g.id} className="px-4 py-4 sm:px-6 hover:bg-[var(--surface-hover)] transition">
                 <div className="flex items-center justify-between gap-4">
                   <Link href={`/groups/${g.id}`} className="min-w-0 flex-1">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-md overflow-hidden bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-md overflow-hidden bg-[var(--surface)] border border-[var(--border)]">
                         {g.image ? (
                           <ImageWithFallback src={g.image} alt={g.name} className="h-full w-full object-contain p-0.5" />
                         ) : (
-                          <div className="h-full w-full flex items-center justify-center text-gray-400 font-bold text-lg bg-gray-50">
+                          <div className="h-full w-full flex items-center justify-center text-[var(--muted)] font-bold text-lg bg-[var(--surface-2)]">
                             {g.name.charAt(0)}
                           </div>
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-medium text-gray-900 dark:text-white truncate">{g.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{g.pendingCount} offene Anfrage{g.pendingCount === 1 ? "" : "n"}</div>
+                        <div className="font-medium text-[var(--foreground)] truncate">{g.name}</div>
+                        <div className="text-sm text-[var(--muted)]">{g.pendingCount} offene Anfrage{g.pendingCount === 1 ? "" : "n"}</div>
                       </div>
                     </div>
                   </Link>
@@ -155,53 +155,53 @@ export default async function DashboardPage() {
             ))}
           </ul>
           {pendingGroups.length > 10 && (
-            <div className="px-4 py-4 sm:px-6 text-sm text-gray-500 dark:text-gray-400">
+            <div className="px-4 py-4 sm:px-6 text-sm text-[var(--muted)]">
               Weitere offene Anfragen: {pendingGroups.length - 10}
             </div>
           )}
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Meine Gruppen</h2>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+      <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg">
+        <div className="px-4 py-5 sm:px-6 border-b border-[var(--border)]">
+          <h2 className="text-lg leading-6 font-medium text-[var(--foreground)]">Meine Gruppen</h2>
+          <p className="mt-1 max-w-2xl text-sm text-[var(--muted)]">
             Hier verwaltest du deine Tanzgruppen-Steckbriefe.
           </p>
         </div>
         
         {groups.length === 0 ? (
-          <div className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+          <div className="px-4 py-12 text-center text-[var(--muted)]">
             <p>Du hast noch keine Gruppen erstellt.</p>
-            <Link href="/groups/create" className="text-indigo-600 hover:underline mt-2 inline-block">
+            <Link href="/groups/create" className="text-[var(--link)] hover:underline mt-2 inline-block">
               Erstelle jetzt deine erste Gruppe!
             </Link>
           </div>
         ) : (
-          <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
+          <ul role="list" className="divide-y divide-[var(--border)]">
             {groups.map((group) => (
-              <li key={group.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+              <li key={group.id} className="px-4 py-4 sm:px-6 hover:bg-[var(--surface-hover)] transition">
                 <div className="flex items-center justify-between gap-4">
                   <Link href={`/groups/${group.id}`} className="flex items-center gap-4 min-w-0 flex-1">
                     {/* Logo */}
-                    <div className="flex-shrink-0 h-12 w-12 rounded-md overflow-hidden bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                    <div className="flex-shrink-0 h-12 w-12 rounded-md overflow-hidden bg-[var(--surface)] border border-[var(--border)]">
                       {group.image ? (
                         <>
                           <ImageWithFallback src={group.image} alt={group.name} className="h-full w-full object-contain p-0.5" />
                         </>
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center text-gray-400 font-bold text-lg bg-gray-50">
+                        <div className="h-full w-full flex items-center justify-center text-[var(--muted)] font-bold text-lg bg-[var(--surface-2)]">
                           {group.name.charAt(0)}
                         </div>
                       )}
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-indigo-600 truncate">{group.name}</p>
-                      <p className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm font-medium text-[var(--link)] truncate">{group.name}</p>
+                      <p className="mt-1 flex items-center text-sm text-[var(--muted)]">
                         <span className="truncate">{group.description.substring(0, 100)}...</span>
                       </p>
-                      <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0">
+                      <div className="mt-2 flex items-center text-sm text-[var(--muted)] sm:mt-0">
                         {group.location ? (
                           <p>📍 {group.location.address || "Standort auf Karte festgelegt"}</p>
                         ) : (
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
                       </div>
                       <div className="mt-2 flex flex-wrap gap-1">
                         {group.tags.map((tag) => (
-                          <span key={tag.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                          <span key={tag.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)]">
                             {tag.name}
                           </span>
                         ))}
@@ -221,13 +221,13 @@ export default async function DashboardPage() {
                   <div className="flex-shrink-0 flex space-x-2">
                     <Link
                       href={`/groups/${group.id}/events`}
-                      className="text-indigo-600 hover:text-indigo-900 font-medium text-sm border border-indigo-200 px-3 py-1 rounded hover:bg-indigo-50"
+                      className="text-[var(--link)] hover:opacity-90 font-medium text-sm border border-[var(--border)] px-3 py-1 rounded hover:bg-[var(--surface-hover)]"
                     >
                       Events
                     </Link>
                     <Link
                       href={`/groups/${group.id}/edit`}
-                      className="text-indigo-600 hover:text-indigo-900 font-medium text-sm border border-indigo-200 px-3 py-1 rounded hover:bg-indigo-50"
+                      className="text-[var(--link)] hover:opacity-90 font-medium text-sm border border-[var(--border)] px-3 py-1 rounded hover:bg-[var(--surface-hover)]"
                     >
                       Bearbeiten
                     </Link>
