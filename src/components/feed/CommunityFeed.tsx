@@ -77,7 +77,7 @@ export default function CommunityFeed() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">📌 Schwarzes Brett</h2>
+        <h2 className="tf-display text-2xl font-bold text-gray-900 dark:text-white">📌 Schwarzes Brett</h2>
         <span className="text-sm text-gray-500 dark:text-gray-400">Neues aus der Community</span>
       </div>
 

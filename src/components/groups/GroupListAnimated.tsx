@@ -82,7 +82,7 @@ export default function GroupListAnimated({ groups }: GroupListAnimatedProps) {
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--link)] transition-colors">
+                    <h3 className="tf-display text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--link)] transition-colors">
                       {group.name}
                     </h3>
                     {group.location && (

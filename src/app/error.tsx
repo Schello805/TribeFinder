@@ -20,7 +20,7 @@ export default function Error({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 mb-6">
           <span className="text-3xl">⚠️</span>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <h2 className="tf-display text-2xl font-bold text-gray-900 dark:text-white mb-4">
           Etwas ist schiefgelaufen
         </h2>
         <p className="text-gray-600 dark:text-gray-400 mb-6">

@@ -36,7 +36,7 @@ export default async function Home() {
       <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-20 px-4">
         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-10 md:mb-0 text-center md:text-left">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            <h1 className="tf-display text-4xl md:text-5xl font-bold mb-6">
               Verbinde dich mit der Tanzwelt
             </h1>
             <p className="text-xl mb-8 text-indigo-100">
@@ -74,7 +74,7 @@ export default async function Home() {
       <section className="py-14 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Finde deine Tanz-Community</h2>
+            <h2 className="tf-display text-3xl font-bold text-gray-900 dark:text-gray-100">Finde deine Tanz-Community</h2>
             <p className="mt-3 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Ob Bühnenprojekt, Training oder einfach Austausch: TribeFinder hilft dir, Menschen zu finden,
               mit denen du dich wohlfühlst und gemeinsam wachsen kannst.
@@ -84,7 +84,7 @@ export default async function Home() {
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-gray-50 dark:bg-gray-800/60 p-7 rounded-xl border border-gray-100 dark:border-gray-700">
               <div className="text-3xl mb-3">💜</div>
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">Gemeinsam statt allein</div>
+              <div className="tf-display text-lg font-bold text-gray-900 dark:text-gray-100">Gemeinsam statt allein</div>
               <p className="mt-2 text-gray-600 dark:text-gray-300">
                 Entdecke Gruppen in deiner Nähe und vernetze dich unkompliziert – ohne lange Suche.
               </p>
@@ -92,7 +92,7 @@ export default async function Home() {
 
             <div className="bg-gray-50 dark:bg-gray-800/60 p-7 rounded-xl border border-gray-100 dark:border-gray-700">
               <div className="text-3xl mb-3">✨</div>
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">Inspiration & Events</div>
+              <div className="tf-display text-lg font-bold text-gray-900 dark:text-gray-100">Inspiration & Events</div>
               <p className="mt-2 text-gray-600 dark:text-gray-300">
                 Finde Workshops, Auftritte und Szene-Events – und trage deine eigenen Termine ein.
               </p>
@@ -100,7 +100,7 @@ export default async function Home() {
 
             <div className="bg-gray-50 dark:bg-gray-800/60 p-7 rounded-xl border border-gray-100 dark:border-gray-700">
               <div className="text-3xl mb-3">🌙</div>
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">Dein Stil, dein Tempo</div>
+              <div className="tf-display text-lg font-bold text-gray-900 dark:text-gray-100">Dein Stil, dein Tempo</div>
               <p className="mt-2 text-gray-600 dark:text-gray-300">
                 Von Orientalisch bis Tribal Fusion: Filter nach Tanzstil, Ort und Umkreis – so wie es zu dir passt.
               </p>
@@ -130,12 +130,12 @@ export default async function Home() {
       {/* Features Section */}
       <section className="py-20 bg-gray-50 dark:bg-gray-950">
         <div className="container mx-auto px-4 max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-16 text-gray-800 dark:text-gray-100">Was bietet TribeFinder?</h2>
+          <h2 className="tf-display text-3xl font-bold text-center mb-16 text-gray-800 dark:text-gray-100">Was bietet TribeFinder?</h2>
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700">
               <div className="text-4xl mb-4">🗺️</div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">Interaktive Karte</h3>
+              <h3 className="tf-display text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">Interaktive Karte</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 Entdecke Tanzgruppen direkt auf der Karte. Finde schnell heraus, wer in deiner Umgebung tanzt und trainiert.
               </p>
@@ -143,7 +143,7 @@ export default async function Home() {
 
             <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700">
               <div className="text-4xl mb-4">👯‍♀️</div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">Gruppen-Profile</h3>
+              <h3 className="tf-display text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">Gruppen-Profile</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 Erstelle einen detaillierten Steckbrief für deine Gruppe mit Beschreibung, Fotos, Tags und Kontaktmöglichkeiten.
               </p>
@@ -151,7 +151,7 @@ export default async function Home() {
 
             <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700">
               <div className="text-4xl mb-4">🤝</div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">Vernetzung</h3>
+              <h3 className="tf-display text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">Vernetzung</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 Werde Mitglied in Gruppen, vernetze dich mit anderen Tänzern und bleibe über die Szene informiert.
               </p>
@@ -163,7 +163,7 @@ export default async function Home() {
       {/* CTA Section */}
       <section className="py-20 bg-white dark:bg-gray-950">
         <div className="container mx-auto px-4 max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Bereit, sichtbar zu werden?</h2>
+          <h2 className="tf-display text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Bereit, sichtbar zu werden?</h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-10">
             Registriere dich jetzt kostenlos und trage deine Tanzgruppe ein.
           </p>
