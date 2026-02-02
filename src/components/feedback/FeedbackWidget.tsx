@@ -175,13 +175,13 @@ export default function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-[60] rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition px-5 py-3 font-semibold"
+        className="fixed bottom-6 right-6 z-[2000] rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition px-5 py-3 font-semibold"
       >
         Feedback
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[70]">
+        <div className="fixed inset-0 z-[2100]">
           <button
             type="button"
             onClick={close}
