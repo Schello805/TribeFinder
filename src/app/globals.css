@@ -192,6 +192,11 @@ html.dark[data-tf-theme="nocturne"] {
   --font-display: var(--font-display-nocturne);
 }
 
+html[data-tf-theme="copper"],
+html.dark[data-tf-theme="copper"] {
+  --font-display: var(--font-display-copper);
+}
+
 .tf-gothic-btn {
   position: relative;
 }
@@ -223,11 +228,6 @@ html.dark[data-tf-theme="nocturne"] .tf-gothic-btn {
 
 h1, h2, h3, .tf-display {
   font-family: var(--font-display, inherit);
-}
-
-html[data-tf-theme="nocturne"] body,
-html.dark[data-tf-theme="nocturne"] body {
-  font-family: var(--font-display-nocturne), var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 body {

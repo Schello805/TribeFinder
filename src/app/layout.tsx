@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Amiri, Inter } from "next/font/google";
+import { Amiri, Grenze_Gotisch, Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -22,7 +22,13 @@ import { readFile } from "fs/promises";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const nocturneDisplay = Amiri({
+const copperDisplay = Amiri({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-display-copper",
+});
+
+const nocturneDisplay = Grenze_Gotisch({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-display-nocturne",
@@ -178,7 +184,7 @@ export default async function RootLayout({
 
   return (
     <html lang="de" suppressHydrationWarning data-tf-theme={themePreset}>
-      <body className={`${inter.className} ${nocturneDisplay.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
+      <body className={`${inter.className} ${copperDisplay.variable} ${nocturneDisplay.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
