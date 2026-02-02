@@ -44,8 +44,8 @@ export default function GroupListAnimated({ groups }: GroupListAnimatedProps) {
 
   if (groups.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-100 dark:border-gray-700">
-        <div className="px-4 py-12 text-center text-gray-500 dark:text-gray-300">
+      <div className="bg-[var(--surface)] text-[var(--foreground)] shadow overflow-hidden sm:rounded-lg border border-[var(--border)]">
+        <div className="px-4 py-12 text-center text-[var(--muted)]">
           <p>Keine Gruppen gefunden.</p>
         </div>
       </div>
@@ -63,17 +63,17 @@ export default function GroupListAnimated({ groups }: GroupListAnimatedProps) {
         <motion.li 
           key={group.id} 
           variants={item}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden border border-gray-100 dark:border-gray-700"
+          className="bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden border border-[var(--border)]"
         >
           <Link href={`/groups/${group.id}`} className="block p-4 sm:p-6 group">
             <div className="flex items-start sm:items-center justify-between gap-6">
               {/* Logo with slight animation on hover */}
-              <div className="flex-shrink-0 h-20 w-20 sm:h-24 sm:w-24 rounded-lg overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 relative group-hover:scale-105 transition-transform duration-300 shadow-sm flex items-center justify-center">
+              <div className="flex-shrink-0 h-20 w-20 sm:h-24 sm:w-24 rounded-lg overflow-hidden bg-[var(--surface)] border border-[var(--border)] relative group-hover:scale-105 transition-transform duration-300 shadow-sm flex items-center justify-center">
                 {group.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={normalizeUploadedImageUrl(group.image) ?? ""} alt={group.name} className="max-h-full max-w-full object-contain" />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center text-indigo-200 font-bold text-3xl bg-gradient-to-br from-indigo-50 to-white">
+                  <div className="h-full w-full flex items-center justify-center text-[var(--link)] font-bold text-3xl bg-[var(--surface-2)]">
                     {group.name.charAt(0)}
                   </div>
                 )}
@@ -82,27 +82,27 @@ export default function GroupListAnimated({ groups }: GroupListAnimatedProps) {
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                    <h3 className="text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--link)] transition-colors">
                       {group.name}
                     </h3>
                     {group.location && (
-                      <p className="text-sm text-gray-500 dark:text-gray-300 flex items-center mt-1">
+                      <p className="text-sm text-[var(--muted)] flex items-center mt-1">
                         <span className="mr-1">📍</span> {group.location.address || "Standort auf Karte"}
                       </p>
                     )}
                   </div>
-                  <span className="text-xs font-medium text-gray-400 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-full whitespace-nowrap">
+                  <span className="text-xs font-medium text-[var(--muted)] bg-[var(--surface-2)] px-2 py-1 rounded-full whitespace-nowrap border border-[var(--border)]">
                     {new Date(group.createdAt).toLocaleDateString('de-DE')}
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+                <p className="text-sm text-[var(--muted)] line-clamp-2 leading-relaxed">
                   {group.description}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3 pt-1">
                   {group.size && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 border border-blue-100 dark:border-blue-800">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)]">
                       {group.size === 'SOLO' && '👤 Solo'}
                       {group.size === 'SMALL' && '👥 < 10'}
                       {group.size === 'LARGE' && '👨‍👩‍👧‍👦 > 10'}
@@ -110,7 +110,7 @@ export default function GroupListAnimated({ groups }: GroupListAnimatedProps) {
                   )}
                   <div className="flex flex-wrap gap-1.5">
                     {group.tags.map((tag) => (
-                      <span key={tag.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-200 border border-indigo-100 dark:border-indigo-800">
+                      <span key={tag.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)]">
                         {tag.name}
                       </span>
                     ))}
@@ -118,8 +118,8 @@ export default function GroupListAnimated({ groups }: GroupListAnimatedProps) {
                 </div>
               </div>
               
-              <div className="hidden sm:flex self-center text-gray-300 dark:text-gray-600">
-                <svg className="h-6 w-6 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="hidden sm:flex self-center text-[var(--muted)]">
+                <svg className="h-6 w-6 group-hover:text-[var(--link)] group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
