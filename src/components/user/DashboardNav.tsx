@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 function itemClass(active: boolean) {
   return `inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition border ${
     active
-      ? "bg-indigo-600 text-white border-indigo-600"
-      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+      ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]"
+      : "bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
   }`;
 }
 

@@ -113,7 +113,7 @@ export default async function DashboardPage() {
             </p>
             <Link
               href="/groups/create"
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm text-center font-medium"
+              className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm text-center font-medium"
             >
               + Neue Gruppe erstellen
             </Link>
@@ -147,7 +147,7 @@ export default async function DashboardPage() {
                       </div>
                     </div>
                   </Link>
-                  <Link href={`/groups/${g.id}`} className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">
+                  <Link href={`/groups/${g.id}`} className="text-sm text-[var(--link)] hover:opacity-90 font-medium">
                     Öffnen
                   </Link>
                 </div>
