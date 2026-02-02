@@ -16,12 +16,19 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("query");
   const tag = searchParams.get("tag");
+  const performancesRaw = searchParams.get("performances");
+  const seekingRaw = searchParams.get("seeking");
+  const sizeRaw = searchParams.get("size");
   const latRaw = searchParams.get("lat");
   const lngRaw = searchParams.get("lng");
   const radiusRaw = searchParams.get("radius");
   const lat = latRaw ? Number(latRaw) : NaN;
   const lng = lngRaw ? Number(lngRaw) : NaN;
   const radiusKm = radiusRaw ? Number(radiusRaw) : NaN;
+
+  const onlyPerformances = performancesRaw === "1";
+  const onlySeekingMembers = seekingRaw === "1";
+  const size = sizeRaw && ["SOLO", "DUO", "TRIO", "SMALL", "LARGE"].includes(sizeRaw) ? sizeRaw : null;
   
   // Pagination params
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
@@ -39,6 +46,9 @@ export async function GET(req: Request) {
     }>;
     tags?: { some: { name: { equals: string } } };
     location?: { lat: { gte: number; lte: number }; lng: { gte: number; lte: number } };
+    performances?: boolean;
+    seekingMembers?: boolean;
+    size?: string;
   } = {};
   
   if (query) {
@@ -51,6 +61,18 @@ export async function GET(req: Request) {
 
   if (tag) {
     whereClause.tags = { some: { name: { equals: tag } } };
+  }
+
+  if (onlyPerformances) {
+    whereClause.performances = true;
+  }
+
+  if (onlySeekingMembers) {
+    whereClause.seekingMembers = true;
+  }
+
+  if (size) {
+    whereClause.size = size;
   }
 
   if (Number.isFinite(lat) && Number.isFinite(lng)) {

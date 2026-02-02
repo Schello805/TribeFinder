@@ -17,6 +17,9 @@ export default function GroupFilter() {
   const [lng, setLng] = useState(searchParams.get("lng") || "");
   const [radius, setRadius] = useState(searchParams.get("radius") || "50");
   const [selectedTag, setSelectedTag] = useState(searchParams.get("tag") || "");
+  const [onlyPerformances, setOnlyPerformances] = useState(searchParams.get("performances") === "1");
+  const [onlySeekingMembers, setOnlySeekingMembers] = useState(searchParams.get("seeking") === "1");
+  const [groupSize, setGroupSize] = useState(searchParams.get("size") || "");
   const [availableTags, setAvailableTags] = useState<{ id: string, name: string }[]>([]);
   const [isLocating, setIsLocating] = useState(false);
   const geocodeSeq = useRef(0);
@@ -50,7 +53,17 @@ export default function GroupFilter() {
 
   // Update URL function
   const updateUrl = useCallback(
-    (newQuery: string, newLat: string, newLng: string, newRadius: string, newAddress: string, newTag: string) => {
+    (
+      newQuery: string,
+      newLat: string,
+      newLng: string,
+      newRadius: string,
+      newAddress: string,
+      newTag: string,
+      newOnlyPerformances: boolean,
+      newOnlySeekingMembers: boolean,
+      newGroupSize: string
+    ) => {
       const params = new URLSearchParams(searchParamsString);
 
       if (newQuery) params.set("query", newQuery);
@@ -58,6 +71,15 @@ export default function GroupFilter() {
 
       if (newTag) params.set("tag", newTag);
       else params.delete("tag");
+
+      if (newOnlyPerformances) params.set("performances", "1");
+      else params.delete("performances");
+
+      if (newOnlySeekingMembers) params.set("seeking", "1");
+      else params.delete("seeking");
+
+      if (newGroupSize) params.set("size", newGroupSize);
+      else params.delete("size");
 
       if (newLat && newLng) {
         params.set("lat", newLat);
@@ -85,8 +107,8 @@ export default function GroupFilter() {
 
   // Effect for Search Term and Tag
   useEffect(() => {
-    updateUrl(debouncedSearchTerm, lat, lng, radius, location, selectedTag);
-  }, [debouncedSearchTerm, lat, lng, location, radius, selectedTag, updateUrl]);
+    updateUrl(debouncedSearchTerm, lat, lng, radius, location, selectedTag, onlyPerformances, onlySeekingMembers, groupSize);
+  }, [debouncedSearchTerm, lat, lng, location, radius, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, updateUrl]);
 
   // Effect for Location Search (Geocoding)
   useEffect(() => {
@@ -113,7 +135,7 @@ export default function GroupFilter() {
           if (data && data[0]) {
             setLat(data[0].lat);
             setLng(data[0].lon);
-            updateUrl(searchTerm, data[0].lat, data[0].lon, radius, debouncedLocation, selectedTag);
+            updateUrl(searchTerm, data[0].lat, data[0].lon, radius, debouncedLocation, selectedTag, onlyPerformances, onlySeekingMembers, groupSize);
           }
         } catch (e) {
           if (controller.signal.aborted) return;
@@ -127,14 +149,14 @@ export default function GroupFilter() {
         controller.abort();
       };
     }
-  }, [debouncedLocation, lat, lng, radius, searchTerm, selectedTag, updateUrl]);
+  }, [debouncedLocation, lat, lng, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, updateUrl]);
 
   // Trigger URL update when Radius or Coordinates change (if already set)
   useEffect(() => {
     if (lat && lng) {
-      updateUrl(searchTerm, lat, lng, radius, location, selectedTag);
+      updateUrl(searchTerm, lat, lng, radius, location, selectedTag, onlyPerformances, onlySeekingMembers, groupSize);
     }
-  }, [lat, lng, location, radius, searchTerm, selectedTag, updateUrl]);
+  }, [lat, lng, location, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, updateUrl]);
 
   const handleUseMyLocation = () => {
     setIsLocating(true);
@@ -177,19 +199,19 @@ export default function GroupFilter() {
     setLocation("");
     setLat("");
     setLng("");
-    updateUrl(searchTerm, "", "", radius, "", selectedTag);
+    updateUrl(searchTerm, "", "", radius, "", selectedTag, onlyPerformances, onlySeekingMembers, groupSize);
   };
 
   return (
-    <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
+    <div className="mb-6 bg-[var(--surface)] text-[var(--foreground)] p-4 rounded-lg shadow-sm border border-[var(--border)] space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Text Suche */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Suche</label>
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Suche</label>
           <input
             type="text"
             placeholder="Name, Beschreibung..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder:text-gray-400"
+            className="w-full px-4 py-2 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -197,12 +219,12 @@ export default function GroupFilter() {
 
         {/* Tag Filter */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Tanzstil</label>
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Tanzstil</label>
           <div className="relative">
             <select
               value={selectedTag}
               onChange={(e) => setSelectedTag(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-black dark:text-white appearance-none"
+              className="w-full px-4 py-2 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
             >
               <option value="">Alle Tanzstile</option>
               {availableTags.map(tag => (
@@ -214,13 +236,13 @@ export default function GroupFilter() {
 
         {/* Standort Suche */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Standort</label>
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Standort</label>
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-grow">
               <input
                 type="text"
                 placeholder="Stadt oder PLZ..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder:text-gray-400"
+                className="w-full px-4 py-2 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
                 value={location}
                 onChange={(e) => {
                   setLocation(e.target.value);
@@ -234,7 +256,7 @@ export default function GroupFilter() {
               {location && (
                 <button 
                   onClick={clearLocation}
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 px-3 py-2 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 px-3 py-2 rounded text-[var(--muted)] hover:text-[var(--foreground)]"
                 >
                   ×
                 </button>
@@ -243,7 +265,7 @@ export default function GroupFilter() {
             <button
               onClick={handleUseMyLocation}
               disabled={isLocating}
-              className="px-3 py-2 min-h-11 min-w-11 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-200"
+              className="px-3 py-2 min-h-11 min-w-11 border border-[var(--border)] rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] transition"
               title="Meinen Standort verwenden"
             >
               {isLocating ? "..." : "📍"}
@@ -252,10 +274,54 @@ export default function GroupFilter() {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Optionen</label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+              <input
+                type="checkbox"
+                checked={onlyPerformances}
+                onChange={(e) => setOnlyPerformances(e.target.checked)}
+                className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+              />
+              Auftrittsanfragen
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+              <input
+                type="checkbox"
+                checked={onlySeekingMembers}
+                onChange={(e) => setOnlySeekingMembers(e.target.checked)}
+                className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+              />
+              Sucht Mitglieder
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Gruppengröße</label>
+          <select
+            value={groupSize}
+            onChange={(e) => setGroupSize(e.target.value)}
+            className="w-full px-4 py-2 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]"
+          >
+            <option value="">Alle Größen</option>
+            <option value="SOLO">Solo</option>
+            <option value="DUO">Duo</option>
+            <option value="TRIO">Trio</option>
+            <option value="SMALL">Kleine Gruppe (&lt; 10)</option>
+            <option value="LARGE">Große Gruppe (&gt; 10)</option>
+          </select>
+        </div>
+
+        <div className="hidden md:block" />
+      </div>
+
       {/* Radius Slider (nur sichtbar wenn Koordinaten da sind) */}
       {(lat && lng) && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
             Umkreis: {radius} km
           </label>
           <input
@@ -270,7 +336,7 @@ export default function GroupFilter() {
             }}
             className="w-full h-2 rounded-lg appearance-none cursor-pointer"
           />
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <div className="flex justify-between text-xs text-[var(--muted)] mt-1">
             <span>5 km</span>
             <span>200 km</span>
           </div>

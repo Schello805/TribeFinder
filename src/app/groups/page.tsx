@@ -49,12 +49,18 @@ export default function GroupsPage() {
         const params = new URLSearchParams();
         const query = searchParams.get('query');
         const tag = searchParams.get('tag');
+        const performances = searchParams.get('performances');
+        const seeking = searchParams.get('seeking');
+        const size = searchParams.get('size');
         const lat = searchParams.get('lat');
         const lng = searchParams.get('lng');
         const radius = searchParams.get('radius') || '50';
         
         if (query) params.append('query', query);
         if (tag) params.append('tag', tag);
+        if (performances) params.append('performances', performances);
+        if (seeking) params.append('seeking', seeking);
+        if (size) params.append('size', size);
         if (lat) params.append('lat', lat);
         if (lng) params.append('lng', lng);
         if (radius) params.append('radius', radius);
