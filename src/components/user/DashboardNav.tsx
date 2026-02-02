@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 function itemClass(active: boolean) {
-  return `inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition border ${
+  return `tf-display inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition border ${
     active
       ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]"
       : "bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]"

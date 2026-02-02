@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Amiri, Grenze_Gotisch, Inter } from "next/font/google";
+import { Grenze_Gotisch, Inter, Marcellus } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -22,9 +22,9 @@ import { readFile } from "fs/promises";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const copperDisplay = Amiri({
+const copperDisplay = Marcellus({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400"],
   variable: "--font-display-copper",
 });
 
