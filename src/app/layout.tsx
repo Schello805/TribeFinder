@@ -157,7 +157,8 @@ export default async function RootLayout({
   const config = await getCachedSystemConfig();
   const brandingLogoUrl = normalizeUploadedImageUrl(config.BRANDING_LOGO_URL) ?? "";
   const themePresetRaw = (config.SITE_THEME_PRESET || "").trim().toLowerCase();
-  const themePreset = themePresetRaw === "sahara" || themePresetRaw === "copper" ? themePresetRaw : "default";
+  const themePresetNormalized = themePresetRaw === "sahara" ? "copper" : themePresetRaw;
+  const themePreset = themePresetNormalized === "copper" || themePresetNormalized === "nocturne" ? themePresetNormalized : "default";
 
   const appCommit = (process.env.NEXT_PUBLIC_APP_COMMIT || "").trim();
   const appVersion = ((process.env.NEXT_PUBLIC_APP_VERSION || "").trim() || (await readAppVersionFallback()));

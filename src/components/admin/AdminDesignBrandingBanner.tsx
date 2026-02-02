@@ -45,7 +45,7 @@ export default function AdminDesignBrandingBanner() {
         const preset = (getStringProp(data, "SITE_THEME_PRESET") || "default").trim().toLowerCase();
 
         setBrandingLogoUrl(logo);
-        setThemePreset(preset === "sahara" || preset === "copper" ? preset : "default");
+        setThemePreset(preset === "copper" || preset === "nocturne" ? preset : "default");
         setBannerEnabled(String(enabledRaw).toLowerCase() === "true");
         setBannerText(text);
         setBannerBg(bg || "#f59e0b");
@@ -74,7 +74,7 @@ export default function AdminDesignBrandingBanner() {
 
   const saveThemePreset = async (nextPreset: string) => {
     const normalized = String(nextPreset || "default").trim().toLowerCase();
-    const value = normalized === "sahara" || normalized === "copper" ? normalized : "default";
+    const value = normalized === "copper" || normalized === "nocturne" ? normalized : "default";
     setIsThemeSaving(true);
     try {
       const res = await fetch("/api/admin/settings", {
@@ -207,8 +207,8 @@ export default function AdminDesignBrandingBanner() {
               className="rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white bg-white dark:bg-gray-700"
             >
               <option value="default">Standard</option>
-              <option value="sahara">Sahara (warm &amp; hell)</option>
               <option value="copper">Copper (warm &amp; kräftig)</option>
+              <option value="nocturne">Nocturne (Gothic, Violett)</option>
             </select>
             <div className="text-xs text-gray-500 dark:text-gray-400">
               Tipp: nach Auswahl ggf. einmal neu laden (Cache: 10s).
