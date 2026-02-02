@@ -7,7 +7,7 @@ export default function DashboardLayout({
 }>) {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Mein Bereich</h1>
+      <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Mein Bereich</h1>
       <DashboardNav />
       {children}
     </div>
