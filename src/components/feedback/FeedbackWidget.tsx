@@ -175,7 +175,7 @@ export default function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-[60] rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition px-5 py-3 font-semibold"
+        className="fixed bottom-6 right-6 z-[60] rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:opacity-95 transition px-5 py-3 font-semibold"
       >
         Feedback
       </button>
@@ -189,20 +189,20 @@ export default function FeedbackWidget() {
             aria-label="Close"
           />
 
-          <div className="absolute bottom-6 right-6 w-[min(520px,calc(100vw-48px))] rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-2xl border border-gray-200 dark:border-gray-800">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+          <div className="absolute bottom-6 right-6 w-[min(520px,calc(100vw-48px))] rounded-xl bg-[var(--surface)] text-[var(--foreground)] shadow-2xl border border-[var(--border)]">
+            <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
               <div className="font-bold">Feedback senden</div>
               <button
                 type="button"
                 onClick={close}
-                className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition"
+                className="text-[var(--muted)] hover:text-[var(--foreground)] transition"
               >
                 ✕
               </button>
             </div>
 
             <div className="p-4 space-y-3">
-              <div className="text-sm text-gray-600 dark:text-gray-300">
+              <div className="text-sm text-[var(--muted)]">
                 Schreibe kurz, was gut/schlecht ist oder was fehlt. Optional kannst du diktieren.
               </div>
 
@@ -216,13 +216,13 @@ export default function FeedbackWidget() {
                 <input
                   value={reporterName}
                   onChange={(e) => setReporterName(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="Name (optional)"
                 />
                 <input
                   value={reporterEmail}
                   onChange={(e) => setReporterEmail(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="E-Mail (optional)"
                   type="email"
                 />
@@ -232,7 +232,7 @@ export default function FeedbackWidget() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={6}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 placeholder="Dein Feedback…"
               />
 
@@ -264,7 +264,7 @@ export default function FeedbackWidget() {
                   <button
                     type="button"
                     onClick={() => setMessage("")}
-                    className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                    className="px-3 py-2 rounded-md text-sm font-medium border border-[var(--border)] hover:bg-[var(--surface-2)] transition"
                   >
                     Leeren
                   </button>
@@ -272,7 +272,7 @@ export default function FeedbackWidget() {
                     type="button"
                     onClick={submit}
                     disabled={isSending}
-                    className="px-4 py-2 rounded-md text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition"
+                    className="px-4 py-2 rounded-md text-sm font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-95 disabled:opacity-50 transition"
                   >
                     {isSending ? "Sende…" : "Absenden"}
                   </button>

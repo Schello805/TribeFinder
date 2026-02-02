@@ -62,7 +62,7 @@ export default function JoinButton({ groupId, initialStatus }: JoinButtonProps) 
       default:
         return {
           text: "Gruppe beitreten",
-          className: "bg-indigo-600 text-white hover:bg-indigo-700 border border-transparent"
+          className: "bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-95 border border-transparent"
         };
     }
   };
@@ -73,7 +73,7 @@ export default function JoinButton({ groupId, initialStatus }: JoinButtonProps) 
     <button
       onClick={handleToggleJoin}
       disabled={isLoading}
-      className={`px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 ${config.className}`}
+      className={`px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] disabled:opacity-50 ${config.className}`}
     >
       {isLoading ? "Wird geladen..." : config.text}
     </button>

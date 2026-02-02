@@ -144,24 +144,24 @@ body {
 
 /* Force Input Colors - High Specificity & Autofill Fixes */
 input, textarea, select {
-  color: #000000 !important;
-  background-color: #ffffff;
+  color: var(--foreground) !important;
+  background-color: var(--surface);
 }
 
 /* Dark mode overrides for inputs */
 .dark input, .dark textarea, .dark select {
-  color: #ffffff !important;
-  background-color: #374151; /* gray-700 fallback */
+  color: var(--foreground) !important;
+  background-color: var(--surface);
 }
 
 /* Placeholder overrides */
 input::placeholder, textarea::placeholder, select::placeholder {
-  color: #6b7280 !important; /* gray-500 */
+  color: var(--muted) !important;
   opacity: 1 !important;
 }
 
 .dark input::placeholder, .dark textarea::placeholder, .dark select::placeholder {
-  color: #9ca3af !important; /* gray-400 */
+  color: var(--muted) !important;
   opacity: 1 !important;
 }
 
@@ -170,8 +170,8 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active {
-  -webkit-text-fill-color: #000000 !important;
-  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--surface) inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -179,40 +179,40 @@ input:-webkit-autofill:active {
 .dark input:-webkit-autofill:hover, 
 .dark input:-webkit-autofill:focus, 
 .dark input:-webkit-autofill:active {
-  -webkit-text-fill-color: #ffffff !important;
-  -webkit-box-shadow: 0 0 0px 1000px #374151 inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--surface) inset !important;
 }
 
 /* FINAL OVERRIDES - NO LAYER - MAX SPECIFICITY */
 html body input, 
 html body textarea, 
 html body select {
-  color: #000000 !important;
+  color: var(--foreground) !important;
   opacity: 1 !important;
-  -webkit-text-fill-color: #000000 !important;
-  caret-color: #000000 !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: var(--foreground) !important;
 }
 
 html.dark body input, 
 html.dark body textarea, 
 html.dark body select {
-  color: #ffffff !important;
+  color: var(--foreground) !important;
   opacity: 1 !important;
-  -webkit-text-fill-color: #ffffff !important;
-  caret-color: #ffffff !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: var(--foreground) !important;
 }
 
 /* Placeholder overrides */
 html body ::placeholder {
-  color: #4b5563 !important; /* gray-600 - darker for better visibility */
+  color: var(--muted) !important;
   opacity: 1 !important;
-  -webkit-text-fill-color: #4b5563 !important;
+  -webkit-text-fill-color: var(--muted) !important;
 }
 
 html.dark body ::placeholder {
-  color: #9ca3af !important; /* gray-400 */
+  color: var(--muted) !important;
   opacity: 1 !important;
-  -webkit-text-fill-color: #9ca3af !important;
+  -webkit-text-fill-color: var(--muted) !important;
 }
 
 /* Toast Animations */

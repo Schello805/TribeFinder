@@ -68,14 +68,14 @@ export default function EventParticipationButton({ eventId }: EventParticipation
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="bg-indigo-600 text-white px-4 py-2 rounded-md font-medium hover:bg-indigo-700 transition shadow-sm flex items-center gap-2"
+        className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md font-medium hover:opacity-95 transition shadow-sm flex items-center gap-2"
       >
         <span>🎭</span> Als Act teilnehmen
       </button>
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-xl max-w-md w-full p-6 border border-[var(--border)]">
             <h3 className="text-lg font-bold mb-4">Teilnahme anfragen</h3>
             
             <div className="mb-4">
@@ -83,7 +83,7 @@ export default function EventParticipationButton({ eventId }: EventParticipation
               <select
                 value={selectedGroupId}
                 onChange={(e) => setSelectedGroupId(e.target.value)}
-                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-[var(--border)] bg-[var(--surface)] rounded-md shadow-sm focus:ring-[var(--primary)] focus:border-[var(--primary)]"
               >
                 <option value="">Bitte wählen...</option>
                 {managedGroups.map((g) => (
@@ -99,7 +99,7 @@ export default function EventParticipationButton({ eventId }: EventParticipation
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-[var(--border)] bg-[var(--surface)] rounded-md shadow-sm focus:ring-[var(--primary)] focus:border-[var(--primary)]"
                 placeholder="Wir würden gerne auftreten..."
                 rows={3}
               />
@@ -115,7 +115,7 @@ export default function EventParticipationButton({ eventId }: EventParticipation
               <button
                 onClick={handleParticipate}
                 disabled={!selectedGroupId || isLoading}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:opacity-95 disabled:opacity-50"
               >
                 {isLoading ? "Sende..." : "Anfragen"}
               </button>
