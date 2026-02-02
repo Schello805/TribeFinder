@@ -82,14 +82,14 @@ export default function EventsPage() {
         <div className="flex gap-4">
           <Link
             href="/events/create"
-            className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition shadow-sm whitespace-nowrap"
+            className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] font-medium rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm whitespace-nowrap"
           >
             + Event eintragen
           </Link>
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 border rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            className="px-4 py-2 border border-[var(--border)] rounded-md bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
           >
             <option value="">Alle Events</option>
             <option value="WORKSHOP">Workshops</option>
