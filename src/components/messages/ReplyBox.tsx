@@ -40,20 +40,20 @@ export default function ReplyBox({ threadId }: { threadId: string }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6 space-y-3">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Antwort</label>
+    <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-xl border border-[var(--border)] p-6 space-y-3">
+      <label className="block text-sm font-medium text-[var(--foreground)]">Antwort</label>
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={4}
-        className="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+        className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
         placeholder="Deine Nachricht…"
       />
       <div className="flex justify-end">
         <button
           onClick={submit}
           disabled={isLoading}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+          className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition"
         >
           {isLoading ? "Wird gesendet…" : "Antwort senden"}
         </button>

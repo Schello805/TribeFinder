@@ -41,7 +41,7 @@ export default function ArchiveThreadButton(props: { threadId: string; initialAr
     <button
       onClick={toggle}
       disabled={busy}
-      className="text-sm px-3 py-1.5 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+      className="text-sm px-3 py-1.5 rounded-md bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-hover)] disabled:opacity-50 transition"
     >
       {archived ? "Entarchivieren" : "Archivieren"}
     </button>

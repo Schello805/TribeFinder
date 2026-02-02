@@ -94,11 +94,11 @@ export default async function MessagesPage({ searchParams }: { searchParams?: Pr
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{archived ? "Archiv" : "Nachrichten"}</h1>
+        <h1 className="tf-display text-2xl font-bold text-[var(--foreground)]">{archived ? "Archiv" : "Nachrichten"}</h1>
         {supportsArchive ? (
           <Link
             href={archived ? "/messages" : "/messages?archived=1"}
-            className="text-sm text-indigo-600 dark:text-indigo-300 font-medium hover:underline"
+            className="text-sm text-[var(--link)] font-medium hover:underline"
           >
             {archived ? "Zur Inbox" : "Archiv"}
           </Link>
@@ -108,12 +108,12 @@ export default async function MessagesPage({ searchParams }: { searchParams?: Pr
       <div
         className={
           archived
-            ? "bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900 p-6"
-            : "bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6"
+            ? "bg-[var(--surface-2)] rounded-xl border border-[var(--border)] p-6"
+            : "bg-[var(--surface)] rounded-xl border border-[var(--border)] p-6"
         }
       >
         {filteredThreads.length > 0 ? (
-          <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+          <ul className="divide-y divide-[var(--border)]">
             {filteredThreads.map((t) => {
               const img = normalizeUploadedImageUrl(t.group.image) ?? "";
               const last = t.messages[0]?.content || "";
@@ -123,36 +123,39 @@ export default async function MessagesPage({ searchParams }: { searchParams?: Pr
                     <div className="flex items-center gap-3 min-w-0">
                       {img ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={img} alt={t.group.name} className="h-10 w-10 rounded-lg object-cover border border-gray-200 dark:border-gray-700" />
+                        <img src={img} alt={t.group.name} className="h-10 w-10 rounded-lg object-cover border border-[var(--border)]" />
                       ) : (
-                        <div className="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 font-bold">
+                        <div className="h-10 w-10 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] font-bold">
                           {t.group.name.charAt(0)}
                         </div>
                       )}
                       <div className="min-w-0">
-                        <div className="font-medium text-gray-900 dark:text-white truncate">
+                        <div className="font-medium text-[var(--foreground)] truncate">
                           {t.subject || t.group.name}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                        <div className="text-sm text-[var(--muted)] truncate">
                           {last}
                         </div>
                       </div>
                     </div>
-                    <div className="text-sm text-indigo-600 dark:text-indigo-300 font-medium">Öffnen</div>
+                    <div className="text-sm text-[var(--link)] font-medium">Öffnen</div>
                   </Link>
                 </li>
               );
             })}
           </ul>
         ) : (
-          <div className="text-gray-600 dark:text-gray-300">
+          <div className="text-[var(--muted)]">
             {archived ? "Noch keine archivierten Nachrichten." : "Noch keine Nachrichten. Öffne eine Gruppe und klicke auf „Nachricht senden“."}
           </div>
         )}
       </div>
 
       <div className="flex gap-3">
-        <Link href="/groups" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+        <Link
+          href="/groups"
+          className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition"
+        >
           Gruppen finden
         </Link>
       </div>

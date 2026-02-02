@@ -113,31 +113,31 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Thread</div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
+          <div className="text-sm text-[var(--muted)]">Thread</div>
+          <h1 className="tf-display text-2xl font-bold text-[var(--foreground)] truncate">
             {thread.subject || `Nachricht an ${thread.group.name}`}
           </h1>
         </div>
         <div className="flex items-center gap-3">
           {supportsArchive ? <ArchiveThreadButton threadId={threadId} initialArchived={initialArchived} /> : null}
-          <Link href="/messages" className="text-indigo-600 dark:text-indigo-300 hover:underline font-medium">
+          <Link href="/messages" className="text-[var(--link)] hover:underline font-medium">
             Zur Inbox
           </Link>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-3">
+      <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-xl border border-[var(--border)] p-4 flex items-center gap-3">
         {groupImg ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={groupImg} alt={thread.group.name} className="h-10 w-10 rounded-lg object-cover border border-gray-200 dark:border-gray-700" />
+          <img src={groupImg} alt={thread.group.name} className="h-10 w-10 rounded-lg object-cover border border-[var(--border)]" />
         ) : (
-          <div className="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 font-bold">
+          <div className="h-10 w-10 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] font-bold">
             {thread.group.name.charAt(0)}
           </div>
         )}
         <div className="min-w-0">
-          <div className="font-medium text-gray-900 dark:text-white truncate">{thread.group.name}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">{isCreator ? "Du" : thread.createdBy.name || "Unbekannt"}</div>
+          <div className="font-medium text-[var(--foreground)] truncate">{thread.group.name}</div>
+          <div className="text-xs text-[var(--muted)]">{isCreator ? "Du" : thread.createdBy.name || "Unbekannt"}</div>
         </div>
       </div>
 

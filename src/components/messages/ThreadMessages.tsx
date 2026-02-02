@@ -104,7 +104,7 @@ export default function ThreadMessages(props: {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
+    <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-xl border border-[var(--border)] p-6 space-y-4">
       {props.messages.map((m) => {
         const isMe = m.authorId === props.currentUserId;
         const allowed = canEditDelete(m);
@@ -116,8 +116,8 @@ export default function ThreadMessages(props: {
             <div
               className={
                 isMe
-                  ? "inline-block bg-indigo-600 text-white px-4 py-2 rounded-2xl max-w-[85%]"
-                  : "inline-block bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-2xl max-w-[85%]"
+                  ? "inline-block bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-2xl max-w-[85%]"
+                  : "inline-block bg-[var(--surface-2)] text-[var(--foreground)] px-4 py-2 rounded-2xl max-w-[85%] border border-[var(--border)]"
               }
             >
               <div className="flex items-start justify-between gap-3">
@@ -132,8 +132,8 @@ export default function ThreadMessages(props: {
                         rows={3}
                         className={
                           isMe
-                            ? "w-full px-3 py-2 rounded-md bg-indigo-500/40 text-white placeholder:text-indigo-100 border border-indigo-400/40"
-                            : "w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                            ? "w-full px-3 py-2 rounded-md bg-[var(--primary-active)]/30 text-[var(--primary-foreground)] border border-[var(--primary)]/40"
+                            : "w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
                         }
                       />
                       <div className={isMe ? "flex justify-end gap-2" : "flex gap-2"}>
@@ -143,7 +143,7 @@ export default function ThreadMessages(props: {
                           className={
                             isMe
                               ? "px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 disabled:opacity-50"
-                              : "px-3 py-1.5 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+                              : "px-3 py-1.5 rounded-md bg-[var(--surface)] border border-[var(--border)] hover:bg-[var(--surface-hover)] disabled:opacity-50 transition"
                           }
                         >
                           Abbrechen
@@ -153,8 +153,8 @@ export default function ThreadMessages(props: {
                           disabled={isBusy}
                           className={
                             isMe
-                              ? "px-3 py-1.5 rounded-md bg-white text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
-                              : "px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+                              ? "px-3 py-1.5 rounded-md bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-hover)] disabled:opacity-50 transition"
+                              : "px-3 py-1.5 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition"
                           }
                         >
                           Speichern

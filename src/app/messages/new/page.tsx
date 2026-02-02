@@ -57,26 +57,26 @@ export default function NewMessagePage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Nachricht an Gruppe</h1>
+      <h1 className="tf-display text-2xl font-bold text-[var(--foreground)]">Nachricht an Gruppe</h1>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
+      <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-xl border border-[var(--border)] p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Betreff (optional)</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Betreff (optional)</label>
           <input
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            className="mt-1 w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+            className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
             placeholder="z.B. Auftritt / Training / Frage"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Nachricht</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Nachricht</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={6}
-            className="mt-1 w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+            className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
             placeholder="Schreib kurz, worum es geht…"
           />
         </div>
@@ -85,13 +85,13 @@ export default function NewMessagePage() {
           <button
             onClick={submit}
             disabled={isLoading}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+            className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition"
           >
             {isLoading ? "Wird gesendet…" : "Senden"}
           </button>
           <button
             onClick={() => router.back()}
-            className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="bg-[var(--surface)] text-[var(--foreground)] px-4 py-2 rounded-md border border-[var(--border)] hover:bg-[var(--surface-hover)] transition"
           >
             Abbrechen
           </button>
