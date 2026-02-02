@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Amiri, Cinzel_Decorative, Inter } from "next/font/google";
+import { Amiri, Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -21,11 +21,6 @@ import fs from "node:fs";
 import { readFile } from "fs/promises";
 
 const inter = Inter({ subsets: ["latin"] });
-const display = Cinzel_Decorative({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-display",
-});
 
 const nocturneDisplay = Amiri({
   subsets: ["latin"],
@@ -183,7 +178,7 @@ export default async function RootLayout({
 
   return (
     <html lang="de" suppressHydrationWarning data-tf-theme={themePreset}>
-      <body className={`${inter.className} ${display.variable} ${nocturneDisplay.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
+      <body className={`${inter.className} ${nocturneDisplay.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

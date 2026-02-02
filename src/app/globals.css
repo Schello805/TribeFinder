@@ -222,7 +222,7 @@ html.dark[data-tf-theme="nocturne"] .tf-gothic-btn {
 }
 
 h1, h2, h3, .tf-display {
-  font-family: var(--font-display, var(--font-geist-sans));
+  font-family: var(--font-display, inherit);
 }
 
 html[data-tf-theme="nocturne"] body,
