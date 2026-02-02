@@ -166,12 +166,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       {(event.flyer1 || event.flyer2) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {event.flyer1 && (
-            <div className="relative h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-gray-100">
+            <div className="relative h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-[var(--surface-2)]">
               <ImageWithFallback src={event.flyer1} alt={`Flyer für ${event.title}`} className="w-full h-full object-contain" />
             </div>
           )}
           {event.flyer2 && (
-            <div className="relative h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-gray-100">
+            <div className="relative h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-[var(--surface-2)]">
               <ImageWithFallback src={event.flyer2} alt={`Flyer für ${event.title}`} className="w-full h-full object-contain" />
             </div>
           )}
@@ -179,39 +179,39 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       )}
 
       {/* Main Content Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-md border border-[var(--border)] overflow-hidden">
         <div className="p-6 md:p-8 space-y-6">
           
           {/* Title & Meta Header */}
           <div className="flex flex-col md:flex-row justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-200">
+                <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)]">
                   {getTypeLabel(event.eventType)}
                 </span>
                 {canEdit && (
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded border border-yellow-200">
+                  <span className="text-xs bg-[var(--surface-2)] text-[var(--foreground)] px-2 py-1 rounded border border-[var(--border)]">
                     Du verwaltest dieses Event
                   </span>
                 )}
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">{event.title}</h1>
+              <h1 className="tf-display text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-3 leading-tight">{event.title}</h1>
               
-              <div className="text-gray-600 dark:text-gray-400 flex flex-wrap items-center gap-4 text-lg">
+              <div className="text-[var(--muted)] flex flex-wrap items-center gap-4 text-lg">
                 <div className="flex items-center gap-2">
                   <span>🗓️</span> 
-                  <span className="font-medium text-gray-900 dark:text-gray-200">
+                  <span className="font-medium text-[var(--foreground)]">
                     {formatBerlin(event.startDate, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                   </span>
                 </div>
-                <div className="hidden sm:block text-gray-300 dark:text-gray-600">•</div>
+                <div className="hidden sm:block text-[var(--muted)]">•</div>
                 <div className="flex items-center gap-2">
                   <span>⏰</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-200">
+                  <span className="font-medium text-[var(--foreground)]">
                     {formatBerlin(event.startDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} Uhr
                   </span>
                   {event.endDate && (
-                    <span className="text-gray-500"> - {formatBerlin(event.endDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span>
+                    <span className="text-[var(--muted)]"> - {formatBerlin(event.endDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span>
                   )}
                 </div>
               </div>
@@ -224,7 +224,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   href={event.ticketLink} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="w-full py-3 px-4 bg-indigo-600 text-white text-center rounded-md font-bold hover:bg-indigo-700 transition shadow-sm flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 bg-[var(--primary)] text-[var(--primary-foreground)] text-center rounded-md font-bold hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm flex items-center justify-center gap-2"
                 >
                   <span>🎟️</span> Tickets {event.ticketPrice ? `(${event.ticketPrice})` : ""}
                 </a>
@@ -233,7 +233,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               <a 
                 href={`/api/events/${event.id}/calendar`}
                 download
-                className="w-full py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white text-center rounded-md font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm flex items-center justify-center gap-2 border border-gray-200 dark:border-gray-600"
+                className="w-full py-3 px-4 bg-[var(--surface)] text-[var(--foreground)] text-center rounded-md font-bold hover:bg-[var(--surface-hover)] transition shadow-sm flex items-center justify-center gap-2 border border-[var(--border)]"
               >
                 <span>📅</span> Zum Kalender hinzufügen
               </a>
@@ -242,7 +242,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <>
                   <Link
                     href={event.group ? `/groups/${event.group.id}/events/${event.id}/edit` : `/events/${event.id}/edit`}
-                    className="w-full py-3 px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white text-center rounded-md font-bold hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm flex items-center justify-center"
+                    className="w-full py-3 px-4 bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] text-center rounded-md font-bold hover:bg-[var(--surface-hover)] transition shadow-sm flex items-center justify-center"
                   >
                     Bearbeiten
                   </Link>
@@ -262,24 +262,24 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             />
           )}
 
-          <hr className="border-gray-200 dark:border-gray-700" />
+          <hr className="border-[var(--border)]" />
 
           {/* Description */}
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Beschreibung</h2>
-            <div className="prose dark:prose-invert max-w-none whitespace-pre-line text-gray-700 dark:text-gray-300 leading-relaxed">
+            <h2 className="tf-display text-xl font-bold text-[var(--foreground)] mb-4">Beschreibung</h2>
+            <div className="prose max-w-none whitespace-pre-line text-[var(--foreground)] leading-relaxed">
               {event.description}
             </div>
           </div>
 
-          <hr className="border-gray-200 dark:border-gray-700" />
+          <hr className="border-[var(--border)]" />
 
           {/* Location & Organizer Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Location */}
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Veranstaltungsort</h2>
-              <div className="space-y-1 text-gray-700 dark:text-gray-300 mb-4">
+              <h2 className="tf-display text-xl font-bold text-[var(--foreground)] mb-4">Veranstaltungsort</h2>
+              <div className="space-y-1 text-[var(--foreground)] mb-4">
                 <p className="font-semibold text-lg">{event.locationName}</p>
                 {event.address && <p>{event.address}</p>}
                 
@@ -289,7 +289,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                       href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white text-center rounded-md font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm items-center gap-2 border border-gray-200 dark:border-gray-600 text-sm"
+                      className="inline-flex py-2 px-4 bg-[var(--surface)] text-[var(--foreground)] text-center rounded-md font-medium hover:bg-[var(--surface-hover)] transition shadow-sm items-center gap-2 border border-[var(--border)] text-sm"
                     >
                       <span>📍</span> Navigation starten
                     </a>
@@ -297,7 +297,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 )}
               </div>
               {hasLocation && (
-                <div className="h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 shadow-sm relative z-0">
+                <div className="h-64 rounded-lg overflow-hidden border border-[var(--border)] shadow-sm relative z-0">
                   <DynamicEventMap lat={event.lat} lng={event.lng} />
                 </div>
               )}
@@ -305,12 +305,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
             {/* Organizer */}
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Veranstalter</h2>
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5 border border-gray-100 dark:border-gray-800">
+              <h2 className="tf-display text-xl font-bold text-[var(--foreground)] mb-4">Veranstalter</h2>
+              <div className="bg-[var(--surface-2)] rounded-lg p-5 border border-[var(--border)]">
                 <div className="flex items-center gap-4">
                   {event.group ? (
                     <>
-                      <div className="w-14 h-14 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+                      <div className="w-14 h-14 rounded-full bg-[var(--surface)] flex items-center justify-center overflow-hidden border border-[var(--border)] shadow-sm">
                         {event.group.image ? (
                           <>
                             <ImageWithFallback src={event.group.image} alt={event.group.name} className="w-full h-full object-cover" />
@@ -320,32 +320,32 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                         )}
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 dark:text-white text-lg">{organizerName}</p>
-                        <Link href={`/groups/${event.group.id}`} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+                        <p className="font-bold text-[var(--foreground)] text-lg">{organizerName}</p>
+                        <Link href={`/groups/${event.group.id}`} className="text-sm text-[var(--link)] hover:opacity-90 font-medium">
                           Zur Gruppe &rarr;
                         </Link>
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center border border-indigo-200 dark:border-indigo-800">
+                      <div className="w-14 h-14 rounded-full bg-[var(--surface)] flex items-center justify-center border border-[var(--border)]">
                         <span className="text-2xl">👤</span>
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 dark:text-white text-lg">{organizerName}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Veranstalter</p>
+                        <p className="font-bold text-[var(--foreground)] text-lg">{organizerName}</p>
+                        <p className="text-sm text-[var(--muted)]">Veranstalter</p>
                       </div>
                     </>
                   )}
                 </div>
 
                 {event.website && (
-                  <div className="mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="mt-5 pt-4 border-t border-[var(--border)]">
                     <a 
                       href={event.website} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium flex items-center gap-2"
+                      className="text-[var(--link)] hover:opacity-90 font-medium flex items-center gap-2"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
