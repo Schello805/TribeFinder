@@ -157,16 +157,16 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         if (group.location) {
           // Logo Logic
         const logoHtml = group.image 
-          ? `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg flex items-center justify-center z-10">
+          ? `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] overflow-hidden shadow-lg flex items-center justify-center z-10">
                <img src="${group.image}" alt="${group.name}" class="w-full h-full object-contain p-1" />
              </div>`
-          : `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-white bg-white flex items-center justify-center shadow-lg z-10">
-               <span class="text-2xl font-bold text-indigo-600">${group.name.charAt(0)}</span>
+          : `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] flex items-center justify-center shadow-lg z-10">
+               <span class="text-2xl font-bold text-[var(--link)]">${group.name.charAt(0)}</span>
              </div>`;
         
         // Website Logic
         const websiteHtml = group.website
-          ? `<a href="${group.website}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 text-xs font-medium truncate transition-colors bg-indigo-50 px-2 py-1 rounded-full border border-indigo-100">
+          ? `<a href="${group.website}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-[var(--link)] hover:opacity-90 text-xs font-medium truncate transition-colors bg-[var(--surface-2)] px-2 py-1 rounded-full border border-[var(--border)]">
                <svg class="w-3 h-3 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
                ${group.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
              </a>`
@@ -177,22 +177,22 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
           .bindPopup(`
             <div class="min-w-[260px] font-sans -m-1">
               <!-- Card Header -->
-              <div class="relative h-24 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-t-lg shadow-inner">
+              <div class="relative h-24 bg-[var(--primary)] rounded-t-lg shadow-inner">
                  <!-- Decorative pattern/overlay could go here -->
                  <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
                  ${logoHtml}
               </div>
               
               <!-- Card Body -->
-              <div class="pt-12 pb-5 px-5 text-center bg-white rounded-b-lg shadow-xl border-x border-b border-gray-100">
-                <h3 class="font-extrabold text-xl text-gray-900 leading-tight mb-1">${group.name}</h3>
-                <p class="text-[11px] text-indigo-500 font-bold uppercase tracking-widest mb-4">
+              <div class="pt-12 pb-5 px-5 text-center bg-[var(--surface)] rounded-b-lg shadow-xl border-x border-b border-[var(--border)]">
+                <h3 class="tf-display font-extrabold text-xl text-[var(--foreground)] leading-tight mb-1">${group.name}</h3>
+                <p class="text-[11px] text-[var(--muted)] font-bold uppercase tracking-widest mb-4">
                   ${group.size === 'SOLO' ? 'Solo Artist' : (group.size === 'SMALL' ? 'Kleine Gruppe' : 'Große Gruppe')}
                 </p>
                 
                 <div class="flex flex-col gap-2 mb-4">
-                  <p class="text-sm text-gray-600 flex items-center justify-center gap-1.5">
-                    <span class="bg-gray-100 p-1 rounded-full text-gray-500">
+                  <p class="text-sm text-[var(--muted)] flex items-center justify-center gap-1.5">
+                    <span class="bg-[var(--surface-2)] p-1 rounded-full text-[var(--muted)] border border-[var(--border)]">
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     </span>
                     <span class="truncate max-w-[180px]">${group.location.address || 'Keine Adresse'}</span>
@@ -205,11 +205,11 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
                 </div>
                 
                 <div class="flex flex-wrap justify-center gap-1.5 mb-5">
-                  ${group.tags.slice(0, 3).map((t) => `<span class="text-[10px] font-medium bg-gray-50 text-gray-600 border border-gray-200 px-2.5 py-1 rounded-full">${t.name}</span>`).join('')}
-                  ${group.tags.length > 3 ? `<span class="text-[10px] text-gray-400 px-1 self-center font-medium">+${group.tags.length - 3}</span>` : ''}
+                  ${group.tags.slice(0, 3).map((t) => `<span class="text-[10px] font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] px-2.5 py-1 rounded-full">${t.name}</span>`).join('')}
+                  ${group.tags.length > 3 ? `<span class="text-[10px] text-[var(--muted)] px-1 self-center font-medium">+${group.tags.length - 3}</span>` : ''}
                 </div>
                 
-                <a href="/groups/${group.id}" class="block w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-bold py-2.5 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
+                <a href="/groups/${group.id}" class="block w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] text-sm font-bold py-2.5 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
                   Profil ansehen
                 </a>
               </div>
@@ -243,28 +243,28 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
           .addTo(mapRef.current!)
           .bindPopup(`
             <div class="min-w-[260px] font-sans -m-1">
-              <div class="p-4 bg-white rounded-xl shadow-lg border border-gray-100">
+              <div class="p-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-lg border border-[var(--border)]">
                 <div class="flex items-center justify-between gap-3 mb-3">
-                  <span class="text-[11px] font-bold bg-red-100 text-red-800 px-2 py-0.5 rounded-full">EVENT</span>
-                  <span class="text-[11px] text-gray-500 font-medium">${date} Uhr</span>
+                  <span class="text-[11px] font-bold bg-[var(--surface-2)] text-[var(--foreground)] px-2 py-0.5 rounded-full border border-[var(--border)]">EVENT</span>
+                  <span class="text-[11px] text-[var(--muted)] font-medium">${date} Uhr</span>
                 </div>
 
                 <div class="flex items-start gap-3">
                   ${flyerUrl ? `
-                    <div class="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                    <div class="w-14 h-14 rounded-lg overflow-hidden bg-[var(--surface-2)] border border-[var(--border)] flex-shrink-0">
                       <img src="${flyerUrl}" alt="Flyer" class="w-full h-full object-cover" />
                     </div>
                   ` : ''}
 
                   <div class="min-w-0">
-                    <h3 class="font-extrabold text-lg leading-snug text-gray-900 mb-1 truncate">${event.title}</h3>
-                    ${organizerName ? `<p class="text-sm text-gray-700 mb-1 truncate"><span class=\"text-gray-500\">Veranstalter:</span> <span class=\"font-semibold\">${organizerName}</span></p>` : ''}
-                    ${event.locationName ? `<p class="text-sm text-gray-600 mb-2 truncate">${event.locationName}</p>` : ''}
+                    <h3 class="tf-display font-extrabold text-lg leading-snug text-[var(--foreground)] mb-1 truncate">${event.title}</h3>
+                    ${organizerName ? `<p class="text-sm text-[var(--foreground)] mb-1 truncate"><span class=\"text-[var(--muted)]\">Veranstalter:</span> <span class=\"font-semibold\">${organizerName}</span></p>` : ''}
+                    ${event.locationName ? `<p class="text-sm text-[var(--muted)] mb-2 truncate">${event.locationName}</p>` : ''}
                   </div>
                 </div>
 
                 <div class="mt-3">
-                  <a href="/events/${event.id}" class="inline-flex items-center px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-800 text-sm font-bold no-underline">
+                  <a href="/events/${event.id}" class="inline-flex items-center px-3 py-2 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] text-sm font-bold no-underline">
                     Zum Event
                   </a>
                 </div>
@@ -282,17 +282,17 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
       <div ref={mapContainerRef} className="h-full w-full" />
       
       {/* Filter Panel */}
-      <div className="absolute top-4 left-4 z-[400] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 max-w-xs">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-3 text-sm">Filter</h3>
+      <div className="absolute top-4 left-4 z-[400] bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-lg border border-[var(--border)] p-4 max-w-xs">
+        <h3 className="tf-display font-semibold text-[var(--foreground)] mb-3 text-sm">Filter</h3>
         
         {/* Tag/Style Filter */}
         {availableTags.length > 0 && (
           <div className="mb-3">
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Tanzstil</label>
+            <label className="block text-xs font-medium text-[var(--muted)] mb-1">Tanzstil</label>
             <select
               value={selectedTag}
               onChange={(e) => setSelectedTag(e.target.value)}
-              className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full text-sm border border-[var(--border)] rounded-md px-2 py-1.5 bg-[var(--surface)] text-[var(--foreground)]"
             >
               <option value="">Alle Stile</option>
               {availableTags.map(tag => (
@@ -309,7 +309,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
               type="checkbox"
               checked={showGroups}
               onChange={(e) => setShowGroups(e.target.checked)}
-              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
             />
             <span className="flex items-center gap-1">
               <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
@@ -321,7 +321,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
               type="checkbox"
               checked={showEvents}
               onChange={(e) => setShowEvents(e.target.checked)}
-              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
             />
             <span className="flex items-center gap-1">
               <span className="w-3 h-3 bg-red-500 rounded-full"></span>
