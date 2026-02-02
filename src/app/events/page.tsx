@@ -22,7 +22,6 @@ type Event = {
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState("");
 
   const formatBerlin = (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions) => {
     if (!value) return "";
@@ -35,7 +34,6 @@ export default function EventsPage() {
     setLoading(true);
     const params = new URLSearchParams();
     params.append("upcoming", "true");
-    if (filterType) params.append("type", filterType);
 
     try {
       const res = await fetch(`/api/events?${params.toString()}`);
@@ -47,7 +45,7 @@ export default function EventsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filterType]);
+  }, []);
 
   useEffect(() => {
     fetchEvents();
@@ -86,17 +84,6 @@ export default function EventsPage() {
           >
             + Event eintragen
           </Link>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 border border-[var(--border)] rounded-md bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
-          >
-            <option value="">Alle Events</option>
-            <option value="WORKSHOP">Workshops</option>
-            <option value="SOCIAL">Socials & Partys</option>
-            <option value="OPEN_TRAINING">Offene Trainings</option>
-            <option value="EVENT">Sonstige Events</option>
-          </select>
         </div>
       </div>
 
