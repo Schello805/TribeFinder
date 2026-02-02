@@ -172,12 +172,12 @@ export default function ProfileForm() {
   };
 
   if (isLoading && !formData.email) { // Show loading only on initial fetch
-    return <div className="p-8 text-center text-gray-500">Lade Profil...</div>;
+    return <div className="p-8 text-center text-[var(--muted)]">Lade Profil...</div>;
   }
 
   return (
     <div className="space-y-8">
-      <form onSubmit={handleSubmit} className="space-y-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+      <form onSubmit={handleSubmit} className="space-y-8 bg-[var(--surface)] text-[var(--foreground)] p-6 rounded-lg border border-[var(--border)] shadow">
       {error && (
         <div className="bg-red-50 text-red-600 p-3 rounded-md border border-red-200 text-sm">
           {error}
@@ -191,14 +191,14 @@ export default function ProfileForm() {
 
       {/* Basis-Informationen */}
       <div>
-        <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Persönliche Daten</h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <h3 className="tf-display text-lg font-medium leading-6 text-[var(--foreground)]">Persönliche Daten</h3>
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Diese Informationen werden auf deinem öffentlichen Profil angezeigt.
         </p>
 
         <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
           <div className="sm:col-span-3">
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="firstName" className="block text-sm font-medium text-[var(--foreground)]">
               Vorname
             </label>
             <div className="mt-1">
@@ -208,13 +208,13 @@ export default function ProfileForm() {
                 id="firstName"
                 value={formData.firstName || ""}
                 onChange={handleChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+                className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
               />
             </div>
           </div>
 
           <div className="sm:col-span-3">
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="lastName" className="block text-sm font-medium text-[var(--foreground)]">
               Nachname
             </label>
             <div className="mt-1">
@@ -224,13 +224,13 @@ export default function ProfileForm() {
                 id="lastName"
                 value={formData.lastName || ""}
                 onChange={handleChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+                className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
               />
             </div>
           </div>
 
           <div className="sm:col-span-4">
-            <label htmlFor="dancerName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="dancerName" className="block text-sm font-medium text-[var(--foreground)]">
               Künstlername / Tanzname
             </label>
             <div className="mt-1">
@@ -241,13 +241,13 @@ export default function ProfileForm() {
                 value={formData.dancerName || ""}
                 onChange={handleChange}
                 placeholder="Wie möchtest du genannt werden?"
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+                className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
               />
             </div>
           </div>
 
           <div className="sm:col-span-6">
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="bio" className="block text-sm font-medium text-[var(--foreground)]">
               Über mich (Bio)
             </label>
             <div className="mt-1">
@@ -257,27 +257,27 @@ export default function ProfileForm() {
                 rows={4}
                 value={formData.bio || ""}
                 onChange={handleChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+                className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
                 placeholder="Erzähle etwas über deine Tanzerfahrung, Stile die du magst, etc."
               />
             </div>
           </div>
 
           <div className="sm:col-span-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Profilbild</label>
+            <label className="block text-sm font-medium text-[var(--foreground)]">Profilbild</label>
             <div className="mt-2 flex items-center space-x-6">
               <div className="shrink-0">
                 {formData.image ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      className="h-24 w-24 object-cover rounded-full border border-gray-200 dark:border-gray-600"
+                      className="h-24 w-24 object-cover rounded-full border border-[var(--border)]"
                       src={normalizeUploadedImageUrl(formData.image) ?? ""}
                       alt="Profilbild"
                     />
                   </>
                 ) : (
-                  <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+                  <div className="h-24 w-24 rounded-full bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)]">
                     <span className="text-3xl">📷</span>
                   </div>
                 )}
@@ -291,10 +291,10 @@ export default function ProfileForm() {
                     onChange={handleImageUpload}
                     className="block w-full text-sm text-slate-500
                       file:mr-4 file:py-2 file:px-4
-                      file:rounded-full file:border-0
+                      file:rounded-full file:border file:border-[var(--border)]
                       file:text-sm file:font-semibold
-                      file:bg-indigo-50 file:text-indigo-700
-                      hover:file:bg-indigo-100
+                      file:bg-[var(--surface-2)] file:text-[var(--foreground)]
+                      hover:file:bg-[var(--surface-hover)]
                     "
                   />
                 </label>
@@ -314,19 +314,19 @@ export default function ProfileForm() {
       </div>
 
       {/* Social Media */}
-      <div className="pt-8 border-t border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Social Media & Links</h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      <div className="pt-8 border-t border-[var(--border)]">
+        <h3 className="tf-display text-lg font-medium leading-6 text-[var(--foreground)]">Social Media & Links</h3>
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Zeige anderen, wo sie dich finden können.
         </p>
 
         <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
           <div className="sm:col-span-3">
-            <label htmlFor="instagramUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="instagramUrl" className="block text-sm font-medium text-[var(--foreground)]">
               Instagram
             </label>
             <div className="mt-1 flex rounded-md shadow-sm">
-              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-300">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)] sm:text-sm">
                 instagram.com/
               </span>
               <input
@@ -335,18 +335,18 @@ export default function ProfileForm() {
                 id="instagramUrl"
                 value={formData.instagramUrl?.replace('https://instagram.com/', '') || ""}
                 onChange={(e) => setFormData(prev => ({ ...prev, instagramUrl: e.target.value ? `https://instagram.com/${e.target.value.replace('https://instagram.com/', '')}` : "" }))}
-                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm"
                 placeholder="username"
               />
             </div>
           </div>
 
           <div className="sm:col-span-3">
-            <label htmlFor="tiktokUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="tiktokUrl" className="block text-sm font-medium text-[var(--foreground)]">
               TikTok
             </label>
             <div className="mt-1 flex rounded-md shadow-sm">
-              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-gray-300">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)] sm:text-sm">
                 tiktok.com/@
               </span>
               <input
@@ -355,14 +355,14 @@ export default function ProfileForm() {
                 id="tiktokUrl"
                 value={formData.tiktokUrl?.replace('https://tiktok.com/@', '') || ""}
                 onChange={(e) => setFormData(prev => ({ ...prev, tiktokUrl: e.target.value ? `https://tiktok.com/@${e.target.value.replace('https://tiktok.com/@', '')}` : "" }))}
-                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm"
                 placeholder="username"
               />
             </div>
           </div>
 
           <div className="sm:col-span-6">
-            <label htmlFor="youtubeUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="youtubeUrl" className="block text-sm font-medium text-[var(--foreground)]">
               YouTube Video / Kanal
             </label>
             <div className="mt-1">
@@ -373,13 +373,13 @@ export default function ProfileForm() {
                 value={formData.youtubeUrl || ""}
                 onChange={handleChange}
                 placeholder="https://youtube.com/..."
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+                className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
               />
             </div>
           </div>
 
           <div className="sm:col-span-6">
-            <label htmlFor="facebookUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="facebookUrl" className="block text-sm font-medium text-[var(--foreground)]">
               Facebook
             </label>
             <div className="mt-1">
@@ -390,42 +390,42 @@ export default function ProfileForm() {
                 value={formData.facebookUrl || ""}
                 onChange={handleChange}
                 placeholder="https://facebook.com/..."
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+                className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
               />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="pt-5 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+      <div className="pt-5 border-t border-[var(--border)] flex justify-end">
         <button
           type="button"
           onClick={() => router.back()}
-          className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+          className="bg-[var(--surface)] py-2 px-4 border border-[var(--border)] rounded-md shadow-sm text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] mr-3 transition"
         >
           Abbrechen
         </button>
         <button
           type="submit"
           disabled={isSaving}
-          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] disabled:opacity-50 transition"
         >
           {isSaving ? "Speichere..." : "Speichern"}
         </button>
       </div>
       </form>
 
-      <form onSubmit={handlePasswordChange} className="space-y-4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+      <form onSubmit={handlePasswordChange} className="space-y-4 bg-[var(--surface)] text-[var(--foreground)] p-6 rounded-lg border border-[var(--border)] shadow">
         <div>
-          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Passwort ändern</h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <h3 className="tf-display text-lg font-medium leading-6 text-[var(--foreground)]">Passwort ändern</h3>
+          <p className="mt-1 text-sm text-[var(--muted)]">
             Setze ein neues Passwort für dein Konto.
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
           <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="newPassword" className="block text-sm font-medium text-[var(--foreground)]">
               Neues Passwort
             </label>
             <div className="mt-1">
@@ -436,13 +436,13 @@ export default function ProfileForm() {
                 onChange={(e) => setPasswordForm((p) => ({ ...p, password: e.target.value }))}
                 minLength={8}
                 required
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+                className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-[var(--foreground)]">
               Neues Passwort bestätigen
             </label>
             <div className="mt-1">
@@ -453,7 +453,7 @@ export default function ProfileForm() {
                 onChange={(e) => setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))}
                 minLength={8}
                 required
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2 border"
+                className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
               />
             </div>
           </div>
@@ -463,7 +463,7 @@ export default function ProfileForm() {
           <button
             type="submit"
             disabled={isChangingPassword}
-            className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition"
           >
             {isChangingPassword ? "Speichere..." : "Passwort ändern"}
           </button>

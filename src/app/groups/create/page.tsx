@@ -13,8 +13,8 @@ export default async function CreateGroupPage() {
   return (
     <div className="py-4">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Neue Gruppe erstellen</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">In wenigen Schritten zur eigenen Tanzgruppe</p>
+        <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Neue Gruppe erstellen</h1>
+        <p className="text-[var(--muted)] mt-2">In wenigen Schritten zur eigenen Tanzgruppe</p>
       </div>
       <GroupCreateWizard />
     </div>
