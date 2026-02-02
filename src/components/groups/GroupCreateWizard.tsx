@@ -8,7 +8,11 @@ import { useToast } from "@/components/ui/Toast";
 
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), {
   ssr: false,
-  loading: () => <div className="h-48 w-full bg-gray-100 dark:bg-gray-700 animate-pulse rounded-md flex items-center justify-center text-gray-400">Karte wird geladen...</div>
+  loading: () => (
+    <div className="h-48 w-full bg-[var(--surface-2)] animate-pulse rounded-md flex items-center justify-center text-[var(--muted)]">
+      Karte wird geladen...
+    </div>
+  )
 });
 
 interface FormData {
@@ -197,10 +201,10 @@ export default function GroupCreateWizard() {
               <div
                 className={`flex items-center justify-center w-10 h-10 rounded-full border-2 font-bold text-sm transition-all ${
                   index < currentStepIndex
-                    ? "bg-indigo-600 border-indigo-600 text-white"
+                    ? "bg-[var(--primary)] border-[var(--primary)] text-[var(--primary-foreground)]"
                     : index === currentStepIndex
-                    ? "bg-white dark:bg-gray-800 border-indigo-600 text-indigo-600"
-                    : "bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400"
+                    ? "bg-[var(--surface)] border-[var(--primary)] text-[var(--link)]"
+                    : "bg-[var(--surface-2)] border-[var(--border)] text-[var(--muted)]"
                 }`}
               >
                 {index < currentStepIndex ? "✓" : step.icon}
@@ -209,8 +213,8 @@ export default function GroupCreateWizard() {
                 <div
                   className={`w-full h-1 mx-2 rounded ${
                     index < currentStepIndex
-                      ? "bg-indigo-600"
-                      : "bg-gray-200 dark:bg-gray-700"
+                      ? "bg-[var(--primary)]"
+                      : "bg-[var(--border)]"
                   }`}
                   style={{ width: "60px" }}
                 />
@@ -224,8 +228,8 @@ export default function GroupCreateWizard() {
               key={step.id}
               className={`text-xs font-medium ${
                 step.id === currentStep
-                  ? "text-indigo-600 dark:text-indigo-400"
-                  : "text-gray-400"
+                  ? "text-[var(--link)]"
+                  : "text-[var(--muted)]"
               }`}
             >
               {step.label}
@@ -242,51 +246,51 @@ export default function GroupCreateWizard() {
       )}
 
       {/* Step Content */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
+      <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-sm border border-[var(--border)] p-6 mb-6">
         {currentStep === "basics" && (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-[var(--foreground)]">
                 Pflichtfelder
               </h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+              <p className="text-[var(--muted)] text-sm mt-1">
                 Name, Beschreibung und Trainingsort sind Pflicht. Alles andere kommt im nächsten Schritt.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                 Name der Gruppe *
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => updateField("name", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 text-lg focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 placeholder="z.B. Amaya Luna"
                 autoFocus
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                 Beschreibung *
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => updateField("description", e.target.value)}
                 rows={4}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 placeholder="Erzähle etwas über eure Gruppe, euren Stil, eure Geschichte..."
               />
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[var(--muted)] mt-1">
                 {formData.description.length}/10 Zeichen (Minimum)
               </p>
             </div>
 
-            <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+            <div className="pt-2 border-t border-[var(--border)]">
               <div className="mb-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Trainingsort (Adresse oder Stadt/PLZ) *
                 </label>
                 <div className="flex gap-2">
@@ -300,21 +304,21 @@ export default function GroupCreateWizard() {
                         address: e.target.value,
                       })
                     }
-                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 dark:bg-gray-700 dark:text-white"
+                    className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                     placeholder="z.B. 10115 Berlin"
                   />
                   <button
                     type="button"
                     onClick={geocodeAddress}
                     disabled={!formData.location?.address || isLoading}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition"
                   >
                     Suchen
                   </button>
                 </div>
               </div>
 
-              <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+              <div className="rounded-lg overflow-hidden border border-[var(--border)]">
                 <LocationPicker
                   initialLat={formData.location?.lat}
                   initialLng={formData.location?.lng}
@@ -329,7 +333,7 @@ export default function GroupCreateWizard() {
               </div>
 
               {formData.location?.lat && formData.location?.lng && (
-                <p className="text-sm text-gray-500 text-center mt-2">
+                <p className="text-sm text-[var(--muted)] text-center mt-2">
                   📍 Koordinaten: {formData.location.lat.toFixed(4)}, {formData.location.lng.toFixed(4)}
                 </p>
               )}
@@ -340,16 +344,16 @@ export default function GroupCreateWizard() {
         {currentStep === "details" && (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-[var(--foreground)]">
                 Optional
               </h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+              <p className="text-[var(--muted)] text-sm mt-1">
                 Diese Angaben sind optional – du kannst sie auch später im Profil ergänzen.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                 Gruppengröße (optional)
               </label>
               <div className="grid grid-cols-5 gap-2">
@@ -366,12 +370,12 @@ export default function GroupCreateWizard() {
                     onClick={() => updateField("size", size.value as FormData["size"])}
                     className={`p-3 rounded-lg border-2 text-center transition-all ${
                       formData.size === size.value
-                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30"
-                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
+                        ? "border-[var(--primary)] bg-[var(--surface-2)]"
+                        : "border-[var(--border)] hover:bg-[var(--surface-hover)]"
                     }`}
                   >
                     <span className="text-xl block">{size.icon}</span>
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                    <span className="text-xs font-medium text-[var(--muted)]">
                       {size.label}
                     </span>
                   </button>
@@ -380,7 +384,7 @@ export default function GroupCreateWizard() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                 Bild / Logo
               </label>
               <div className="flex items-center gap-4">
@@ -394,7 +398,7 @@ export default function GroupCreateWizard() {
                     />
                   </>
                 ) : (
-                  <div className="h-16 w-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-2xl">
+                  <div className="h-16 w-16 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg flex items-center justify-center text-2xl">
                     📷
                   </div>
                 )}
@@ -402,13 +406,13 @@ export default function GroupCreateWizard() {
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
-                  className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900/50 dark:file:text-indigo-200"
+                  className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-[var(--border)] file:bg-[var(--surface-2)] file:text-[var(--foreground)] hover:file:bg-[var(--surface-hover)]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                 Tanzstile
               </label>
               <TagInput
@@ -419,19 +423,19 @@ export default function GroupCreateWizard() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Trainingszeiten
                 </label>
                 <input
                   type="text"
                   value={formData.trainingTime || ""}
                   onChange={(e) => updateField("trainingTime", e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="z.B. Mo 18-20 Uhr"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Gründungsjahr
                 </label>
                 <input
@@ -440,7 +444,7 @@ export default function GroupCreateWizard() {
                   onChange={(e) =>
                     updateField("foundingYear", e.target.value ? parseInt(e.target.value) : null)
                   }
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="z.B. 2015"
                   min="1900"
                   max={new Date().getFullYear()}
@@ -454,9 +458,9 @@ export default function GroupCreateWizard() {
                   type="checkbox"
                   checked={formData.seekingMembers}
                   onChange={(e) => updateField("seekingMembers", e.target.checked)}
-                  className="h-5 w-5 text-indigo-600 rounded"
+                  className="h-5 w-5 text-[var(--primary)] rounded"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-200">
+                <span className="text-sm text-[var(--foreground)]">
                   👋 Suchen Mitglieder
                 </span>
               </label>
@@ -465,9 +469,9 @@ export default function GroupCreateWizard() {
                   type="checkbox"
                   checked={formData.performances}
                   onChange={(e) => updateField("performances", e.target.checked)}
-                  className="h-5 w-5 text-indigo-600 rounded"
+                  className="h-5 w-5 text-[var(--primary)] rounded"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-200">
+                <span className="text-sm text-[var(--foreground)]">
                   🎭 Auftritte möglich
                 </span>
               </label>
@@ -475,26 +479,26 @@ export default function GroupCreateWizard() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Webseite
                 </label>
                 <input
                   type="url"
                   value={formData.website || ""}
                   onChange={(e) => updateField("website", e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="https://..."
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Kontakt E-Mail
                 </label>
                 <input
                   type="email"
                   value={formData.contactEmail || ""}
                   onChange={(e) => updateField("contactEmail", e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="info@..."
                 />
               </div>
@@ -510,7 +514,7 @@ export default function GroupCreateWizard() {
         <button
           type="button"
           onClick={currentStepIndex === 0 ? () => router.back() : prevStep}
-          className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition font-medium"
+          className="px-6 py-3 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition font-medium"
         >
           {currentStepIndex === 0 ? "Abbrechen" : "Zurück"}
         </button>
@@ -520,7 +524,7 @@ export default function GroupCreateWizard() {
             type="button"
             onClick={handleSubmit}
             disabled={isLoading}
-            className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50 flex items-center gap-2"
+            className="px-8 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition font-medium disabled:opacity-50 flex items-center gap-2"
           >
             {isLoading ? (
               <>
@@ -538,7 +542,7 @@ export default function GroupCreateWizard() {
           <button
             type="button"
             onClick={nextStep}
-            className="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
+            className="px-8 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition font-medium"
           >
             Weiter →
           </button>

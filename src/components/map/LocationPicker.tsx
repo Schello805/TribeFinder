@@ -98,5 +98,5 @@ export default function LocationPicker({
     mapRef.current.setView([initialLat, initialLng], 13);
   }, [initialLat, initialLng]);
 
-  return <div ref={mapContainerRef} className="h-64 w-full rounded-md border border-gray-300" />;
+  return <div ref={mapContainerRef} className="h-64 w-full rounded-md border border-[var(--border)]" />;
 }
