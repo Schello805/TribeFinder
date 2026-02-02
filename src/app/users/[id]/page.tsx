@@ -49,7 +49,7 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">{displayName}</h1>
+            <h1 className="tf-display text-2xl font-bold text-gray-900 dark:text-white truncate">{displayName}</h1>
             {user.bio ? (
               <p className="mt-1 text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{user.bio}</p>
             ) : null}
@@ -58,7 +58,7 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Gruppen</h2>
+        <h2 className="tf-display text-lg font-bold text-gray-900 dark:text-white">Gruppen</h2>
         {groups.length > 0 ? (
           <ul className="mt-4 divide-y divide-gray-100 dark:divide-gray-700">
             {groups.map((g) => (
@@ -73,7 +73,7 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
                     </div>
                   )}
                   <div className="min-w-0">
-                    <div className="font-medium text-gray-900 dark:text-white truncate">{g.name}</div>
+                    <div className="tf-display font-medium text-gray-900 dark:text-white truncate">{g.name}</div>
                   </div>
                 </div>
                 <Link

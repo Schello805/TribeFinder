@@ -67,7 +67,7 @@ function VerifyEmailInner() {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold text-center mb-3 text-gray-800 dark:text-white">E-Mail bestätigen</h1>
+      <h1 className="tf-display text-2xl font-bold text-center mb-3 text-gray-800 dark:text-white">E-Mail bestätigen</h1>
       <p className="text-sm text-center text-gray-500 dark:text-gray-300 mb-6">
         Der Bestätigungslink ist aus Sicherheitsgründen nur 24 Stunden gültig.
       </p>

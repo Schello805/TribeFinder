@@ -74,7 +74,7 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">Registrieren</h1>
+      <h1 className="tf-display text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">Registrieren</h1>
       
       {error && (
         <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4" role="alert">

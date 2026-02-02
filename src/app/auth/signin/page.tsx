@@ -62,7 +62,7 @@ export default function SignInPage() {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">Anmelden</h1>
+      <h1 className="tf-display text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">Anmelden</h1>
 
       {success && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">

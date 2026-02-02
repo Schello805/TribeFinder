@@ -3,16 +3,16 @@ import React from 'react';
 export default function DatenschutzPage() {
   return (
     <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8 bg-white shadow rounded-lg">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Datenschutzerklärung</h1>
+      <h1 className="tf-display text-3xl font-bold text-gray-900 mb-8">Datenschutzerklärung</h1>
 
       <div className="space-y-6 text-gray-700">
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">1. Datenschutz auf einen Blick</h2>
-          <h3 className="font-medium text-gray-900 mt-4">Allgemeine Hinweise</h3>
+          <h2 className="tf-display text-xl font-semibold text-gray-900 mb-2">1. Datenschutz auf einen Blick</h2>
+          <h3 className="tf-display font-medium text-gray-900 mt-4">Allgemeine Hinweise</h3>
           <p>
             Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können.
           </p>
-          <h3 className="font-medium text-gray-900 mt-4">Datenerfassung auf dieser Website</h3>
+          <h3 className="tf-display font-medium text-gray-900 mt-4">Datenerfassung auf dieser Website</h3>
           <p>
             <strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong><br />
             Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem Impressum dieser Website entnehmen.
@@ -27,14 +27,14 @@ export default function DatenschutzPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">2. Hosting</h2>
+          <h2 className="tf-display text-xl font-semibold text-gray-900 mb-2">2. Hosting</h2>
           <p>
             Diese Website wird privat betrieben und auf einem Server in Deutschland gehostet.
           </p>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">3. Öffentliche Inhalte</h2>
+          <h2 className="tf-display text-xl font-semibold text-gray-900 mb-2">3. Öffentliche Inhalte</h2>
           <p>
             Inhalte wie Gruppenprofile, Events und Beiträge können öffentlich sichtbar sein und von Suchmaschinen indexiert werden. Bitte veröffentliche keine personenbezogenen Daten,
             die nicht öffentlich werden sollen.
@@ -42,21 +42,21 @@ export default function DatenschutzPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">4. Allgemeine Hinweise und Pflichtinformationen</h2>
-          <h3 className="font-medium text-gray-900 mt-4">Datenschutz</h3>
+          <h2 className="tf-display text-xl font-semibold text-gray-900 mb-2">4. Allgemeine Hinweise und Pflichtinformationen</h2>
+          <h3 className="tf-display font-medium text-gray-900 mt-4">Datenschutz</h3>
           <p>
             Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.
           </p>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">5. Datenerfassung auf dieser Website</h2>
-          <h3 className="font-medium text-gray-900 mt-4">Cookies</h3>
+          <h2 className="tf-display text-xl font-semibold text-gray-900 mb-2">5. Datenerfassung auf dieser Website</h2>
+          <h3 className="tf-display font-medium text-gray-900 mt-4">Cookies</h3>
           <p>
             Unsere Internetseiten verwenden so genannte „Cookies“. Cookies sind kleine Textdateien und richten auf Ihrem Endgerät keinen Schaden an. Sie werden entweder vorübergehend für die Dauer einer Sitzung (Session-Cookies) oder dauerhaft (permanente Cookies) auf Ihrem Endgerät gespeichert. Session-Cookies werden nach Ende Ihres Besuchs automatisch gelöscht.
           </p>
           
-          <h3 className="font-medium text-gray-900 mt-4">Matomo (ehemals Piwik)</h3>
+          <h3 className="tf-display font-medium text-gray-900 mt-4">Matomo (ehemals Piwik)</h3>
           <p>
             Diese Website benutzt den Open Source Webanalysedienst Matomo. Matomo wird von uns selbst betrieben (Self-Hosting). Die durch Matomo erhobenen Informationen über die Benutzung dieser Website werden auf unserem Server gespeichert. Die IP-Adresse wird vor der Speicherung anonymisiert.
           </p>
