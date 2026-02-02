@@ -33,6 +33,7 @@ export default function GroupsPage() {
   const searchParams = useSearchParams();
   const [groups, setGroups] = useState<GroupListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [total, setTotal] = useState<number>(0);
   useEffect(() => {
     const fetchGroups = async () => {
       const address = searchParams.get('address');
@@ -52,6 +53,7 @@ export default function GroupsPage() {
         const performances = searchParams.get('performances');
         const seeking = searchParams.get('seeking');
         const size = searchParams.get('size');
+        const sort = searchParams.get('sort');
         const lat = searchParams.get('lat');
         const lng = searchParams.get('lng');
         const radius = searchParams.get('radius') || '50';
@@ -61,6 +63,7 @@ export default function GroupsPage() {
         if (performances) params.append('performances', performances);
         if (seeking) params.append('seeking', seeking);
         if (size) params.append('size', size);
+        if (sort) params.append('sort', sort);
         if (lat) params.append('lat', lat);
         if (lng) params.append('lng', lng);
         if (radius) params.append('radius', radius);
@@ -68,6 +71,7 @@ export default function GroupsPage() {
         const res = await fetch(`/api/groups?${params.toString()}`);
         if (!res.ok) {
           setGroups([]);
+          setTotal(0);
           return;
         }
 
@@ -76,9 +80,16 @@ export default function GroupsPage() {
           ? json
           : (isRecord(json) && Array.isArray(json.data) ? json.data : []);
         setGroups((arr as unknown[]).filter(isGroupListItem));
+
+        if (isRecord(json) && isRecord(json.pagination) && typeof json.pagination.total === "number") {
+          setTotal(json.pagination.total);
+        } else {
+          setTotal((arr as unknown[]).length);
+        }
       } catch (error) {
         console.error('Error fetching groups:', error);
         setGroups([]);
+        setTotal(0);
       } finally {
         setIsLoading(false);
       }
@@ -90,14 +101,19 @@ export default function GroupsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Tanzgruppen finden</h1>
-        <Link
-          href="/groups/create"
-          className="inline-flex items-center rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition"
-        >
-          + Neue Gruppe erstellen
-        </Link>
+      <div>
+        <div className="flex justify-between items-center">
+          <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Tanzgruppen finden</h1>
+          <Link
+            href="/groups/create"
+            className="inline-flex items-center rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition"
+          >
+            + Neue Gruppe erstellen
+          </Link>
+        </div>
+        <div className="mt-1 text-sm text-[var(--muted)]">
+          {isLoading ? "Lade…" : `${total} Gruppen gefunden`}
+        </div>
       </div>
 
       <GroupFilter />

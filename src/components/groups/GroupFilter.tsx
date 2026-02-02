@@ -20,6 +20,7 @@ export default function GroupFilter() {
   const [onlyPerformances, setOnlyPerformances] = useState(searchParams.get("performances") === "1");
   const [onlySeekingMembers, setOnlySeekingMembers] = useState(searchParams.get("seeking") === "1");
   const [groupSize, setGroupSize] = useState(searchParams.get("size") || "");
+  const [sort, setSort] = useState(searchParams.get("sort") || "newest");
   const [availableTags, setAvailableTags] = useState<{ id: string, name: string }[]>([]);
   const [isLocating, setIsLocating] = useState(false);
   const geocodeSeq = useRef(0);
@@ -62,7 +63,8 @@ export default function GroupFilter() {
       newTag: string,
       newOnlyPerformances: boolean,
       newOnlySeekingMembers: boolean,
-      newGroupSize: string
+      newGroupSize: string,
+      newSort: string
     ) => {
       const params = new URLSearchParams(searchParamsString);
 
@@ -80,6 +82,9 @@ export default function GroupFilter() {
 
       if (newGroupSize) params.set("size", newGroupSize);
       else params.delete("size");
+
+      if (newSort && newSort !== "newest") params.set("sort", newSort);
+      else params.delete("sort");
 
       if (newLat && newLng) {
         params.set("lat", newLat);
@@ -107,8 +112,8 @@ export default function GroupFilter() {
 
   // Effect for Search Term and Tag
   useEffect(() => {
-    updateUrl(debouncedSearchTerm, lat, lng, radius, location, selectedTag, onlyPerformances, onlySeekingMembers, groupSize);
-  }, [debouncedSearchTerm, lat, lng, location, radius, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, updateUrl]);
+    updateUrl(debouncedSearchTerm, lat, lng, radius, location, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
+  }, [debouncedSearchTerm, lat, lng, location, radius, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort, updateUrl]);
 
   // Effect for Location Search (Geocoding)
   useEffect(() => {
@@ -135,7 +140,7 @@ export default function GroupFilter() {
           if (data && data[0]) {
             setLat(data[0].lat);
             setLng(data[0].lon);
-            updateUrl(searchTerm, data[0].lat, data[0].lon, radius, debouncedLocation, selectedTag, onlyPerformances, onlySeekingMembers, groupSize);
+            updateUrl(searchTerm, data[0].lat, data[0].lon, radius, debouncedLocation, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
           }
         } catch (e) {
           if (controller.signal.aborted) return;
@@ -149,14 +154,14 @@ export default function GroupFilter() {
         controller.abort();
       };
     }
-  }, [debouncedLocation, lat, lng, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, updateUrl]);
+  }, [debouncedLocation, lat, lng, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort, updateUrl]);
 
   // Trigger URL update when Radius or Coordinates change (if already set)
   useEffect(() => {
     if (lat && lng) {
-      updateUrl(searchTerm, lat, lng, radius, location, selectedTag, onlyPerformances, onlySeekingMembers, groupSize);
+      updateUrl(searchTerm, lat, lng, radius, location, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
     }
-  }, [lat, lng, location, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, updateUrl]);
+  }, [lat, lng, location, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort, updateUrl]);
 
   const handleUseMyLocation = () => {
     setIsLocating(true);
@@ -199,8 +204,113 @@ export default function GroupFilter() {
     setLocation("");
     setLat("");
     setLng("");
-    updateUrl(searchTerm, "", "", radius, "", selectedTag, onlyPerformances, onlySeekingMembers, groupSize);
+    updateUrl(searchTerm, "", "", radius, "", selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
   };
+
+  const clearAll = () => {
+    geocodeSeq.current += 1;
+    setSearchTerm("");
+    setSelectedTag("");
+    setOnlyPerformances(false);
+    setOnlySeekingMembers(false);
+    setGroupSize("");
+    setSort("newest");
+    setLocation("");
+    setLat("");
+    setLng("");
+    setRadius("50");
+    updateUrl("", "", "", "50", "", "", false, false, "", "newest");
+  };
+
+  const hasActiveFilters =
+    Boolean(searchTerm.trim()) ||
+    Boolean(selectedTag) ||
+    Boolean(location.trim()) ||
+    Boolean(onlyPerformances) ||
+    Boolean(onlySeekingMembers) ||
+    Boolean(groupSize) ||
+    Boolean(sort && sort !== "newest");
+
+  const showDistanceSort = Boolean(lat && lng);
+
+  const secondaryControls = (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Optionen</label>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+            <input
+              type="checkbox"
+              checked={onlyPerformances}
+              onChange={(e) => setOnlyPerformances(e.target.checked)}
+              className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+            />
+            Auftrittsanfragen
+          </label>
+          <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+            <input
+              type="checkbox"
+              checked={onlySeekingMembers}
+              onChange={(e) => setOnlySeekingMembers(e.target.checked)}
+              className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+            />
+            Sucht Mitglieder
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Gruppengröße</label>
+        <div className="relative">
+          <select
+            value={groupSize}
+            onChange={(e) => setGroupSize(e.target.value)}
+            className="w-full px-4 py-2 pr-10 min-h-11 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
+          >
+            <option value="">Alle Größen</option>
+            <option value="SOLO">Solo</option>
+            <option value="DUO">Duo</option>
+            <option value="TRIO">Trio</option>
+            <option value="SMALL">Kleine Gruppe (&lt; 10)</option>
+            <option value="LARGE">Große Gruppe (&gt; 10)</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--muted)]">
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Sortierung</label>
+        <div className="relative">
+          <select
+            value={sort}
+            onChange={(e) => {
+              const next = e.target.value;
+              if (next === "distance" && !showDistanceSort) {
+                showToast('Für „Entfernung“ bitte einen Standort/Umkreis setzen.', 'info');
+                setSort("newest");
+                return;
+              }
+              setSort(next);
+            }}
+            className="w-full px-4 py-2 pr-10 min-h-11 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
+          >
+            <option value="newest">Neueste</option>
+            <option value="name">Alphabetisch</option>
+            <option value="distance" disabled={!showDistanceSort}>Entfernung</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--muted)]">
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="mb-6 bg-[var(--surface)] text-[var(--foreground)] p-4 rounded-lg shadow-sm border border-[var(--border)] space-y-4">
@@ -274,81 +384,155 @@ export default function GroupFilter() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Optionen</label>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
-              <input
-                type="checkbox"
-                checked={onlyPerformances}
-                onChange={(e) => setOnlyPerformances(e.target.checked)}
-                className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
-              />
-              Auftrittsanfragen
-            </label>
-            <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
-              <input
-                type="checkbox"
-                checked={onlySeekingMembers}
-                onChange={(e) => setOnlySeekingMembers(e.target.checked)}
-                className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
-              />
-              Sucht Mitglieder
-            </label>
-          </div>
-        </div>
+      <div className="hidden md:block">
+        {secondaryControls}
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Gruppengröße</label>
-          <div className="relative">
-            <select
-              value={groupSize}
-              onChange={(e) => setGroupSize(e.target.value)}
-              className="w-full px-4 py-2 pr-10 min-h-11 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
-            >
-              <option value="">Alle Größen</option>
-              <option value="SOLO">Solo</option>
-              <option value="DUO">Duo</option>
-              <option value="TRIO">Trio</option>
-              <option value="SMALL">Kleine Gruppe (&lt; 10)</option>
-              <option value="LARGE">Große Gruppe (&gt; 10)</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--muted)]">
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
-              </svg>
+        {(lat && lng) && (
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+              Umkreis: {radius} km
+            </label>
+            <input
+              type="range"
+              min={radiusMin}
+              max={radiusMax}
+              step="5"
+              value={radius}
+              onChange={(e) => setRadius(e.target.value)}
+              style={{
+                background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${radiusPercent}%, #e5e7eb ${radiusPercent}%, #e5e7eb 100%)`,
+              }}
+              className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+            />
+            <div className="flex justify-between text-xs text-[var(--muted)] mt-1">
+              <span>5 km</span>
+              <span>200 km</span>
             </div>
           </div>
-        </div>
-
-        <div className="hidden md:block" />
+        )}
       </div>
 
-      {/* Radius Slider (nur sichtbar wenn Koordinaten da sind) */}
-      {(lat && lng) && (
-        <div>
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
-            Umkreis: {radius} km
-          </label>
-          <input
-            type="range"
-            min={radiusMin}
-            max={radiusMax}
-            step="5"
-            value={radius}
-            onChange={(e) => setRadius(e.target.value)}
-            style={{
-              background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${radiusPercent}%, #e5e7eb ${radiusPercent}%, #e5e7eb 100%)`,
-            }}
-            className="w-full h-2 rounded-lg appearance-none cursor-pointer"
-          />
-          <div className="flex justify-between text-xs text-[var(--muted)] mt-1">
-            <span>5 km</span>
-            <span>200 km</span>
-          </div>
+      <details className="md:hidden rounded-md border border-[var(--border)] bg-[var(--surface-2)]">
+        <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-[var(--foreground)]">
+          Weitere Filter
+        </summary>
+        <div className="px-3 pb-3 pt-1 space-y-4">
+          {secondaryControls}
+
+          {(lat && lng) && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Umkreis: {radius} km
+              </label>
+              <input
+                type="range"
+                min={radiusMin}
+                max={radiusMax}
+                step="5"
+                value={radius}
+                onChange={(e) => setRadius(e.target.value)}
+                style={{
+                  background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${radiusPercent}%, #e5e7eb ${radiusPercent}%, #e5e7eb 100%)`,
+                }}
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-[var(--muted)] mt-1">
+                <span>5 km</span>
+                <span>200 km</span>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </details>
+
+      {hasActiveFilters ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {onlyPerformances ? (
+            <button
+              type="button"
+              onClick={() => setOnlyPerformances(false)}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Auftrittsanfragen
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          {onlySeekingMembers ? (
+            <button
+              type="button"
+              onClick={() => setOnlySeekingMembers(false)}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Sucht Mitglieder
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          {groupSize ? (
+            <button
+              type="button"
+              onClick={() => setGroupSize("")}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Größe: {groupSize}
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          {selectedTag ? (
+            <button
+              type="button"
+              onClick={() => setSelectedTag("")}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Tanzstil: {selectedTag}
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          {searchTerm.trim() ? (
+            <button
+              type="button"
+              onClick={() => setSearchTerm("")}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Suche
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          {(location.trim() || (lat && lng)) ? (
+            <button
+              type="button"
+              onClick={clearLocation}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Standort
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          {sort && sort !== "newest" ? (
+            <button
+              type="button"
+              onClick={() => setSort("newest")}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Sortierung
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={clearAll}
+            className="ml-auto inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+          >
+            Filter zurücksetzen
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

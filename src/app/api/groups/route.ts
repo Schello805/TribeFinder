@@ -19,6 +19,7 @@ export async function GET(req: Request) {
   const performancesRaw = searchParams.get("performances");
   const seekingRaw = searchParams.get("seeking");
   const sizeRaw = searchParams.get("size");
+  const sortRaw = (searchParams.get("sort") || "").trim();
   const latRaw = searchParams.get("lat");
   const lngRaw = searchParams.get("lng");
   const radiusRaw = searchParams.get("radius");
@@ -29,6 +30,8 @@ export async function GET(req: Request) {
   const onlyPerformances = performancesRaw === "1";
   const onlySeekingMembers = seekingRaw === "1";
   const size = sizeRaw && ["SOLO", "DUO", "TRIO", "SMALL", "LARGE"].includes(sizeRaw) ? sizeRaw : null;
+
+  const sort = sortRaw === "name" || sortRaw === "distance" ? sortRaw : "newest";
   
   // Pagination params
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
@@ -37,6 +40,18 @@ export async function GET(req: Request) {
     Math.max(1, parseInt(searchParams.get("limit") || String(DEFAULT_PAGE_SIZE), 10))
   );
   const skip = (page - 1) * limit;
+
+  const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const toRad = (v: number) => (v * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
   
   const whereClause: {
     OR?: Array<{
@@ -87,26 +102,65 @@ export async function GET(req: Request) {
   }
 
   try {
-    const [groups, total] = await Promise.all([
-      prisma.group.findMany({
-        where: whereClause,
-        include: {
-          location: true,
-          tags: true,
-          owner: {
-            select: {
-              name: true,
-              image: true,
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        },
-        skip,
-        take: limit,
-      }),
+    const [total, groups] = await Promise.all([
       prisma.group.count({ where: whereClause }),
+      (async () => {
+        if (sort === "distance" && Number.isFinite(lat) && Number.isFinite(lng)) {
+          const takeForDistance = Math.min(MAX_PAGE_SIZE, skip + limit);
+          const unsorted = await prisma.group.findMany({
+            where: whereClause,
+            include: {
+              location: true,
+              tags: true,
+              owner: {
+                select: {
+                  name: true,
+                  image: true,
+                }
+              }
+            },
+            take: takeForDistance,
+          });
+
+          const sorted = unsorted
+            .map((g) => {
+              const glat = (g.location as { lat?: number } | null)?.lat;
+              const glng = (g.location as { lng?: number } | null)?.lng;
+              const d =
+                typeof glat === "number" && typeof glng === "number" && Number.isFinite(glat) && Number.isFinite(glng)
+                  ? haversineKm(lat, lng, glat, glng)
+                  : Number.POSITIVE_INFINITY;
+              return { g, d };
+            })
+            .sort((a, b) => a.d - b.d)
+            .slice(skip, skip + limit)
+            .map((x) => x.g);
+
+          return sorted;
+        }
+
+        const orderBy =
+          sort === "name"
+            ? ({ name: "asc" } as const)
+            : ({ createdAt: "desc" } as const);
+
+        return prisma.group.findMany({
+          where: whereClause,
+          include: {
+            location: true,
+            tags: true,
+            owner: {
+              select: {
+                name: true,
+                image: true,
+              }
+            }
+          },
+          orderBy,
+          skip,
+          take: limit,
+        });
+      })(),
     ]);
 
     return NextResponse.json({
