@@ -74,11 +74,11 @@ html[data-tf-theme="copper"] {
 }
 
 html[data-tf-theme="nocturne"] {
-  --background: #0e0711;
+  --background: #1a0824;
   --foreground: #f2e7f6;
-  --surface: #160b1b;
-  --surface-2: #201025;
-  --surface-hover: #2a1431;
+  --surface: #24102f;
+  --surface-2: #2d143a;
+  --surface-hover: #37184a;
   --muted: rgba(242,231,246,0.7);
   --border: rgba(242,231,246,0.16);
   --primary: #a86bd9;
@@ -86,11 +86,11 @@ html[data-tf-theme="nocturne"] {
   --primary-active: #8f55bf;
   --primary-foreground: #120613;
   --link: #c79af0;
-  --nav-bg: #160b1b;
+  --nav-bg: #14061c;
   --nav-fg: #f2e7f6;
   --nav-muted: rgba(242,231,246,0.75);
   --nav-border: rgba(242,231,246,0.14);
-  --footer-bg: #08040a;
+  --footer-bg: #0f0416;
   --footer-fg: #f2e7f6;
   --footer-muted: rgba(242,231,246,0.7);
   --footer-border: rgba(242,231,246,0.12);
@@ -169,11 +169,11 @@ html.dark[data-tf-theme="copper"] {
 }
 
 html.dark[data-tf-theme="nocturne"] {
-  --background: #0e0711;
+  --background: #1a0824;
   --foreground: #f2e7f6;
-  --surface: #160b1b;
-  --surface-2: #201025;
-  --surface-hover: #2a1431;
+  --surface: #24102f;
+  --surface-2: #2d143a;
+  --surface-hover: #37184a;
   --muted: rgba(242,231,246,0.7);
   --border: rgba(242,231,246,0.16);
   --primary: #a86bd9;
@@ -181,11 +181,11 @@ html.dark[data-tf-theme="nocturne"] {
   --primary-active: #8f55bf;
   --primary-foreground: #120613;
   --link: #c79af0;
-  --nav-bg: #160b1b;
+  --nav-bg: #14061c;
   --nav-fg: #f2e7f6;
   --nav-muted: rgba(242,231,246,0.75);
   --nav-border: rgba(242,231,246,0.14);
-  --footer-bg: #08040a;
+  --footer-bg: #0f0416;
   --footer-fg: #f2e7f6;
   --footer-muted: rgba(242,231,246,0.7);
   --footer-border: rgba(242,231,246,0.12);
@@ -198,16 +198,16 @@ html.dark[data-tf-theme="nocturne"] {
 
 html[data-tf-theme="nocturne"] .tf-gothic-btn,
 html.dark[data-tf-theme="nocturne"] .tf-gothic-btn {
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   clip-path: polygon(
-    10px 0,
-    calc(100% - 10px) 0,
-    100% 10px,
-    100% calc(100% - 10px),
-    calc(100% - 16px) 100%,
-    10px 100%,
-    0 calc(100% - 10px),
-    0 10px
+    6px 0,
+    calc(100% - 6px) 0,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 10px) 100%,
+    6px 100%,
+    0 calc(100% - 6px),
+    0 6px
   );
   box-shadow:
     0 10px 26px rgba(0,0,0,0.35),
@@ -228,23 +228,6 @@ h1, h2, h3, .tf-display {
 html[data-tf-theme="nocturne"] body,
 html.dark[data-tf-theme="nocturne"] body {
   font-family: var(--font-display-nocturne), var(--font-geist-sans), Arial, Helvetica, sans-serif;
-}
-
-html[data-tf-theme="nocturne"] button,
-html.dark[data-tf-theme="nocturne"] button,
-html[data-tf-theme="nocturne"] a.tf-gothic-btn,
-html.dark[data-tf-theme="nocturne"] a.tf-gothic-btn {
-  border-radius: 0;
-  clip-path: polygon(
-    12px 0,
-    calc(100% - 12px) 0,
-    100% 12px,
-    100% calc(100% - 12px),
-    calc(100% - 18px) 100%,
-    12px 100%,
-    0 calc(100% - 12px),
-    0 12px
-  );
 }
 
 body {
