@@ -75,8 +75,8 @@ export default function EventsPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">📅 Event Kalender</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Entdecke Workshops, Partys und Trainings in deiner Umgebung.</p>
+          <h1 className="text-3xl font-bold text-[var(--foreground)]">📅 Event Kalender</h1>
+          <p className="text-[var(--muted)] mt-2">Entdecke Workshops, Partys und Trainings in deiner Umgebung.</p>
         </div>
         
         <div className="flex gap-4">
@@ -128,17 +128,17 @@ export default function EventsPage() {
                     <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mb-2 ${getTypeColor(event.eventType)}`}>
                       {getTypeLabel(event.eventType)}
                     </span>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-indigo-600 transition-colors">
+                    <h3 className="text-xl font-bold text-[var(--foreground)] hover:text-[var(--link)] transition-colors">
                       <Link href={`/events/${event.id}`}>{event.title}</Link>
                     </h3>
                   </div>
                 </div>
                 
-                <p className="text-gray-600 dark:text-gray-300 line-clamp-2">
+                <p className="text-[var(--muted)] line-clamp-2">
                   {event.description}
                 </p>
                 
-                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 pt-2">
+                <div className="flex items-center gap-4 text-sm text-[var(--muted)] pt-2">
                   <span className="flex items-center gap-1">
                     🕒 {formatBerlin(event.startDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} Uhr
                   </span>
