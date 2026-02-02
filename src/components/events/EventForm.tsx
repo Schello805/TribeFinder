@@ -756,30 +756,30 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   };
 
   return (
-    <form onSubmit={handleSubmit} autoComplete="off" noValidate className="space-y-6 max-w-2xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors">
+    <form onSubmit={handleSubmit} autoComplete="off" noValidate className="space-y-6 max-w-2xl mx-auto bg-[var(--surface)] text-[var(--foreground)] p-6 rounded-lg border border-[var(--border)] shadow transition-colors">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded dark:bg-red-900/30 dark:border-red-800 dark:text-red-200">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Titel des Events</label>
+        <label className="block text-sm font-medium text-[var(--foreground)]">Titel des Events</label>
         <input
           type="text"
           name="title"
           value={formData.title}
           onChange={handleChange}
           required
-          className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+          className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div ref={startFieldRef}>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Start-Zeitpunkt</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Start-Zeitpunkt</label>
           {browserTimeZone ? (
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Zeitzone: {browserTimeZone}</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">Zeitzone: {browserTimeZone}</p>
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
             <div className="relative">
@@ -789,7 +789,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 value={startDateOnly ? toDisplayDate(startDateOnly) : ""}
                 autoComplete="off"
                 placeholder="Datum auswählen"
-                className={`block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white placeholder:text-gray-600 dark:bg-gray-700 dark:placeholder:text-gray-400 pointer-events-none ${startDateOnly && !startDateTouched ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white"}`}
+                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] placeholder:text-[var(--muted)] pointer-events-none ${startDateOnly && !startDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               />
               <input
                 type="date"
@@ -807,7 +807,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 value={startTimeOnly ? startTimeOnly : ""}
                 autoComplete="off"
                 placeholder="Uhrzeit auswählen"
-                className={`block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white placeholder:text-gray-600 dark:bg-gray-700 dark:placeholder:text-gray-400 pointer-events-none ${startTimeOnly && !startTimeTouched ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white"}`}
+                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] placeholder:text-[var(--muted)] pointer-events-none ${startTimeOnly && !startTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               />
               <input
                 type="time"
@@ -820,17 +820,17 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             </div>
           </div>
           {fieldErrors.startDate ? (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-300">{fieldErrors.startDate}</p>
+            <p className="mt-2 text-sm text-red-600">{fieldErrors.startDate}</p>
           ) : null}
         </div>
 
         <div ref={endFieldRef}>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">End-Zeitpunkt</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">End-Zeitpunkt</label>
           {browserTimeZone ? (
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 invisible">Zeitzone: {browserTimeZone}</p>
+            <p className="mt-1 text-xs text-[var(--muted)] invisible">Zeitzone: {browserTimeZone}</p>
           ) : null}
           {endShiftHint ? (
-            <p className="mt-1 text-xs text-indigo-700 dark:text-indigo-200">{endShiftHint}</p>
+            <p className="mt-1 text-xs text-[var(--link)]">{endShiftHint}</p>
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
             <div className="relative">
@@ -840,7 +840,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 value={endDateOnly ? toDisplayDate(endDateOnly) : ""}
                 autoComplete="off"
                 placeholder="Datum auswählen"
-                className={`block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white placeholder:text-gray-600 dark:bg-gray-700 dark:placeholder:text-gray-400 pointer-events-none ${endDateOnly && !endDateTouched ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white"}`}
+                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] placeholder:text-[var(--muted)] pointer-events-none ${endDateOnly && !endDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               />
               <input
                 type="date"
@@ -859,7 +859,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 value={endTimeOnly ? endTimeOnly : ""}
                 autoComplete="off"
                 placeholder="Uhrzeit auswählen"
-                className={`block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white placeholder:text-gray-600 dark:bg-gray-700 dark:placeholder:text-gray-400 pointer-events-none ${endTimeOnly && !endTimeTouched ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white"}`}
+                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] placeholder:text-[var(--muted)] pointer-events-none ${endTimeOnly && !endTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               />
               <input
                 type="time"
@@ -872,26 +872,26 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             </div>
           </div>
           {fieldErrors.endDate ? (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-300">{fieldErrors.endDate}</p>
+            <p className="mt-2 text-sm text-red-600">{fieldErrors.endDate}</p>
           ) : null}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Beschreibung</label>
+        <label className="block text-sm font-medium text-[var(--foreground)]">Beschreibung</label>
         <textarea
           name="description"
           value={formData.description}
           onChange={handleChange}
           rows={4}
           required
-          className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+          className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
         />
       </div>
 
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Webseite (Optional)</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Webseite (Optional)</label>
           <input
             type="text"
             name="website"
@@ -899,12 +899,12 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             onChange={handleChange}
             onBlur={handleUrlBlur}
             placeholder="www.beispiel.de"
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+            className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
           />
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Ticket-Link</label>
+            <label className="block text-sm font-medium text-[var(--foreground)]">Ticket-Link</label>
             <input
               type="text"
               name="ticketLink"
@@ -912,43 +912,43 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
               onChange={handleChange}
               onBlur={handleUrlBlur}
               placeholder="tickets.beispiel.de"
-              className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+              className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Preis</label>
+            <label className="block text-sm font-medium text-[var(--foreground)]">Preis</label>
             <input
               type="text"
               name="ticketPrice"
               value={formData.ticketPrice || ""}
               onChange={handleChange}
               placeholder="z.B. 15€ / Kostenlos"
-              className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+              className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
             />
           </div>
         </div>
       </div>
 
       {/* Workshop Booking Section */}
-      <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 border border-indigo-100 dark:border-indigo-800">
-        <h3 className="text-sm font-semibold text-indigo-900 dark:text-indigo-200 mb-4">Workshop-Buchung</h3>
+      <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
+        <h3 className="tf-display text-sm font-semibold text-[var(--foreground)] mb-4">Workshop-Buchung</h3>
         <div className="space-y-4">
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={formData.requiresRegistration || false}
               onChange={(e) => setFormData(prev => ({ ...prev, requiresRegistration: e.target.checked }))}
-              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="w-5 h-5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
             />
             <div>
-              <span className="font-medium text-gray-900 dark:text-white">Anmeldung erforderlich</span>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Teilnehmer müssen sich für dieses Event anmelden</p>
+              <span className="font-medium text-[var(--foreground)]">Anmeldung erforderlich</span>
+              <p className="text-xs text-[var(--muted)]">Teilnehmer müssen sich für dieses Event anmelden</p>
             </div>
           </label>
 
           {formData.requiresRegistration && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label className="block text-sm font-medium text-[var(--foreground)]">
                 Maximale Teilnehmerzahl (optional)
               </label>
               <input
@@ -960,9 +960,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                   maxParticipants: e.target.value ? parseInt(e.target.value) : undefined 
                 }))}
                 placeholder="Unbegrenzt"
-                className="mt-1 block w-48 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+                className="mt-1 block w-48 rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs text-[var(--muted)]">
                 Leer lassen für unbegrenzte Teilnehmer. Bei Limit werden weitere auf Warteliste gesetzt.
               </p>
             </div>
@@ -972,12 +972,12 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Flyer / Logo</label>
+            <label className="block text-sm font-medium text-[var(--foreground)]">Flyer / Logo</label>
             <div className="mt-1 flex flex-col gap-2">
               {formData.flyer1 && (
                 <div className="flex items-center gap-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={normalizeUploadedImageUrl(formData.flyer1) ?? ""} alt="Flyer 1" className="h-20 w-20 object-cover rounded-md border border-gray-200 dark:border-gray-600" />
+                  <img src={normalizeUploadedImageUrl(formData.flyer1) ?? ""} alt="Flyer 1" className="h-20 w-20 object-cover rounded-md border border-[var(--border)]" />
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, flyer1: "" }))}
@@ -991,17 +991,17 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleFlyerUpload(e, 'flyer1')}
-                className="block w-full text-sm text-black dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900/50 dark:file:text-indigo-200"
+                className="block w-full text-sm text-[var(--foreground)] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:border-[var(--border)] file:text-sm file:font-semibold file:bg-[var(--surface-2)] file:text-[var(--foreground)] hover:file:bg-[var(--surface-hover)]"
               />
             </div>
         </div>
         <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Weiteres Bild (Optional)</label>
+            <label className="block text-sm font-medium text-[var(--foreground)]">Weiteres Bild (Optional)</label>
             <div className="mt-1 flex flex-col gap-2">
               {formData.flyer2 && (
                 <div className="flex items-center gap-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={normalizeUploadedImageUrl(formData.flyer2) ?? ""} alt="Flyer 2" className="h-20 w-20 object-cover rounded-md border border-gray-200 dark:border-gray-600" />
+                  <img src={normalizeUploadedImageUrl(formData.flyer2) ?? ""} alt="Flyer 2" className="h-20 w-20 object-cover rounded-md border border-[var(--border)]" />
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, flyer2: "" }))}
@@ -1015,7 +1015,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleFlyerUpload(e, 'flyer2')}
-                className="block w-full text-sm text-black dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900/50 dark:file:text-indigo-200"
+                className="block w-full text-sm text-[var(--foreground)] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:border-[var(--border)] file:text-sm file:font-semibold file:bg-[var(--surface-2)] file:text-[var(--foreground)] hover:file:bg-[var(--surface-hover)]"
               />
             </div>
         </div>
@@ -1023,7 +1023,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Veranstaltungsort</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Veranstaltungsort</label>
           <input
             type="text"
             name="locationName"
@@ -1031,24 +1031,24 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             onChange={handleChange}
             onBlur={handleGeocode}
             placeholder="z.B. Stadthalle, Open Air Bühne..."
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+            className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Veranstalter (Optional)</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Veranstalter (Optional)</label>
           <input
             type="text"
             name="organizer"
             value={formData.organizer || ""}
             onChange={handleChange}
             placeholder="Name des Veranstalters"
-            className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+            className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Adresse *</label>
+        <label className="block text-sm font-medium text-[var(--foreground)]">Adresse *</label>
         <div className="flex gap-2 items-start">
           <div className="flex-1">
             <input
@@ -1059,22 +1059,22 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
               onBlur={handleAddressBlur}
               placeholder="Straße, Hausnummer, PLZ, Ort"
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 bg-white text-black placeholder:text-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+              className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
             />
             {isGeocoding && (
-              <p className="mt-1 text-sm text-indigo-600 dark:text-indigo-400">🔍 Suche Adresse...</p>
+              <p className="mt-1 text-sm text-[var(--link)]">🔍 Suche Adresse...</p>
             )}
             {geocodeError && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">⚠️ {geocodeError}</p>
+              <p className="mt-1 text-sm text-red-600">⚠️ {geocodeError}</p>
             )}
             {!isGeocoding && geocodeResults.length > 0 && (
-              <div className="mt-2 rounded-md border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 overflow-hidden">
+              <div className="mt-2 rounded-md border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
                 {geocodeResults.slice(0, 5).map((r, idx) => (
                   <button
                     key={`${r.lat}-${r.lon}-${idx}`}
                     type="button"
                     onClick={() => applyGeocodeSelection(r)}
-                    className="block w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="block w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
                   >
                     {r.display_name || `${r.lat}, ${r.lon}`}
                   </button>
@@ -1082,11 +1082,11 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
               </div>
             )}
             {!isGeocoding && !geocodeError && formData.lat !== 51.1657 && (
-              <p className="mt-1 text-sm text-green-600 dark:text-green-400">✓ Standort gefunden</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">✓ Standort gefunden</p>
             )}
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-xs text-[var(--muted)]">
           Die Adresse wird automatisch auf der Karte verortet.
         </p>
       </div>
@@ -1095,14 +1095,14 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
         <button
           type="button"
           onClick={() => router.back()}
-          className="mr-3 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="mr-3 px-4 py-2 border border-[var(--border)] rounded-md shadow-sm text-sm font-medium text-[var(--foreground)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition"
         >
           Abbrechen
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] disabled:opacity-50 transition"
         >
           {isLoading ? "Speichere..." : (isEditing ? "Aktualisieren" : "Event erstellen")}
         </button>
