@@ -183,8 +183,8 @@ export default async function RootLayout({
     : siteBannerText;
 
   return (
-    <html lang="de" suppressHydrationWarning data-tf-theme={themePreset}>
-      <body className={`${inter.className} ${copperDisplay.variable} ${nocturneDisplay.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
+    <html lang="de" suppressHydrationWarning data-tf-theme={themePreset} className={`${copperDisplay.variable} ${nocturneDisplay.variable}`}>
+      <body className={`${inter.className} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
