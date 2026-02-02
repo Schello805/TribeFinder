@@ -113,7 +113,7 @@ export default async function DashboardPage() {
             </p>
             <Link
               href="/groups/create"
-              className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm text-center font-medium"
+              className="tf-gothic-btn bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm text-center font-medium"
             >
               + Neue Gruppe erstellen
             </Link>

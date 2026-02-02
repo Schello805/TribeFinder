@@ -90,7 +90,7 @@ export default function DashboardNotificationsPage() {
           <button
             type="button"
             onClick={() => setPrefs((p) => ({ ...p, emailNotifications: !p.emailNotifications }))}
-            className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
+            className={`tf-gothic-btn inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
               prefs.emailNotifications
                 ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]"
                 : "bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
@@ -110,7 +110,7 @@ export default function DashboardNotificationsPage() {
             <button
               type="button"
               onClick={() => setPrefs((p) => ({ ...p, notifyInboxMessages: !p.notifyInboxMessages }))}
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
+              className={`tf-gothic-btn inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
                 prefs.notifyInboxMessages
                   ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]"
                   : "bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
@@ -126,7 +126,7 @@ export default function DashboardNotificationsPage() {
             <button
               type="button"
               onClick={() => setPrefs((p) => ({ ...p, notifyNewGroups: !p.notifyNewGroups }))}
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
+              className={`tf-gothic-btn inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
                 prefs.notifyNewGroups
                   ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]"
                   : "bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
@@ -138,7 +138,7 @@ export default function DashboardNotificationsPage() {
             <button
               type="button"
               onClick={() => setPrefs((p) => ({ ...p, notifyNewEvents: !p.notifyNewEvents }))}
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
+              className={`tf-gothic-btn inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
                 prefs.notifyNewEvents
                   ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]"
                   : "bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
@@ -182,7 +182,7 @@ export default function DashboardNotificationsPage() {
             type="button"
             onClick={save}
             disabled={isSaving}
-            className="inline-flex justify-center rounded-md border border-transparent bg-[var(--primary)] py-2 px-4 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50"
+            className="tf-gothic-btn inline-flex justify-center rounded-md border border-transparent bg-[var(--primary)] py-2 px-4 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50"
           >
             {isSaving ? "Speichere..." : "Speichern"}
           </button>

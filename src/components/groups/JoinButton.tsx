@@ -73,7 +73,7 @@ export default function JoinButton({ groupId, initialStatus }: JoinButtonProps) 
     <button
       onClick={handleToggleJoin}
       disabled={isLoading}
-      className={`px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] disabled:opacity-50 ${config.className}`}
+      className={`tf-gothic-btn px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] disabled:opacity-50 ${config.className}`}
     >
       {isLoading ? "Wird geladen..." : config.text}
     </button>
