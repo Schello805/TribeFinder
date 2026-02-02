@@ -74,27 +74,28 @@ html[data-tf-theme="copper"] {
 }
 
 html[data-tf-theme="nocturne"] {
-  --background: #eae2ee;
-  --foreground: #160b1a;
-  --surface: #f2ebf4;
-  --surface-2: #e5d7ea;
-  --surface-hover: #dbc9e1;
-  --muted: #5f5263;
-  --border: #ccb7d1;
-  --primary: #4a1f63;
-  --primary-hover: #3e1a53;
-  --primary-active: #321443;
-  --primary-foreground: #f6effb;
-  --link: #4a1f63;
-  --nav-bg: #1c0822;
-  --nav-fg: #f7eefc;
-  --nav-muted: rgba(247,238,252,0.82);
-  --nav-border: rgba(247,238,252,0.18);
-  --footer-bg: #150818;
-  --footer-fg: #f7eefc;
-  --footer-muted: rgba(247,238,252,0.75);
-  --footer-border: rgba(247,238,252,0.12);
+  --background: #0e0711;
+  --foreground: #f2e7f6;
+  --surface: #160b1b;
+  --surface-2: #201025;
+  --surface-hover: #2a1431;
+  --muted: rgba(242,231,246,0.7);
+  --border: rgba(242,231,246,0.16);
+  --primary: #a86bd9;
+  --primary-hover: #b887e6;
+  --primary-active: #8f55bf;
+  --primary-foreground: #120613;
+  --link: #c79af0;
+  --nav-bg: #160b1b;
+  --nav-fg: #f2e7f6;
+  --nav-muted: rgba(242,231,246,0.75);
+  --nav-border: rgba(242,231,246,0.14);
+  --footer-bg: #08040a;
+  --footer-fg: #f2e7f6;
+  --footer-muted: rgba(242,231,246,0.7);
+  --footer-border: rgba(242,231,246,0.12);
   --font-display: var(--font-display-nocturne);
+  color-scheme: dark;
 }
 
 .dark {
@@ -222,6 +223,28 @@ html.dark[data-tf-theme="nocturne"] .tf-gothic-btn {
 
 h1, h2, h3, .tf-display {
   font-family: var(--font-display, var(--font-geist-sans));
+}
+
+html[data-tf-theme="nocturne"] body,
+html.dark[data-tf-theme="nocturne"] body {
+  font-family: var(--font-display-nocturne), var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+html[data-tf-theme="nocturne"] button,
+html.dark[data-tf-theme="nocturne"] button,
+html[data-tf-theme="nocturne"] a.tf-gothic-btn,
+html.dark[data-tf-theme="nocturne"] a.tf-gothic-btn {
+  border-radius: 0;
+  clip-path: polygon(
+    12px 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% calc(100% - 12px),
+    calc(100% - 18px) 100%,
+    12px 100%,
+    0 calc(100% - 12px),
+    0 12px
+  );
 }
 
 body {
