@@ -43,15 +43,7 @@ export default function HelpPage() {
         </section>
 
         <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
-          <h2 className="tf-display text-xl font-bold mb-2">📰 Community Feed</h2>
-          <p className="text-[var(--muted)]">
-            Im Community Feed kannst du Posts lesen und teilen. Das ist gedacht als “Schwarzes Brett” für die Szene:
-            Ankündigungen, Hinweise, Fragen oder kurze Updates.
-          </p>
-        </section>
-
-        <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
-          <h2 className="tf-display text-xl font-bold mb-2">💬 Nachrichten</h2>
+          <h2 className="tf-display text-xl font-bold mb-2"> Nachrichten</h2>
           <p className="text-[var(--muted)]">
             Über Nachrichten kannst du dich direkt mit anderen austauschen – z.B. für Kooperationen, Nachfragen oder Organisationsdetails.
           </p>
