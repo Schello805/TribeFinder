@@ -80,7 +80,7 @@ export default function DashboardNotificationsPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-[var(--foreground)]">Benachrichtigungen</h2>
+      <h2 className="tf-display text-2xl font-bold text-[var(--foreground)]">Benachrichtigungen</h2>
       <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow sm:rounded-lg p-6 space-y-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
