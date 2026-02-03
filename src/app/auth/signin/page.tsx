@@ -61,8 +61,8 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h1 className="tf-display text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">Anmelden</h1>
+    <div className="max-w-md mx-auto mt-10 p-6 bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-lg shadow-md">
+      <h1 className="tf-display text-2xl font-bold text-center mb-6 text-[var(--foreground)]">Anmelden</h1>
 
       {success && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
@@ -78,29 +78,29 @@ export default function SignInPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-gray-700 dark:text-gray-200 font-medium mb-1">E-Mail</label>
+          <label htmlFor="email" className="block text-[var(--foreground)] font-medium mb-1">E-Mail</label>
           <input
             type="email"
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black placeholder:text-gray-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder:text-gray-400 [&:-webkit-autofill]:bg-white [&:-webkit-autofill]:shadow-[0_0_0_30px_white_inset] dark:[&:-webkit-autofill]:shadow-[0_0_0_30px_#374151_inset]"
+            className="w-full px-4 py-2 border-2 border-[var(--border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] [&:-webkit-autofill]:bg-[var(--surface)] [&:-webkit-autofill]:shadow-[0_0_0_30px_var(--surface)_inset]"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-gray-700 dark:text-gray-200 font-medium mb-1">Passwort</label>
+          <label htmlFor="password" className="block text-[var(--foreground)] font-medium mb-1">Passwort</label>
           <input
             type="password"
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black placeholder:text-gray-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder:text-gray-400 [&:-webkit-autofill]:bg-white [&:-webkit-autofill]:shadow-[0_0_0_30px_white_inset] dark:[&:-webkit-autofill]:shadow-[0_0_0_30px_#374151_inset]"
+            className="w-full px-4 py-2 border-2 border-[var(--border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] [&:-webkit-autofill]:bg-[var(--surface)] [&:-webkit-autofill]:shadow-[0_0_0_30px_var(--surface)_inset]"
           />
           <div className="text-right mt-1">
-            <Link href="/auth/forgot-password" className="text-sm text-indigo-600 hover:underline">
+            <Link href="/auth/forgot-password" className="text-sm text-[var(--link)] hover:underline">
               Passwort vergessen?
             </Link>
           </div>
@@ -109,16 +109,16 @@ export default function SignInPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+          className="w-full bg-[var(--primary)] text-[var(--primary-foreground)] py-2 px-4 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition disabled:opacity-50"
         >
           {isLoading ? "Wird geladen..." : "Anmelden"}
         </button>
       </form>
 
       <div className="mt-4 text-center">
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-[var(--muted)]">
           Noch kein Konto?{" "}
-          <Link href="/auth/register" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+          <Link href="/auth/register" className="text-[var(--link)] hover:underline">
             Hier registrieren
           </Link>
         </p>

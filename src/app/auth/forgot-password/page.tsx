@@ -36,17 +36,17 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--foreground)] py-12 px-4 sm:px-6 lg:px-8">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg"
+        className="max-w-md w-full space-y-8 bg-[var(--surface)] text-[var(--foreground)] p-8 rounded-xl shadow-lg border border-[var(--border)]"
       >
         <div>
-          <h2 className="tf-display mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="tf-display mt-6 text-center text-3xl font-extrabold text-[var(--foreground)]">
             Passwort vergessen?
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-[var(--muted)]">
             Gib deine Email-Adresse ein und wir senden dir einen Link zum Zurücksetzen.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-600 text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder-gray-400"
+                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-[var(--border)] placeholder:text-[var(--muted)] text-[var(--foreground)] bg-[var(--surface)] focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] focus:z-10 sm:text-sm"
                   placeholder="Email Addresse"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -97,14 +97,14 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] disabled:opacity-50"
               >
                 {status === 'loading' ? 'Sende...' : 'Link anfordern'}
               </button>
             </div>
             
             <div className="text-center">
-              <Link href="/auth/signin" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link href="/auth/signin" className="font-medium text-[var(--link)] hover:underline">
                 Zurück zum Login
               </Link>
             </div>

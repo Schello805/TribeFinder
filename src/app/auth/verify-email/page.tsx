@@ -66,14 +66,14 @@ function VerifyEmailInner() {
   }, [router, token]);
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h1 className="tf-display text-2xl font-bold text-center mb-3 text-gray-800 dark:text-white">E-Mail bestätigen</h1>
-      <p className="text-sm text-center text-gray-500 dark:text-gray-300 mb-6">
+    <div className="max-w-md mx-auto mt-10 p-6 bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-lg shadow-md">
+      <h1 className="tf-display text-2xl font-bold text-center mb-3 text-[var(--foreground)]">E-Mail bestätigen</h1>
+      <p className="text-sm text-center text-[var(--muted)] mb-6">
         Der Bestätigungslink ist aus Sicherheitsgründen nur 24 Stunden gültig.
       </p>
 
       {status === "loading" ? (
-        <div className="text-center text-gray-600 dark:text-gray-300">Bitte warten...</div>
+        <div className="text-center text-[var(--muted)]">Bitte warten...</div>
       ) : status === "success" ? (
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded">
           {message}
@@ -85,7 +85,7 @@ function VerifyEmailInner() {
       ) : null}
 
       <div className="mt-6 text-center">
-        <Link href="/auth/signin" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+        <Link href="/auth/signin" className="text-[var(--link)] hover:underline">
           Zum Login
         </Link>
       </div>
