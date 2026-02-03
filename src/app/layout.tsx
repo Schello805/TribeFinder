@@ -170,7 +170,10 @@ export default async function RootLayout({
   const appCommit = (process.env.NEXT_PUBLIC_APP_COMMIT || "").trim();
   const appVersion = ((process.env.NEXT_PUBLIC_APP_VERSION || "").trim() || (await readAppVersionFallback()));
 
-  const maintenanceModeEnabled = String(process.env.MAINTENANCE_MODE || "").toLowerCase() === "true";
+  const maintenanceModeEnabled = (() => {
+    const v = String(process.env.MAINTENANCE_MODE || "").trim().toLowerCase();
+    return v === "1" || v === "true" || v === "yes" || v === "on";
+  })();
 
   const siteBannerEnabled = String(config.SITE_BANNER_ENABLED || "").toLowerCase() === "true";
   const siteBannerText = (config.SITE_BANNER_TEXT || "").trim();

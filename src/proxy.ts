@@ -24,11 +24,6 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Only guard APIs; normal page navigation is read-only anyway.
-  if (!pathname.startsWith("/api/")) {
-    return NextResponse.next();
-  }
-
   // Allow admins to write even in maintenance mode.
   try {
     const token = await getToken({ req });
@@ -56,5 +51,7 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.json|robots.txt|sitemap.xml).*)",
+  ],
 };
