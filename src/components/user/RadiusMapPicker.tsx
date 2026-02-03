@@ -80,10 +80,14 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
 
     const radiusMeters = Math.max(1, radiusKm) * 1000;
     if (!circleRef.current) {
+      const primary = typeof window !== "undefined"
+        ? getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()
+        : "";
+      const circleColor = primary || "currentColor";
       circleRef.current = L.circle(center, {
         radius: radiusMeters,
-        color: "#4f46e5",
-        fillColor: "#6366f1",
+        color: circleColor,
+        fillColor: circleColor,
         fillOpacity: 0.15,
         weight: 2,
       }).addTo(map);
@@ -116,7 +120,7 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-sm text-gray-600 dark:text-gray-300">
+        <div className="text-sm text-[var(--muted)]">
           {hasCenter ? (
             <span className="font-mono text-xs">{lat?.toFixed(6)}, {lng?.toFixed(6)}</span>
           ) : (
@@ -127,17 +131,17 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
           type="button"
           onClick={locateMe}
           disabled={isLocating}
-          className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+          className="inline-flex justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] py-2 px-3 text-sm font-medium text-[var(--foreground)] shadow-sm hover:bg-[var(--surface-hover)] disabled:opacity-50"
         >
           {isLocating ? "Suche Standort..." : "Meinen Standort verwenden"}
         </button>
       </div>
 
-      <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg overflow-hidden border border-[var(--border)]">
         <div ref={mapContainerRef} className="h-72 w-full" />
       </div>
 
-      <div className="text-xs text-gray-500 dark:text-gray-400">
+      <div className="text-xs text-[var(--muted)]">
         Tipp: Mittelpunkt per Klick setzen. Der Kreis zeigt deinen Benachrichtigungs-Umkreis.
       </div>
     </div>
