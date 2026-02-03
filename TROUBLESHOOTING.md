@@ -46,6 +46,40 @@ npm install
 
 ---
 
+## TypeScript / Typecheck schlägt fehl
+
+### Problem
+`tsc --noEmit` schlägt fehl, weil `.next/types` nicht existiert oder inkonsistent ist.
+
+### Lösung
+Nutze den stabilen Check:
+
+```bash
+npm run typecheck
+```
+
+---
+
+## Wartungsmodus (Maintenance Mode)
+
+### Symptom
+API-/Save-Aktionen schlagen fehl und du siehst HTTP **503**.
+
+### Ursache
+`MAINTENANCE_MODE` ist aktiv.
+
+### Lösung
+
+- In `.env` deaktivieren (oder entfernen):
+  ```env
+  MAINTENANCE_MODE=0
+  ```
+- Danach Service neu starten.
+
+Hinweis: In Next.js 16+ läuft das über `src/proxy.ts` (statt `middleware.ts`).
+
+---
+
 ## Service startet nicht
 
 ### Problem

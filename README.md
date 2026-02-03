@@ -81,6 +81,13 @@ Hinweise:
    ```
    Die App ist nun unter `http://localhost:3000` erreichbar.
 
+5. **Checks (empfohlen)**
+   ```bash
+   npm run lint
+   npm run typecheck
+   npm run build
+   ```
+
 Hinweis: Wenn du sowohl `.env` als auch `.env.local` verwendest, überschreibt `.env.local` die Werte aus `.env`. Achte darauf, dass `DATABASE_URL` konsistent ist.
 
 5. **E2E Tests (Playwright, optional)**
@@ -122,7 +129,18 @@ SMTP_PORT=""
 SMTP_USER=""
 SMTP_PASSWORD=""
 SMTP_FROM=""
+
+# Wartungsmodus (optional)
+# Wenn aktiv, werden Schreib-Requests (POST/PUT/PATCH/DELETE) mit HTTP 503 geblockt.
+# Erlaubte Werte: 1/true/yes/on
+MAINTENANCE_MODE="0"
 ```
+
+### Wartungsmodus (Maintenance Mode)
+
+- Wenn `MAINTENANCE_MODE` aktiv ist, sind **Änderungen/Uploads vorübergehend deaktiviert**.
+- Schreib-Requests werden mit **HTTP 503** beantwortet (Header `Retry-After: 300`).
+- Hinweis: In Next.js 16+ heißt die Dateikonvention dafür `src/proxy.ts` (statt `middleware.ts`).
 
 ### Hinweise für Serverbetrieb
 

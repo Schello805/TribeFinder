@@ -30,8 +30,24 @@ Das Script führt u.a. aus:
 - `git pull`
 - `npm ci --include=optional`
 - Prisma generate + migrate
+- `npm run typecheck`
 - `npm run build`
 - Restart des systemd Service
+
+## Wartungsmodus (Maintenance Mode)
+
+Wenn du während Wartungsarbeiten Schreibzugriffe blockieren willst, kannst du in der `.env` setzen:
+
+```env
+MAINTENANCE_MODE=1
+```
+
+Effekt:
+
+- Schreib-Requests (POST/PUT/PATCH/DELETE) werden mit **HTTP 503** geblockt.
+- GET/Navigation bleibt möglich.
+
+Hinweis: Ab Next.js 16+ ist die Dateikonvention dafür `src/proxy.ts` (statt `middleware.ts`).
 
 ## Empfohlener Workflow: Erst Staging testen, dann Prod updaten
 
