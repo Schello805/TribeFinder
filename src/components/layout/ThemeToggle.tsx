@@ -16,7 +16,7 @@ export default function ThemeToggle() {
   if (!mounted) {
     return (
       <button 
-        className="p-1.5 rounded text-indigo-200/50 opacity-50 cursor-wait"
+        className="p-1.5 rounded text-[var(--nav-muted)] opacity-50 cursor-wait"
         title="Theme wird geladen..."
         disabled
       >
@@ -28,12 +28,12 @@ export default function ThemeToggle() {
   }
 
   return (
-    <div className="inline-flex items-center rounded-md border border-white/15 bg-white/10 overflow-hidden">
+    <div className="inline-flex items-center rounded-md border border-[var(--nav-border)] bg-[var(--nav-surface)] overflow-hidden">
       <button
         type="button"
         onClick={() => setTheme("light")}
-        className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
-          theme === "light" ? "bg-white/15 text-white" : ""
+        className={`px-2 py-1.5 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition-colors duration-200 focus:outline-none ${
+          theme === "light" ? "bg-[var(--nav-surface-hover)] text-[var(--nav-fg)]" : ""
         }`}
         aria-label="Helles Design"
         title="Hell"
@@ -46,8 +46,8 @@ export default function ThemeToggle() {
       <button
         type="button"
         onClick={() => setTheme("dark")}
-        className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
-          theme === "dark" ? "bg-white/15 text-white" : ""
+        className={`px-2 py-1.5 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition-colors duration-200 focus:outline-none ${
+          theme === "dark" ? "bg-[var(--nav-surface-hover)] text-[var(--nav-fg)]" : ""
         }`}
         aria-label="Dunkles Design"
         title="Dunkel"
@@ -60,8 +60,8 @@ export default function ThemeToggle() {
       <button
         type="button"
         onClick={() => setTheme("system")}
-        className={`px-2 py-1.5 text-indigo-100/80 hover:text-white transition-colors duration-200 focus:outline-none ${
-          theme === "system" ? "bg-white/15 text-white" : ""
+        className={`px-2 py-1.5 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition-colors duration-200 focus:outline-none ${
+          theme === "system" ? "bg-[var(--nav-surface-hover)] text-[var(--nav-fg)]" : ""
         }`}
         aria-label="System-Design"
         title={`System (${resolvedTheme === "dark" ? "Dunkel" : "Hell"})`}
