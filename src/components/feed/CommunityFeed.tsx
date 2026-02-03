@@ -77,12 +77,12 @@ export default function CommunityFeed() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="tf-display text-2xl font-bold text-gray-900 dark:text-white">📌 Schwarzes Brett</h2>
-        <span className="text-sm text-gray-500 dark:text-gray-400">Neues aus der Community</span>
+        <h2 className="tf-display text-2xl font-bold text-[var(--foreground)]">📌 Schwarzes Brett</h2>
+        <span className="text-sm text-[var(--muted)]">Neues aus der Community</span>
       </div>
 
       {/* Create Post Form */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-8">
+      <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-sm border border-[var(--border)] p-4 mb-8">
         {session ? (
           <form onSubmit={handleSubmit}>
             <div className="flex gap-4">
@@ -93,7 +93,7 @@ export default function CommunityFeed() {
                     <img src={normalizeUploadedImageUrl(session.user.image) ?? ""} alt={session.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                   </>
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-500 dark:text-indigo-300 font-bold">
+                  <div className="w-10 h-10 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold border border-[var(--border)]">
                     {session.user?.name?.charAt(0) || "U"}
                   </div>
                 )}
@@ -103,7 +103,7 @@ export default function CommunityFeed() {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Was gibt's Neues? (Suche Mitfahrgelegenheit, Kostümverkauf, etc.)"
-                  className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white resize-none h-24"
+                  className="w-full bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none h-24"
                   maxLength={500}
                 />
                 
@@ -111,7 +111,7 @@ export default function CommunityFeed() {
                   <div className="mt-2 relative inline-block">
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={normalizeUploadedImageUrl(imageUrl) ?? ""} alt="Preview" className="h-20 w-auto rounded-md object-cover border border-gray-200" />
+                      <img src={normalizeUploadedImageUrl(imageUrl) ?? ""} alt="Preview" className="h-20 w-auto rounded-md object-cover border border-[var(--border)]" />
                     </>
                     <button
                       type="button"
@@ -125,16 +125,16 @@ export default function CommunityFeed() {
 
                 <div className="flex justify-between items-center mt-2">
                   <div className="flex items-center gap-2">
-                    <label className={`cursor-pointer p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <label className={`cursor-pointer p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--muted)] transition ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                       📷
                     </label>
-                    <span className="text-xs text-gray-400">{content.length}/500</span>
+                    <span className="text-xs text-[var(--muted)]">{content.length}/500</span>
                   </div>
                   <button
                     type="submit"
                     disabled={isSubmitting || !content.trim()}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:opacity-50 text-sm font-medium"
+                    className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition disabled:opacity-50 text-sm font-medium"
                   >
                     {isSubmitting ? "Sende..." : "Posten"}
                   </button>
@@ -143,9 +143,9 @@ export default function CommunityFeed() {
             </div>
           </form>
         ) : (
-          <div className="text-center py-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-            <p className="text-gray-600 dark:text-gray-400 mb-2">Möchtest du etwas posten?</p>
-            <Link href="/auth/signin" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
+          <div className="text-center py-4 bg-[var(--surface-2)] rounded-lg border border-[var(--border)]">
+            <p className="text-[var(--muted)] mb-2">Möchtest du etwas posten?</p>
+            <Link href="/auth/signin" className="text-[var(--link)] font-medium hover:underline">
               Melde dich an
             </Link>
           </div>
@@ -155,18 +155,18 @@ export default function CommunityFeed() {
       {/* Posts List */}
       <div className="space-y-4">
         {loading ? (
-          <div className="text-center py-8 text-gray-500">Lade Beiträge...</div>
+          <div className="text-center py-8 text-[var(--muted)]">Lade Beiträge...</div>
         ) : posts.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/30 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
-            <p className="text-gray-500">Noch keine Beiträge vorhanden. Sei der Erste!</p>
+          <div className="text-center py-12 bg-[var(--surface-2)] rounded-lg border border-dashed border-[var(--border)]">
+            <p className="text-[var(--muted)]">Noch keine Beiträge vorhanden. Sei der Erste!</p>
           </div>
         ) : (
           posts.map((post) => (
-            <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-5 hover:shadow-md transition-shadow relative group">
+            <div key={post.id} className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-sm border border-[var(--border)] p-5 hover:shadow-md transition-shadow relative group">
               {session?.user?.id === post.authorId && (
                 <button
                   onClick={() => handleDelete(post.id)}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-4 right-4 text-[var(--muted)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Löschen"
                 >
                   🗑️
@@ -181,7 +181,7 @@ export default function CommunityFeed() {
                       <img src={normalizeUploadedImageUrl(post.author.image) ?? ""} alt={post.author.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                     </>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-500 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
+                    <div className="w-10 h-10 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold border border-[var(--border)]">
                       {post.author.name?.charAt(0) || "?"}
                     </div>
                   )}
@@ -189,17 +189,17 @@ export default function CommunityFeed() {
                 <div className="flex-grow">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="font-bold text-gray-900 dark:text-white block">{post.author.name || "Unbekannt"}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="font-bold text-[var(--foreground)] block">{post.author.name || "Unbekannt"}</span>
+                      <span className="text-xs text-[var(--muted)]">
                         vor {formatDistanceToNow(new Date(post.createdAt), { locale: de, addSuffix: false })}
                       </span>
                     </div>
                   </div>
                   
-                  <p className="mt-2 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{post.content}</p>
+                  <p className="mt-2 text-[var(--foreground)] whitespace-pre-wrap">{post.content}</p>
                   
                   {post.image && (
-                    <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <div className="mt-3 rounded-lg overflow-hidden border border-[var(--border)]">
                       <>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={normalizeUploadedImageUrl(post.image) ?? ""} alt="Post bild" className="max-h-64 w-full object-cover" />
