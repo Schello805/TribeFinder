@@ -12,7 +12,7 @@ const isReadMethod = (method: string) => {
   return m === "GET" || m === "HEAD" || m === "OPTIONS";
 };
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   if (!isMaintenanceEnabled()) return NextResponse.next();
 
   if (isReadMethod(req.method)) return NextResponse.next();
