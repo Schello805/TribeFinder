@@ -76,7 +76,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
       {/* Pending Requests */}
       {pendingMembers.length > 0 && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-100 dark:border-yellow-800 p-6">
-          <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
+          <h3 className="tf-display text-lg font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
             <span>🔔</span> Beitrittsanfragen ({pendingMembers.length})
           </h3>
           <ul className="space-y-4">
@@ -126,7 +126,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
 
       {/* Member List */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <h3 className="tf-display text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <span>👥</span> Mitglieder ({approvedMembers.length})
         </h3>
         <ul className="divide-y divide-gray-100 dark:divide-gray-700">

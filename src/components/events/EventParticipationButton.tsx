@@ -76,7 +76,7 @@ export default function EventParticipationButton({ eventId }: EventParticipation
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-xl max-w-md w-full p-6 border border-[var(--border)]">
-            <h3 className="text-lg font-bold mb-4">Teilnahme anfragen</h3>
+            <h3 className="tf-display text-lg font-bold mb-4">Teilnahme anfragen</h3>
             
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Deine Gruppe wählen</label>
