@@ -240,7 +240,7 @@ export default function GroupCreateWizard() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
+        <div className="mb-6 bg-[var(--surface-2)] border border-[var(--border)] text-red-700 px-4 py-3 rounded-lg">
           {error}
         </div>
       )}

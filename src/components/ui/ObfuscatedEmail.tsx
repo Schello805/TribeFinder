@@ -17,7 +17,7 @@ export default function ObfuscatedEmail({ email, className = "" }: ObfuscatedEma
 
   if (!isMounted) {
     // Render nothing or a placeholder on server to prevent scraping
-    return <span className="text-gray-400 text-sm">Lade E-Mail...</span>;
+    return <span className="text-[var(--muted)] text-sm">Lade E-Mail...</span>;
   }
 
   // Simple obfuscation: Split email and reconstruct

@@ -51,7 +51,7 @@ export default function FlyerGenerator({ group }: FlyerGeneratorProps) {
     <button
       onClick={handlePreview}
       disabled={isGenerating}
-      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-sm font-medium text-sm disabled:opacity-50"
+      className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition-all shadow-sm font-medium text-sm disabled:opacity-50"
     >
       {isGenerating ? (
         <>
