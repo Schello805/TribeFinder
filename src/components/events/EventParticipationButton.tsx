@@ -74,12 +74,12 @@ export default function EventParticipationButton({ eventId }: EventParticipation
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[color-mix(in_srgb,var(--foreground)_50%,transparent)] flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-xl max-w-md w-full p-6 border border-[var(--border)]">
             <h3 className="tf-display text-lg font-bold mb-4">Teilnahme anfragen</h3>
             
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Deine Gruppe wählen</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Deine Gruppe wählen</label>
               <select
                 value={selectedGroupId}
                 onChange={(e) => setSelectedGroupId(e.target.value)}
@@ -95,7 +95,7 @@ export default function EventParticipationButton({ eventId }: EventParticipation
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nachricht (Optional)</label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Nachricht (Optional)</label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -108,7 +108,7 @@ export default function EventParticipationButton({ eventId }: EventParticipation
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setIsOpen(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="px-4 py-2 text-[var(--muted)] hover:text-[var(--foreground)]"
               >
                 Abbrechen
               </button>
