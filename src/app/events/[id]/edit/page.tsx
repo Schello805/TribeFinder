@@ -65,8 +65,8 @@ export default async function EditEventPage({
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4">
-      <h1 className="tf-display text-2xl font-bold mb-6">Event bearbeiten</h1>
+    <div className="max-w-2xl mx-auto py-8 px-4 text-[var(--foreground)]">
+      <h1 className="tf-display text-2xl font-bold mb-6 text-[var(--foreground)]">Event bearbeiten</h1>
       <EventForm initialData={initialData} isEditing={true} />
     </div>
   );
