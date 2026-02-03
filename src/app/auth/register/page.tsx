@@ -77,7 +77,7 @@ export default function RegisterPage() {
       <h1 className="tf-display text-2xl font-bold text-center mb-6 text-[var(--foreground)]">Registrieren</h1>
       
       {error && (
-        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4" role="alert">
+        <div className="bg-[var(--surface-2)] border border-[var(--border)] text-red-700 px-4 py-3 rounded mb-4" role="alert">
           <span className="block sm:inline">{error}</span>
         </div>
       )}
