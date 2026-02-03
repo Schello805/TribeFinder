@@ -142,7 +142,7 @@ export default function ThreadMessages(props: {
                           disabled={isBusy}
                           className={
                             isMe
-                              ? "px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 disabled:opacity-50"
+                              ? "px-3 py-1.5 rounded-md bg-[color-mix(in_srgb,var(--primary-foreground)_10%,transparent)] hover:bg-[color-mix(in_srgb,var(--primary-foreground)_20%,transparent)] disabled:opacity-50 transition"
                               : "px-3 py-1.5 rounded-md bg-[var(--surface)] border border-[var(--border)] hover:bg-[var(--surface-hover)] disabled:opacity-50 transition"
                           }
                         >
@@ -171,14 +171,14 @@ export default function ThreadMessages(props: {
                     <button
                       onClick={() => startEdit(m)}
                       disabled={isBusy}
-                      className="text-xs px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 disabled:opacity-50"
+                      className="text-xs px-2 py-1 rounded-md bg-[color-mix(in_srgb,var(--primary-foreground)_10%,transparent)] hover:bg-[color-mix(in_srgb,var(--primary-foreground)_20%,transparent)] disabled:opacity-50 transition"
                     >
                       Bearbeiten
                     </button>
                     <button
                       onClick={() => deleteMessage(m.id)}
                       disabled={isBusy}
-                      className="text-xs px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 disabled:opacity-50"
+                      className="text-xs px-2 py-1 rounded-md bg-[color-mix(in_srgb,var(--primary-foreground)_10%,transparent)] hover:bg-[color-mix(in_srgb,var(--primary-foreground)_20%,transparent)] disabled:opacity-50 transition"
                     >
                       Löschen
                     </button>
