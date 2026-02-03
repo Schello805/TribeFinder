@@ -84,7 +84,7 @@ export default function DashboardNotificationsPage() {
       <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow sm:rounded-lg p-6 space-y-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <div className="text-lg font-medium text-[var(--foreground)]">E-Mail Benachrichtigungen</div>
+            <div className="tf-display text-lg font-medium text-[var(--foreground)]">E-Mail Benachrichtigungen</div>
             <div className="text-sm text-[var(--muted)]">Aktiviere/Deaktiviere Benachrichtigungen per E-Mail.</div>
           </div>
           <button
