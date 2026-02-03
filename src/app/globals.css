@@ -20,6 +20,10 @@
   --nav-fg: #ffffff;
   --nav-muted: rgba(255,255,255,0.8);
   --nav-border: rgba(255,255,255,0.18);
+  --nav-border-strong: rgba(255,255,255,0.20);
+  --nav-surface-subtle: rgba(255,255,255,0.05);
+  --nav-surface: rgba(255,255,255,0.10);
+  --nav-surface-hover: rgba(255,255,255,0.15);
   --footer-bg: #111827;
   --footer-fg: #e5e7eb;
   --footer-muted: #9ca3af;
@@ -44,6 +48,10 @@ html[data-tf-theme="sahara"] {
   --nav-fg: #fff7ec;
   --nav-muted: rgba(255,247,236,0.82);
   --nav-border: rgba(255,247,236,0.18);
+  --nav-border-strong: rgba(255,247,236,0.20);
+  --nav-surface-subtle: rgba(255,247,236,0.05);
+  --nav-surface: rgba(255,247,236,0.10);
+  --nav-surface-hover: rgba(255,247,236,0.15);
   --footer-bg: #2b1d12;
   --footer-fg: #f2e7db;
   --footer-muted: rgba(242,231,219,0.75);
@@ -67,6 +75,10 @@ html[data-tf-theme="copper"] {
   --nav-fg: #fff5ea;
   --nav-muted: rgba(255,245,234,0.82);
   --nav-border: rgba(255,245,234,0.18);
+  --nav-border-strong: rgba(255,245,234,0.20);
+  --nav-surface-subtle: rgba(255,245,234,0.05);
+  --nav-surface: rgba(255,245,234,0.10);
+  --nav-surface-hover: rgba(255,245,234,0.15);
   --footer-bg: #2a1a10;
   --footer-fg: #f1e6d7;
   --footer-muted: rgba(241,230,215,0.75);
@@ -90,6 +102,10 @@ html[data-tf-theme="nocturne"] {
   --nav-fg: #f2e7f6;
   --nav-muted: rgba(242,231,246,0.75);
   --nav-border: rgba(242,231,246,0.14);
+  --nav-border-strong: rgba(242,231,246,0.18);
+  --nav-surface-subtle: rgba(242,231,246,0.05);
+  --nav-surface: rgba(242,231,246,0.10);
+  --nav-surface-hover: rgba(242,231,246,0.15);
   --footer-bg: #240b33;
   --footer-fg: #f2e7f6;
   --footer-muted: rgba(242,231,246,0.7);
@@ -115,6 +131,10 @@ html[data-tf-theme="nocturne"] {
   --nav-fg: #ffffff;
   --nav-muted: rgba(255,255,255,0.78);
   --nav-border: rgba(255,255,255,0.12);
+  --nav-border-strong: rgba(255,255,255,0.16);
+  --nav-surface-subtle: rgba(255,255,255,0.06);
+  --nav-surface: rgba(255,255,255,0.10);
+  --nav-surface-hover: rgba(255,255,255,0.14);
   --footer-bg: #0b1220;
   --footer-fg: #e5e7eb;
   --footer-muted: #9ca3af;

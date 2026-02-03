@@ -203,22 +203,22 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsUserMenuOpen((v) => !v)}
-                    className="inline-flex items-center gap-2 bg-white/10 border border-[var(--nav-border)] px-3 py-2 rounded-md hover:bg-white/15 transition font-medium"
+                    className="inline-flex items-center gap-2 bg-[var(--nav-surface)] border border-[var(--nav-border)] px-3 py-2 rounded-md hover:bg-[var(--nav-surface-hover)] transition font-medium"
                     aria-haspopup="menu"
                     aria-expanded={isUserMenuOpen}
                     title="Profil & Einstellungen"
                   >
                     {userImageUrl ? (
-                      <Image src={userImageUrl} alt="Profil" width={28} height={28} className="h-7 w-7 rounded-full object-cover border border-white/20" unoptimized />
+                      <Image src={userImageUrl} alt="Profil" width={28} height={28} className="h-7 w-7 rounded-full object-cover border border-[var(--nav-border-strong)]" unoptimized />
                     ) : (
-                      <span className="h-7 w-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm">👤</span>
+                      <span className="h-7 w-7 rounded-full bg-[var(--nav-surface)] border border-[var(--nav-border-strong)] flex items-center justify-center text-sm">👤</span>
                     )}
                     <span className="hidden lg:inline">Konto</span>
                     <svg className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                     </svg>
                     {pendingRequestsCount > 0 && (
-                      <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                      <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-xs font-bold inline-flex items-center justify-center">
                         {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
                       </span>
                     )}
@@ -228,25 +228,25 @@ export default function Navbar() {
                     <div className="absolute right-0 mt-2 w-64 rounded-lg border border-[var(--nav-border)] bg-[var(--nav-bg)] shadow-xl overflow-hidden z-50">
                       <Link
                         href="/dashboard"
-                        className="flex items-center justify-between px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-white/10"
+                        className="flex items-center justify-between px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-[var(--nav-surface)]"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <span>Profil</span>
                         {pendingRequestsCount > 0 ? (
-                          <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                          <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-xs font-bold inline-flex items-center justify-center">
                             {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
                           </span>
                         ) : null}
                       </Link>
 
-                      <div className="px-3 py-3 border-t border-white/10">
+                      <div className="px-3 py-3 border-t border-[var(--nav-border)]">
                         <div className="px-1 pb-2 text-xs font-semibold text-[var(--nav-muted)]">Design</div>
-                        <div className="flex items-center rounded-md border border-[var(--nav-border)] bg-white/5 overflow-hidden">
+                        <div className="flex items-center rounded-md border border-[var(--nav-border)] bg-[var(--nav-surface-subtle)] overflow-hidden">
                           <button
                             type="button"
                             onClick={() => setTheme("light")}
-                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-white/10 ${
-                              theme === "light" ? "bg-white/15" : ""
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] ${
+                              theme === "light" ? "bg-[var(--nav-surface-hover)]" : ""
                             }`}
                           >
                             Hell
@@ -254,8 +254,8 @@ export default function Navbar() {
                           <button
                             type="button"
                             onClick={() => setTheme("dark")}
-                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-white/10 ${
-                              theme === "dark" ? "bg-white/15" : ""
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] ${
+                              theme === "dark" ? "bg-[var(--nav-surface-hover)]" : ""
                             }`}
                           >
                             Dunkel
@@ -263,8 +263,8 @@ export default function Navbar() {
                           <button
                             type="button"
                             onClick={() => setTheme("system")}
-                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-white/10 ${
-                              theme === "system" ? "bg-white/15" : ""
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] ${
+                              theme === "system" ? "bg-[var(--nav-surface-hover)]" : ""
                             }`}
                             title={`System (${resolvedTheme === "dark" ? "Dunkel" : "Hell"})`}
                           >
@@ -279,7 +279,7 @@ export default function Navbar() {
                           setIsUserMenuOpen(false);
                           signOut();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-100 hover:bg-white/10"
+                        className="w-full text-left px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-[var(--nav-surface)]"
                       >
                         Abmelden
                       </button>
@@ -322,23 +322,23 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="md:hidden bg-[var(--nav-bg)] border-t border-[var(--nav-border)]">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link href="/groups" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
+            <Link href="/groups" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
               Gruppen finden
             </Link>
-            <Link href="/events" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
+            <Link href="/events" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
               Events
             </Link>
-            <Link href="/map" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
+            <Link href="/map" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
               Karte
             </Link>
             <div className="px-3 py-2">
               <div className="text-xs font-semibold text-[var(--nav-muted)] mb-2">Design</div>
-              <div className="inline-flex items-center rounded-md border border-[var(--nav-border)] bg-white/10 overflow-hidden">
+              <div className="inline-flex items-center rounded-md border border-[var(--nav-border)] bg-[var(--nav-surface)] overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setTheme("light")}
                   className={`px-2 py-1.5 text-[var(--nav-fg)] hover:text-[var(--nav-fg)] transition-colors duration-200 focus:outline-none ${
-                    theme === "light" ? "bg-white/15 text-[var(--nav-fg)]" : ""
+                    theme === "light" ? "bg-[var(--nav-surface-hover)] text-[var(--nav-fg)]" : ""
                   }`}
                   disabled={!mounted}
                 >
@@ -348,7 +348,7 @@ export default function Navbar() {
                   type="button"
                   onClick={() => setTheme("dark")}
                   className={`px-2 py-1.5 text-[var(--nav-fg)] hover:text-[var(--nav-fg)] transition-colors duration-200 focus:outline-none ${
-                    theme === "dark" ? "bg-white/15 text-[var(--nav-fg)]" : ""
+                    theme === "dark" ? "bg-[var(--nav-surface-hover)] text-[var(--nav-fg)]" : ""
                   }`}
                   disabled={!mounted}
                 >
@@ -358,7 +358,7 @@ export default function Navbar() {
                   type="button"
                   onClick={() => setTheme("system")}
                   className={`px-2 py-1.5 text-[var(--nav-fg)] hover:text-[var(--nav-fg)] transition-colors duration-200 focus:outline-none ${
-                    theme === "system" ? "bg-white/15 text-[var(--nav-fg)]" : ""
+                    theme === "system" ? "bg-[var(--nav-surface-hover)] text-[var(--nav-fg)]" : ""
                   }`}
                   disabled={!mounted}
                 >
@@ -368,7 +368,7 @@ export default function Navbar() {
             </div>
             {session ? (
               <>
-                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
+                <Link href="/messages" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
                   <span>Nachrichten</span>
                   {unreadCount > 0 && (
                     <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
@@ -377,17 +377,17 @@ export default function Navbar() {
                   )}
                 </Link>
 
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
+                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
                   <span className="flex items-center gap-2">
                     {userImageUrl ? (
-                      <Image src={userImageUrl} alt="Profil" width={24} height={24} className="h-6 w-6 rounded-full object-cover border border-white/20" unoptimized />
+                      <Image src={userImageUrl} alt="Profil" width={24} height={24} className="h-6 w-6 rounded-full object-cover border border-[var(--nav-border-strong)]" unoptimized />
                     ) : (
-                      <span className="h-6 w-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs">👤</span>
+                      <span className="h-6 w-6 rounded-full bg-[var(--nav-surface)] border border-[var(--nav-border-strong)] flex items-center justify-center text-xs">👤</span>
                     )}
                     Profil
                   </span>
                   {pendingRequestsCount > 0 && (
-                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-black text-xs font-bold inline-flex items-center justify-center">
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-xs font-bold inline-flex items-center justify-center">
                       {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
                     </span>
                   )}
@@ -395,14 +395,14 @@ export default function Navbar() {
 
                 <button
                   onClick={() => signOut()}
-                  className="w-full text-left block px-3 py-2 text-red-200 hover:bg-white/10 rounded-md"
+                  className="w-full text-left block px-3 py-2 text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md"
                 >
                   Abmelden
                 </button>
               </>
             ) : (
               <>
-                <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-white/10 rounded-md">
+                <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
                   Anmelden
                 </Link>
                 <Link href="/auth/register" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] font-bold hover:opacity-95 rounded-md">
