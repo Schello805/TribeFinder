@@ -312,7 +312,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
               className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
             />
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+              <span className="w-3 h-3 bg-[var(--primary)] rounded-full"></span>
               Gruppen
             </span>
           </label>
@@ -324,7 +324,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
               className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
             />
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+              <span className="w-3 h-3 bg-red-600 rounded-full"></span>
               Events
             </span>
           </label>
@@ -336,7 +336,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         {/* Zoom In */}
         <button
           onClick={() => mapRef.current?.zoomIn()}
-          className="bg-white p-2 rounded-md shadow-md border border-gray-300 hover:bg-gray-50 text-gray-700 focus:outline-none"
+          className="bg-[var(--surface)] p-2 rounded-md shadow-md border border-[var(--border)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] focus:outline-none"
           title="Vergrößern"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -347,7 +347,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         {/* Zoom Out */}
         <button
           onClick={() => mapRef.current?.zoomOut()}
-          className="bg-white p-2 rounded-md shadow-md border border-gray-300 hover:bg-gray-50 text-gray-700 focus:outline-none"
+          className="bg-[var(--surface)] p-2 rounded-md shadow-md border border-[var(--border)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] focus:outline-none"
           title="Verkleinern"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -359,11 +359,11 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         <button
           onClick={handleLocateMe}
           disabled={isLocating}
-          className="bg-white p-2 rounded-md shadow-md border border-gray-300 hover:bg-gray-50 text-gray-700 focus:outline-none disabled:opacity-50"
+          className="bg-[var(--surface)] p-2 rounded-md shadow-md border border-[var(--border)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] focus:outline-none disabled:opacity-50"
           title="Meinen Standort anzeigen"
         >
           {isLocating ? (
-             <span className="animate-spin block text-sm">⌛</span>
+             <span className="animate-spin block text-sm text-[var(--muted)]">⌛</span>
           ) : (
              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
