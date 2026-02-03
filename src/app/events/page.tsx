@@ -90,20 +90,20 @@ export default function EventsPage() {
       {loading ? (
         <ListSkeleton count={6} type="event" />
       ) : events.length === 0 ? (
-        <div className="text-center py-20 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
-          <p className="text-gray-500">Aktuell keine Events gefunden.</p>
+        <div className="text-center py-20 bg-[var(--surface-2)] text-[var(--foreground)] rounded-lg border border-dashed border-[var(--border)]">
+          <p className="text-[var(--muted)]">Aktuell keine Events gefunden.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {events.map((event) => (
-            <div key={event.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition-shadow flex flex-col md:flex-row gap-6">
+            <div key={event.id} className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-sm border border-[var(--border)] p-6 hover:shadow-md transition-shadow flex flex-col md:flex-row gap-6">
               
               {/* Date Box */}
-              <div className="flex-shrink-0 w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg flex flex-col items-center justify-center text-center border border-indigo-100 dark:border-indigo-800/50">
-                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase">
+              <div className="flex-shrink-0 w-20 h-20 bg-[var(--surface-2)] rounded-lg flex flex-col items-center justify-center text-center border border-[var(--border)]">
+                <span className="text-sm font-bold text-[var(--muted)] uppercase">
                   {formatBerlin(event.startDate, { month: "short" })}
                 </span>
-                <span className="tf-display text-2xl font-bold text-gray-900 dark:text-white">
+                <span className="tf-display text-2xl font-bold text-[var(--foreground)]">
                   {formatBerlin(event.startDate, { day: "2-digit" })}
                 </span>
               </div>
@@ -146,7 +146,7 @@ export default function EventsPage() {
               <div className="flex items-center justify-center md:justify-end">
                 <Link 
                   href={`/events/${event.id}`}
-                  className="w-full md:w-auto px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+                  className="w-full md:w-auto px-4 py-2 bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] rounded-md hover:bg-[var(--surface-hover)] transition-colors text-sm font-medium"
                 >
                   Details
                 </Link>
