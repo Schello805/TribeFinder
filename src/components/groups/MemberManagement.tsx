@@ -75,13 +75,13 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
     <div className="space-y-8">
       {/* Pending Requests */}
       {pendingMembers.length > 0 && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-100 dark:border-yellow-800 p-6">
-          <h3 className="tf-display text-lg font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
+        <div className="bg-[var(--surface-2)] text-[var(--foreground)] rounded-xl border border-[var(--border)] p-6">
+          <h3 className="tf-display text-lg font-bold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <span>🔔</span> Beitrittsanfragen ({pendingMembers.length})
           </h3>
           <ul className="space-y-4">
             {pendingMembers.map(member => (
-              <li key={member.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-gray-100 dark:border-gray-700">
+              <li key={member.id} className="bg-[var(--surface)] text-[var(--foreground)] p-4 rounded-lg shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-[var(--border)]">
                 <div className="flex items-center gap-3">
                   {member.user.image ? (
                     <>
@@ -89,15 +89,15 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                       <img src={normalizeUploadedImageUrl(member.user.image) ?? ""} alt={member.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                     </>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
+                    <div className="w-10 h-10 rounded-full bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] font-bold">
                       {member.user.name?.charAt(0) || "?"}
                     </div>
                   )}
                   <div>
-                    <Link href={`/users/${member.user.id}`} className="font-medium text-gray-900 dark:text-white hover:underline">
+                    <Link href={`/users/${member.user.id}`} className="font-medium text-[var(--foreground)] hover:underline">
                       {member.user.name || "Unbekannt"}
                     </Link>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                    <div className="text-sm text-[var(--muted)]">
                         <ObfuscatedEmail email={member.user.email} />
                     </div>
                   </div>
@@ -113,7 +113,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                   <button
                     onClick={() => handleAction(member.user.id, 'reject')}
                     disabled={isLoading === member.user.id}
-                    className="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-200 text-sm font-medium rounded-md hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50"
+                    className="px-3 py-1.5 bg-[var(--surface-2)] border border-[var(--border)] text-red-700 text-sm font-medium rounded-md hover:bg-[var(--surface-hover)] disabled:opacity-50"
                   >
                     Ablehnen
                   </button>
@@ -125,11 +125,11 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
       )}
 
       {/* Member List */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6">
-        <h3 className="tf-display text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+      <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-xl border border-[var(--border)] p-6">
+        <h3 className="tf-display text-lg font-bold text-[var(--foreground)] mb-4 flex items-center gap-2">
           <span>👥</span> Mitglieder ({approvedMembers.length})
         </h3>
-        <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+        <ul className="divide-y divide-[var(--border)]">
           {approvedMembers.map(member => (
             <li key={member.id} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -139,17 +139,17 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                       <img src={normalizeUploadedImageUrl(member.user.image) ?? ""} alt={member.user.name || "User"} className="w-10 h-10 rounded-full object-cover" />
                     </>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
+                    <div className="w-10 h-10 rounded-full bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] font-bold">
                       {member.user.name?.charAt(0) || "?"}
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                    <p className="font-medium text-[var(--foreground)] flex items-center gap-2">
                       <Link href={`/users/${member.user.id}`} className="hover:underline">
                         {member.user.name || "Unbekannt"}
                       </Link>
                     </p>
-                     <div className="text-sm text-gray-500 dark:text-gray-400">
+                     <div className="text-sm text-[var(--muted)]">
                         <ObfuscatedEmail email={member.user.email} />
                     </div>
                   </div>
@@ -165,7 +165,7 @@ export default function MemberManagement({ groupId, members: initialMembers, cur
                         }
                     }}
                     disabled={isLoading === member.user.id}
-                    className="text-xs text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 font-medium px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
+                    className="text-xs text-red-700 hover:text-red-800 font-medium px-2 py-1 rounded hover:bg-[var(--surface-2)]"
                   >
                     Entfernen
                   </button>
