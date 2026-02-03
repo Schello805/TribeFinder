@@ -250,7 +250,7 @@ export default function GroupCreateWizard() {
         {currentStep === "basics" && (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-[var(--foreground)]">
+              <h2 className="tf-display text-xl font-bold text-[var(--foreground)]">
                 Pflichtfelder
               </h2>
               <p className="text-[var(--muted)] text-sm mt-1">
@@ -344,7 +344,7 @@ export default function GroupCreateWizard() {
         {currentStep === "details" && (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-[var(--foreground)]">
+              <h2 className="tf-display text-xl font-bold text-[var(--foreground)]">
                 Optional
               </h2>
               <p className="text-[var(--muted)] text-sm mt-1">

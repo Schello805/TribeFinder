@@ -26,7 +26,7 @@ export default function EventParticipantsList({ participations }: EventParticipa
 
   return (
     <div className="mt-8 pt-8 border-t border-gray-100">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">Bestätigte Acts & Gruppen</h3>
+      <h3 className="tf-display text-xl font-bold text-gray-900 mb-4">Bestätigte Acts & Gruppen</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {approved.map((p) => (
           <Link 

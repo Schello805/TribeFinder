@@ -20,7 +20,7 @@ export default function EventsError({
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
           <span className="text-2xl">📅</span>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+        <h2 className="tf-display text-xl font-bold text-gray-900 dark:text-white mb-3">
           Events konnten nicht geladen werden
         </h2>
         <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">

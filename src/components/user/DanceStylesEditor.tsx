@@ -189,7 +189,7 @@ export default function DanceStylesEditor() {
       </div>
 
       <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 border border-gray-100 dark:border-gray-700">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Deine Tanzstile</h3>
+        <h3 className="tf-display text-lg font-medium text-gray-900 dark:text-white mb-4">Deine Tanzstile</h3>
         {selected.length === 0 ? (
           <div className="text-gray-600 dark:text-gray-300">Noch keine Tanzstile ausgewählt.</div>
         ) : (

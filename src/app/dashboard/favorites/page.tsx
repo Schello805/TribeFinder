@@ -52,23 +52,25 @@ export default async function FavoritesPage() {
 
       {favorites.length === 0 ? (
         <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-sm border border-[var(--border)] p-12 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--surface-2)] border border-[var(--border)] mb-4">
-            <svg className="w-8 h-8 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+          <div className="flex flex-col items-center justify-center text-center py-16">
+            <div className="w-16 h-16 bg-[var(--surface-2)] rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <h3 className="tf-display text-lg font-bold text-[var(--foreground)] mb-2">
+              Noch keine Favoriten
+            </h3>
+            <p className="text-[var(--muted)] mb-6">
+              Entdecke Gruppen und füge sie zu deinen Favoriten hinzu
+            </p>
+            <Link
+              href="/groups"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition font-medium"
+            >
+              Gruppen entdecken
+            </Link>
           </div>
-          <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">
-            Noch keine Favoriten
-          </h3>
-          <p className="text-[var(--muted)] mb-6">
-            Entdecke Gruppen und füge sie zu deinen Favoriten hinzu
-          </p>
-          <Link
-            href="/groups"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition font-medium"
-          >
-            Gruppen entdecken
-          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

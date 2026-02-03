@@ -73,7 +73,7 @@ export default async function DashboardPage() {
         {/* Profile Card */}
         <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-medium text-[var(--foreground)]">Mein Profil</h2>
+            <h2 className="tf-display text-lg font-medium text-[var(--foreground)]">Mein Profil</h2>
           </div>
           <div className="flex items-center gap-6">
              <div className="h-20 w-20 bg-[var(--surface-2)] rounded-full flex-shrink-0 overflow-hidden border border-[var(--border)]">
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
                 )}
              </div>
              <div className="min-w-0 flex-1">
-                <p className="text-xl font-bold text-[var(--foreground)] truncate">
+                <p className="tf-display text-xl font-bold text-[var(--foreground)] truncate">
                   {currentUser?.dancerName || currentUser?.name || "Tänzer"}
                 </p>
                 {currentUser?.dancerName && currentUser?.name && (
@@ -107,7 +107,7 @@ export default async function DashboardPage() {
 
         {/* Quick Actions / Create Group */}
          <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg p-6 flex flex-col justify-center">
-            <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">Tanzgruppe verwalten</h3>
+            <h3 className="tf-display text-lg font-medium text-[var(--foreground)] mb-2">Tanzgruppe verwalten</h3>
             <p className="text-sm text-[var(--muted)] mb-6">
               Möchtest du eine neue Tanzgruppe gründen oder eine bestehende verwalten?
             </p>
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
       {pendingGroups.length > 0 && (
         <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6 border-b border-[var(--border)]">
-            <h2 className="text-lg leading-6 font-medium text-[var(--foreground)]">Offene Beitrittsanfragen</h2>
+            <h2 className="tf-display text-lg leading-6 font-medium text-[var(--foreground)]">Offene Beitrittsanfragen</h2>
             <p className="mt-1 max-w-2xl text-sm text-[var(--muted)]">Bearbeite Anfragen direkt in der jeweiligen Gruppe.</p>
           </div>
           <ul role="list" className="divide-y divide-[var(--border)]">
