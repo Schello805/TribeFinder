@@ -103,7 +103,7 @@ export default function EventsPage() {
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase">
                   {formatBerlin(event.startDate, { month: "short" })}
                 </span>
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                <span className="tf-display text-2xl font-bold text-gray-900 dark:text-white">
                   {formatBerlin(event.startDate, { day: "2-digit" })}
                 </span>
               </div>
@@ -115,7 +115,7 @@ export default function EventsPage() {
                     <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mb-2 ${getTypeColor(event.eventType)}`}>
                       {getTypeLabel(event.eventType)}
                     </span>
-                    <h3 className="text-xl font-bold text-[var(--foreground)] hover:text-[var(--link)] transition-colors">
+                    <h3 className="tf-display text-xl font-bold text-[var(--foreground)] hover:text-[var(--link)] transition-colors">
                       <Link href={`/events/${event.id}`}>{event.title}</Link>
                     </h3>
                   </div>

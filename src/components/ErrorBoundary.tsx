@@ -36,11 +36,11 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
           <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
             <div className="text-red-500 text-5xl mb-4">⚠️</div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <h2 className="tf-display text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Etwas ist schiefgelaufen
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Ein unerwarteter Fehler ist aufgetreten. Bitte versuche die Seite neu zu laden.
+              {this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten'}
             </p>
             {process.env.NODE_ENV === "development" && this.state.error && (
               <details className="mt-4 text-left">

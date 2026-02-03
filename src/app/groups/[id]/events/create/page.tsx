@@ -40,7 +40,7 @@ export default async function CreateEventPage({ params }: { params: Promise<{ id
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold mb-6">Neues Event erstellen</h1>
+      <h1 className="tf-display text-2xl font-bold mb-6">Neues Event erstellen</h1>
       <p className="text-gray-600 mb-6">für Gruppe: {group.name}</p>
       <EventForm groupId={id} />
     </div>

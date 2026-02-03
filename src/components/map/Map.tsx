@@ -161,7 +161,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
                <img src="${group.image}" alt="${group.name}" class="w-full h-full object-contain p-1" />
              </div>`
           : `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] flex items-center justify-center shadow-lg z-10">
-               <span class="text-2xl font-bold text-[var(--link)]">${group.name.charAt(0)}</span>
+               <span class="tf-display text-2xl font-bold text-[var(--link)]">${group.name.charAt(0)}</span>
              </div>`;
         
         // Website Logic
