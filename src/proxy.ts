@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 
 const isMaintenanceEnabled = () => {
   const v = (process.env.MAINTENANCE_MODE || "").trim().toLowerCase();
@@ -22,17 +21,6 @@ export async function proxy(req: NextRequest) {
   // Always allow NextAuth operations (login, callbacks, etc.)
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
-  }
-
-  // Allow admins to write even in maintenance mode.
-  try {
-    const token = await getToken({ req });
-    const role = (token as { role?: string } | null)?.role;
-    if (role === "ADMIN") {
-      return NextResponse.next();
-    }
-  } catch {
-    // If token parsing fails, treat as non-admin.
   }
 
   return NextResponse.json(
