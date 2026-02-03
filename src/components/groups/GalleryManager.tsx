@@ -96,21 +96,21 @@ export default function GalleryManager({ groupId, canEdit }: GalleryManagerProps
   };
 
   if (isLoading) {
-    return <p className="text-gray-500 dark:text-gray-400 text-sm">Lade Galerie...</p>;
+    return <p className="text-[var(--muted)] text-sm">Lade Galerie...</p>;
   }
 
   return (
     <div className="space-y-4">
       {images.length === 0 ? (
-        <div className="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-6 text-center border border-dashed border-gray-300 dark:border-gray-700">
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Noch keine Bilder in der Galerie</p>
+        <div className="bg-[var(--surface-2)] text-[var(--foreground)] rounded-lg p-6 text-center border border-dashed border-[var(--border)]">
+          <p className="text-[var(--muted)] text-sm">Noch keine Bilder in der Galerie</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {images.map((img) => (
             <div
               key={img.id}
-              className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-pointer group"
+              className="relative aspect-square rounded-lg overflow-hidden border border-[var(--border)] cursor-pointer group"
               onClick={() => setSelectedImage(img)}
             >
               <ImageWithFallback src={img.url} alt={img.caption || "Gallery"} className="w-full h-full object-cover" />
@@ -131,7 +131,7 @@ export default function GalleryManager({ groupId, canEdit }: GalleryManagerProps
       )}
 
       {canEdit && images.length < 5 && (
-        <label className={`inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition cursor-pointer text-sm font-medium ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}>
+        <label className={`inline-flex items-center gap-2 px-4 py-2 bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition cursor-pointer text-sm font-medium ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}> 
           <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={isUploading} />
           {isUploading ? "Lade hoch..." : `📷 Bild hinzufügen (${images.length}/5)`}
         </label>
@@ -146,7 +146,7 @@ export default function GalleryManager({ groupId, canEdit }: GalleryManagerProps
             <ImageWithFallback src={selectedImage.url} alt="" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl transition"
+              className="absolute top-4 right-4 bg-[color-mix(in_srgb,var(--foreground)_20%,transparent)] hover:bg-[color-mix(in_srgb,var(--foreground)_40%,transparent)] text-white rounded-full w-10 h-10 flex items-center justify-center text-xl transition"
             >
               ×
             </button>
