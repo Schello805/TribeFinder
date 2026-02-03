@@ -1,6 +1,6 @@
 export function GroupCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-sm border border-[var(--border)] overflow-hidden">
       <div className="h-48 skeleton" />
       <div className="p-4 space-y-3">
         <div className="h-6 skeleton rounded w-3/4" />
@@ -17,7 +17,7 @@ export function GroupCardSkeleton() {
 
 export function EventCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+    <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-sm border border-[var(--border)] p-4 space-y-3">
       <div className="flex justify-between items-start">
         <div className="flex-1 space-y-2">
           <div className="h-6 skeleton rounded w-2/3" />
@@ -35,7 +35,7 @@ export function GroupListSkeleton({ count = 6 }: { count?: number }) {
   return (
     <ul className="space-y-4">
       {Array.from({ length: count }).map((_, i) => (
-        <li key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
+        <li key={i} className="bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-sm overflow-hidden border border-[var(--border)]">
           <div className="p-4 sm:p-6">
             <div className="flex items-start sm:items-center justify-between gap-6">
               {/* Logo skeleton */}
