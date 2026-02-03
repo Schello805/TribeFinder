@@ -207,7 +207,7 @@ export default function FeedbackWidget() {
               </div>
 
               {inlineError ? (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200">
+                <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-red-700">
                   {inlineError}
                 </div>
               ) : null}
@@ -246,15 +246,15 @@ export default function FeedbackWidget() {
                       speechSupported
                         ? isRecording
                           ? "bg-red-600 text-white border-red-600 hover:bg-red-700"
-                          : "bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                        : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed"
+                          : "bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
+                        : "bg-[var(--surface-2)] border-[var(--border)] text-[var(--muted)] cursor-not-allowed"
                     }`}
                   >
                     {isRecording ? "Stop" : "Sprechen"}
                   </button>
 
                   {speechSupported && (
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-[var(--muted)]">
                       {isRecording ? "Aufnahme läuft…" : "Diktieren"}
                     </div>
                   )}
