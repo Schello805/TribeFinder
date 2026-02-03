@@ -235,6 +235,7 @@ export default async function RootLayout({
                 <div className="flex gap-4 text-xs text-[var(--footer-muted)]">
                   <Link href="/impressum" className="hover:text-[var(--footer-fg)] transition-colors">Impressum</Link>
                   <Link href="/datenschutz" className="hover:text-[var(--footer-fg)] transition-colors">Datenschutz</Link>
+                  <Link href="/hilfe" className="hover:text-[var(--footer-fg)] transition-colors">Hilfe</Link>
                   <a href="https://github.com/Schello805/TribeFinder" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--footer-fg)] transition-colors flex items-center gap-1">
                     GitHub
                   </a>
