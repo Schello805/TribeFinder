@@ -91,18 +91,18 @@ export default function EventRegistration({ eventId, isCreator }: EventRegistrat
 
   if (isLoading) {
     return (
-      <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg p-4">
-        <p className="text-gray-500 dark:text-gray-400">Lade Anmeldungen...</p>
+      <div className="bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] rounded-lg p-4">
+        <p className="text-[var(--muted)]">Lade Anmeldungen...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg p-4 space-y-4">
+    <div className="bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-bold text-gray-900 dark:text-white">Workshop-Anmeldung</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <h3 className="tf-display font-bold text-[var(--foreground)]">Workshop-Anmeldung</h3>
+          <p className="text-sm text-[var(--muted)]">
             {registrations.length} Teilnehmer angemeldet
           </p>
         </div>
@@ -112,7 +112,7 @@ export default function EventRegistration({ eventId, isCreator }: EventRegistrat
             <button
               onClick={handleUnregister}
               disabled={isSubmitting}
-              className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition disabled:opacity-50 text-sm font-medium"
+              className="px-4 py-2 bg-[var(--surface)] border border-[var(--border)] text-red-700 rounded-md hover:bg-[var(--surface-hover)] transition disabled:opacity-50 text-sm font-medium"
             >
               {isSubmitting ? "..." : "Abmelden"}
             </button>
@@ -120,34 +120,34 @@ export default function EventRegistration({ eventId, isCreator }: EventRegistrat
             <button
               onClick={handleRegister}
               disabled={isSubmitting}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:opacity-50 text-sm font-medium"
+              className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition disabled:opacity-50 text-sm font-medium"
             >
               {isSubmitting ? "..." : "Anmelden"}
             </button>
           )
         ) : (
-          <p className="text-sm text-gray-500">Bitte einloggen zum Anmelden</p>
+          <p className="text-sm text-[var(--muted)]">Bitte einloggen zum Anmelden</p>
         )}
       </div>
 
       {isCreator && registrations.length > 0 && (
-        <div className="border-t border-indigo-100 dark:border-indigo-800 pt-4">
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Teilnehmerliste:</h4>
+        <div className="border-t border-[var(--border)] pt-4">
+          <h4 className="text-sm font-medium text-[var(--muted)] mb-2">Teilnehmerliste:</h4>
           <div className="flex flex-wrap gap-2">
             {registrations.map((reg) => (
               <div
                 key={reg.id}
-                className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 text-sm"
+                className="flex items-center gap-2 bg-[var(--surface)] text-[var(--foreground)] px-3 py-1.5 rounded-full border border-[var(--border)] text-sm"
               >
                 {reg.user.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={normalizeUploadedImageUrl(reg.user.image) ?? ""} alt="" className="w-5 h-5 rounded-full" />
                 ) : (
-                  <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-300">
+                  <div className="w-5 h-5 rounded-full bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-xs font-bold text-[var(--muted)]">
                     {reg.user.name?.charAt(0) || "?"}
                   </div>
                 )}
-                <span className="text-gray-700 dark:text-gray-300">{reg.user.name || "Unbekannt"}</span>
+                <span className="text-[var(--foreground)]">{reg.user.name || "Unbekannt"}</span>
               </div>
             ))}
           </div>
