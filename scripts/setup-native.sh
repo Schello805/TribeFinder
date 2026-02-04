@@ -287,34 +287,46 @@ if [ -z "${SMTP_HOST_CURRENT}" ] || [ -z "${SMTP_USER_CURRENT}" ] || [ -z "${SMT
     echo
     echo -e "${YELLOW}SMTP Setup (erforderlich für E-Mail-Bestätigung)${NC}"
 
-    read -r -p "SMTP Host: " SMTP_HOST
-    if [ -z "${SMTP_HOST}" ]; then
-        echo -e "${RED}Fehler: SMTP Host darf nicht leer sein.${NC}"
-        exit 1
-    fi
+    while true; do
+        read -r -p "SMTP Host: " SMTP_HOST
+        if [ -z "${SMTP_HOST}" ]; then
+            echo -e "${RED}Fehler: SMTP Host darf nicht leer sein.${NC}"
+            continue
+        fi
+        break
+    done
 
     read -r -p "SMTP Port [587]: " SMTP_PORT
     SMTP_PORT="${SMTP_PORT:-587}"
 
-    read -r -p "SMTP User: " SMTP_USER
-    if [ -z "${SMTP_USER}" ]; then
-        echo -e "${RED}Fehler: SMTP User darf nicht leer sein.${NC}"
-        exit 1
-    fi
+    while true; do
+        read -r -p "SMTP User: " SMTP_USER
+        if [ -z "${SMTP_USER}" ]; then
+            echo -e "${RED}Fehler: SMTP User darf nicht leer sein.${NC}"
+            continue
+        fi
+        break
+    done
 
-    read -r -s -p "SMTP Passwort: " SMTP_PASSWORD
-    echo
-    if [ -z "${SMTP_PASSWORD}" ]; then
-        echo -e "${RED}Fehler: SMTP Passwort darf nicht leer sein.${NC}"
-        exit 1
-    fi
+    while true; do
+        read -r -s -p "SMTP Passwort: " SMTP_PASSWORD
+        echo
+        if [ -z "${SMTP_PASSWORD}" ]; then
+            echo -e "${RED}Fehler: SMTP Passwort darf nicht leer sein.${NC}"
+            continue
+        fi
+        break
+    done
 
-    read -r -p "SMTP Secure (true/false) [false]: " SMTP_SECURE
-    SMTP_SECURE="${SMTP_SECURE:-false}"
-    if [ "${SMTP_SECURE}" != "true" ] && [ "${SMTP_SECURE}" != "false" ]; then
-        echo -e "${RED}Fehler: SMTP_SECURE muss true oder false sein.${NC}"
-        exit 1
-    fi
+    while true; do
+        read -r -p "SMTP Secure (true/false) [false]: " SMTP_SECURE
+        SMTP_SECURE="${SMTP_SECURE:-false}"
+        if [ "${SMTP_SECURE}" != "true" ] && [ "${SMTP_SECURE}" != "false" ]; then
+            echo -e "${RED}Fehler: SMTP_SECURE muss true oder false sein.${NC}"
+            continue
+        fi
+        break
+    done
 
     read -r -p "SMTP From [\"TribeFinder\" <noreply@tribefinder.de>]: " SMTP_FROM
     SMTP_FROM="${SMTP_FROM:-\"TribeFinder\" <noreply@tribefinder.de>}"
