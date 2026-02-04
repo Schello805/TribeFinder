@@ -6,7 +6,36 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ## [Unreleased] - 2026-01-28
 
-### 🔧 Deployment / Datenbank
+## [Unreleased] - 2026-02-04
+
+### 🧩 UI / UX
+
+- Gruppenliste: Filter UX auf Mobile verbessert
+  - Oben nur noch Suche + Sortierung
+  - Tanzstil + Standort/Umkreis im Accordion „Filter“
+  - Sortierung „Entfernung“: Hinweis + Accordion-Öffnung wenn Standort fehlt
+- Neue Hilfeseite `/hilfe` und Link im Footer
+
+### 🛠️ Wartungsmodus
+
+- Wartungsmodus (MAINTENANCE_MODE) blockiert Schreibzugriffe serverseitig (HTTP 503)
+  - via `src/proxy.ts` (Next.js 16 Proxy-Konvention)
+- Globales Wartungs-Banner
+
+### 🧰 Installation / Setup
+
+- Setup-Script (`scripts/setup-native.sh`) bricht bei ungültigen Eingaben nicht mehr hart ab
+  - NEXTAUTH_URL: bei ungültiger URL erneut abfragen
+  - SMTP + Admin E-Mail + DB Passwort: bei ungültig/leer erneut abfragen
+  - SMTP Verify: Abbruch entfernt, stattdessen Warnung + Hilfe (STARTTLS vs SMTPS)
+
+### � PWA (iOS)
+
+- iOS Home-Screen Icon verbessert
+  - `apple-touch-icon.png` hinzugefügt
+  - Manifest um PNG Icons ergänzt
+
+### �🔧 Deployment / Datenbank
 
 - PostgreSQL-only: SQLite komplett entfernt
   - Entfernte Prisma SQLite-Migrations-History (`prisma/migrations` inkl. `migration_lock.toml`)
@@ -152,4 +181,4 @@ Siehe `INSTALL_NATIVE.md` für Details.
 
 ----
 
-**Letzte Aktualisierung:** 01. Februar 2026
+**Letzte Aktualisierung:** 04. Februar 2026
