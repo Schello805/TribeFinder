@@ -55,8 +55,8 @@ export async function generateMetadata(): Promise<Metadata> {
     brandingLogoUrl = "";
   }
 
-  const appleIcon = brandingLogoUrl || undefined;
-  const socialImageUrl = brandingLogoUrl || "/icons/icon.svg";
+  const appleIcon = brandingLogoUrl || "/apple-touch-icon.png";
+  const socialImageUrl = brandingLogoUrl || "/icons/icon-512.png";
 
   return {
     metadataBase: new URL(baseUrl),
@@ -95,8 +95,11 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "TribeFinder",
     },
     icons: {
-      icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
-      apple: appleIcon ? [{ url: appleIcon }] : undefined,
+      icon: [
+        { url: "/icons/icon-192.png", type: "image/png" },
+        { url: "/icons/icon.svg", type: "image/svg+xml" },
+      ],
+      apple: [{ url: appleIcon }],
     },
   };
 }
