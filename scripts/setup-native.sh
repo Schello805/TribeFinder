@@ -431,10 +431,10 @@ if [ ! -d "node_modules/@tailwindcss/oxide-linux-x64-gnu" ]; then
 fi
 
 echo "Teste SMTP Konfiguration..."
-sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && set -a && . ./.env && set +a && node -e "const nodemailer=require(\"nodemailer\"); const host=process.env.SMTP_HOST; const port=Number(process.env.SMTP_PORT||587); const user=process.env.SMTP_USER; const pass=process.env.SMTP_PASSWORD; const secure=(process.env.SMTP_SECURE===\"true\"); if(!host||!user||!pass){console.error(\"SMTP Konfiguration fehlt (SMTP_HOST/SMTP_USER/SMTP_PASSWORD)\"); process.exit(1);} const t=nodemailer.createTransport({host,port,secure,auth:{user,pass}}); t.verify().then(()=>{console.log(\"✓ SMTP OK\");}).catch((e)=>{console.error(\"SMTP Fehler:\", e && (e.message||e)); process.exit(1);});"'
+sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && set -a && . ./.env && set +a && node -e "const nodemailer=require(\"nodemailer\"); const host=process.env.SMTP_HOST; const port=Number(process.env.SMTP_PORT||587); const user=process.env.SMTP_USER; const pass=process.env.SMTP_PASSWORD; const secure=(process.env.SMTP_SECURE===\"true\"); if(!host||!user||!pass){console.error(\"SMTP Konfiguration fehlt (SMTP_HOST/SMTP_USER/SMTP_PASSWORD)\"); process.exit(2);} const t=nodemailer.createTransport({host,port,secure,auth:{user,pass}}); t.verify().then(()=>{console.log(\"✓ SMTP OK\");}).catch((e)=>{const msg=String((e && (e.message||e))||\"\"); console.error(\"SMTP Fehler:\", msg); if(msg.toLowerCase().includes(\"wrong version number\")){ console.error(\"Hinweis: Das ist meist eine falsche Kombination aus Port und SMTP_SECURE.\"); console.error(\"- Port 587: SMTP_SECURE=false (STARTTLS/Upgrade)\"); console.error(\"- Port 465: SMTP_SECURE=true (SMTPS)\"); } process.exit(2);});"'
 if [ $? -ne 0 ]; then
-    echo -e "${RED}Fehler: SMTP Test fehlgeschlagen. Bitte korrigiere SMTP_* in .env und starte das Setup erneut.${NC}"
-    exit 1
+    echo -e "${YELLOW}Warnung: SMTP Test fehlgeschlagen. Die Installation läuft weiter, aber E-Mail-Funktionen (Verifizierung/Passwort-Reset) funktionieren erst nach korrekter SMTP Konfiguration.${NC}"
+    echo -e "${YELLOW}Du kannst SMTP_* später in /home/tribefinder/TribeFinder/.env anpassen und danach den Service neu starten.${NC}"
 fi
 
 # Prisma Setup
