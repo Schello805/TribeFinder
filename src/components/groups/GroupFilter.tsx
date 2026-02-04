@@ -234,7 +234,71 @@ export default function GroupFilter() {
   const showDistanceSort = Boolean(lat && lng);
 
   const secondaryControls = (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Tanzstil</label>
+        <div className="relative">
+          <select
+            value={selectedTag}
+            onChange={(e) => setSelectedTag(e.target.value)}
+            className="w-full px-4 py-2 pr-10 min-h-11 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
+          >
+            <option value="">Alle Tanzstile</option>
+            {availableTags.map((tag) => (
+              <option key={tag.id} value={tag.name}>
+                {tag.name}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--muted)]">
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                fillRule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Standort</label>
+        <div className="flex gap-2">
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder="Stadt oder PLZ..."
+              className="w-full px-4 py-2 min-h-11 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
+              value={location}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                if (lat || lng) {
+                  setLat("");
+                  setLng("");
+                }
+              }}
+            />
+            {location && (
+              <button
+                onClick={clearLocation}
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 px-3 py-2 rounded text-[var(--muted)] hover:text-[var(--foreground)]"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <button
+            onClick={handleUseMyLocation}
+            disabled={isLocating}
+            className="px-2 min-h-11 min-w-11 border border-[var(--border)] rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] transition"
+            title="Meinen Standort verwenden"
+          >
+            {isLocating ? "..." : "📍"}
+          </button>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Optionen</label>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -281,40 +345,12 @@ export default function GroupFilter() {
           </div>
         </div>
       </div>
-
-      <div>
-        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Sortierung</label>
-        <div className="relative">
-          <select
-            value={sort}
-            onChange={(e) => {
-              const next = e.target.value;
-              if (next === "distance" && !showDistanceSort) {
-                showToast('Für „Entfernung“ bitte einen Standort/Umkreis setzen.', 'info');
-                setSort("newest");
-                return;
-              }
-              setSort(next);
-            }}
-            className="w-full px-4 py-2 pr-10 min-h-11 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
-          >
-            <option value="newest">Neueste</option>
-            <option value="name">Alphabetisch</option>
-            <option value="distance" disabled={!showDistanceSort}>Entfernung</option>
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--muted)]">
-            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
-            </svg>
-          </div>
-        </div>
-      </div>
     </div>
   );
 
   return (
     <div className="mb-4 bg-[var(--surface)] text-[var(--foreground)] p-3 rounded-lg shadow-sm border border-[var(--border)] space-y-3">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Text Suche */}
         <div className="relative">
           <label className="block text-xs font-medium text-[var(--foreground)] mb-1">Suche</label>
@@ -326,72 +362,44 @@ export default function GroupFilter() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
-        {/* Tag Filter */}
         <div className="relative">
-          <label className="block text-xs font-medium text-[var(--foreground)] mb-1">Tanzstil</label>
+          <label className="block text-xs font-medium text-[var(--foreground)] mb-1">Sortierung</label>
           <div className="relative">
             <select
-              value={selectedTag}
-              onChange={(e) => setSelectedTag(e.target.value)}
+              value={sort}
+              onChange={(e) => {
+                const next = e.target.value;
+                if (next === "distance" && !showDistanceSort) {
+                  showToast('Für „Entfernung“ bitte einen Standort/Umkreis setzen.', 'info');
+                  setSort("newest");
+                  return;
+                }
+                setSort(next);
+              }}
               className="w-full px-3 py-2 pr-9 min-h-10 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
             >
-              <option value="">Alle Tanzstile</option>
-              {availableTags.map(tag => (
-                <option key={tag.id} value={tag.name}>{tag.name}</option>
-              ))}
+              <option value="newest">Neueste</option>
+              <option value="name">Alphabetisch</option>
+              <option value="distance" disabled={!showDistanceSort}>
+                Entfernung
+              </option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--muted)]">
               <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
-          </div>
-        </div>
-
-        {/* Standort Suche */}
-        <div className="relative">
-          <label className="block text-xs font-medium text-[var(--foreground)] mb-1">Standort</label>
-          <div className="flex gap-2">
-            <div className="relative flex-grow">
-              <input
-                type="text"
-                placeholder="Stadt oder PLZ..."
-                className="w-full px-3 py-2 min-h-10 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
-                value={location}
-                onChange={(e) => {
-                  setLocation(e.target.value);
-                  // Reset coords if user types manually to force re-geocode or clear
-                  if (lat || lng) {
-                    setLat("");
-                    setLng("");
-                  }
-                }}
-              />
-              {location && (
-                <button 
-                  onClick={clearLocation}
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 px-3 py-2 rounded text-[var(--muted)] hover:text-[var(--foreground)]"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-            <button
-              onClick={handleUseMyLocation}
-              disabled={isLocating}
-              className="px-2 min-h-10 min-w-10 border border-[var(--border)] rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] transition"
-              title="Meinen Standort verwenden"
-            >
-              {isLocating ? "..." : "📍"}
-            </button>
           </div>
         </div>
       </div>
 
       <details className="rounded-md border border-[var(--border)] bg-[var(--surface-2)]">
         <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-[var(--foreground)]">
-          Weitere Filter
+          Filter
         </summary>
         <div className="px-3 pb-3 pt-1 space-y-3">
           {secondaryControls}
