@@ -55,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
     brandingLogoUrl = "";
   }
 
-  const appleIcon = brandingLogoUrl || "/apple-touch-icon.png";
+  const appleIcon = "/apple-touch-icon.png";
   const socialImageUrl = brandingLogoUrl || "/icons/icon-512.png";
 
   return {
@@ -99,7 +99,7 @@ export async function generateMetadata(): Promise<Metadata> {
         { url: "/icons/icon-192.png", type: "image/png" },
         { url: "/icons/icon.svg", type: "image/svg+xml" },
       ],
-      apple: [{ url: appleIcon }],
+      apple: [{ url: appleIcon, sizes: "180x180", type: "image/png" }],
     },
   };
 }
