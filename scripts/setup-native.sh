@@ -252,13 +252,16 @@ get_env_var() {
 NEXTAUTH_URL_CURRENT="$(get_env_var NEXTAUTH_URL)"
 if [ -z "${NEXTAUTH_URL_CURRENT}" ] || echo "${NEXTAUTH_URL_CURRENT}" | grep -qi "localhost"; then
     echo
-    read -r -p "Öffentliche Base-URL (für E-Mail Links) [http://localhost:3000]: " PUBLIC_BASE_URL
-    PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-http://localhost:3000}"
-    if ! echo "${PUBLIC_BASE_URL}" | grep -qE '^https?://'; then
-        echo -e "${RED}Fehler: Bitte eine gültige URL angeben (muss mit http:// oder https:// beginnen).${NC}"
-        exit 1
-    fi
-    PUBLIC_BASE_URL="${PUBLIC_BASE_URL%/}"
+    while true; do
+        read -r -p "Öffentliche Base-URL (für E-Mail Links) [http://localhost:3000]: " PUBLIC_BASE_URL
+        PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-http://localhost:3000}"
+        if ! echo "${PUBLIC_BASE_URL}" | grep -qE '^https?://'; then
+            echo -e "${RED}Fehler: Bitte eine gültige URL angeben (muss mit http:// oder https:// beginnen).${NC}"
+            continue
+        fi
+        PUBLIC_BASE_URL="${PUBLIC_BASE_URL%/}"
+        break
+    done
     set_env_var NEXTAUTH_URL "${PUBLIC_BASE_URL}"
     set_env_var SITE_URL "${PUBLIC_BASE_URL}"
     chown tribefinder:tribefinder .env
