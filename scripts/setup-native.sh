@@ -271,11 +271,14 @@ fi
 ADMIN_EMAIL_CURRENT="$(get_env_var DEFAULT_ADMIN_EMAIL)"
 if [ -z "${ADMIN_EMAIL_CURRENT}" ]; then
     echo
-    read -r -p "Admin E-Mail (wird beim Registrieren automatisch ADMIN) : " DEFAULT_ADMIN_EMAIL
-    if [ -z "${DEFAULT_ADMIN_EMAIL}" ] || ! echo "${DEFAULT_ADMIN_EMAIL}" | grep -q "@"; then
-        echo -e "${RED}Fehler: Bitte eine gültige E-Mail-Adresse angeben.${NC}"
-        exit 1
-    fi
+    while true; do
+        read -r -p "Admin E-Mail (wird beim Registrieren automatisch ADMIN) : " DEFAULT_ADMIN_EMAIL
+        if [ -z "${DEFAULT_ADMIN_EMAIL}" ] || ! echo "${DEFAULT_ADMIN_EMAIL}" | grep -q "@"; then
+            echo -e "${RED}Fehler: Bitte eine gültige E-Mail-Adresse angeben.${NC}"
+            continue
+        fi
+        break
+    done
     set_env_var DEFAULT_ADMIN_EMAIL "${DEFAULT_ADMIN_EMAIL}"
 fi
 
@@ -373,10 +376,11 @@ if grep -q 'CHANGE_ME' .env; then
     echo
     read -r -s -p "PostgreSQL Passwort für User '$PG_USER': " PG_PASS
     echo
-    if [ -z "$PG_PASS" ]; then
+    while [ -z "$PG_PASS" ]; do
         echo -e "${RED}Fehler: Passwort darf nicht leer sein.${NC}"
-        exit 1
-    fi
+        read -r -s -p "PostgreSQL Passwort für User '$PG_USER': " PG_PASS
+        echo
+    done
 
     echo -e "${YELLOW}Lege DB/User an (idempotent)...${NC}"
     sudo -u postgres psql -v ON_ERROR_STOP=1 -tAc "SELECT 1 FROM pg_roles WHERE rolname='${PG_USER}'" | grep -q 1 || \
