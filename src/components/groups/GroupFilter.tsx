@@ -21,6 +21,7 @@ export default function GroupFilter() {
   const [onlySeekingMembers, setOnlySeekingMembers] = useState(searchParams.get("seeking") === "1");
   const [groupSize, setGroupSize] = useState(searchParams.get("size") || "");
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [availableTags, setAvailableTags] = useState<{ id: string, name: string }[]>([]);
   const [isLocating, setIsLocating] = useState(false);
   const geocodeSeq = useRef(0);
@@ -371,6 +372,7 @@ export default function GroupFilter() {
                 const next = e.target.value;
                 if (next === "distance" && !showDistanceSort) {
                   showToast('Für „Entfernung“ bitte einen Standort/Umkreis setzen.', 'info');
+                  setIsFilterOpen(true);
                   setSort("newest");
                   return;
                 }
@@ -380,7 +382,7 @@ export default function GroupFilter() {
             >
               <option value="newest">Neueste</option>
               <option value="name">Alphabetisch</option>
-              <option value="distance" disabled={!showDistanceSort}>
+              <option value="distance">
                 Entfernung
               </option>
             </select>
@@ -397,7 +399,11 @@ export default function GroupFilter() {
         </div>
       </div>
 
-      <details className="rounded-md border border-[var(--border)] bg-[var(--surface-2)]">
+      <details
+        className="rounded-md border border-[var(--border)] bg-[var(--surface-2)]"
+        open={isFilterOpen}
+        onToggle={(e) => setIsFilterOpen((e.currentTarget as HTMLDetailsElement).open)}
+      >
         <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-[var(--foreground)]">
           Filter
         </summary>
