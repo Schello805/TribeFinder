@@ -55,7 +55,19 @@ export async function generateMetadata(): Promise<Metadata> {
     brandingLogoUrl = "";
   }
 
-  const appleIcon = "/apple-touch-icon.png";
+  const appleIcon = (() => {
+    const url = (brandingLogoUrl || "").trim();
+    if (!url) return "/apple-touch-icon.png";
+
+    // iOS expects a raster image for apple-touch-icon. Prefer configured branding logo
+    // only when it is a supported format.
+    const lower = url.toLowerCase();
+    if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
+      return url;
+    }
+
+    return "/apple-touch-icon.png";
+  })();
   const socialImageUrl = brandingLogoUrl || "/icons/icon-512.png";
 
   return {
