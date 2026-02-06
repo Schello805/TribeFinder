@@ -58,8 +58,10 @@ export async function GET(req: Request) {
       name?: { contains: string };
       description?: { contains: string };
       tags?: { some: { name: { contains: string } } };
+      danceStyles?: { some: { style: { name: { contains: string } } } };
     }>;
     tags?: { some: { name: { equals: string } } };
+    danceStyles?: { some: { style: { name: { equals: string } } } };
     location?: { lat: { gte: number; lte: number }; lng: { gte: number; lte: number } };
     performances?: boolean;
     seekingMembers?: boolean;
@@ -70,12 +72,14 @@ export async function GET(req: Request) {
     whereClause.OR = [
       { name: { contains: query } },
       { description: { contains: query } },
-      { tags: { some: { name: { contains: query } } } }
+      { tags: { some: { name: { contains: query } } } },
+      { danceStyles: { some: { style: { name: { contains: query } } } } }
     ];
   }
 
   if (tag) {
     whereClause.tags = { some: { name: { equals: tag } } };
+    whereClause.danceStyles = { some: { style: { name: { equals: tag } } } };
   }
 
   if (onlyPerformances) {
@@ -112,6 +116,7 @@ export async function GET(req: Request) {
             include: {
               location: true,
               tags: true,
+              danceStyles: { include: { style: true } },
               owner: {
                 select: {
                   name: true,
@@ -149,6 +154,7 @@ export async function GET(req: Request) {
           include: {
             location: true,
             tags: true,
+            danceStyles: { include: { style: true } },
             owner: {
               select: {
                 name: true,
@@ -228,6 +234,32 @@ export async function POST(req: Request) {
     const validatedData = groupCreateSchema.parse(body);
     logger.debug({ validatedData }, "POST /api/groups - Validated data");
 
+    const danceStylesInput =
+      validatedData.danceStyles && validatedData.danceStyles.length > 0
+        ? validatedData.danceStyles
+        : validatedData.tags && validatedData.tags.length > 0
+          ? validatedData.tags.map((name) => ({ name, level: "INTERMEDIATE" as const }))
+          : [];
+
+    const danceStylesCreate = danceStylesInput.length
+      ? {
+          create: await Promise.all(
+            danceStylesInput.map(async (ds) => {
+              if ("styleId" in ds) {
+                return { level: ds.level, style: { connect: { id: ds.styleId } } };
+              }
+              const style = await prisma.danceStyle.upsert({
+                where: { name: ds.name },
+                update: {},
+                create: { name: ds.name },
+                select: { id: true },
+              });
+              return { level: ds.level, style: { connect: { id: style.id } } };
+            })
+          ),
+        }
+      : undefined;
+
     // Prüfen auf neue Tags für Benachrichtigung
     let newTagsToNotify: string[] = [];
     if (validatedData.tags && validatedData.tags.length > 0) {
@@ -281,7 +313,8 @@ export async function POST(req: Request) {
             where: { name: tag },
             create: { name: tag }
           }))
-        } : undefined
+        } : undefined,
+        danceStyles: danceStylesCreate,
       }
     });
     logger.info({ groupId: group.id }, "POST /api/groups - Group created");

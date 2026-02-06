@@ -41,6 +41,14 @@ export default async function GroupDetailPage({
     headerGradientTo: true,
     location: true,
     tags: true,
+    danceStyles: {
+      select: {
+        id: true,
+        level: true,
+        style: { select: { id: true, name: true } },
+      },
+      orderBy: { style: { name: "asc" } },
+    },
     owner: {
       select: {
         id: true,
@@ -388,15 +396,18 @@ export default async function GroupDetailPage({
                   <div>
                     <dt className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Tanzstile</dt>
                     <dd className="flex flex-wrap gap-2">
-                      {group.tags.map((tag) => (
+                      {group.danceStyles.map((ds) => (
                         <span
-                          key={tag.id}
-                          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium 
-                            ${tag.isApproved ? 'bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm' : 'bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)]'}`}
-                          title={!tag.isApproved ? "Wartet auf Freigabe" : ""}
+                          key={ds.id}
+                          className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm"
                         >
-                          {tag.name}
-                          {!tag.isApproved && <span className="ml-1 text-[10px] text-yellow-500">⏳</span>}
+                          {ds.style.name}
+                          <span className="ml-2 text-[10px] text-[var(--muted)]">
+                            {ds.level === "BEGINNER" && "Anfänger"}
+                            {ds.level === "INTERMEDIATE" && "Fortgeschritten"}
+                            {ds.level === "ADVANCED" && "Sehr fortgeschritten"}
+                            {ds.level === "PROFESSIONAL" && "Profi"}
+                          </span>
                         </span>
                       ))}
                     </dd>

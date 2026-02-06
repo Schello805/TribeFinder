@@ -140,6 +140,7 @@ model Group {
   
   location      Location?
   tags          Tag[]
+  danceStyles   GroupDanceStyle[]
   events        Event[]
   eventParticipations EventParticipation[]
   
@@ -253,6 +254,13 @@ model Tag {
   groups     Group[]
 }
 
+enum DanceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  PROFESSIONAL
+}
+
 model SystemSetting {
   key   String @id
   value String
@@ -322,6 +330,7 @@ model DanceStyle {
   category  String?  // e.g. "Oriental", "Tribal", "Fusion"
   
   users     UserDanceStyle[]
+  groups    GroupDanceStyle[]
 }
 
 // User's Dance Styles with Level
@@ -334,9 +343,23 @@ model UserDanceStyle {
   styleId   String
   style     DanceStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
   
-  level     String   @default("BEGINNER") // "BEGINNER", "INTERMEDIATE", "ADVANCED", "PROFESSIONAL"
+  level     DanceLevel   @default(BEGINNER)
   
   @@unique([userId, styleId])
+}
+
+model GroupDanceStyle {
+  id      String @id @default(cuid())
+
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  styleId String
+  style   DanceStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
+
+  level   DanceLevel @default(BEGINNER)
+
+  @@unique([groupId, styleId])
 }
 
 // Workshop/Event Registrations

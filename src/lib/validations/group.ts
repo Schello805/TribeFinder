@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const DanceLevelSchema = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "PROFESSIONAL"]);
+
 const baseGroupSchema = z.object({
   name: z.string().min(2, "Name muss mindestens 2 Zeichen lang sein"),
   description: z.string().min(10, "Beschreibung muss mindestens 10 Zeichen lang sein"),
@@ -21,6 +23,14 @@ const baseGroupSchema = z.object({
     })
     .optional(),
   tags: z.array(z.string()).optional(),
+  danceStyles: z
+    .array(
+      z.object({
+        styleId: z.string().min(1),
+        level: DanceLevelSchema.default("BEGINNER"),
+      })
+    )
+    .optional(),
   image: z.string().optional(), // Für Logo/Bild Upload (Pfad)
   headerImage: z.string().optional(),
   headerImageFocusY: z.number().min(0).max(100).optional(),

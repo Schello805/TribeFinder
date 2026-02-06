@@ -22,6 +22,7 @@ export async function GET(
       include: {
         location: true,
         tags: true,
+        danceStyles: { include: { style: true } },
         owner: {
           select: {
             id: true,
@@ -70,6 +71,7 @@ export async function GET(
       include: {
         location: true,
         tags: true,
+        danceStyles: { include: { style: true } },
         owner: {
           select: {
             id: true,
@@ -156,6 +158,33 @@ export async function PUT(
     const validatedData = groupUpdateSchema.parse(body);
     logger.debug({ validatedData, groupId: id }, "PUT /api/groups - Validated data");
 
+    const danceStylesInput =
+      validatedData.danceStyles && validatedData.danceStyles.length > 0
+        ? validatedData.danceStyles
+        : validatedData.tags && validatedData.tags.length > 0
+          ? validatedData.tags.map((name) => ({ name, level: "INTERMEDIATE" as const }))
+          : [];
+
+    const danceStylesCreate = danceStylesInput.length
+      ? {
+          deleteMany: {},
+          create: await Promise.all(
+            danceStylesInput.map(async (ds) => {
+              if ("styleId" in ds) {
+                return { level: ds.level, style: { connect: { id: ds.styleId } } };
+              }
+              const style = await prisma.danceStyle.upsert({
+                where: { name: ds.name },
+                update: {},
+                create: { name: ds.name },
+                select: { id: true },
+              });
+              return { level: ds.level, style: { connect: { id: style.id } } };
+            })
+          ),
+        }
+      : undefined;
+
     // Prüfen auf neue Tags für Benachrichtigung
     let newTagsToNotify: string[] = [];
     if (validatedData.tags && validatedData.tags.length > 0) {
@@ -211,7 +240,8 @@ export async function PUT(
             where: { name: tag },
             create: { name: tag }
           }))
-        } : undefined
+        } : undefined,
+        danceStyles: danceStylesCreate,
       }
     });
     logger.info({ groupId: id }, "PUT /api/groups - Group updated");

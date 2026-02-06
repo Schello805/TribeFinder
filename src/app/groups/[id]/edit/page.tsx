@@ -16,7 +16,8 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
     where: { id },
     include: {
       location: true,
-      tags: true
+      tags: true,
+      danceStyles: { select: { styleId: true, level: true } },
     }
   });
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import TagInput from "@/components/ui/TagInput";
+import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
 import { useToast } from "@/components/ui/Toast";
 
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), {
@@ -32,7 +32,7 @@ interface FormData {
     lng: number;
     address?: string;
   };
-  tags: string[];
+  danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL" }>;
 }
 
 type WizardStep = "basics" | "details";
@@ -55,7 +55,7 @@ export default function GroupCreateWizard() {
     size: "SMALL",
     performances: false,
     seekingMembers: false,
-    tags: [],
+    danceStyles: [],
   });
 
   const currentStepIndex = STEPS.findIndex((s) => s.id === currentStep);
@@ -415,9 +415,10 @@ export default function GroupCreateWizard() {
               <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                 Tanzstile
               </label>
-              <TagInput
-                selectedTags={formData.tags}
-                onChange={(tags) => updateField("tags", tags)}
+              <GroupDanceStylesEditor
+                value={formData.danceStyles || []}
+                onChange={(danceStyles) => updateField("danceStyles", danceStyles)}
+                disabled={isLoading}
               />
             </div>
 

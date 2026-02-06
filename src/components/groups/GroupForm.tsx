@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { GroupFormData } from "@/lib/validations/group";
-import TagInput from "@/components/ui/TagInput";
+import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), {
@@ -17,6 +17,7 @@ interface GroupFormProps {
     id?: string;
     location?: { lat: number; lng: number; address?: string | null } | null;
     tags?: Array<{ name: string } | string>;
+    danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL" }>;
   });
   isEditing?: boolean;
   isOwner?: boolean;
@@ -35,6 +36,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
   const groupId = initialData?.id;
 
   const initialTags: Array<string | { name: string }> = initialData?.tags ?? [];
+  const initialDanceStyles = initialData?.danceStyles ?? [];
   
   const [formData, setFormData] = useState<GroupFormData>({
     name: initialData?.name || "",
@@ -60,6 +62,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
       address: initialData.location.address || "",
     } : undefined,
     tags: initialTags.map((t) => (typeof t === 'string' ? t : t.name)), 
+    danceStyles: initialDanceStyles,
   });
 
   void isOwner;
@@ -614,10 +617,11 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Tanzstile / Tags</label>
-        <TagInput 
-          selectedTags={formData.tags || []} 
-          onChange={(tags) => setFormData(prev => ({ ...prev, tags }))} 
+        <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Tanzstile</label>
+        <GroupDanceStylesEditor
+          value={formData.danceStyles || []}
+          onChange={(danceStyles) => setFormData((prev) => ({ ...prev, danceStyles }))}
+          disabled={isLoading}
         />
       </div>
 
