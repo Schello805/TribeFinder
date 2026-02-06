@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight } from '@/lib/email';
+import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight, getEmailBaseUrl, toAbsoluteUrl } from '@/lib/email';
 import { v4 as uuidv4 } from 'uuid';
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 
@@ -39,7 +39,8 @@ export async function POST(req: Request) {
       },
     });
 
-    const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`;
+    const baseUrl = getEmailBaseUrl(req);
+    const resetUrl = toAbsoluteUrl(`/auth/reset-password?token=${resetToken}`, baseUrl);
 
     const emailContent = `
       ${emailHeading('Passwort zurücksetzen 🔐')}

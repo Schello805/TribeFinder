@@ -40,11 +40,31 @@ const getTransporter = async () => {
 };
 
 // Beautiful HTML email wrapper template
-const getAbsoluteUrl = (maybeUrl: string) => {
-  const base = (process.env.NEXTAUTH_URL || '').replace(/\/$/, '');
+export const getEmailBaseUrl = (req?: Request) => {
+  const envBase = (process.env.SITE_URL || process.env.NEXTAUTH_URL || '').trim();
+  const normalizedEnvBase = envBase.replace(/\/+$/, '');
+  if (/^https?:\/\//i.test(normalizedEnvBase)) return normalizedEnvBase;
+
+  if (req) {
+    const forwardedProto = (req.headers.get('x-forwarded-proto') || '').split(',')[0].trim();
+    const forwardedHost = (req.headers.get('x-forwarded-host') || '').split(',')[0].trim();
+    const host = (req.headers.get('host') || '').trim();
+
+    const proto = forwardedProto || 'https';
+    const effectiveHost = forwardedHost || host;
+    if (effectiveHost) return `${proto}://${effectiveHost}`;
+  }
+
+  return 'http://localhost:3000';
+};
+
+export const toAbsoluteUrl = (maybeUrl: string, baseUrl?: string) => {
   if (!maybeUrl) return '';
   if (/^https?:\/\//i.test(maybeUrl)) return maybeUrl;
+
+  const base = (baseUrl || '').replace(/\/+$/, '');
   if (!base) return maybeUrl;
+
   if (maybeUrl.startsWith('/')) return `${base}${maybeUrl}`;
   return `${base}/${maybeUrl}`;
 };
@@ -52,13 +72,14 @@ const getAbsoluteUrl = (maybeUrl: string) => {
 const getBrandingLogoUrl = async () => {
   try {
     const setting = await prisma.systemSetting.findUnique({ where: { key: 'BRANDING_LOGO_URL' } });
-    return setting?.value ? getAbsoluteUrl(setting.value) : '';
+    return setting?.value ? toAbsoluteUrl(setting.value, getEmailBaseUrl()) : '';
   } catch {
     return '';
   }
 };
 
 export const emailTemplate = async (content: string, preheader?: string) => {
+  const baseUrl = getEmailBaseUrl();
   const logoUrl = await getBrandingLogoUrl();
 
   return `
@@ -103,10 +124,10 @@ export const emailTemplate = async (content: string, preheader?: string) => {
                     <p style="margin: 0 0 8px 0;">Diese E-Mail wurde automatisch von TribeFinder versendet.</p>
                     <p style="margin: 0 0 8px 0;">
                       Du kannst diese Benachrichtigungen im Profil (Mein Bereich) unter <strong>Benachrichtigungen</strong> deaktivieren:
-                      <a href="${process.env.NEXTAUTH_URL}/dashboard/notifications" style="color: #6366f1; text-decoration: none;">Einstellungen öffnen</a>
+                      <a href="${toAbsoluteUrl('/dashboard/notifications', baseUrl)}" style="color: #6366f1; text-decoration: none;">Einstellungen öffnen</a>
                     </p>
                     <p style="margin: 0;">
-                      <a href="${process.env.NEXTAUTH_URL}" style="color: #6366f1; text-decoration: none;">TribeFinder besuchen</a>
+                      <a href="${baseUrl}" style="color: #6366f1; text-decoration: none;">TribeFinder besuchen</a>
                     </p>
                   </td>
                 </tr>

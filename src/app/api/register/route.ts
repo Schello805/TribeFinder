@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 import { v4 as uuidv4 } from "uuid";
-import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight } from "@/lib/email";
+import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight, getEmailBaseUrl, toAbsoluteUrl } from "@/lib/email";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -68,7 +68,8 @@ export async function POST(req: Request) {
     });
 
     if (!autoVerify) {
-      const verifyUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
+      const baseUrl = getEmailBaseUrl(req);
+      const verifyUrl = toAbsoluteUrl(`/auth/verify-email?token=${verificationToken}`, baseUrl);
       const emailContent = `
       ${emailHeading('E-Mail-Adresse bestätigen ✅')}
       ${emailText('Willkommen bei TribeFinder! Bitte bestätige deine E-Mail-Adresse, damit du dich anmelden kannst.')}
