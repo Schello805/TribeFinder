@@ -90,6 +90,14 @@ export default function FeedbackWidget() {
     };
   }, [showToast, speechSupported]);
 
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("tribefinder:open-feedback", onOpen as EventListener);
+    return () => {
+      window.removeEventListener("tribefinder:open-feedback", onOpen as EventListener);
+    };
+  }, []);
+
   const toggleRecording = () => {
     const rec = recognitionRef.current;
     if (!rec) return;
@@ -172,14 +180,6 @@ export default function FeedbackWidget() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 left-auto z-[2000] rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition px-5 py-3 font-semibold"
-      >
-        Feedback
-      </button>
-
       {open && (
         <div className="fixed inset-0 z-[2100]">
           <button

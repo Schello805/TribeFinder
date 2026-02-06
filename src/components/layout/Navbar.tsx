@@ -242,6 +242,17 @@ export default function Navbar() {
                         ) : null}
                       </Link>
 
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          window.dispatchEvent(new Event("tribefinder:open-feedback"));
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-[var(--nav-surface)]"
+                      >
+                        Feedback
+                      </button>
+
                       <div className="px-3 py-3 border-t border-[var(--nav-border)]">
                         <div className="px-1 pb-2 text-xs font-semibold text-[var(--nav-muted)]">Design</div>
                         <div className="flex items-center rounded-md border border-[var(--nav-border)] bg-[var(--nav-surface-subtle)] overflow-hidden">

@@ -183,11 +183,15 @@ export async function POST(req: Request) {
     lng = userLoc.notifyLng;
     locationSource = "PROFILE";
   } else {
-    const r = await geocodeGermany(`${parsed.data.postalCode} ${parsed.data.city}`);
-    if (r) {
-      lat = r.lat;
-      lng = r.lng;
-      locationSource = "GEOCODE";
+    try {
+      const r = await geocodeGermany(`${parsed.data.postalCode} ${parsed.data.city}`);
+      if (r) {
+        lat = r.lat;
+        lng = r.lng;
+        locationSource = "GEOCODE";
+      }
+    } catch {
+      // ignore geocoding errors (best-effort)
     }
   }
 
