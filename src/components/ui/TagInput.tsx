@@ -21,6 +21,34 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isOpen) return;
+
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (containerRef.current && !containerRef.current.contains(target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('touchstart', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('touchstart', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     const fetchTags = async () => {
       // Wenn leer, zeige die ersten 20 (default) oder lade sie
       const searchTerm = input.length >= 2 ? input : '';
@@ -53,9 +81,21 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
     if (e.key === 'Enter') {
       e.preventDefault();
       addTag(input);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsOpen(false);
     } else if (e.key === 'Backspace' && input === '' && selectedTags.length > 0) {
       removeTag(selectedTags[selectedTags.length - 1]);
     }
+  };
+
+  const handleBlur = () => {
+    // Delay to allow click on a suggestion to register first.
+    window.setTimeout(() => {
+      const active = document.activeElement;
+      if (containerRef.current && active && containerRef.current.contains(active)) return;
+      setIsOpen(false);
+    }, 0);
   };
 
   const addTag = (name: string) => {
@@ -104,6 +144,7 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
               setIsOpen(true);
             }}
             onFocus={handleFocus}
+            onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             placeholder={selectedTags.length === 0 ? "Tanzstile suchen oder hinzufügen..." : ""}
             className="w-full border-none focus:ring-0 p-0 text-sm text-[var(--foreground)] bg-transparent placeholder-[var(--muted)] h-7"
