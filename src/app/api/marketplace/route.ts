@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { marketplaceListingCreateSchema } from "@/lib/validations/marketplace";
 import { geocodeGermany } from "@/lib/geocode";
+import logger from "@/lib/logger";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
@@ -157,77 +158,95 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
-  const body = await req.json().catch(() => ({}));
-  const parsed = marketplaceListingCreateSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ message: "Validierungsfehler", errors: parsed.error.flatten() }, { status: 400 });
-  }
-
-  const now = new Date();
-  const expiresAt = addMonths(now, 6);
-
-  const userLoc = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { notifyLat: true, notifyLng: true },
-  });
-
-  let lat: number | null = null;
-  let lng: number | null = null;
-  let locationSource: "PROFILE" | "GEOCODE" | null = null;
-
-  if (typeof userLoc?.notifyLat === "number" && typeof userLoc?.notifyLng === "number") {
-    lat = userLoc.notifyLat;
-    lng = userLoc.notifyLng;
-    locationSource = "PROFILE";
-  } else {
-    try {
-      const r = await geocodeGermany(`${parsed.data.postalCode} ${parsed.data.city}`);
-      if (r) {
-        lat = r.lat;
-        lng = r.lng;
-        locationSource = "GEOCODE";
-      }
-    } catch {
-      // ignore geocoding errors (best-effort)
+    const body = await req.json().catch(() => ({}));
+    const parsed = marketplaceListingCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      logger.warn({ errors: parsed.error.flatten(), body }, "POST /api/marketplace validation failed");
+      return NextResponse.json({ message: "Validierungsfehler", errors: parsed.error.flatten() }, { status: 400 });
     }
+
+    const now = new Date();
+    const expiresAt = addMonths(now, 6);
+
+    const userLoc = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { notifyLat: true, notifyLng: true },
+    });
+
+    let lat: number | null = null;
+    let lng: number | null = null;
+    let locationSource: "PROFILE" | "GEOCODE" | null = null;
+
+    if (typeof userLoc?.notifyLat === "number" && typeof userLoc?.notifyLng === "number") {
+      lat = userLoc.notifyLat;
+      lng = userLoc.notifyLng;
+      locationSource = "PROFILE";
+    } else {
+      try {
+        const r = await geocodeGermany(`${parsed.data.postalCode} ${parsed.data.city}`);
+        if (r) {
+          lat = r.lat;
+          lng = r.lng;
+          locationSource = "GEOCODE";
+        }
+      } catch {
+        // ignore geocoding errors (best-effort)
+      }
+    }
+
+    const created = await (prisma as unknown as { marketplaceListing: { create: (args: unknown) => Promise<unknown> } }).marketplaceListing.create({
+      data: {
+        ownerId: session.user.id,
+        title: parsed.data.title,
+        description: parsed.data.description,
+        category: parsed.data.category,
+        listingType: parsed.data.listingType,
+        postalCode: parsed.data.postalCode,
+        city: parsed.data.city,
+        lat,
+        lng,
+        locationSource,
+        priceCents: typeof parsed.data.priceCents === "number" ? parsed.data.priceCents : null,
+        priceType: parsed.data.priceType,
+        currency: "EUR",
+        shippingAvailable: !!parsed.data.shippingAvailable,
+        shippingCostCents: parsed.data.shippingAvailable ? (typeof parsed.data.shippingCostCents === "number" ? parsed.data.shippingCostCents : null) : null,
+        expiresAt,
+        images: parsed.data.images?.length
+          ? {
+              create: parsed.data.images.map((img, idx) => ({
+                url: img.url,
+                caption: img.caption ?? null,
+                order: idx,
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        owner: { select: { id: true, name: true, image: true } },
+        images: { orderBy: { order: "asc" }, select: { id: true, url: true, caption: true, order: true } },
+      },
+    });
+
+    return NextResponse.json(created, { status: 201 });
+  } catch (error) {
+    const errorDetails =
+      error instanceof Error
+        ? { name: error.name, message: error.message, stack: error.stack }
+        : { value: error };
+
+    logger.error({ error: errorDetails }, "POST /api/marketplace failed");
+
+    return NextResponse.json(
+      {
+        message: "Inserat konnte nicht gespeichert werden",
+        details: process.env.NODE_ENV !== "production" ? errorDetails : undefined,
+      },
+      { status: 500 }
+    );
   }
-
-  const created = await (prisma as unknown as { marketplaceListing: { create: (args: unknown) => Promise<unknown> } }).marketplaceListing.create({
-    data: {
-      ownerId: session.user.id,
-      title: parsed.data.title,
-      description: parsed.data.description,
-      category: parsed.data.category,
-      listingType: parsed.data.listingType,
-      postalCode: parsed.data.postalCode,
-      city: parsed.data.city,
-      lat,
-      lng,
-      locationSource,
-      priceCents: typeof parsed.data.priceCents === "number" ? parsed.data.priceCents : null,
-      priceType: parsed.data.priceType,
-      currency: "EUR",
-      shippingAvailable: !!parsed.data.shippingAvailable,
-      shippingCostCents: parsed.data.shippingAvailable ? (typeof parsed.data.shippingCostCents === "number" ? parsed.data.shippingCostCents : null) : null,
-      expiresAt,
-      images: parsed.data.images?.length
-        ? {
-            create: parsed.data.images.map((img, idx) => ({
-              url: img.url,
-              caption: img.caption ?? null,
-              order: idx,
-            })),
-          }
-        : undefined,
-    },
-    include: {
-      owner: { select: { id: true, name: true, image: true } },
-      images: { orderBy: { order: "asc" }, select: { id: true, url: true, caption: true, order: true } },
-    },
-  });
-
-  return NextResponse.json(created, { status: 201 });
 }
