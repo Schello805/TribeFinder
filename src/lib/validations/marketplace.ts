@@ -16,36 +16,51 @@ const imageSchema = z.object({
 const ListingTypeSchema = z.enum(["OFFER", "REQUEST"]);
 const PriceTypeSchema = z.enum(["FIXED", "NEGOTIABLE"]);
 
-export const marketplaceListingCreateSchema = z
-  .object({
-    title: z.string().min(2),
-    description: z.string().min(10),
-    category: MarketplaceCategorySchema,
-    listingType: ListingTypeSchema,
-    postalCode: z.string().min(4).max(10),
-    city: z.string().min(2).max(80),
-    priceType: PriceTypeSchema,
-    priceCents: z.number().int().nonnegative().optional().nullable(),
-    currency: z.string().min(1).optional(),
-    shippingAvailable: z.boolean().optional(),
-    shippingCostCents: z.number().int().nonnegative().optional().nullable(),
+const marketplaceListingBaseSchema = z.object({
+  title: z.string().min(2),
+  description: z.string().min(10),
+  category: MarketplaceCategorySchema,
+  listingType: ListingTypeSchema,
+  postalCode: z.string().min(4).max(10),
+  city: z.string().min(2).max(80),
+  priceType: PriceTypeSchema,
+  priceCents: z.number().int().nonnegative().optional().nullable(),
+  currency: z.string().min(1).optional(),
+  shippingAvailable: z.boolean().optional(),
+  shippingCostCents: z.number().int().nonnegative().optional().nullable(),
+  images: z.array(imageSchema).max(5).optional(),
+});
+
+export const marketplaceListingCreateSchema = marketplaceListingBaseSchema.superRefine((v, ctx) => {
+  if (v.priceType === "NEGOTIABLE" && (v.priceCents === null || typeof v.priceCents !== "number")) {
+    ctx.addIssue({ code: "custom", path: ["priceCents"], message: "Bei Verhandlungsbasis ist ein Preis erforderlich." });
+  }
+
+  if (v.shippingAvailable) {
+    if (v.shippingCostCents === null || typeof v.shippingCostCents !== "number") {
+      ctx.addIssue({ code: "custom", path: ["shippingCostCents"], message: "Bitte Versandkosten angeben." });
+    }
+  }
+});
+
+export const marketplaceListingUpdateSchema = marketplaceListingBaseSchema
+  .partial()
+  .extend({
     images: z.array(imageSchema).max(5).optional(),
   })
   .superRefine((v, ctx) => {
-    if (v.priceType === "NEGOTIABLE" && (v.priceCents === null || typeof v.priceCents !== "number")) {
-      ctx.addIssue({ code: "custom", path: ["priceCents"], message: "Bei Verhandlungsbasis ist ein Preis erforderlich." });
+    if (v.priceType === "NEGOTIABLE") {
+      if (v.priceCents === null || (typeof v.priceCents !== "number" && typeof v.priceCents !== "undefined")) {
+        ctx.addIssue({ code: "custom", path: ["priceCents"], message: "Bei Verhandlungsbasis ist ein Preis erforderlich." });
+      }
     }
 
     if (v.shippingAvailable) {
-      if (v.shippingCostCents === null || typeof v.shippingCostCents !== "number") {
+      if (v.shippingCostCents === null || (typeof v.shippingCostCents !== "number" && typeof v.shippingCostCents !== "undefined")) {
         ctx.addIssue({ code: "custom", path: ["shippingCostCents"], message: "Bitte Versandkosten angeben." });
       }
     }
   });
-
-export const marketplaceListingUpdateSchema = marketplaceListingCreateSchema.partial().extend({
-  images: z.array(imageSchema).max(5).optional(),
-});
 
 export type MarketplaceListingCreateData = z.infer<typeof marketplaceListingCreateSchema>;
 export type MarketplaceListingUpdateData = z.infer<typeof marketplaceListingUpdateSchema>;
