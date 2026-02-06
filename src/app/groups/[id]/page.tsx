@@ -80,7 +80,7 @@ export default async function GroupDetailPage({
         startDate: "asc",
       },
     },
-  } as const;
+  } satisfies Prisma.GroupSelect;
 
   type GroupDetailPayload = Prisma.GroupGetPayload<{ select: typeof groupSelect }>;
 
@@ -183,6 +183,18 @@ export default async function GroupDetailPage({
   const headerFocusYRaw = group.headerImageFocusY;
   const headerFocusY = typeof headerFocusYRaw === "number" && Number.isFinite(headerFocusYRaw) ? Math.min(100, Math.max(0, headerFocusYRaw)) : 50;
   const headerStyle = !headerImageUrl && headerFrom && headerTo ? { backgroundImage: `linear-gradient(to right, ${headerFrom}, ${headerTo})` } : undefined;
+
+  const danceStylesForDisplay = group.danceStyles.length
+    ? group.danceStyles.map((ds) => ({
+        key: ds.id,
+        name: ds.style.name,
+        level: ds.level,
+      }))
+    : group.tags.map((t) => ({
+        key: `tag-${t.id}`,
+        name: t.name,
+        level: "INTERMEDIATE" as const,
+      }));
 
   return (
     <GroupDetailAnimations>
@@ -396,12 +408,12 @@ export default async function GroupDetailPage({
                   <div>
                     <dt className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Tanzstile</dt>
                     <dd className="flex flex-wrap gap-2">
-                      {group.danceStyles.map((ds) => (
+                      {danceStylesForDisplay.map((ds) => (
                         <span
-                          key={ds.id}
+                          key={ds.key}
                           className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm"
                         >
-                          {ds.style.name}
+                          {ds.name}
                           <span className="ml-2 text-[10px] text-[var(--muted)]">
                             {ds.level === "BEGINNER" && "Anfänger"}
                             {ds.level === "INTERMEDIATE" && "Fortgeschritten"}
