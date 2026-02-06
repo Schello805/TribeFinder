@@ -277,7 +277,7 @@ export default function Navbar() {
                         type="button"
                         onClick={() => {
                           setIsUserMenuOpen(false);
-                          signOut();
+                          signOut({ callbackUrl: "/" });
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-[var(--nav-surface)]"
                       >
@@ -394,7 +394,7 @@ export default function Navbar() {
                 </Link>
 
                 <button
-                  onClick={() => signOut()}
+                  onClick={() => signOut({ callbackUrl: "/" })}
                   className="w-full text-left block px-3 py-2 text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md"
                 >
                   Abmelden
