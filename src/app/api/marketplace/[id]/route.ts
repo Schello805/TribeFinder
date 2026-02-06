@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { marketplaceListingUpdateSchema } from "@/lib/validations/marketplace";
+import { deleteUploadByPublicUrl } from "@/lib/uploadFiles";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;
@@ -78,7 +79,15 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (!existing) return NextResponse.json({ message: "Inserat nicht gefunden" }, { status: 404 });
   if (existing.ownerId !== session.user.id) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
+  const withImages = await prisma.marketplaceListing.findUnique({
+    where: { id },
+    select: { images: { select: { url: true } } },
+  });
+
   await prisma.marketplaceListing.delete({ where: { id } });
+
+  const urls = withImages?.images?.map((i) => i.url) ?? [];
+  await Promise.all(urls.map((u) => deleteUploadByPublicUrl(u)));
 
   return NextResponse.json({ ok: true });
 }
