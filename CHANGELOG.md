@@ -8,6 +8,19 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ## [Unreleased] - 2026-02-04
 
+## [Unreleased] - 2026-02-06
+
+### 🛍️ Marketplace (Second-Hand Börse)
+
+- Inserate: Create/Detail/Edit/Delete komplett (Owner/Admin Berechtigungen)
+- Standort: Geocoding best-effort (keine 500er bei externen Fehlern) + Soft-Warnung bei PLZ/Ort-Mismatch
+- Validierung/UX: Pflichtfelder konsistent (u.a. Preis Pflichtfeld), Input-Sanitization (PLZ 5-stellig, Preis/Versand nur Zahlformat)
+- Detailansicht: zusätzliche Infos (Datum/Location-Quelle) + Admin/Owner Aktionen
+
+### 💬 Direktnachrichten
+
+- E-Mail Benachrichtigung bei neuer Nachricht: Link führt direkt in den passenden Thread (`/direct-messages/[otherUserId]`)
+
 ### 🧩 UI / UX
 
 - Gruppenliste: Filter UX auf Mobile verbessert

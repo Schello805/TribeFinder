@@ -156,6 +156,18 @@ export default async function Home() {
                 Werde Mitglied in Gruppen, vernetze dich mit anderen Tänzern und bleibe über die Szene informiert.
               </p>
             </div>
+
+            <Link
+              href="/marketplace"
+              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+            >
+              <div className="text-4xl mb-4">🛍️</div>
+              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Marketplace</h3>
+              <p className="text-[var(--muted)]">
+                Second-Hand Börse für Kostüme, Schmuck & mehr – mit Bildern, Standort und direktem 1:1 Kontakt.
+              </p>
+              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zum Marketplace</div>
+            </Link>
           </div>
         </div>
       </section>
