@@ -230,6 +230,19 @@ export default function Navbar() {
                   {isUserMenuOpen && (
                     <div className="absolute right-0 mt-2 w-64 rounded-lg border border-[var(--nav-border)] bg-[var(--nav-bg)] shadow-xl overflow-hidden z-50">
                       <Link
+                        href="/messages"
+                        className="flex items-center justify-between px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-[var(--nav-surface)]"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <span>Nachrichten</span>
+                        {unreadCount > 0 ? (
+                          <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                          </span>
+                        ) : null}
+                      </Link>
+
+                      <Link
                         href="/dashboard"
                         className="flex items-center justify-between px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-[var(--nav-surface)]"
                         onClick={() => setIsUserMenuOpen(false)}
