@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import DeleteMarketplaceListingButton from "@/components/marketplace/DeleteMarketplaceListingButton";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,7 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
   if (listing.expiresAt <= new Date()) notFound();
 
   const isOwner = !!session?.user?.id && session.user.id === listing.ownerId;
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const ownerName = listing.owner.name || "Unbekannt";
 
@@ -148,6 +150,8 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
               Bearbeiten
             </Link>
           ) : null}
+
+          {isOwner || isAdmin ? <DeleteMarketplaceListingButton listingId={listing.id} redirectTo="/marketplace" /> : null}
 
           <Link
             href={contactHref}

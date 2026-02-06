@@ -25,6 +25,9 @@ export default function NewMarketplaceListingPage() {
   const { showToast } = useToast();
   const { status } = useSession();
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string>("");
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<Category>("KOSTUEME");
@@ -105,32 +108,30 @@ export default function NewMarketplaceListingPage() {
   };
 
   const submit = async () => {
+    setFormError("");
+    setFieldErrors({});
+
     if (status !== "authenticated") {
       showToast("Bitte zuerst einloggen, um ein Inserat zu erstellen", "error");
       router.push("/auth/signin");
       return;
     }
-    if (title.trim().length < 2) {
-      showToast("Titel ist zu kurz", "error");
-      return;
-    }
-    if (description.trim().length < 10) {
-      showToast("Beschreibung ist zu kurz", "error");
-      return;
-    }
 
-    if (postalCode.trim().length < 4 || city.trim().length < 2) {
-      showToast("Bitte PLZ und Ort angeben", "error");
-      return;
-    }
-
+    const nextErrors: Record<string, string> = {};
+    if (title.trim().length < 2) nextErrors.title = "Bitte einen Titel eingeben";
+    if (postalCode.trim().length < 4) nextErrors.postalCode = "Bitte eine gültige PLZ angeben";
+    if (city.trim().length < 2) nextErrors.city = "Bitte einen Ort angeben";
+    if (description.trim().length < 10) nextErrors.description = "Bitte eine Beschreibung eingeben";
     if (priceType === "NEGOTIABLE" && (priceCents === null || typeof priceCents !== "number")) {
-      showToast("Bei Verhandlungsbasis ist ein Preis erforderlich", "error");
-      return;
+      nextErrors.priceCents = "Bei Verhandlungsbasis ist ein Preis erforderlich";
+    }
+    if (shippingAvailable && (shippingCostCents === null || typeof shippingCostCents !== "number")) {
+      nextErrors.shippingCostCents = "Bitte Versandkosten angeben";
     }
 
-    if (shippingAvailable && (shippingCostCents === null || typeof shippingCostCents !== "number")) {
-      showToast("Bitte Versandkosten angeben", "error");
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      showToast("Bitte Pflichtfelder prüfen", "error");
       return;
     }
 
@@ -155,8 +156,23 @@ export default function NewMarketplaceListingPage() {
         }),
       });
 
-      const data = (await res.json().catch(() => ({}))) as { id?: string; message?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        id?: string;
+        message?: string;
+        errors?: { fieldErrors?: Record<string, string[]>; formErrors?: string[] };
+        details?: unknown;
+      };
       if (!res.ok || !data.id) {
+        const apiFieldErrors = data?.errors?.fieldErrors;
+        if (apiFieldErrors && typeof apiFieldErrors === "object") {
+          const mapped: Record<string, string> = {};
+          for (const [k, v] of Object.entries(apiFieldErrors)) {
+            if (Array.isArray(v) && v.length > 0 && typeof v[0] === "string") mapped[k] = v[0];
+          }
+          if (Object.keys(mapped).length > 0) setFieldErrors(mapped);
+        }
+        const formErrors = Array.isArray(data?.errors?.formErrors) ? data.errors.formErrors.filter((x) => typeof x === "string") : [];
+        if (formErrors.length > 0) setFormError(formErrors.join("\n"));
         showToast(data?.message || "Konnte Inserat nicht speichern", "error");
         return;
       }
@@ -192,8 +208,16 @@ export default function NewMarketplaceListingPage() {
             </div>
           </div>
         ) : null}
+
+        {formError ? (
+          <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-lg p-4 text-sm text-red-700 whitespace-pre-wrap">
+            {formError}
+          </div>
+        ) : null}
         <div>
-          <label className="block text-sm font-medium text-[var(--foreground)]">Typ</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">
+            Typ <span className="text-red-600">*</span>
+          </label>
           <select
             value={listingType}
             onChange={(e) => setListingType(e.target.value as ListingType)}
@@ -205,18 +229,23 @@ export default function NewMarketplaceListingPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--foreground)]">Titel</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">
+            Titel <span className="text-red-600">*</span>
+          </label>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
             placeholder="z.B. Tribal-Fusion Kostüm (Gr. M)"
           />
+          {fieldErrors.title ? <div className="mt-1 text-xs text-red-700">{fieldErrors.title}</div> : null}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-[var(--foreground)]">PLZ</label>
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              PLZ <span className="text-red-600">*</span>
+            </label>
             <input
               value={postalCode}
               onChange={(e) => setPostalCode(e.target.value)}
@@ -224,15 +253,19 @@ export default function NewMarketplaceListingPage() {
               className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
               placeholder="z.B. 10115"
             />
+            {fieldErrors.postalCode ? <div className="mt-1 text-xs text-red-700">{fieldErrors.postalCode}</div> : null}
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--foreground)]">Ort</label>
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              Ort <span className="text-red-600">*</span>
+            </label>
             <input
               value={city}
               onChange={(e) => setCity(e.target.value)}
               className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
               placeholder="z.B. Berlin"
             />
+            {fieldErrors.city ? <div className="mt-1 text-xs text-red-700">{fieldErrors.city}</div> : null}
           </div>
         </div>
         <div className="text-xs text-[var(--muted)]">
@@ -240,7 +273,9 @@ export default function NewMarketplaceListingPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--foreground)]">Kategorie</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">
+            Kategorie <span className="text-red-600">*</span>
+          </label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as Category)}
@@ -273,6 +308,7 @@ export default function NewMarketplaceListingPage() {
               placeholder="z.B. 25,00"
             />
           </div>
+          {fieldErrors.priceCents ? <div className="mt-1 text-xs text-red-700">{fieldErrors.priceCents}</div> : null}
           <div className="mt-1 text-xs text-[var(--muted)]">Leer lassen für „Preis auf Anfrage“.</div>
         </div>
 
@@ -296,12 +332,15 @@ export default function NewMarketplaceListingPage() {
                 className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
                 placeholder="z.B. 5,49"
               />
+              {fieldErrors.shippingCostCents ? <div className="mt-1 text-xs text-red-700">{fieldErrors.shippingCostCents}</div> : null}
             </div>
           ) : null}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--foreground)]">Beschreibung</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">
+            Beschreibung <span className="text-red-600">*</span>
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -309,6 +348,7 @@ export default function NewMarketplaceListingPage() {
             className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
             placeholder="Zustand, Maße, Besonderheiten…"
           />
+          {fieldErrors.description ? <div className="mt-1 text-xs text-red-700">{fieldErrors.description}</div> : null}
         </div>
 
         <div>

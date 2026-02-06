@@ -142,7 +142,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     select: { id: true, ownerId: true },
   })) as { id: string; ownerId: string } | null;
   if (!existing) return NextResponse.json({ message: "Inserat nicht gefunden" }, { status: 404 });
-  if (existing.ownerId !== session.user.id) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  if (existing.ownerId !== session.user.id && session.user.role !== "ADMIN") return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
   const withImages = (await (prisma as unknown as { marketplaceListing: { findUnique: (args: unknown) => Promise<unknown> } }).marketplaceListing.findUnique({
     where: { id },
