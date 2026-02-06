@@ -34,6 +34,11 @@ Das Script führt u.a. aus:
 - `npm run build`
 - Restart des systemd Service
 
+Zusätzlich aktualisiert das Script systemd Timer:
+
+- `tribefinder-auto-backup.timer` (automatische Backups)
+- `tribefinder-marketplace-expiry.timer` (Marketplace: Reminder + Auto-Löschung abgelaufener Inserate)
+
 ## Wartungsmodus (Maintenance Mode)
 
 Wenn du während Wartungsarbeiten Schreibzugriffe blockieren willst, kannst du in der `.env` setzen:
@@ -123,6 +128,29 @@ Die Diagnose prüft u.a.:
 - DB erreichbar + Migrationen
 - Uploads (write/read)
 - CRUD Smoke-Tests (Gruppe/Tag/DanceStyle) mit Cleanup
+
+## Marketplace Expiry Timer (Reminder + Auto-Delete)
+
+TribeFinder bringt einen systemd Timer mit, der Marketplace Inserate automatisch verwaltet:
+
+- Reminder E-Mail: 4 Wochen (28 Tage) vor Ablauf
+- Auto-Delete: ab Ablaufdatum (inkl. Entfernen der Upload-Dateien aus `/uploads`)
+
+Service/Timer:
+
+- `tribefinder-marketplace-expiry.service`
+- `tribefinder-marketplace-expiry.timer`
+
+Nützliche Befehle:
+
+```bash
+sudo systemctl status tribefinder-marketplace-expiry.service
+sudo systemctl status tribefinder-marketplace-expiry.timer
+
+sudo systemctl list-timers | grep tribefinder-marketplace-expiry
+
+sudo journalctl -u tribefinder-marketplace-expiry.service -n 200
+```
 
 ### 5) Erst danach: Prod deployen
 

@@ -1,0 +1,10 @@
+[Unit]
+Description=TribeFinder - Marketplace Expiry (Daily)
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=900
+
+[Install]
+WantedBy=timers.target

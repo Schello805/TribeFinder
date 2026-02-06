@@ -1,0 +1,12 @@
+[Unit]
+Description=TribeFinder - Marketplace Expiry (Reminder + Auto-Delete)
+After=network.target
+
+[Service]
+Type=oneshot
+User=tribefinder
+Group=tribefinder
+WorkingDirectory=/home/tribefinder/TribeFinder
+Environment=NODE_ENV=production
+EnvironmentFile=/home/tribefinder/TribeFinder/.env
+ExecStart=/usr/bin/node /home/tribefinder/TribeFinder/scripts/marketplace-expiry.js

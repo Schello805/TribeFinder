@@ -9,6 +9,8 @@ Eine moderne Plattform für Tanzgruppen (Tribal Style, Fusion & mehr) zur Verwal
 - **Interaktive Karte**: Finde Gruppen und Events in deiner Nähe (basierend auf OpenStreetMap).
 - **Community Feed**: Ein "Schwarzes Brett" für Austausch und Neuigkeiten.
 - **Mitgliederbereich**: Rollenbasierte Zugriffsrechte (Admin/Mitglied).
+- **Marketplace (Second-Hand Börse)**: Inserate (Kostüme, Schmuck, Accessoires, Schuhe, Sonstiges) mit Bildern.
+- **Direktnachrichten**: 1:1 Messaging zwischen Nutzern (z.B. für Marketplace Kontakt).
 - **Datenschutzfreundlich**: Keine externen Tracker (außer optional Matomo), lokale Datenhaltung.
 
 ## Tech Stack
