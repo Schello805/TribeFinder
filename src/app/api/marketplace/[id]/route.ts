@@ -40,7 +40,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     select: { id: true, ownerId: true },
   })) as { id: string; ownerId: string } | null;
   if (!existing) return NextResponse.json({ message: "Inserat nicht gefunden" }, { status: 404 });
-  if (existing.ownerId !== session.user.id) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  if (existing.ownerId !== session.user.id && session.user.role !== "ADMIN") return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = marketplaceListingUpdateSchema.safeParse(body);

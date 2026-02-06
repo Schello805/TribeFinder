@@ -50,13 +50,13 @@ export const marketplaceListingUpdateSchema = marketplaceListingBaseSchema
   })
   .superRefine((v, ctx) => {
     if (v.priceType === "NEGOTIABLE") {
-      if (v.priceCents === null || (typeof v.priceCents !== "number" && typeof v.priceCents !== "undefined")) {
+      if (typeof v.priceCents !== "number") {
         ctx.addIssue({ code: "custom", path: ["priceCents"], message: "Bei Verhandlungsbasis ist ein Preis erforderlich." });
       }
     }
 
-    if (v.shippingAvailable) {
-      if (v.shippingCostCents === null || (typeof v.shippingCostCents !== "number" && typeof v.shippingCostCents !== "undefined")) {
+    if (v.shippingAvailable === true) {
+      if (typeof v.shippingCostCents !== "number") {
         ctx.addIssue({ code: "custom", path: ["shippingCostCents"], message: "Bitte Versandkosten angeben." });
       }
     }
