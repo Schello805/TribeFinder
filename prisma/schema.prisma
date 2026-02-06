@@ -271,6 +271,21 @@ enum MarketplaceCategory {
   SONSTIGES
 }
 
+enum MarketplaceListingType {
+  OFFER
+  REQUEST
+}
+
+enum MarketplacePriceType {
+  FIXED
+  NEGOTIABLE
+}
+
+enum MarketplaceLocationSource {
+  PROFILE
+  GEOCODE
+}
+
 model SystemSetting {
   key   String @id
   value String
@@ -343,8 +358,20 @@ model MarketplaceListing {
   description String
   category    MarketplaceCategory
 
+  listingType MarketplaceListingType @default(OFFER)
+
+  postalCode String?
+  city       String?
+  lat        Float?
+  lng        Float?
+  locationSource MarketplaceLocationSource?
+
   priceCents Int?
+  priceType  MarketplacePriceType @default(FIXED)
   currency   String @default("EUR")
+
+  shippingAvailable Boolean @default(false)
+  shippingCostCents Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -357,6 +384,10 @@ model MarketplaceListing {
   @@index([category])
   @@index([expiresAt])
   @@index([ownerId])
+  @@index([postalCode])
+  @@index([city])
+  @@index([lat])
+  @@index([lng])
 }
 
 model MarketplaceListingImage {

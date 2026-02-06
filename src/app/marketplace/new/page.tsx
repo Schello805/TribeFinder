@@ -16,6 +16,9 @@ type Category = (typeof categories)[number]["value"];
 
 type UploadedImage = { url: string };
 
+type ListingType = "OFFER" | "REQUEST";
+type PriceType = "FIXED" | "NEGOTIABLE";
+
 export default function NewMarketplaceListingPage() {
   const router = useRouter();
   const { showToast } = useToast();
@@ -23,7 +26,17 @@ export default function NewMarketplaceListingPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<Category>("KOSTUEME");
+
+  const [listingType, setListingType] = useState<ListingType>("OFFER");
+
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
+
+  const [priceType, setPriceType] = useState<PriceType>("FIXED");
   const [priceEuro, setPriceEuro] = useState<string>("");
+
+  const [shippingAvailable, setShippingAvailable] = useState(false);
+  const [shippingCostEuro, setShippingCostEuro] = useState<string>("");
   const [images, setImages] = useState<UploadedImage[]>([]);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -36,6 +49,14 @@ export default function NewMarketplaceListingPage() {
     if (!Number.isFinite(num) || num < 0) return null;
     return Math.round(num * 100);
   }, [priceEuro]);
+
+  const shippingCostCents = useMemo(() => {
+    const raw = shippingCostEuro.trim().replace(",", ".");
+    if (!raw) return null;
+    const num = Number(raw);
+    if (!Number.isFinite(num) || num < 0) return null;
+    return Math.round(num * 100);
+  }, [shippingCostEuro]);
 
   const uploadOne = async (file: File) => {
     const fd = new FormData();
@@ -91,6 +112,21 @@ export default function NewMarketplaceListingPage() {
       return;
     }
 
+    if (postalCode.trim().length < 4 || city.trim().length < 2) {
+      showToast("Bitte PLZ und Ort angeben", "error");
+      return;
+    }
+
+    if (priceType === "NEGOTIABLE" && (priceCents === null || typeof priceCents !== "number")) {
+      showToast("Bei Verhandlungsbasis ist ein Preis erforderlich", "error");
+      return;
+    }
+
+    if (shippingAvailable && (shippingCostCents === null || typeof shippingCostCents !== "number")) {
+      showToast("Bitte Versandkosten angeben", "error");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const res = await fetch("/api/marketplace", {
@@ -100,8 +136,14 @@ export default function NewMarketplaceListingPage() {
           title: title.trim(),
           description: description.trim(),
           category,
+          listingType,
+          postalCode: postalCode.trim(),
+          city: city.trim(),
+          priceType,
           priceCents,
           currency: "EUR",
+          shippingAvailable,
+          shippingCostCents: shippingAvailable ? shippingCostCents : null,
           images: images.map((i) => ({ url: i.url })),
         }),
       });
@@ -130,6 +172,18 @@ export default function NewMarketplaceListingPage() {
 
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 space-y-4">
         <div>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Typ</label>
+          <select
+            value={listingType}
+            onChange={(e) => setListingType(e.target.value as ListingType)}
+            className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
+          >
+            <option value="OFFER">Ich biete</option>
+            <option value="REQUEST">Ich suche</option>
+          </select>
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">Titel</label>
           <input
             value={title}
@@ -137,6 +191,31 @@ export default function NewMarketplaceListingPage() {
             className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
             placeholder="z.B. Tribal-Fusion Kostüm (Gr. M)"
           />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground)]">PLZ</label>
+            <input
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value)}
+              inputMode="numeric"
+              className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
+              placeholder="z.B. 10115"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground)]">Ort</label>
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
+              placeholder="z.B. Berlin"
+            />
+          </div>
+        </div>
+        <div className="text-xs text-[var(--muted)]">
+          Standort-Hinweis: Für Entfernungen nutzen wir deinen gespeicherten Profil-Standort (falls vorhanden). Andernfalls wird PLZ/Ort automatisch geocodiert.
         </div>
 
         <div>
@@ -156,14 +235,48 @@ export default function NewMarketplaceListingPage() {
 
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">Preis (optional)</label>
-          <input
-            value={priceEuro}
-            onChange={(e) => setPriceEuro(e.target.value)}
-            inputMode="decimal"
-            className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
-            placeholder="z.B. 25,00"
-          />
+          <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <select
+              value={priceType}
+              onChange={(e) => setPriceType(e.target.value as PriceType)}
+              className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
+            >
+              <option value="FIXED">Festpreis</option>
+              <option value="NEGOTIABLE">Verhandlungsbasis (VB)</option>
+            </select>
+            <input
+              value={priceEuro}
+              onChange={(e) => setPriceEuro(e.target.value)}
+              inputMode="decimal"
+              className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
+              placeholder="z.B. 25,00"
+            />
+          </div>
           <div className="mt-1 text-xs text-[var(--muted)]">Leer lassen für „Preis auf Anfrage“.</div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+            <input
+              type="checkbox"
+              checked={shippingAvailable}
+              onChange={(e) => setShippingAvailable(e.target.checked)}
+              className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+            />
+            Versand möglich
+          </label>
+          {shippingAvailable ? (
+            <div>
+              <label className="block text-sm font-medium text-[var(--foreground)]">Versandkosten</label>
+              <input
+                value={shippingCostEuro}
+                onChange={(e) => setShippingCostEuro(e.target.value)}
+                inputMode="decimal"
+                className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
+                placeholder="z.B. 5,49"
+              />
+            </div>
+          ) : null}
         </div>
 
         <div>

@@ -15,10 +15,17 @@ const categoryLabel = (c: string) => {
   return c;
 };
 
-const formatPrice = (priceCents: number | null, currency: string) => {
+const formatPrice = (priceCents: number | null) => {
   if (priceCents === null) return "Preis auf Anfrage";
   const amount = priceCents / 100;
-  return new Intl.NumberFormat("de-DE", { style: "currency", currency }).format(amount);
+  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(amount);
+};
+
+const formatShipping = (shippingAvailable: boolean, shippingCostCents: number | null) => {
+  if (!shippingAvailable) return "Nur Abholung";
+  const cost = typeof shippingCostCents === "number" ? shippingCostCents : 0;
+  const amount = cost / 100;
+  return `Versand möglich (${new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(amount)})`;
 };
 
 export default async function MarketplaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -37,8 +44,15 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
     title: string;
     description: string;
     category: string;
+    listingType: "OFFER" | "REQUEST";
+    postalCode: string | null;
+    city: string | null;
+    locationSource: "PROFILE" | "GEOCODE" | null;
     priceCents: number | null;
-    currency: string;
+    priceType: "FIXED" | "NEGOTIABLE";
+    shippingAvailable: boolean;
+    shippingCostCents: number | null;
+    createdAt: Date;
     expiresAt: Date;
     owner: { id: string; name: string | null; image: string | null };
     images: Array<{ id: string; url: string; caption: string | null }>;
@@ -61,6 +75,20 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
         <div className="min-w-0">
           <div className="text-sm text-[var(--muted)]">{categoryLabel(listing.category)}</div>
           <h1 className="tf-display text-3xl font-bold text-[var(--foreground)] truncate">{listing.title}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+            <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">
+              {listing.listingType === "REQUEST" ? "Ich suche" : "Ich biete"}
+            </span>
+            <span>
+              {listing.postalCode || ""} {listing.city || ""}
+            </span>
+            <span>•</span>
+            <span>Eingestellt am {new Date(listing.createdAt).toLocaleDateString("de-DE")}</span>
+            <span>•</span>
+            <span>
+              Standort: {listing.locationSource === "PROFILE" ? "aus Profil" : listing.locationSource === "GEOCODE" ? "aus PLZ/Ort" : "unbekannt"}
+            </span>
+          </div>
         </div>
         <Link
           href="/marketplace"
@@ -96,13 +124,18 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
         <div className="flex items-center justify-between gap-4">
           <div>
             <div className="text-sm text-[var(--muted)]">Preis</div>
-            <div className="text-xl font-bold text-[var(--foreground)]">{formatPrice(listing.priceCents, listing.currency)}</div>
+            <div className="text-xl font-bold text-[var(--foreground)]">
+              {formatPrice(listing.priceCents)}
+              {listing.priceType === "NEGOTIABLE" ? " (VB)" : ""}
+            </div>
           </div>
           <div className="text-right">
             <div className="text-sm text-[var(--muted)]">Anbieter</div>
             <div className="font-medium text-[var(--foreground)]">{ownerName}</div>
           </div>
         </div>
+
+        <div className="text-sm text-[var(--muted)]">{formatShipping(listing.shippingAvailable, listing.shippingCostCents)}</div>
 
         <div className="whitespace-pre-wrap text-[var(--foreground)]">{listing.description}</div>
 

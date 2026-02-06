@@ -10,6 +10,25 @@ const formatPrice = (priceCents: number | null) => {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(amount);
 };
 
+const formatShipping = (shippingAvailable: boolean, shippingCostCents: number | null) => {
+  if (!shippingAvailable) return "Nur Abholung";
+  const cost = typeof shippingCostCents === "number" ? shippingCostCents : 0;
+  const amount = cost / 100;
+  return `Versand möglich (${new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(amount)})`;
+};
+
+const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
 export default async function MarketplacePage({
   searchParams,
 }: {
@@ -21,7 +40,18 @@ export default async function MarketplacePage({
   const categoryRaw = typeof sp.category === "string" ? sp.category.trim() : "";
 
   const sortRaw = typeof sp.sort === "string" ? sp.sort.trim() : "";
-  const sort = sortRaw === "priceAsc" || sortRaw === "priceDesc" ? sortRaw : "newest";
+  const sort = sortRaw === "priceAsc" || sortRaw === "priceDesc" || sortRaw === "distance" ? sortRaw : "newest";
+
+  const typeRaw = typeof sp.type === "string" ? sp.type.trim() : "";
+  const listingType = typeRaw === "OFFER" || typeRaw === "REQUEST" ? (typeRaw as "OFFER" | "REQUEST") : "";
+
+  const address = typeof sp.address === "string" ? sp.address.trim() : "";
+  const latRaw = typeof sp.lat === "string" ? sp.lat.trim() : "";
+  const lngRaw = typeof sp.lng === "string" ? sp.lng.trim() : "";
+  const radiusRaw = typeof sp.radius === "string" ? sp.radius.trim() : "";
+  const lat = latRaw ? Number(latRaw) : NaN;
+  const lng = lngRaw ? Number(lngRaw) : NaN;
+  const radiusKm = radiusRaw ? Number(radiusRaw) : NaN;
 
   const category = ["KOSTUEME", "SCHMUCK", "ACCESSOIRES", "SCHUHE", "SONSTIGES"].includes(categoryRaw)
     ? (categoryRaw as "KOSTUEME" | "SCHMUCK" | "ACCESSOIRES" | "SCHUHE" | "SONSTIGES")
@@ -37,11 +67,29 @@ export default async function MarketplacePage({
 
   if (category) where.category = category;
 
+  if (listingType) {
+    (where as unknown as { listingType?: "OFFER" | "REQUEST" }).listingType = listingType;
+  }
+
   if (queryRaw) {
     where.OR = [
       { title: { contains: queryRaw, mode: "insensitive" } },
       { description: { contains: queryRaw, mode: "insensitive" } },
     ];
+  }
+
+  if (sort === "distance" && Number.isFinite(lat) && Number.isFinite(lng)) {
+    const r = Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : 50;
+    const latDelta = r / 111;
+    const lngDelta = r / (111 * Math.cos((lat * Math.PI) / 180) || 1);
+    (where as unknown as { lat?: { gte?: number; lte?: number }; lng?: { gte?: number; lte?: number } }).lat = {
+      gte: lat - latDelta,
+      lte: lat + latDelta,
+    };
+    (where as unknown as { lat?: { gte?: number; lte?: number }; lng?: { gte?: number; lte?: number } }).lng = {
+      gte: lng - lngDelta,
+      lte: lng + lngDelta,
+    };
   }
 
   const orderBy =
@@ -64,10 +112,33 @@ export default async function MarketplacePage({
     title: string;
     description: string;
     category: string;
+    listingType: "OFFER" | "REQUEST";
+    postalCode: string | null;
+    city: string | null;
+    lat: number | null;
+    lng: number | null;
     priceCents: number | null;
-    currency: string;
+    priceType: "FIXED" | "NEGOTIABLE";
+    shippingAvailable: boolean;
+    shippingCostCents: number | null;
+    createdAt: Date;
     images: Array<{ id: string; url: string }>;
   }>;
+
+  const sortedListings = (() => {
+    if (sort !== "distance" || !Number.isFinite(lat) || !Number.isFinite(lng)) return listings;
+    const withDist = listings
+      .map((l) => ({
+        l,
+        d:
+          typeof l.lat === "number" && typeof l.lng === "number"
+            ? haversineKm(lat, lng, l.lat, l.lng)
+            : Number.POSITIVE_INFINITY,
+      }))
+      .filter((x) => Number.isFinite(x.d));
+    withDist.sort((a, b) => a.d - b.d);
+    return withDist.map((x) => x.l);
+  })();
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -87,15 +158,15 @@ export default async function MarketplacePage({
         </Link>
       </div>
 
-      <MarketplaceFilterBar query={queryRaw} category={category} sort={sort} />
+      <MarketplaceFilterBar query={queryRaw} category={category} sort={sort} type={listingType} address={address} lat={latRaw} lng={lngRaw} radius={radiusRaw || "50"} />
 
-      {listings.length === 0 ? (
+      {sortedListings.length === 0 ? (
         <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-8 text-center text-[var(--muted)]">
           Keine Inserate gefunden.
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {listings.map((l) => {
+          {sortedListings.map((l) => {
             const cover = l.images[0]?.url || "";
             return (
               <Link
@@ -112,12 +183,27 @@ export default async function MarketplacePage({
                   )}
                 </div>
                 <div className="p-4 space-y-2">
-                  <div className="font-semibold text-[var(--foreground)] line-clamp-2">{l.title}</div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-semibold text-[var(--foreground)] line-clamp-2">{l.title}</div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)] whitespace-nowrap">
+                      {l.listingType === "REQUEST" ? "Ich suche" : "Ich biete"}
+                    </span>
+                  </div>
                   <div className="text-sm text-[var(--muted)] line-clamp-2">{l.description}</div>
                   <div className="flex items-center justify-between gap-2 text-sm">
-                    <span className="text-[var(--foreground)] font-medium">{formatPrice(l.priceCents)}</span>
+                    <span className="text-[var(--foreground)] font-medium">
+                      {formatPrice(l.priceCents)}
+                      {l.priceType === "NEGOTIABLE" ? " (VB)" : ""}
+                    </span>
                     <span className="text-xs text-[var(--muted)]">{l.category}</span>
                   </div>
+                  <div className="flex items-center justify-between gap-2 text-xs text-[var(--muted)]">
+                    <span>
+                      {l.postalCode || ""} {l.city || ""}
+                    </span>
+                    <span>{new Date(l.createdAt).toLocaleDateString("de-DE")}</span>
+                  </div>
+                  <div className="text-xs text-[var(--muted)]">{formatShipping(l.shippingAvailable, l.shippingCostCents)}</div>
                 </div>
               </Link>
             );
