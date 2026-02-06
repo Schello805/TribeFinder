@@ -188,7 +188,7 @@ export async function notifyUserAboutNewMessage(receiverId: string, senderName: 
       ${emailHeading('Neue Nachricht 💬')}
       ${emailText(`<strong>${senderName}</strong> hat dir eine Nachricht auf TribeFinder gesendet.`)}
       ${emailText('Öffne deine Nachrichten, um zu antworten:')}
-      ${emailButton('Nachrichten öffnen', `${process.env.NEXTAUTH_URL}/messages`)}
+      ${emailButton('Nachrichten öffnen', `${process.env.NEXTAUTH_URL}/direct-messages`)}
     `;
 
     const html = await emailTemplate(content, `${senderName} hat dir geschrieben`);

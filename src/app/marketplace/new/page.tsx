@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { useSession } from "next-auth/react";
@@ -27,6 +27,7 @@ export default function NewMarketplaceListingPage() {
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string>("");
+  const [locationWarning, setLocationWarning] = useState<string>("");
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -46,6 +47,7 @@ export default function NewMarketplaceListingPage() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const locSeq = useRef(0);
 
   const setPostalCodeSafe = (v: string) => {
     setPostalCode(v.replace(/\D/g, "").slice(0, 5));
@@ -74,6 +76,58 @@ export default function NewMarketplaceListingPage() {
     if (!Number.isFinite(num) || num < 0) return null;
     return Math.round(num * 100);
   }, [shippingCostEuro]);
+
+  useEffect(() => {
+    setLocationWarning("");
+    const pc = postalCode.trim();
+    const c = city.trim();
+    if (!/^\d{5}$/.test(pc) || c.length < 2) return;
+
+    const seqId = ++locSeq.current;
+    const controller = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          format: "json",
+          q: `${pc} ${c}, Deutschland`,
+          limit: "1",
+          countrycodes: "de",
+          "accept-language": "de",
+          addressdetails: "1",
+        });
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = (await res.json().catch(() => null)) as Array<{
+          address?: { postcode?: string; city?: string; town?: string; village?: string };
+        }> | null;
+        if (locSeq.current !== seqId) return;
+        const first = data && data[0];
+        const addr = first?.address;
+        const apiPostcode = (addr?.postcode || "").trim();
+        const apiCity = (addr?.city || addr?.town || addr?.village || "").trim();
+        if (!apiPostcode && !apiCity) return;
+
+        const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+        const pcMismatch = apiPostcode && apiPostcode !== pc;
+        const cityMismatch = apiCity && norm(apiCity) !== norm(c);
+
+        if (pcMismatch || cityMismatch) {
+          setLocationWarning("Hinweis: PLZ und Ort passen möglicherweise nicht zusammen. Bitte überprüfe deine Eingabe.");
+        }
+      } catch (e) {
+        if (controller.signal.aborted) return;
+        if (e instanceof DOMException && e.name === "AbortError") return;
+      }
+    }, 800);
+
+    return () => {
+      controller.abort();
+      clearTimeout(t);
+    };
+  }, [postalCode, city]);
 
   const uploadOne = async (file: File) => {
     const fd = new FormData();
@@ -222,6 +276,12 @@ export default function NewMarketplaceListingPage() {
         {formError ? (
           <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-lg p-4 text-sm text-red-700 whitespace-pre-wrap">
             {formError}
+          </div>
+        ) : null}
+
+        {locationWarning ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-900">
+            {locationWarning}
           </div>
         ) : null}
         <div>
