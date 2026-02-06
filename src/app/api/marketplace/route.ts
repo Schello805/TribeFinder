@@ -210,7 +210,7 @@ export async function POST(req: Request) {
         lat,
         lng,
         locationSource,
-        priceCents: typeof parsed.data.priceCents === "number" ? parsed.data.priceCents : null,
+        priceCents: parsed.data.priceCents,
         priceType: parsed.data.priceType,
         currency: "EUR",
         shippingAvailable: !!parsed.data.shippingAvailable,

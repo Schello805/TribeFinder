@@ -70,12 +70,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     } else {
       const effectivePostal = typeof parsed.data.postalCode === "string" ? parsed.data.postalCode : current?.postalCode || "";
       const effectiveCity = typeof parsed.data.city === "string" ? parsed.data.city : current?.city || "";
-      const r = await geocodeGermany(`${effectivePostal} ${effectiveCity}`);
-      if (r) {
-        lat = r.lat;
-        lng = r.lng;
-        locationSource = "GEOCODE";
-      } else {
+      try {
+        const r = await geocodeGermany(`${effectivePostal} ${effectiveCity}`);
+        if (r) {
+          lat = r.lat;
+          lng = r.lng;
+          locationSource = "GEOCODE";
+        } else {
+          lat = null;
+          lng = null;
+          locationSource = null;
+        }
+      } catch {
         lat = null;
         lng = null;
         locationSource = null;

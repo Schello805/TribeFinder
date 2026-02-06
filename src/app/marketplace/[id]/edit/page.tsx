@@ -64,6 +64,18 @@ export default function EditMarketplaceListingPage() {
   const [shippingCostEuro, setShippingCostEuro] = useState<string>("");
   const [images, setImages] = useState<UploadedImage[]>([]);
 
+  const setPostalCodeSafe = (v: string) => {
+    setPostalCode(v.replace(/\D/g, "").slice(0, 5));
+  };
+
+  const setCitySafe = (v: string) => {
+    setCity(v.replace(/[^\p{L}\s\-.'’]/gu, "").slice(0, 80));
+  };
+
+  const setMoneySafe = (setter: (v: string) => void) => (v: string) => {
+    setter(v.replace(/[^0-9,\.]/g, ""));
+  };
+
   const priceCents = useMemo(() => {
     const raw = priceEuro.trim().replace(",", ".");
     if (!raw) return null;
@@ -191,12 +203,10 @@ export default function EditMarketplaceListingPage() {
 
     const nextErrors: Record<string, string> = {};
     if (title.trim().length < 2) nextErrors.title = "Bitte einen Titel eingeben";
-    if (postalCode.trim().length < 4) nextErrors.postalCode = "Bitte eine gültige PLZ angeben";
+    if (!/^\d{5}$/.test(postalCode.trim())) nextErrors.postalCode = "Bitte eine gültige PLZ (5 Ziffern) angeben";
     if (city.trim().length < 2) nextErrors.city = "Bitte einen Ort angeben";
     if (description.trim().length < 10) nextErrors.description = "Bitte eine Beschreibung eingeben";
-    if (priceType === "NEGOTIABLE" && (priceCents === null || typeof priceCents !== "number")) {
-      nextErrors.priceCents = "Bei Verhandlungsbasis ist ein Preis erforderlich";
-    }
+    if (typeof priceCents !== "number") nextErrors.priceCents = "Bitte einen gültigen Preis angeben";
     if (shippingAvailable && (shippingCostCents === null || typeof shippingCostCents !== "number")) {
       nextErrors.shippingCostCents = "Bitte Versandkosten angeben";
     }
@@ -337,8 +347,9 @@ export default function EditMarketplaceListingPage() {
             </label>
             <input
               value={postalCode}
-              onChange={(e) => setPostalCode(e.target.value)}
+              onChange={(e) => setPostalCodeSafe(e.target.value)}
               inputMode="numeric"
+              pattern="\\d{5}"
               className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
               placeholder="z.B. 10115"
               disabled={!canEdit}
@@ -351,7 +362,7 @@ export default function EditMarketplaceListingPage() {
             </label>
             <input
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) => setCitySafe(e.target.value)}
               className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
               placeholder="z.B. Berlin"
               disabled={!canEdit}
@@ -379,7 +390,9 @@ export default function EditMarketplaceListingPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--foreground)]">Preis (optional)</label>
+          <label className="block text-sm font-medium text-[var(--foreground)]">
+            Preis <span className="text-red-600">*</span>
+          </label>
           <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <select
               value={priceType}
@@ -392,7 +405,7 @@ export default function EditMarketplaceListingPage() {
             </select>
             <input
               value={priceEuro}
-              onChange={(e) => setPriceEuro(e.target.value)}
+              onChange={(e) => setMoneySafe(setPriceEuro)(e.target.value)}
               inputMode="decimal"
               className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
               placeholder="z.B. 25,00"
@@ -400,7 +413,6 @@ export default function EditMarketplaceListingPage() {
             />
           </div>
           {fieldErrors.priceCents ? <div className="mt-1 text-xs text-red-700">{fieldErrors.priceCents}</div> : null}
-          <div className="mt-1 text-xs text-[var(--muted)]">Leer lassen für „Preis auf Anfrage“.</div>
         </div>
 
         <div className="space-y-2">
@@ -416,10 +428,12 @@ export default function EditMarketplaceListingPage() {
           </label>
           {shippingAvailable ? (
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)]">Versandkosten</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]">
+                Versandkosten <span className="text-red-600">*</span>
+              </label>
               <input
                 value={shippingCostEuro}
-                onChange={(e) => setShippingCostEuro(e.target.value)}
+                onChange={(e) => setMoneySafe(setShippingCostEuro)(e.target.value)}
                 inputMode="decimal"
                 className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
                 placeholder="z.B. 5,49"
