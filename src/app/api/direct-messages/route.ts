@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     select: { id: true, senderId: true, receiverId: true, content: true, createdAt: true },
   });
 
-  notifyUserAboutNewMessage(receiver.id, session.user.name || session.user.email || "Unbekannt").catch(() => undefined);
+  notifyUserAboutNewMessage(receiver.id, session.user.id, session.user.name || session.user.email || "Unbekannt").catch(() => undefined);
 
   return NextResponse.json({ message: created }, { status: 201 });
 }
