@@ -1,6 +1,8 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import MarketplaceFilterBar from "@/app/marketplace/MarketplaceFilterBar";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +36,7 @@ export default async function MarketplacePage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const session = await getServerSession(authOptions);
   const sp = (await searchParams) ?? {};
 
   const queryRaw = typeof sp.query === "string" ? sp.query.trim() : "";
@@ -150,12 +153,14 @@ export default async function MarketplacePage({
             Hinweis: Das ist eine Plattform für Privatverkäufe. Bitte keine Neuware / gewerblichen Verkauf einstellen.
           </div>
         </div>
-        <Link
-          href="/marketplace/new"
-          className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition font-medium"
-        >
-          Inserat erstellen
-        </Link>
+        {session?.user ? (
+          <Link
+            href="/marketplace/new"
+            className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition font-medium"
+          >
+            Inserat erstellen
+          </Link>
+        ) : null}
       </div>
 
       <MarketplaceFilterBar query={queryRaw} category={category} sort={sort} type={listingType} address={address} lat={latRaw} lng={lngRaw} radius={radiusRaw || "50"} />
@@ -168,6 +173,10 @@ export default async function MarketplacePage({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {sortedListings.map((l) => {
             const cover = l.images[0]?.url || "";
+            const distKm =
+              Number.isFinite(lat) && Number.isFinite(lng) && typeof l.lat === "number" && typeof l.lng === "number"
+                ? haversineKm(lat, lng, l.lat, l.lng)
+                : null;
             return (
               <Link
                 key={l.id}
@@ -201,7 +210,10 @@ export default async function MarketplacePage({
                     <span>
                       {l.postalCode || ""} {l.city || ""}
                     </span>
-                    <span>{new Date(l.createdAt).toLocaleDateString("de-DE")}</span>
+                    <span>
+                      {distKm !== null && Number.isFinite(distKm) ? `${Math.round(distKm)} km • ` : ""}
+                      {new Date(l.createdAt).toLocaleDateString("de-DE")}
+                    </span>
                   </div>
                   <div className="text-xs text-[var(--muted)]">{formatShipping(l.shippingAvailable, l.shippingCostCents)}</div>
                 </div>

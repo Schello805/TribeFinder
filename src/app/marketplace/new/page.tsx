@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
+import { useSession } from "next-auth/react";
 
 const categories = [
   { value: "KOSTUEME", label: "Kostüme" },
@@ -22,6 +23,7 @@ type PriceType = "FIXED" | "NEGOTIABLE";
 export default function NewMarketplaceListingPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { status } = useSession();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -103,6 +105,11 @@ export default function NewMarketplaceListingPage() {
   };
 
   const submit = async () => {
+    if (status !== "authenticated") {
+      showToast("Bitte zuerst einloggen, um ein Inserat zu erstellen", "error");
+      router.push("/auth/signin");
+      return;
+    }
     if (title.trim().length < 2) {
       showToast("Titel ist zu kurz", "error");
       return;
@@ -171,6 +178,20 @@ export default function NewMarketplaceListingPage() {
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 space-y-4">
+        {status !== "authenticated" ? (
+          <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-lg p-4 text-sm text-[var(--foreground)]">
+            Du kannst diese Seite ansehen, aber zum Erstellen eines Inserats musst du eingeloggt sein.
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => router.push("/auth/signin")}
+                className="px-4 py-2 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition font-medium"
+              >
+                Zum Login
+              </button>
+            </div>
+          </div>
+        ) : null}
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">Typ</label>
           <select
@@ -340,7 +361,7 @@ export default function NewMarketplaceListingPage() {
           <button
             type="button"
             onClick={() => void submit()}
-            disabled={isSaving || isUploading}
+            disabled={status !== "authenticated" || isSaving || isUploading}
             className="px-4 py-2 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition font-medium"
           >
             {isSaving ? "Speichern…" : "Speichern"}

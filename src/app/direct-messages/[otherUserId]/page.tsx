@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
+import { useSession } from "next-auth/react";
 
 type Msg = { id: string; senderId: string; receiverId: string; content: string; createdAt: string | Date };
 
@@ -16,6 +17,7 @@ export default function DirectMessageThreadPage() {
   const otherUserId = String(params.otherUserId || "");
   const router = useRouter();
   const { showToast } = useToast();
+  const { status } = useSession();
 
   const [data, setData] = useState<ThreadData | null>(null);
   const [content, setContent] = useState("");
@@ -23,6 +25,10 @@ export default function DirectMessageThreadPage() {
   const [isSending, setIsSending] = useState(false);
 
   const load = async () => {
+    if (status !== "authenticated") {
+      router.replace("/auth/signin");
+      return;
+    }
     if (!otherUserId) return;
     setIsLoading(true);
     try {
@@ -46,6 +52,10 @@ export default function DirectMessageThreadPage() {
   }, [otherUserId]);
 
   const send = async () => {
+    if (status !== "authenticated") {
+      router.replace("/auth/signin");
+      return;
+    }
     const next = content.trim();
     if (!next) return;
 

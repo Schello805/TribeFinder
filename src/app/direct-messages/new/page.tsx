@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
+import { useSession } from "next-auth/react";
 
 export default function NewDirectMessagePage() {
   const router = useRouter();
   const params = useSearchParams();
   const { showToast } = useToast();
+  const { status } = useSession();
 
   const receiverId = useMemo(() => params.get("receiverId") || "", [params]);
   const listingId = useMemo(() => params.get("listingId") || "", [params]);
@@ -16,6 +18,10 @@ export default function NewDirectMessagePage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const submit = async () => {
+    if (status !== "authenticated") {
+      router.replace("/auth/signin");
+      return;
+    }
     if (!receiverId) {
       showToast("Empfänger fehlt", "error");
       return;
