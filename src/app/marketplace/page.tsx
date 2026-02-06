@@ -1,21 +1,13 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import MarketplaceFilterBar from "@/app/marketplace/MarketplaceFilterBar";
 
 export const dynamic = "force-dynamic";
 
-const categories = [
-  { value: "", label: "Alle" },
-  { value: "KOSTUEME", label: "Kostüme" },
-  { value: "SCHMUCK", label: "Schmuck" },
-  { value: "ACCESSOIRES", label: "Accessoires" },
-  { value: "SCHUHE", label: "Schuhe" },
-  { value: "SONSTIGES", label: "Sonstiges" },
-] as const;
-
-const formatPrice = (priceCents: number | null, currency: string) => {
+const formatPrice = (priceCents: number | null) => {
   if (priceCents === null) return "Preis auf Anfrage";
   const amount = priceCents / 100;
-  return new Intl.NumberFormat("de-DE", { style: "currency", currency }).format(amount);
+  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(amount);
 };
 
 export default async function MarketplacePage({
@@ -28,11 +20,8 @@ export default async function MarketplacePage({
   const queryRaw = typeof sp.query === "string" ? sp.query.trim() : "";
   const categoryRaw = typeof sp.category === "string" ? sp.category.trim() : "";
 
-  const minPriceRaw = typeof sp.minPrice === "string" ? sp.minPrice.trim() : "";
-  const maxPriceRaw = typeof sp.maxPrice === "string" ? sp.maxPrice.trim() : "";
-
-  const minPrice = minPriceRaw ? Number(minPriceRaw) : NaN;
-  const maxPrice = maxPriceRaw ? Number(maxPriceRaw) : NaN;
+  const sortRaw = typeof sp.sort === "string" ? sp.sort.trim() : "";
+  const sort = sortRaw === "priceAsc" || sortRaw === "priceDesc" ? sortRaw : "newest";
 
   const category = ["KOSTUEME", "SCHMUCK", "ACCESSOIRES", "SCHUHE", "SONSTIGES"].includes(categoryRaw)
     ? (categoryRaw as "KOSTUEME" | "SCHMUCK" | "ACCESSOIRES" | "SCHUHE" | "SONSTIGES")
@@ -42,7 +31,6 @@ export default async function MarketplacePage({
     expiresAt: { gt: Date };
     category?: "KOSTUEME" | "SCHMUCK" | "ACCESSOIRES" | "SCHUHE" | "SONSTIGES";
     OR?: Array<{ title?: { contains: string; mode: "insensitive" }; description?: { contains: string; mode: "insensitive" } }>;
-    priceCents?: { gte?: number; lte?: number };
   } = {
     expiresAt: { gt: new Date() },
   };
@@ -56,15 +44,16 @@ export default async function MarketplacePage({
     ];
   }
 
-  if (Number.isFinite(minPrice) || Number.isFinite(maxPrice)) {
-    where.priceCents = {};
-    if (Number.isFinite(minPrice)) where.priceCents.gte = Math.max(0, Math.floor(minPrice));
-    if (Number.isFinite(maxPrice)) where.priceCents.lte = Math.max(0, Math.floor(maxPrice));
-  }
+  const orderBy =
+    sort === "priceAsc"
+      ? ([{ priceCents: "asc" as const }, { createdAt: "desc" as const }] as const)
+      : sort === "priceDesc"
+        ? ([{ priceCents: "desc" as const }, { createdAt: "desc" as const }] as const)
+        : ([{ createdAt: "desc" as const }] as const);
 
   const listings = (await (prisma as unknown as { marketplaceListing: { findMany: (args: unknown) => Promise<unknown> } }).marketplaceListing.findMany({
     where,
-    orderBy: [{ createdAt: "desc" }],
+    orderBy,
     take: 60,
     include: {
       owner: { select: { id: true, name: true, image: true } },
@@ -86,6 +75,9 @@ export default async function MarketplacePage({
         <div className="min-w-0">
           <h1 className="tf-display text-3xl font-bold text-[var(--foreground)] truncate">Marketplace</h1>
           <div className="text-sm text-[var(--muted)]">Second-Hand Börse für Kostüme, Schmuck, Accessoires und mehr.</div>
+          <div className="mt-2 text-xs text-[var(--muted)]">
+            Hinweis: Das ist eine Plattform für Privatverkäufe. Bitte keine Neuware / gewerblichen Verkauf einstellen.
+          </div>
         </div>
         <Link
           href="/marketplace/new"
@@ -95,63 +87,7 @@ export default async function MarketplacePage({
         </Link>
       </div>
 
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4">
-        <form className="grid grid-cols-1 sm:grid-cols-4 gap-3" action="/marketplace" method="GET">
-          <input
-            name="query"
-            defaultValue={queryRaw}
-            placeholder="Suche…"
-            className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
-          />
-
-          <select
-            name="category"
-            defaultValue={category}
-            className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
-          >
-            {categories.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-
-          <input
-            name="minPrice"
-            defaultValue={minPriceRaw}
-            placeholder="Min Preis (Cent)"
-            inputMode="numeric"
-            className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
-          />
-
-          <input
-            name="maxPrice"
-            defaultValue={maxPriceRaw}
-            placeholder="Max Preis (Cent)"
-            inputMode="numeric"
-            className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
-          />
-
-          <div className="sm:col-span-4 flex gap-3 justify-end">
-            <Link
-              href="/marketplace"
-              className="px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition"
-            >
-              Reset
-            </Link>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition font-medium"
-            >
-              Filtern
-            </button>
-          </div>
-        </form>
-
-        <div className="mt-3 text-xs text-[var(--muted)]">
-          Tipp: Preisfilter ist aktuell in Cent (z.B. 2500 = 25,00€). Das machen wir später noch hübscher.
-        </div>
-      </div>
+      <MarketplaceFilterBar query={queryRaw} category={category} sort={sort} />
 
       {listings.length === 0 ? (
         <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-8 text-center text-[var(--muted)]">
@@ -179,7 +115,7 @@ export default async function MarketplacePage({
                   <div className="font-semibold text-[var(--foreground)] line-clamp-2">{l.title}</div>
                   <div className="text-sm text-[var(--muted)] line-clamp-2">{l.description}</div>
                   <div className="flex items-center justify-between gap-2 text-sm">
-                    <span className="text-[var(--foreground)] font-medium">{formatPrice(l.priceCents, l.currency)}</span>
+                    <span className="text-[var(--foreground)] font-medium">{formatPrice(l.priceCents)}</span>
                     <span className="text-xs text-[var(--muted)]">{l.category}</span>
                   </div>
                 </div>

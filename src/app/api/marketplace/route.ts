@@ -19,11 +19,6 @@ export async function GET(req: Request) {
   const query = (searchParams.get("query") || "").trim();
   const category = (searchParams.get("category") || "").trim();
 
-  const minPriceRaw = (searchParams.get("minPrice") || "").trim();
-  const maxPriceRaw = (searchParams.get("maxPrice") || "").trim();
-  const minPrice = minPriceRaw ? Number(minPriceRaw) : NaN;
-  const maxPrice = maxPriceRaw ? Number(maxPriceRaw) : NaN;
-
   const sortRaw = (searchParams.get("sort") || "").trim();
   const sort = sortRaw === "priceAsc" || sortRaw === "priceDesc" ? sortRaw : "newest";
 
@@ -40,7 +35,6 @@ export async function GET(req: Request) {
     expiresAt?: { gt: Date };
     category?: "KOSTUEME" | "SCHMUCK" | "ACCESSOIRES" | "SCHUHE" | "SONSTIGES";
     OR?: Array<{ title?: { contains: string; mode: "insensitive" }; description?: { contains: string; mode: "insensitive" } }>;
-    priceCents?: { gte?: number; lte?: number };
   } = {
     expiresAt: { gt: now },
   };
@@ -54,12 +48,6 @@ export async function GET(req: Request) {
       { title: { contains: query, mode: "insensitive" } },
       { description: { contains: query, mode: "insensitive" } },
     ];
-  }
-
-  if (Number.isFinite(minPrice) || Number.isFinite(maxPrice)) {
-    where.priceCents = {};
-    if (Number.isFinite(minPrice)) where.priceCents.gte = Math.max(0, Math.floor(minPrice));
-    if (Number.isFinite(maxPrice)) where.priceCents.lte = Math.max(0, Math.floor(maxPrice));
   }
 
   const orderBy =
@@ -112,7 +100,7 @@ export async function POST(req: Request) {
       description: parsed.data.description,
       category: parsed.data.category,
       priceCents: typeof parsed.data.priceCents === "number" ? parsed.data.priceCents : null,
-      currency: (parsed.data.currency || "EUR").trim() || "EUR",
+      currency: "EUR",
       expiresAt,
       images: parsed.data.images?.length
         ? {

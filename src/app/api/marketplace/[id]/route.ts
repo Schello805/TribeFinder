@@ -45,7 +45,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       description: typeof parsed.data.description === "string" ? parsed.data.description : undefined,
       category: parsed.data.category,
       priceCents: typeof parsed.data.priceCents === "number" ? parsed.data.priceCents : parsed.data.priceCents === null ? null : undefined,
-      currency: typeof parsed.data.currency === "string" ? (parsed.data.currency.trim() || "EUR") : undefined,
+      currency: "EUR",
       images: parsed.data.images
         ? {
             deleteMany: {},
