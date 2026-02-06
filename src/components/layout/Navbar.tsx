@@ -188,6 +188,9 @@ export default function Navbar() {
             <Link href="/map" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
               Karte
             </Link>
+            <Link href="/marketplace" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
+              Marketplace
+            </Link>
 
             {session ? (
               <>
@@ -330,6 +333,9 @@ export default function Navbar() {
             </Link>
             <Link href="/map" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
               Karte
+            </Link>
+            <Link href="/marketplace" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
+              Marketplace
             </Link>
             <div className="px-3 py-2">
               <div className="text-xs font-semibold text-[var(--nav-muted)] mb-2">Design</div>
