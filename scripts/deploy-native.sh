@@ -108,14 +108,15 @@ if [ -f ".env" ]; then
         fi
     fi
 
-    if ! grep -q '^SITE_URL=' .env || [ -z "$(grep -E '^SITE_URL=' .env | head -n 1 | sed -E 's/^[^=]+=//; s/^"//; s/"$//')" ]; then
-        NEXTAUTH_URL_CURRENT="$(grep -E '^NEXTAUTH_URL=' .env | head -n 1 | sed -E 's/^[^=]+=//; s/^"//; s/"$//')"
-        if [ -n "$NEXTAUTH_URL_CURRENT" ] && echo "$NEXTAUTH_URL_CURRENT" | grep -qE '^https?://'; then
-            if grep -q '^SITE_URL=' .env; then
-                sed -i "s|^SITE_URL=.*|SITE_URL=\"$NEXTAUTH_URL_CURRENT\"|" .env
-            else
-                echo "SITE_URL=\"$NEXTAUTH_URL_CURRENT\"" >> .env
-            fi
+    NEXTAUTH_URL_CURRENT="$(grep -E '^NEXTAUTH_URL=' .env | head -n 1 | sed -E 's/^[^=]+=//; s/^"//; s/"$//')"
+    if [ -n "$NEXTAUTH_URL_CURRENT" ] && echo "$NEXTAUTH_URL_CURRENT" | grep -qE '^https?://'; then
+        if echo "$NEXTAUTH_URL_CURRENT" | grep -qi "localhost"; then
+            echo -e "${YELLOW}Warnung: NEXTAUTH_URL zeigt auf localhost. Bitte in .env auf die öffentliche Domain setzen.${NC}"
+        fi
+        if grep -q '^SITE_URL=' .env; then
+            sed -i "s|^SITE_URL=.*|SITE_URL=\"$NEXTAUTH_URL_CURRENT\"|" .env
+        else
+            echo "SITE_URL=\"$NEXTAUTH_URL_CURRENT\"" >> .env
         fi
     fi
 fi
