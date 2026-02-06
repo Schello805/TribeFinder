@@ -23,7 +23,7 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
   useEffect(() => {
     if (!isOpen) return;
 
-    const onPointerDown = (e: MouseEvent | TouchEvent) => {
+    const onPointerDownCapture = (e: PointerEvent) => {
       const target = e.target as Node | null;
       if (!target) return;
       if (containerRef.current && !containerRef.current.contains(target)) {
@@ -37,13 +37,12 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
       }
     };
 
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('touchstart', onPointerDown);
+    // Use capture phase so we still see the event even if something calls stopPropagation().
+    document.addEventListener('pointerdown', onPointerDownCapture, true);
     document.addEventListener('keydown', onKeyDown);
 
     return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('touchstart', onPointerDown);
+      document.removeEventListener('pointerdown', onPointerDownCapture, true);
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [isOpen]);
