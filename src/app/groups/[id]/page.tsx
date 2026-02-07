@@ -60,6 +60,7 @@ export default async function GroupDetailPage({
         id: true,
         role: true,
         status: true,
+        createdAt: true,
         user: {
           select: {
             id: true,
@@ -68,6 +69,7 @@ export default async function GroupDetailPage({
           },
         },
       },
+      orderBy: { createdAt: "asc" },
     },
     events: {
       where: {
@@ -202,6 +204,11 @@ export default async function GroupDetailPage({
         name: t.name,
         level: "INTERMEDIATE" as const,
       }));
+
+  const approvedMemberships = group.members.filter((m) => m.status === "APPROVED");
+  const adminMemberships = approvedMemberships.filter((m) => m.role === "ADMIN" && m.user.id !== group.owner.id);
+  const regularMemberships = approvedMemberships.filter((m) => m.role !== "ADMIN" && m.user.id !== group.owner.id);
+  const regularFirst12 = regularMemberships.slice(0, 12);
 
   return (
     <GroupDetailAnimations>
@@ -417,24 +424,132 @@ export default async function GroupDetailPage({
 
                   <div className="pt-4 border-t border-[var(--border)]">
                     <dt className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Gruppenleitung</dt>
-                    <dd className="flex items-center space-x-3 bg-[var(--surface)] p-3 rounded-lg border border-[var(--border)] shadow-sm">
-                      {group.owner.image ? (
+                    <dd className="space-y-2">
+                      <Link
+                        href={`/users/${group.owner.id}`}
+                        className="flex items-center space-x-3 bg-[var(--surface)] p-3 rounded-lg border border-[var(--border)] shadow-sm hover:bg-[var(--surface-hover)] transition"
+                      >
+                        {group.owner.image ? (
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              className="h-10 w-10 rounded-full object-cover border border-[var(--border)]"
+                              src={normalizeUploadedImageUrl(group.owner.image) ?? ""}
+                              alt={group.owner.name || "Owner"}
+                            />
+                          </>
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold border border-[var(--border)]">
+                            {group.owner.name?.charAt(0) || "?"}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-[var(--foreground)] truncate">{group.owner.name || "Unbekannt"}</div>
+                        </div>
+                      </Link>
+
+                      {adminMemberships.length > 0 ? (
+                        <div className="space-y-2">
+                          {adminMemberships.map((m) => (
+                            <Link
+                              key={m.id}
+                              href={`/users/${m.user.id}`}
+                              className="flex items-center justify-between gap-3 bg-[var(--surface)] p-3 rounded-lg border border-[var(--border)] shadow-sm hover:bg-[var(--surface-hover)] transition"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                {m.user.image ? (
+                                  <>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      className="h-10 w-10 rounded-full object-cover border border-[var(--border)]"
+                                      src={normalizeUploadedImageUrl(m.user.image) ?? ""}
+                                      alt={m.user.name || "Admin"}
+                                    />
+                                  </>
+                                ) : (
+                                  <div className="h-10 w-10 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold border border-[var(--border)]">
+                                    {m.user.name?.charAt(0) || "?"}
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <div className="text-sm font-medium text-[var(--foreground)] truncate">{m.user.name || "Unbekannt"}</div>
+                                </div>
+                              </div>
+                              <span className="shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)]">
+                                Gruppenleitung
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : null}
+                    </dd>
+                  </div>
+
+                  <div className="pt-4 border-t border-[var(--border)]">
+                    <dt className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Mitglieder</dt>
+                    <dd className="space-y-2">
+                      {regularMemberships.length > 0 ? (
                         <>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            className="h-10 w-10 rounded-full object-cover border border-[var(--border)]"
-                            src={normalizeUploadedImageUrl(group.owner.image) ?? ""}
-                            alt={group.owner.name || "Owner"}
-                          />
+                          {regularFirst12.map((m) => (
+                            <Link
+                              key={m.id}
+                              href={`/users/${m.user.id}`}
+                              className="flex items-center space-x-3 bg-[var(--surface)] p-3 rounded-lg border border-[var(--border)] shadow-sm hover:bg-[var(--surface-hover)] transition"
+                            >
+                              {m.user.image ? (
+                                <>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    className="h-9 w-9 rounded-full object-cover border border-[var(--border)]"
+                                    src={normalizeUploadedImageUrl(m.user.image) ?? ""}
+                                    alt={m.user.name || "Mitglied"}
+                                  />
+                                </>
+                              ) : (
+                                <div className="h-9 w-9 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold border border-[var(--border)]">
+                                  {m.user.name?.charAt(0) || "?"}
+                                </div>
+                              )}
+                              <div className="text-sm font-medium text-[var(--foreground)] truncate">{m.user.name || "Unbekannt"}</div>
+                            </Link>
+                          ))}
+
+                          {regularMemberships.length > 12 ? (
+                            <details className="mt-1">
+                              <summary className="cursor-pointer text-sm font-medium text-[var(--link)] hover:underline select-none">
+                                Mehr
+                              </summary>
+                              <div className="mt-2 space-y-2">
+                                {regularMemberships.map((m) => (
+                                  <Link
+                                    key={`all-${m.id}`}
+                                    href={`/users/${m.user.id}`}
+                                    className="flex items-center space-x-3 bg-[var(--surface)] p-3 rounded-lg border border-[var(--border)] shadow-sm hover:bg-[var(--surface-hover)] transition"
+                                  >
+                                    {m.user.image ? (
+                                      <>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                          className="h-9 w-9 rounded-full object-cover border border-[var(--border)]"
+                                          src={normalizeUploadedImageUrl(m.user.image) ?? ""}
+                                          alt={m.user.name || "Mitglied"}
+                                        />
+                                      </>
+                                    ) : (
+                                      <div className="h-9 w-9 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold border border-[var(--border)]">
+                                        {m.user.name?.charAt(0) || "?"}
+                                      </div>
+                                    )}
+                                    <div className="text-sm font-medium text-[var(--foreground)] truncate">{m.user.name || "Unbekannt"}</div>
+                                  </Link>
+                                ))}
+                              </div>
+                            </details>
+                          ) : null}
                         </>
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold border border-[var(--border)]">
-                          {group.owner.name?.charAt(0) || "?"}
-                        </div>
+                        <div className="text-sm text-[var(--muted)]">Noch keine Mitglieder hinterlegt.</div>
                       )}
-                      <div className="text-sm font-medium text-[var(--foreground)]">
-                        {group.owner.name || "Unbekannt"}
-                      </div>
                     </dd>
                   </div>
                 </div>

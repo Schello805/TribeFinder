@@ -108,6 +108,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: [
+        { url: "/icons/icon.svg", type: "image/svg+xml" },
         { url: "/icons/icon-192.png", type: "image/png" },
         { url: "/icons/icon-512.png", type: "image/png" },
       ],

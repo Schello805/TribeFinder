@@ -22,6 +22,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 ### 💬 Direktnachrichten
 
 - E-Mail Benachrichtigung bei neuer Nachricht: Link führt direkt in den passenden Thread (`/direct-messages/[otherUserId]`)
+- Profil: Optionale Einstellung, ob bei neuen Direktnachrichten eine E-Mail gesendet wird
 
 ### 🧩 UI / UX
 
@@ -29,6 +30,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
   - Oben nur noch Suche + Sortierung
   - Tanzstil + Standort/Umkreis im Accordion „Filter“
   - Sortierung „Entfernung“: Hinweis + Accordion-Öffnung wenn Standort fehlt
+- Gruppenseite: Öffentliche Sidebar zeigt jetzt Gruppenleitung (Owner + Admins) und Mitgliederliste (erste 12 + „Mehr“)
 - Neue Hilfeseite `/hilfe` und Link im Footer
 
 ### 🛠️ Wartungsmodus
@@ -49,6 +51,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - iOS Home-Screen Icon verbessert
   - `apple-touch-icon.png` hinzugefügt
   - Manifest um PNG Icons ergänzt
+  - Favicon/App-Icon: SVG Logo wird zusätzlich als Icon ausgeliefert (neben PNG Fallbacks)
 
 ### �🔧 Deployment / Datenbank
 
