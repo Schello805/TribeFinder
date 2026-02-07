@@ -106,7 +106,10 @@ export default function DashboardNotificationsPage() {
           <div className="text-sm font-medium text-[var(--foreground)]">Direktnachrichten</div>
 
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="text-sm text-[var(--muted)]">Benachrichtige mich per E-Mail, wenn ich eine neue Direktnachricht erhalte.</div>
+            <div className="text-sm text-[var(--muted)]">
+              Benachrichtige mich per E-Mail, wenn ich eine neue Direktnachricht erhalte.
+              <div className="mt-1 text-xs text-[var(--muted)]">Hinweis: Maximal eine E-Mail pro Kontakt alle 10 Minuten.</div>
+            </div>
             <button
               type="button"
               onClick={() => setPrefs((p) => ({ ...p, notifyDirectMessages: !p.notifyDirectMessages }))}
