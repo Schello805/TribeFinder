@@ -17,7 +17,7 @@ export default function DirectMessageThreadPage() {
   const otherUserId = String(params.otherUserId || "");
   const router = useRouter();
   const { showToast } = useToast();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
 
   const [data, setData] = useState<ThreadData | null>(null);
   const [content, setContent] = useState("");
@@ -104,11 +104,33 @@ export default function DirectMessageThreadPage() {
           <div className="text-[var(--muted)]">Noch keine Nachrichten.</div>
         ) : (
           <div className="space-y-3">
-            {data.messages.map((m) => (
-              <div key={m.id} className="bg-[var(--surface-2)] border border-[var(--border)] rounded-lg p-3 whitespace-pre-wrap break-words">
-                {m.content}
-              </div>
-            ))}
+            {data.messages.map((m) => {
+              const isMine = !!session?.user?.id && m.senderId === session.user.id;
+              const senderLabel = isMine ? "Du" : data.otherUser.name || "Unbekannt";
+              const time = new Date(m.createdAt).toLocaleString("de-DE", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
+              return (
+                <div key={m.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`max-w-[85%] border border-[var(--border)] rounded-lg p-3 whitespace-pre-wrap break-words ${
+                      isMine ? "bg-[var(--surface-2)]" : "bg-[var(--surface-2)]"
+                    }`}
+                  >
+                    <div className="mb-1 flex items-center justify-between gap-3 text-[10px] text-[var(--muted)]">
+                      <span className="font-medium">{senderLabel}</span>
+                      <span className="whitespace-nowrap">{time}</span>
+                    </div>
+                    <div className="text-[var(--foreground)]">{m.content}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
