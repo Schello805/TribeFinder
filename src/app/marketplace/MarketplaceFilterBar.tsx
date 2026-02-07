@@ -157,7 +157,7 @@ export default function MarketplaceFilterBar(props: {
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4">
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -208,14 +208,12 @@ export default function MarketplaceFilterBar(props: {
           ))}
         </select>
 
-        <div className="flex justify-end">
-          <Link
-            href="/marketplace"
-            className="w-full sm:w-auto px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition text-center"
-          >
-            Reset
-          </Link>
-        </div>
+        <Link
+          href="/marketplace"
+          className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition text-center"
+        >
+          Reset
+        </Link>
       </div>
 
       <div className="mt-3 grid grid-cols-1 sm:grid-cols-4 gap-3">
