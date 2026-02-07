@@ -23,6 +23,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - E-Mail Benachrichtigung bei neuer Nachricht: Link führt direkt in den passenden Thread (`/direct-messages/[otherUserId]`)
 - Profil: Optionale Einstellung, ob bei neuen Direktnachrichten eine E-Mail gesendet wird
+- E-Mail Throttle: Maximal eine Benachrichtigung pro Kontakt alle 10 Minuten (Spam-Schutz)
 
 ### 🧩 UI / UX
 

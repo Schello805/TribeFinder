@@ -187,6 +187,20 @@ export async function notifyUserAboutNewMessage(receiverId: string, senderId: st
 
     if (!receiver?.email || !receiver.emailNotifications || !receiver.notifyDirectMessages) return;
 
+    const now = new Date();
+    const throttleMs = 10 * 60 * 1000;
+    const notifyState = (await (prisma as unknown as {
+      directMessageEmailNotificationState: { findUnique: (args: unknown) => Promise<unknown> };
+    }).directMessageEmailNotificationState.findUnique({
+      where: { receiverId_senderId: { receiverId, senderId } },
+      select: { lastNotifiedAt: true },
+    })) as { lastNotifiedAt: Date } | null;
+
+    if (notifyState?.lastNotifiedAt) {
+      const elapsed = now.getTime() - new Date(notifyState.lastNotifiedAt).getTime();
+      if (elapsed >= 0 && elapsed < throttleMs) return;
+    }
+
     const subject = `Neue Nachricht von ${senderName}`;
     const content = `
       ${emailHeading('Neue Nachricht 💬')}
@@ -197,6 +211,16 @@ export async function notifyUserAboutNewMessage(receiverId: string, senderId: st
 
     const html = await emailTemplate(content, `${senderName} hat dir geschrieben`);
     await sendEmail(receiver.email, subject, html);
+
+    await (prisma as unknown as {
+      directMessageEmailNotificationState: { upsert: (args: unknown) => Promise<unknown> };
+    }).directMessageEmailNotificationState.upsert({
+      where: { receiverId_senderId: { receiverId, senderId } },
+      update: { lastNotifiedAt: now },
+      create: { receiverId, senderId, lastNotifiedAt: now },
+      select: { id: true },
+    });
+
     logger.info({ receiverId, senderName }, "New message notification sent");
   } catch (error) {
     const err = error as { code?: string; message?: string };

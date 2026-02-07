@@ -75,6 +75,9 @@ model User {
   sentMessages     Message[] @relation("MessageSender")
   receivedMessages Message[] @relation("MessageReceiver")
 
+  directMessageEmailNotificationReceiverStates DirectMessageEmailNotificationState[] @relation("DirectMessageEmailNotificationReceiver")
+  directMessageEmailNotificationSenderStates   DirectMessageEmailNotificationState[] @relation("DirectMessageEmailNotificationSender")
+
   // Group contact inbox
   createdGroupThreads   GroupThread[]          @relation("GroupThreadCreator")
   groupThreadMessages   GroupThreadMessage[]   @relation("GroupThreadMessageAuthor")
@@ -481,6 +484,25 @@ model Message {
 
   @@index([senderId])
   @@index([receiverId])
+}
+
+model DirectMessageEmailNotificationState {
+  id String @id @default(cuid())
+
+  receiverId String
+  receiver   User @relation("DirectMessageEmailNotificationReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User @relation("DirectMessageEmailNotificationSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  lastNotifiedAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([receiverId, senderId])
+  @@index([receiverId])
+  @@index([senderId])
 }
 
 // Group Contact Threads (Inbox)
