@@ -194,14 +194,6 @@ export default function Navbar() {
 
             {session ? (
               <>
-                <Link href="/direct-messages" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium inline-flex items-center gap-2">
-                  Nachrichten
-                  {unreadCount > 0 && (
-                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
-                      {unreadCount > 99 ? "99+" : unreadCount}
-                    </span>
-                  )}
-                </Link>
                 <div className="relative">
                   <button
                     type="button"
@@ -220,6 +212,11 @@ export default function Navbar() {
                     <svg className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                     </svg>
+                    {unreadCount > 0 && (
+                      <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
                     {pendingRequestsCount > 0 && (
                       <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-xs font-bold inline-flex items-center justify-center">
                         {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
@@ -398,15 +395,6 @@ export default function Navbar() {
             </div>
             {session ? (
               <>
-                <Link href="/direct-messages" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
-                  <span>Nachrichten</span>
-                  {unreadCount > 0 && (
-                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
-                      {unreadCount > 99 ? "99+" : unreadCount}
-                    </span>
-                  )}
-                </Link>
-
                 <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
                   <span className="flex items-center gap-2">
                     {userImageUrl ? (
@@ -419,6 +407,15 @@ export default function Navbar() {
                   {pendingRequestsCount > 0 && (
                     <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-xs font-bold inline-flex items-center justify-center">
                       {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
+                    </span>
+                  )}
+                </Link>
+
+                <Link href="/direct-messages" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between gap-3 px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
+                  <span>Nachrichten</span>
+                  {unreadCount > 0 && (
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold inline-flex items-center justify-center">
+                      {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
                 </Link>
