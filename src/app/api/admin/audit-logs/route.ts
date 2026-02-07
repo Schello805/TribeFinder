@@ -9,8 +9,10 @@ const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(200).default(50),
   sort: z.enum(["desc", "asc"]).optional().default("desc"),
-  sortField: z.enum(["createdAt", "action"]).optional(),
+  sortField: z.enum(["createdAt", "action", "actorEmail", "targetEmail"]).optional(),
   sortDir: z.enum(["desc", "asc"]).optional(),
+
+  actionsOnly: z.coerce.boolean().optional().default(false),
 
   action: z.string().trim().min(1).optional(),
   actorEmail: z.string().trim().min(1).optional(),
@@ -29,10 +31,34 @@ export async function GET(req: Request) {
     return jsonBadRequest("Validierungsfehler", { errors: parsed.error.flatten() });
   }
 
-  const { page, pageSize, sort, sortField, sortDir, action, actorEmail, targetEmail, backup, q } = parsed.data;
+  const { page, pageSize, sort, sortField, sortDir, actionsOnly, action, actorEmail, targetEmail, backup, q } = parsed.data;
+
+  if (actionsOnly) {
+    try {
+      const rows = await prisma.adminAuditLog.findMany({
+        distinct: ["action"],
+        select: { action: true },
+        orderBy: { action: "asc" },
+        take: 200,
+      });
+
+      return NextResponse.json({
+        actions: (rows as Array<{ action: string }>).map((r) => r.action),
+      });
+    } catch (error) {
+      return jsonServerError("Audit-Log Aktionen konnten nicht geladen werden", error);
+    }
+  }
 
   const effectiveSortField = sortField ?? "createdAt";
   const effectiveSortDir = sortDir ?? sort;
+
+  const orderBy =
+    effectiveSortField === "createdAt" || effectiveSortField === "action"
+      ? ({ [effectiveSortField]: effectiveSortDir } as Record<string, unknown>)
+      : effectiveSortField === "actorEmail"
+        ? ({ actorAdmin: { email: effectiveSortDir } } as Record<string, unknown>)
+        : ({ targetUser: { email: effectiveSortDir } } as Record<string, unknown>);
 
   const where: Record<string, unknown> = {
     ...(action ? { action } : {}),
@@ -53,7 +79,7 @@ export async function GET(req: Request) {
       prisma.adminAuditLog.count({ where: where as never }),
       prisma.adminAuditLog.findMany({
         where: where as never,
-        orderBy: { [effectiveSortField]: effectiveSortDir },
+        orderBy: orderBy as never,
         skip: (page - 1) * pageSize,
         take: pageSize,
         select: {

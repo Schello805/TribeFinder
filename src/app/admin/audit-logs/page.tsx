@@ -35,6 +35,10 @@ const AUDIT_ACTION_OPTIONS = [
   "BACKUP_RESTORE",
 ] as const;
 
+type ActionsOnlyResponse = {
+  actions: string[];
+};
+
 function safeJsonPreview(value: unknown) {
   try {
     if (value === null || value === undefined) return "";
@@ -69,6 +73,10 @@ export default function AdminAuditLogsPage() {
   const [targetEmailInput, setTargetEmailInput] = useState(targetEmail);
   const [qInput, setQInput] = useState(q);
 
+  const [dynamicActions, setDynamicActions] = useState<string[] | null>(null);
+
+  const actionOptions = (dynamicActions && dynamicActions.length > 0 ? dynamicActions : Array.from(AUDIT_ACTION_OPTIONS)) as string[];
+
   const [actionMode, setActionMode] = useState<"any" | "preset" | "custom">(
     action ? (AUDIT_ACTION_OPTIONS.includes(action as (typeof AUDIT_ACTION_OPTIONS)[number]) ? "preset" : "custom") : "any"
   );
@@ -97,6 +105,29 @@ export default function AdminAuditLogsPage() {
       setPresetAction("");
     }
   }, [action, actorEmail, targetEmail, q]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    if (session?.user?.role !== "ADMIN") return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/audit-logs?actionsOnly=1");
+        const json = (await res.json().catch(() => null)) as ActionsOnlyResponse | { message?: string } | null;
+        if (!res.ok) return;
+        if (!json || typeof json !== "object" || !("actions" in json)) return;
+        const actions = Array.isArray((json as ActionsOnlyResponse).actions) ? (json as ActionsOnlyResponse).actions : [];
+        if (!cancelled) setDynamicActions(actions);
+      } catch {
+        // ignore (fallback to static list)
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.role, status]);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -158,7 +189,7 @@ export default function AdminAuditLogsPage() {
     router.push(`/admin/audit-logs?${sp.toString()}`);
   }
 
-  function toggleSort(field: "createdAt" | "action") {
+  function toggleSort(field: "createdAt" | "action" | "actorEmail" | "targetEmail") {
     const sp = new URLSearchParams(searchParams.toString());
     const currentField = sp.get("sortField") || "createdAt";
     const currentDir = sp.get("sortDir") || "desc";
@@ -170,7 +201,7 @@ export default function AdminAuditLogsPage() {
     router.push(`/admin/audit-logs?${sp.toString()}`);
   }
 
-  function sortIndicator(field: "createdAt" | "action") {
+  function sortIndicator(field: "createdAt" | "action" | "actorEmail" | "targetEmail") {
     if (sortField !== field) return "";
     return sortDir === "asc" ? "▲" : "▼";
   }
@@ -211,7 +242,7 @@ export default function AdminAuditLogsPage() {
               className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
             >
               <option value="">Alle</option>
-              {AUDIT_ACTION_OPTIONS.map((a) => (
+              {actionOptions.map((a) => (
                 <option key={a} value={a}>
                   {a}
                 </option>
@@ -325,8 +356,24 @@ export default function AdminAuditLogsPage() {
                     Aktion <span className="text-xs">{sortIndicator("action")}</span>
                   </button>
                 </th>
-                <th className="py-2 px-4 whitespace-nowrap">Admin</th>
-                <th className="py-2 px-4 whitespace-nowrap">Target</th>
+                <th className="py-2 px-4 whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => toggleSort("actorEmail")}
+                    className="inline-flex items-center gap-1 hover:underline"
+                  >
+                    Admin <span className="text-xs">{sortIndicator("actorEmail")}</span>
+                  </button>
+                </th>
+                <th className="py-2 px-4 whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => toggleSort("targetEmail")}
+                    className="inline-flex items-center gap-1 hover:underline"
+                  >
+                    Target <span className="text-xs">{sortIndicator("targetEmail")}</span>
+                  </button>
+                </th>
                 <th className="py-2 px-4 whitespace-nowrap">Backup</th>
                 <th className="py-2 px-4">Meta</th>
               </tr>
