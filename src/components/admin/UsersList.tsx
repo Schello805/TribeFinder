@@ -24,6 +24,7 @@ export default function UsersList({
   const { showToast } = useToast();
   const [users, setUsers] = useState<UserListItem[]>(initialUsers);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [blockDialog, setBlockDialog] = useState<{ userId: string; email: string; reason: string } | null>(null);
 
   const refresh = useCallback(async () => {
     const res = await fetch("/api/admin/users");
@@ -55,6 +56,18 @@ export default function UsersList({
     }
   };
 
+  const blockUserWithReason = async () => {
+    if (!blockDialog) return;
+    const reason = blockDialog.reason.trim();
+    if (!reason) {
+      showToast("Bitte einen Grund angeben", "error");
+      return;
+    }
+    const userId = blockDialog.userId;
+    setBlockDialog(null);
+    await patchUser(userId, { isBlocked: true, blockReason: reason });
+  };
+
   const deleteUser = async (id: string) => {
     if (!confirm("Benutzer wirklich löschen?")) return;
     setBusyId(id);
@@ -73,6 +86,36 @@ export default function UsersList({
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-transparent dark:border-gray-700">
+      {blockDialog ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg p-4">
+            <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">User sperren</div>
+            <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">Grund wird dem User per E-Mail zugeschickt: {blockDialog.email}</div>
+            <textarea
+              value={blockDialog.reason}
+              onChange={(e) => setBlockDialog({ ...blockDialog, reason: e.target.value })}
+              className="mt-3 w-full min-h-[120px] rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+              placeholder="Warum wird der Account gesperrt?"
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setBlockDialog(null)}
+                className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                onClick={() => void blockUserWithReason()}
+                className="px-3 py-2 rounded-md text-sm font-medium border border-red-200 dark:border-red-800 bg-red-600 text-white hover:bg-red-700"
+              >
+                Sperren
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
         {users.map((user) => (
           <li key={user.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-900/40">
@@ -148,7 +191,13 @@ export default function UsersList({
                 <button
                   type="button"
                   disabled={busyId === user.id || user.id === currentUserId}
-                  onClick={() => patchUser(user.id, { isBlocked: !user.isBlocked })}
+                  onClick={() => {
+                    if (user.isBlocked) {
+                      void patchUser(user.id, { isBlocked: false });
+                      return;
+                    }
+                    setBlockDialog({ userId: user.id, email: user.email, reason: "" });
+                  }}
                   className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
                   title={user.id === currentUserId ? "Du kannst dich nicht selbst sperren" : undefined}
                 >

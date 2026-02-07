@@ -4,6 +4,7 @@ import { requireAdminSession } from "@/lib/requireAdmin";
 import { z } from "zod";
 import { jsonBadRequest, jsonUnauthorized } from "@/lib/apiResponse";
 import { recordAdminAudit } from "@/lib/adminAudit";
+import { emailHeading, emailHighlight, emailTemplate, emailText, sendEmail } from "@/lib/email";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -11,6 +12,7 @@ const patchSchema = z.object({
   role: z.enum(["USER", "ADMIN"]).optional(),
   isBlocked: z.boolean().optional(),
   emailVerified: z.boolean().optional(),
+  blockReason: z.string().trim().min(1).max(1000).optional(),
 });
 
 async function ensureNotLastUnblockedAdmin(targetUserId: string) {
@@ -67,6 +69,15 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       await ensureNotLastUnblockedAdmin(id);
     }
 
+    if (parsed.data.isBlocked === true && !parsed.data.blockReason) {
+      return jsonBadRequest("Bitte einen Grund für die Sperre angeben");
+    }
+
+    const targetBefore =
+      parsed.data.isBlocked !== undefined
+        ? await prisma.user.findUnique({ where: { id }, select: { id: true, email: true, name: true, isBlocked: true } })
+        : null;
+
     const updated = await prisma.user.update({
       where: { id },
       data: {
@@ -95,6 +106,24 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       },
     });
 
+    let emailed = false;
+    if (parsed.data.isBlocked === true && targetBefore && !targetBefore.isBlocked) {
+      try {
+        const reason = parsed.data.blockReason || "";
+        const content = `
+          ${emailHeading("Dein Account wurde gesperrt")}
+          ${emailText("Ein Administrator hat deinen TribeFinder Account gesperrt.")}
+          ${emailHighlight(`<strong>Grund:</strong><br/>${reason.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>")}`)}
+          ${emailText("Wenn du denkst, dass das ein Fehler ist, antworte bitte auf diese E-Mail oder kontaktiere den Support.")}
+        `;
+        const html = await emailTemplate(content, "Dein Account wurde gesperrt");
+        const result = await sendEmail(updated.email, "Account gesperrt - TribeFinder", html);
+        emailed = Boolean(result?.success);
+      } catch {
+        emailed = false;
+      }
+    }
+
     await recordAdminAudit({
       action: "USER_UPDATE",
       actorAdminId: session.user.id,
@@ -103,6 +132,12 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         role: parsed.data.role,
         isBlocked: parsed.data.isBlocked,
         emailVerified: parsed.data.emailVerified,
+        ...(parsed.data.isBlocked === true
+          ? {
+              blockReason: parsed.data.blockReason,
+              emailed,
+            }
+          : {}),
       },
     });
 
