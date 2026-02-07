@@ -29,11 +29,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const group = await prisma.group.findUnique({
     where: { id },
-    select: { id: true },
+    select: { id: true, ownerId: true },
   });
 
   if (!group) {
     return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
+  }
+
+  if (session.user.role !== "ADMIN" && group.ownerId !== session.user.id) {
+    const membership = await prisma.groupMember.findUnique({
+      where: { userId_groupId: { userId: session.user.id, groupId: id } },
+      select: { status: true },
+    });
+
+    if (!membership || membership.status !== "APPROVED") {
+      return NextResponse.json(
+        { message: "Nur bestätigte Gruppenmitglieder können Nachrichten schreiben" },
+        { status: 403 }
+      );
+    }
   }
 
   const thread = await prisma.groupThread.create({

@@ -67,6 +67,8 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
 
   const ownerName = listing.owner.name || "Unbekannt";
 
+  const locationText = [listing.postalCode, listing.city].filter(Boolean).join(" ") || "Standort unbekannt";
+
   const contactHref = session?.user
     ? `/direct-messages/new?receiverId=${encodeURIComponent(listing.ownerId)}&listingId=${encodeURIComponent(listing.id)}`
     : "/auth/signin";
@@ -81,9 +83,7 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
             <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">
               {listing.listingType === "REQUEST" ? "Ich suche" : "Ich biete"}
             </span>
-            <span>
-              {listing.postalCode || ""} {listing.city || ""}
-            </span>
+            <span>{locationText}</span>
             <span>•</span>
             <span>Eingestellt am {new Date(listing.createdAt).toLocaleDateString("de-DE")}</span>
             <span>•</span>

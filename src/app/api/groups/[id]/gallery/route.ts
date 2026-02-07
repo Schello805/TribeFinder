@@ -50,10 +50,14 @@ export async function POST(
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
-
   const groupId = (await params).id;
-  const permission = await canEditGroup(groupId, session.user.id);
-  if (!permission.ok) return NextResponse.json({ message: permission.message }, { status: permission.status });
+  if (session.user.role !== "ADMIN") {
+    const permission = await canEditGroup(groupId, session.user.id);
+    if (!permission.ok) return NextResponse.json({ message: permission.message }, { status: permission.status });
+  }
+
+  const group = await prisma.group.findUnique({ where: { id: groupId }, select: { id: true } });
+  if (!group) return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = addSchema.safeParse(body);

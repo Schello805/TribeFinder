@@ -52,10 +52,11 @@ export async function GET(
     }
 
     const isOwner = !!session?.user?.id && session.user.id === base.ownerId;
+    const isGlobalAdmin = session?.user?.role === "ADMIN";
     const isAdminMember =
       !!session?.user?.id &&
       base.members.some((m) => m.user.id === session.user.id && m.role === "ADMIN" && m.status === "APPROVED");
-    const canSeeEmails = isOwner || isAdminMember;
+    const canSeeEmails = isGlobalAdmin || isOwner || isAdminMember;
 
     if (!canSeeEmails) {
       return NextResponse.json({
@@ -133,8 +134,7 @@ export async function PUT(
       return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
     }
 
-    if (existingGroup.ownerId !== session.user.id) {
-      // Check if user is an approved member
+    if (existingGroup.ownerId !== session.user.id && session.user.role !== "ADMIN") {
       const membership = await prisma.groupMember.findUnique({
         where: {
           userId_groupId: {
@@ -142,11 +142,13 @@ export async function PUT(
             groupId: id,
           },
         },
+        select: { role: true, status: true },
       });
 
-      if (!membership || membership.status !== "APPROVED") {
+      const isAdminMember = membership?.role === "ADMIN" && membership?.status === "APPROVED";
+      if (!isAdminMember) {
         return NextResponse.json(
-          { message: "Nur bestätigte Mitglieder können diese Gruppe bearbeiten" },
+          { message: "Nur Administratoren können diese Gruppe bearbeiten" },
           { status: 403 }
         );
       }
@@ -304,7 +306,7 @@ export async function DELETE(
       return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
     }
 
-    if (existingGroup.ownerId !== session.user.id) {
+    if (existingGroup.ownerId !== session.user.id && session.user.role !== "ADMIN") {
       const membership = await prisma.groupMember.findUnique({
         where: {
           userId_groupId: {

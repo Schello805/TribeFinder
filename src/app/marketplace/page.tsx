@@ -1,8 +1,8 @@
 import Link from "next/link";
-import prisma from "@/lib/prisma";
 import MarketplaceFilterBar from "@/app/marketplace/MarketplaceFilterBar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -54,63 +54,41 @@ export default async function MarketplacePage({
   const radiusRaw = typeof sp.radius === "string" ? sp.radius.trim() : "";
   const lat = latRaw ? Number(latRaw) : NaN;
   const lng = lngRaw ? Number(lngRaw) : NaN;
-  const radiusKm = radiusRaw ? Number(radiusRaw) : NaN;
 
   const category = ["KOSTUEME", "SCHMUCK", "ACCESSOIRES", "SCHUHE", "SONSTIGES"].includes(categoryRaw)
     ? (categoryRaw as "KOSTUEME" | "SCHMUCK" | "ACCESSOIRES" | "SCHUHE" | "SONSTIGES")
     : "";
 
-  const where: {
-    expiresAt: { gt: Date };
-    category?: "KOSTUEME" | "SCHMUCK" | "ACCESSOIRES" | "SCHUHE" | "SONSTIGES";
-    OR?: Array<{ title?: { contains: string; mode: "insensitive" }; description?: { contains: string; mode: "insensitive" } }>;
-  } = {
-    expiresAt: { gt: new Date() },
-  };
+  const h = await headers();
+  const host = h.get("x-forwarded-host") || h.get("host") || "";
+  const proto = h.get("x-forwarded-proto") || "http";
+  const baseUrl = host ? `${proto}://${host}` : process.env.NEXTAUTH_URL || "";
 
-  if (category) where.category = category;
-
-  if (listingType) {
-    (where as unknown as { listingType?: "OFFER" | "REQUEST" }).listingType = listingType;
+  const apiParams = new URLSearchParams();
+  if (queryRaw) apiParams.set("query", queryRaw);
+  if (category) apiParams.set("category", category);
+  if (sort && sort !== "newest") apiParams.set("sort", sort);
+  if (listingType) apiParams.set("type", listingType);
+  if (latRaw && lngRaw) {
+    apiParams.set("lat", latRaw);
+    apiParams.set("lng", lngRaw);
+    if (radiusRaw) apiParams.set("radius", radiusRaw);
   }
+  apiParams.set("limit", "60");
 
-  if (queryRaw) {
-    where.OR = [
-      { title: { contains: queryRaw, mode: "insensitive" } },
-      { description: { contains: queryRaw, mode: "insensitive" } },
-    ];
-  }
-
-  if (sort === "distance" && Number.isFinite(lat) && Number.isFinite(lng)) {
-    const r = Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : 50;
-    const latDelta = r / 111;
-    const lngDelta = r / (111 * Math.cos((lat * Math.PI) / 180) || 1);
-    (where as unknown as { lat?: { gte?: number; lte?: number }; lng?: { gte?: number; lte?: number } }).lat = {
-      gte: lat - latDelta,
-      lte: lat + latDelta,
-    };
-    (where as unknown as { lat?: { gte?: number; lte?: number }; lng?: { gte?: number; lte?: number } }).lng = {
-      gte: lng - lngDelta,
-      lte: lng + lngDelta,
-    };
-  }
-
-  const orderBy =
-    sort === "priceAsc"
-      ? ([{ priceCents: "asc" as const }, { createdAt: "desc" as const }] as const)
-      : sort === "priceDesc"
-        ? ([{ priceCents: "desc" as const }, { createdAt: "desc" as const }] as const)
-        : ([{ createdAt: "desc" as const }] as const);
-
-  const listings = (await (prisma as unknown as { marketplaceListing: { findMany: (args: unknown) => Promise<unknown> } }).marketplaceListing.findMany({
-    where,
-    orderBy,
-    take: 60,
-    include: {
-      owner: { select: { id: true, name: true, image: true } },
-      images: { orderBy: { order: "asc" }, take: 1, select: { id: true, url: true } },
-    },
-  })) as Array<{
+  const listings = (await (async () => {
+    try {
+      if (!baseUrl) return [];
+      const res = await fetch(`${baseUrl}/api/marketplace?${apiParams.toString()}`, { cache: "no-store" });
+      const data = (await res.json().catch(() => ({}))) as {
+        listings?: unknown;
+      };
+      if (!res.ok || !Array.isArray(data.listings)) return [];
+      return data.listings;
+    } catch {
+      return [];
+    }
+  })()) as Array<{
     id: string;
     title: string;
     description: string;
@@ -127,21 +105,6 @@ export default async function MarketplacePage({
     createdAt: Date;
     images: Array<{ id: string; url: string }>;
   }>;
-
-  const sortedListings = (() => {
-    if (sort !== "distance" || !Number.isFinite(lat) || !Number.isFinite(lng)) return listings;
-    const withDist = listings
-      .map((l) => ({
-        l,
-        d:
-          typeof l.lat === "number" && typeof l.lng === "number"
-            ? haversineKm(lat, lng, l.lat, l.lng)
-            : Number.POSITIVE_INFINITY,
-      }))
-      .filter((x) => Number.isFinite(x.d));
-    withDist.sort((a, b) => a.d - b.d);
-    return withDist.map((x) => x.l);
-  })();
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -165,14 +128,15 @@ export default async function MarketplacePage({
 
       <MarketplaceFilterBar query={queryRaw} category={category} sort={sort} type={listingType} address={address} lat={latRaw} lng={lngRaw} radius={radiusRaw || "50"} />
 
-      {sortedListings.length === 0 ? (
+      {listings.length === 0 ? (
         <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-8 text-center text-[var(--muted)]">
           Keine Inserate gefunden.
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedListings.map((l) => {
+          {listings.map((l) => {
             const cover = l.images[0]?.url || "";
+            const locationText = [l.postalCode, l.city].filter(Boolean).join(" ") || "Standort unbekannt";
             const distKm =
               Number.isFinite(lat) && Number.isFinite(lng) && typeof l.lat === "number" && typeof l.lng === "number"
                 ? haversineKm(lat, lng, l.lat, l.lng)
@@ -207,9 +171,7 @@ export default async function MarketplacePage({
                     <span className="text-xs text-[var(--muted)]">{l.category}</span>
                   </div>
                   <div className="flex items-center justify-between gap-2 text-xs text-[var(--muted)]">
-                    <span>
-                      {l.postalCode || ""} {l.city || ""}
-                    </span>
+                    <span>{locationText}</span>
                     <span>
                       {distKm !== null && Number.isFinite(distKm) ? `${Math.round(distKm)} km • ` : ""}
                       {new Date(l.createdAt).toLocaleDateString("de-DE")}

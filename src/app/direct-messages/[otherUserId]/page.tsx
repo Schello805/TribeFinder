@@ -39,6 +39,7 @@ export default function DirectMessageThreadPage() {
         return;
       }
       setData({ otherUser: json.otherUser!, messages: json.messages || [] });
+      window.dispatchEvent(new Event("tribefinder:messages-read"));
     } catch {
       showToast("Konnte Thread nicht laden", "error");
     } finally {

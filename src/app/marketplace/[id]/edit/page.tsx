@@ -260,7 +260,7 @@ export default function EditMarketplaceListingPage() {
     if (!/^\d{5}$/.test(postalCode.trim())) nextErrors.postalCode = "Bitte eine gültige PLZ (5 Ziffern) angeben";
     if (city.trim().length < 2) nextErrors.city = "Bitte einen Ort angeben";
     if (description.trim().length < 10) nextErrors.description = "Bitte eine Beschreibung eingeben";
-    if (typeof priceCents !== "number") nextErrors.priceCents = "Bitte einen gültigen Preis angeben";
+    if (listingType === "OFFER" && typeof priceCents !== "number") nextErrors.priceCents = "Bitte einen gültigen Preis angeben";
     if (shippingAvailable && (shippingCostCents === null || typeof shippingCostCents !== "number")) {
       nextErrors.shippingCostCents = "Bitte Versandkosten angeben";
     }
@@ -284,7 +284,7 @@ export default function EditMarketplaceListingPage() {
           postalCode: postalCode.trim(),
           city: city.trim(),
           priceType,
-          priceCents,
+          priceCents: listingType === "REQUEST" ? (typeof priceCents === "number" ? priceCents : null) : priceCents,
           currency: "EUR",
           shippingAvailable,
           shippingCostCents: shippingAvailable ? shippingCostCents : null,
@@ -451,7 +451,7 @@ export default function EditMarketplaceListingPage() {
 
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">
-            Preis <span className="text-red-600">*</span>
+            Preis {listingType === "OFFER" ? <span className="text-red-600">*</span> : null}
           </label>
           <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <select

@@ -26,10 +26,11 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
   }
 
   const isOwner = group.ownerId === session.user.id;
-  let canDelete = isOwner;
+  const isGlobalAdmin = session.user.role === "ADMIN";
+  let canDelete = isOwner || isGlobalAdmin;
 
-  if (!isOwner) {
-    // Check if user is an approved member
+  if (!isOwner && !isGlobalAdmin) {
+    // Check if user is an approved group admin
     const membership = await prisma.groupMember.findUnique({
       where: {
         userId_groupId: {
@@ -37,13 +38,15 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
           groupId: id,
         },
       },
+      select: { role: true, status: true },
     });
 
-    if (!membership || membership.status !== "APPROVED") {
+    const isGroupAdmin = membership?.role === "ADMIN" && membership?.status === "APPROVED";
+    if (!isGroupAdmin) {
       redirect("/dashboard");
     }
 
-    canDelete = membership.role === "ADMIN" && membership.status === "APPROVED";
+    canDelete = true;
   }
 
   // Serialisiere die Daten für den Client Component

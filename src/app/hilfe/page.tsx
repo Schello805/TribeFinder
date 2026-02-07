@@ -46,7 +46,8 @@ export default function HelpPage() {
           <h2 className="tf-display text-xl font-bold mb-2">🛍️ Marketplace (Second-Hand Börse)</h2>
           <p className="text-[var(--muted)]">
             Im Marketplace kannst du Inserate erstellen, durchsuchen und Kontakt mit anderen aufnehmen.
-            Beim Erstellen/Bearbeiten sind einige Felder Pflicht (z.B. Preis, PLZ/Ort, Titel und Beschreibung).
+            Beim Erstellen/Bearbeiten sind einige Felder Pflicht (z.B. PLZ/Ort, Titel und Beschreibung). Der Preis ist bei „Ich biete“ Pflicht,
+            bei „Ich suche“ optional.
             Wenn PLZ und Ort möglicherweise nicht zusammenpassen, bekommst du einen Hinweis – speichern ist trotzdem möglich.
           </p>
         </section>

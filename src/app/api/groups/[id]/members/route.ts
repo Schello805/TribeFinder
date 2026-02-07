@@ -29,7 +29,7 @@ export async function PUT(
       return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
     }
 
-    // Verify requesting user is an APPROVED member of the group (or owner)
+    // Verify requesting user can manage members (owner, global admin, or APPROVED group admin)
     const requesterMembership = await prisma.groupMember.findUnique({
       where: {
         userId_groupId: {
@@ -37,12 +37,16 @@ export async function PUT(
           groupId: id,
         },
       },
+      select: { role: true, status: true },
     });
 
-    const canManage = group.ownerId === session.user.id || requesterMembership?.status === "APPROVED";
+    const canManage =
+      session.user.role === "ADMIN" ||
+      group.ownerId === session.user.id ||
+      (requesterMembership?.role === "ADMIN" && requesterMembership?.status === "APPROVED");
     if (!canManage) {
       return NextResponse.json(
-        { message: "Nur bestätigte Mitglieder können Beitrittsanfragen verwalten" },
+        { message: "Nur Administratoren können Beitrittsanfragen verwalten" },
         { status: 403 }
       );
     }
@@ -108,7 +112,7 @@ export async function DELETE(
       return NextResponse.json({ message: "Gruppe nicht gefunden" }, { status: 404 });
     }
 
-    // Verify requesting user is an APPROVED member of the group (or owner)
+    // Verify requesting user can manage members (owner, global admin, or APPROVED group admin)
     const requesterMembership = await prisma.groupMember.findUnique({
       where: {
         userId_groupId: {
@@ -116,12 +120,16 @@ export async function DELETE(
           groupId: id,
         },
       },
+      select: { role: true, status: true },
     });
 
-    const canManage = group.ownerId === session.user.id || requesterMembership?.status === "APPROVED";
+    const canManage =
+      session.user.role === "ADMIN" ||
+      group.ownerId === session.user.id ||
+      (requesterMembership?.role === "ADMIN" && requesterMembership?.status === "APPROVED");
     if (!canManage) {
       return NextResponse.json(
-        { message: "Nur bestätigte Mitglieder können Mitglieder entfernen" },
+        { message: "Nur Administratoren können Mitglieder entfernen" },
         { status: 403 }
       );
     }

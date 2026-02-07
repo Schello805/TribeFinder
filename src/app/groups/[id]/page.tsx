@@ -9,7 +9,6 @@ import GroupDetailAnimations from "@/components/groups/GroupDetailAnimations";
 import RevealGroupContactEmail from "@/components/ui/RevealGroupContactEmail";
 import MemberManagement from "@/components/groups/MemberManagement";
 import GalleryManager from "@/components/groups/GalleryManager";
-import FlyerGenerator from "@/components/groups/FlyerGenerator";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
@@ -101,7 +100,11 @@ export default async function GroupDetailPage({
     if (group) {
       const isOwner = session?.user?.id === group.ownerId;
       const currentUserMembership = group.members.find((m) => m.user.id === session?.user?.id);
-      const canManage = isOwner || currentUserMembership?.status === "APPROVED";
+      const isGlobalAdmin = session?.user?.role === "ADMIN";
+      const isGroupAdmin =
+        isOwner ||
+        (currentUserMembership?.role === "ADMIN" && currentUserMembership?.status === "APPROVED");
+      const canManage = isGlobalAdmin || isGroupAdmin;
 
       if (canManage) {
         const extra = await prisma.group.findUnique({
@@ -159,7 +162,11 @@ export default async function GroupDetailPage({
   
   const isMember = currentUserMembership?.status === 'APPROVED';
   const isPending = currentUserMembership?.status === 'PENDING';
-  const isAdmin = isOwner || currentUserMembership?.status === 'APPROVED';
+  const isGlobalAdmin = session?.user?.role === "ADMIN";
+  const isGroupAdmin =
+    isOwner ||
+    (currentUserMembership?.role === "ADMIN" && currentUserMembership?.status === "APPROVED");
+  const isAdmin = isGlobalAdmin || isGroupAdmin;
   
   const membershipStatus = isMember ? 'APPROVED' : (isPending ? 'PENDING' : 'NONE');
 
@@ -285,23 +292,6 @@ export default async function GroupDetailPage({
                      </div>
                    </div>
                 )}
-                {isAdmin && (
-                  <div className="flex flex-wrap gap-2">
-                    <FlyerGenerator group={group} />
-                    <Link
-                      href={`/groups/${group.id}/events`}
-                      className="bg-[var(--surface)] text-[var(--foreground)] px-4 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--surface-hover)] transition shadow-sm text-sm font-medium flex items-center gap-2"
-                    >
-                      <span>📅</span> Events
-                    </Link>
-                    <Link
-                      href={`/groups/${group.id}/edit`}
-                      className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm text-sm font-medium flex items-center gap-2"
-                    >
-                      <span>✏️</span> Bearbeiten
-                    </Link>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -383,7 +373,7 @@ export default async function GroupDetailPage({
                   </div>
 
                   {/* Message Button */}
-                  {session && group.owner.id !== session.user?.id && (
+                  {session && group.owner.id !== session.user?.id && (isMember || isAdmin) && (
                     <Link
                       href={`/messages/new?groupId=${group.id}`}
                       className="tf-gothic-btn w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] font-medium rounded-xl transition shadow-sm"

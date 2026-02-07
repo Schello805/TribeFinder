@@ -28,7 +28,7 @@ const marketplaceListingBaseSchema = z.object({
     .max(80)
     .regex(/^[\p{L}][\p{L}\s\-.'’]*$/u, "Bitte einen gültigen Ort angeben."),
   priceType: PriceTypeSchema,
-  priceCents: z.number().int().nonnegative(),
+  priceCents: z.number().int().nonnegative().nullable(),
   currency: z.string().min(1).optional(),
   shippingAvailable: z.boolean().optional(),
   shippingCostCents: z.number().int().nonnegative().optional().nullable(),
@@ -36,6 +36,12 @@ const marketplaceListingBaseSchema = z.object({
 });
 
 export const marketplaceListingCreateSchema = marketplaceListingBaseSchema.superRefine((v, ctx) => {
+  if (v.listingType === "OFFER") {
+    if (v.priceCents === null || typeof v.priceCents !== "number") {
+      ctx.addIssue({ code: "custom", path: ["priceCents"], message: "Bitte einen gültigen Preis angeben." });
+    }
+  }
+
   if (v.shippingAvailable) {
     if (v.shippingCostCents === null || typeof v.shippingCostCents !== "number") {
       ctx.addIssue({ code: "custom", path: ["shippingCostCents"], message: "Bitte Versandkosten angeben." });
@@ -46,12 +52,18 @@ export const marketplaceListingCreateSchema = marketplaceListingBaseSchema.super
 export const marketplaceListingUpdateSchema = marketplaceListingBaseSchema
   .partial()
   .extend({
-    priceCents: z.number().int().nonnegative().optional(),
+    priceCents: z.number().int().nonnegative().nullable().optional(),
   })
   .extend({
     images: z.array(imageSchema).max(5).optional(),
   })
   .superRefine((v, ctx) => {
+    if (v.listingType === "OFFER") {
+      if (v.priceCents === null || typeof v.priceCents !== "number") {
+        ctx.addIssue({ code: "custom", path: ["priceCents"], message: "Bitte einen gültigen Preis angeben." });
+      }
+    }
+
     if (v.shippingAvailable === true) {
       if (typeof v.shippingCostCents !== "number") {
         ctx.addIssue({ code: "custom", path: ["shippingCostCents"], message: "Bitte Versandkosten angeben." });

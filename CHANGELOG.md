@@ -14,8 +14,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Inserate: Create/Detail/Edit/Delete komplett (Owner/Admin Berechtigungen)
 - Standort: Geocoding best-effort (keine 500er bei externen Fehlern) + Soft-Warnung bei PLZ/Ort-Mismatch
-- Validierung/UX: Pflichtfelder konsistent (u.a. Preis Pflichtfeld), Input-Sanitization (PLZ 5-stellig, Preis/Versand nur Zahlformat)
+- Validierung/UX: Pflichtfelder konsistent (Preis: Pflicht bei „Ich biete“, optional bei „Ich suche“), Input-Sanitization (PLZ 5-stellig, Preis/Versand nur Zahlformat)
 - Detailansicht: zusätzliche Infos (Datum/Location-Quelle) + Admin/Owner Aktionen
+- Legacy-Listings: Standort-Anzeige robust bei älteren Inseraten ohne PLZ/Ort
+- Architektur: Marketplace-Übersicht lädt Inserate über `/api/marketplace` (statt Prisma direkt)
 
 ### 💬 Direktnachrichten
 

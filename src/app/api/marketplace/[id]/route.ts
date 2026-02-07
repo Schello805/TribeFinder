@@ -158,7 +158,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   await (prisma as unknown as { marketplaceListing: { delete: (args: unknown) => Promise<unknown> } }).marketplaceListing.delete({ where: { id } });
 
   const urls = (withImages?.images || []).map((i) => i.url);
-  await Promise.all(urls.map((u: string) => deleteUploadByPublicUrl(u)));
+  await Promise.allSettled(urls.map((u: string) => deleteUploadByPublicUrl(u)));
 
   return NextResponse.json({ ok: true });
 }
