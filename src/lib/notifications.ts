@@ -2,6 +2,18 @@ import prisma from "@/lib/prisma";
 import { sendEmail, emailTemplate, emailHeading, emailText, emailButton } from "@/lib/email";
 import logger from "@/lib/logger";
 
+function getEmailBaseUrl() {
+  const raw = (process.env.NEXTAUTH_URL || process.env.SITE_URL || "").trim();
+  if (!raw) return null;
+  return raw.endsWith("/") ? raw.slice(0, -1) : raw;
+}
+
+function buildEmailUrl(path: string) {
+  const base = getEmailBaseUrl();
+  if (!base) return null;
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 // Notify group owner/admins about a new membership request
 export async function notifyGroupAboutNewMember(groupId: string, applicantName: string, applicantEmail: string) {
   try {
@@ -33,11 +45,12 @@ export async function notifyGroupAboutNewMember(groupId: string, applicantName: 
     if (recipients.length === 0) return;
 
     const subject = `Neue Mitgliedsanfrage für ${group.name}`;
+    const url = buildEmailUrl(`/groups/${groupId}`);
     const content = `
       ${emailHeading('Neue Mitgliedsanfrage 👋')}
       ${emailText(`<strong>${applicantName}</strong> (${applicantEmail}) möchte deiner Gruppe <strong>${group.name}</strong> beitreten.`)}
       ${emailText('Besuche die Gruppenseite, um die Anfrage zu bearbeiten:')}
-      ${emailButton('Anfrage bearbeiten', `${process.env.NEXTAUTH_URL}/groups/${groupId}`)}
+      ${url ? emailButton('Anfrage bearbeiten', url) : ''}
     `;
 
     const html = await emailTemplate(content, `${applicantName} möchte beitreten`);
@@ -62,11 +75,12 @@ export async function notifyUserRemovedFromGroup(params: {
     if (!user?.email || !user.emailNotifications || !group) return;
 
     const subject = `Du wurdest aus ${group.name} entfernt`;
+    const url = buildEmailUrl(`/groups/${params.groupId}`);
     const content = `
       ${emailHeading('Mitgliedschaft beendet')}
       ${emailText(`Du wurdest von <strong>${params.removedByName}</strong> aus der Gruppe <strong>${group.name}</strong> entfernt.`)}
       ${emailText('Wenn das ein Fehler war, kannst du der Gruppe jederzeit erneut beitreten:')}
-      ${emailButton('Zur Gruppe', `${process.env.NEXTAUTH_URL}/groups/${params.groupId}`)}
+      ${url ? emailButton('Zur Gruppe', url) : ''}
     `;
 
     const html = await emailTemplate(content, `Entfernt aus ${group.name}`);
@@ -125,18 +139,18 @@ export async function notifyGroupAboutInboxMessage(params: {
 
     if (recipients.size === 0) return;
 
-    const subject = `Neue Nachricht in ${group.name}`;
-    const threadTitle = params.subject ? params.subject : `Nachricht an ${group.name}`;
-    const url = `${process.env.NEXTAUTH_URL}/messages/threads/${params.threadId}`;
+    const subject = `Neue Nachricht an ${group.name}`;
+    const url = buildEmailUrl(`/messages/threads/${params.threadId}`);
     const content = `
-      ${emailHeading('Neue Inbox-Nachricht 📬')}
-      ${emailText(`<strong>${params.authorName}</strong> hat in <strong>${group.name}</strong> geschrieben:`)}
+      ${emailHeading('Neue Nachricht 📬')}
+      ${emailText(`<strong>${params.authorName}</strong> hat eine neue Nachricht an <strong>${group.name}</strong> gesendet.`)}
       ${emailText(`<em>"${params.preview}"</em>`)}
-      ${emailText(`Betreff: <strong>${threadTitle}</strong>`)}
-      ${emailButton('Thread öffnen', url)}
+      ${emailText('Öffne den Posteingang, um zu antworten:')}
+      ${url ? emailButton('Posteingang öffnen', url) : ''}
+      ${emailText('<small style="color: #9ca3af;">Du erhältst diese E-Mail, weil du Benachrichtigungen für Gruppen-Posteingang aktiviert hast.</small>')}
     `;
 
-    const html = await emailTemplate(content, `Neue Nachricht in ${group.name}`);
+    const html = await emailTemplate(content, `Neue Nachricht an ${group.name}`);
     await Promise.all(Array.from(recipients).map((email) => sendEmail(email, subject, html)));
     logger.info({ groupId: params.groupId, threadId: params.threadId, recipientCount: recipients.size }, "Inbox notification sent");
   } catch (error) {
@@ -158,11 +172,12 @@ export async function notifyUserMembershipApproved(userId: string, groupId: stri
     if (!user?.email || !user.emailNotifications || !group) return;
 
     const subject = `Willkommen bei ${group.name}!`;
+    const url = buildEmailUrl(`/groups/${groupId}`);
     const content = `
       ${emailHeading('Willkommen im Team! 🎉')}
       ${emailText(`Super Neuigkeiten! Deine Mitgliedsanfrage für <strong>${group.name}</strong> wurde angenommen.`)}
       ${emailText('Du bist jetzt offizielles Mitglied und kannst dich mit der Gruppe vernetzen.')}
-      ${emailButton('Zur Gruppe', `${process.env.NEXTAUTH_URL}/groups/${groupId}`)}
+      ${url ? emailButton('Zur Gruppe', url) : ''}
     `;
 
     const html = await emailTemplate(content, `Du bist jetzt Mitglied bei ${group.name}`);
@@ -202,11 +217,12 @@ export async function notifyUserAboutNewMessage(receiverId: string, senderId: st
     }
 
     const subject = `Neue Nachricht von ${senderName}`;
+    const url = buildEmailUrl(`/direct-messages/${senderId}`);
     const content = `
       ${emailHeading('Neue Nachricht 💬')}
       ${emailText(`<strong>${senderName}</strong> hat dir eine Nachricht auf TribeFinder gesendet.`)}
       ${emailText('Öffne deine Nachrichten, um zu antworten:')}
-      ${emailButton('Nachrichten öffnen', `${process.env.NEXTAUTH_URL}/direct-messages/${senderId}`)}
+      ${url ? emailButton('Nachrichten öffnen', url) : ''}
     `;
 
     const html = await emailTemplate(content, `${senderName} hat dir geschrieben`);
@@ -272,12 +288,13 @@ export async function notifyUsersAboutNewGroup(groupId: string, groupName: strin
     if (recipients.length === 0) return;
 
     const subject = `Neue Tanzgruppe in deiner Nähe: ${groupName}`;
+    const url = buildEmailUrl(`/groups/${groupId}`);
     const content = `
       ${emailHeading('Neue Tanzgruppe entdeckt! 💃')}
       ${emailText('Eine neue Tanzgruppe wurde in deiner Nähe erstellt:')}
       <h3 style="color: #6366f1; margin: 16px 0; font-size: 20px;">${groupName}</h3>
-      ${emailButton('Gruppe ansehen', `${process.env.NEXTAUTH_URL}/groups/${groupId}`)}
-      ${emailText('<small style="color: #9ca3af;">Du erhältst diese E-Mail, weil du Benachrichtigungen für neue Gruppen aktiviert hast. <a href="' + process.env.NEXTAUTH_URL + '/dashboard/notifications" style="color: #6366f1;">Einstellungen ändern</a></small>')}
+      ${url ? emailButton('Gruppe ansehen', url) : ''}
+      ${emailText('<small style="color: #9ca3af;">Du erhältst diese E-Mail, weil du Benachrichtigungen für neue Gruppen aktiviert hast.</small>')}
     `;
 
     const html = await emailTemplate(content, `${groupName} in deiner Nähe`);

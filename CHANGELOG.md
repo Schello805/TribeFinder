@@ -24,6 +24,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - E-Mail Benachrichtigung bei neuer Nachricht: Link führt direkt in den passenden Thread (`/direct-messages/[otherUserId]`)
 - Profil: Optionale Einstellung, ob bei neuen Direktnachrichten eine E-Mail gesendet wird
 - E-Mail Throttle: Maximal eine Benachrichtigung pro Kontakt alle 10 Minuten (Spam-Schutz)
+- E-Mail Links: Deep-Links nutzen `NEXTAUTH_URL` (Fallback: `SITE_URL`) – kein kaputter Button wenn Base-URL fehlt
 
 ### 🧩 UI / UX
 
@@ -32,6 +33,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
   - Tanzstil + Standort/Umkreis im Accordion „Filter“
   - Sortierung „Entfernung“: Hinweis + Accordion-Öffnung wenn Standort fehlt
 - Gruppenseite: Öffentliche Sidebar zeigt jetzt Gruppenleitung (Owner + Admins) und Mitgliederliste (erste 12 + „Mehr“)
+- User-Profil: Gruppenliste zeigt jetzt Rolle (Mitglied/Gruppenleitung) und Beitrittsdatum
 - Neue Hilfeseite `/hilfe` und Link im Footer
 
 ### 🛠️ Wartungsmodus

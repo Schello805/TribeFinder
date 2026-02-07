@@ -17,6 +17,8 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
       memberships: {
         where: { status: "APPROVED" },
         select: {
+          role: true,
+          createdAt: true,
           group: {
             select: {
               id: true,
@@ -34,7 +36,7 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
 
   const displayName = user.dancerName || user.name || "Unbekannt";
   const avatar = normalizeUploadedImageUrl(user.image) ?? "";
-  const groups = user.memberships.map((m) => m.group);
+  const memberships = user.memberships;
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -59,25 +61,33 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
 
       <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-2xl shadow-sm border border-[var(--border)] p-6">
         <h2 className="tf-display text-lg font-bold text-[var(--foreground)]">Gruppen</h2>
-        {groups.length > 0 ? (
+        {memberships.length > 0 ? (
           <ul className="mt-4 divide-y divide-[var(--border)]">
-            {groups.map((g) => (
-              <li key={g.id} className="py-3 flex items-center justify-between gap-4">
+            {memberships.map((m) => (
+              <li key={`${m.group.id}-${m.createdAt.toISOString?.() ?? String(m.createdAt)}`} className="py-3 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  {g.image ? (
+                  {m.group.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={normalizeUploadedImageUrl(g.image) ?? ""} alt={g.name} className="h-10 w-10 rounded-lg object-cover border border-[var(--border)]" />
+                    <img src={normalizeUploadedImageUrl(m.group.image) ?? ""} alt={m.group.name} className="h-10 w-10 rounded-lg object-cover border border-[var(--border)]" />
                   ) : (
                     <div className="h-10 w-10 rounded-lg bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold">
-                      {g.name.charAt(0)}
+                      {m.group.name.charAt(0)}
                     </div>
                   )}
                   <div className="min-w-0">
-                    <div className="tf-display font-medium text-[var(--foreground)] truncate">{g.name}</div>
+                    <div className="tf-display font-medium text-[var(--foreground)] truncate">{m.group.name}</div>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[var(--surface-2)] border border-[var(--border)]">
+                        {m.role === "ADMIN" ? "Gruppenleitung" : "Mitglied"}
+                      </span>
+                      <span>
+                        Seit {new Date(m.createdAt).toLocaleDateString("de-DE")}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <Link
-                  href={`/groups/${g.id}`}
+                  href={`/groups/${m.group.id}`}
                   className="text-[var(--link)] hover:underline text-sm font-medium"
                 >
                   Zur Gruppe
