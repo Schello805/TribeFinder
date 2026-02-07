@@ -6,6 +6,7 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight, getEmailBaseUrl, toAbsoluteUrl } from "@/lib/email";
+import { recordAdminAudit } from "@/lib/adminAudit";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -73,6 +74,17 @@ export async function POST(req: Request, { params }: RouteParams) {
       const result = await sendEmail(user.email, "Passwort zurücksetzen - TribeFinder", html);
       emailed = Boolean(result?.success);
     }
+
+    await recordAdminAudit({
+      action: "USER_PASSWORD_RESET",
+      actorAdminId: session.user.id,
+      targetUserId: user.id,
+      metadata: {
+        emailed,
+        sendEmail: parsed.data.sendEmail,
+        resetTokenExpiry: resetTokenExpiry.toISOString(),
+      },
+    });
 
     return NextResponse.json({
       ok: true,

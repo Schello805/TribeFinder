@@ -1,0 +1,282 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import AdminNav from "@/components/admin/AdminNav";
+import { useToast } from "@/components/ui/Toast";
+
+type AuditItem = {
+  id: string;
+  action: string;
+  createdAt: string;
+  targetBackupFilename: string | null;
+  metadata: unknown;
+  actorAdmin: { id: string; name: string | null; email: string };
+  targetUser: { id: string; name: string | null; email: string } | null;
+};
+
+type AuditResponse = {
+  page: number;
+  pageSize: number;
+  total: number;
+  items: AuditItem[];
+};
+
+function safeJsonPreview(value: unknown) {
+  try {
+    if (value === null || value === undefined) return "";
+    const s = JSON.stringify(value);
+    if (s.length <= 200) return s;
+    return `${s.slice(0, 200)}…`;
+  } catch {
+    return "";
+  }
+}
+
+export default function AdminAuditLogsPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { showToast } = useToast();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<AuditResponse | null>(null);
+
+  const page = Number(searchParams.get("page") || "1") || 1;
+  const pageSize = Number(searchParams.get("pageSize") || "50") || 50;
+  const action = (searchParams.get("action") || "").trim();
+  const actorEmail = (searchParams.get("actorEmail") || "").trim();
+  const targetEmail = (searchParams.get("targetEmail") || "").trim();
+  const q = (searchParams.get("q") || "").trim();
+
+  const [actionInput, setActionInput] = useState(action);
+  const [actorEmailInput, setActorEmailInput] = useState(actorEmail);
+  const [targetEmailInput, setTargetEmailInput] = useState(targetEmail);
+  const [qInput, setQInput] = useState(q);
+
+  useEffect(() => {
+    setActionInput(action);
+    setActorEmailInput(actorEmail);
+    setTargetEmailInput(targetEmail);
+    setQInput(q);
+  }, [action, actorEmail, targetEmail, q]);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const sp = new URLSearchParams();
+      sp.set("page", String(page));
+      sp.set("pageSize", String(pageSize));
+      if (action) sp.set("action", action);
+      if (actorEmail) sp.set("actorEmail", actorEmail);
+      if (targetEmail) sp.set("targetEmail", targetEmail);
+      if (q) sp.set("q", q);
+
+      const res = await fetch(`/api/admin/audit-logs?${sp.toString()}`);
+      const json = (await res.json().catch(() => null)) as AuditResponse | { message?: string } | null;
+      if (!res.ok) throw new Error((json as { message?: string } | null)?.message || "Laden fehlgeschlagen");
+      setData(json as AuditResponse);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Audit-Logs konnten nicht geladen werden", "error");
+      setData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [action, actorEmail, page, pageSize, q, showToast, targetEmail]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+      return;
+    }
+    if (status === "authenticated" && session?.user?.role !== "ADMIN") {
+      router.push("/dashboard");
+      return;
+    }
+    if (status === "authenticated" && session?.user?.role === "ADMIN") {
+      void load();
+    }
+  }, [status, session, router, load]);
+
+  const totalPages = useMemo(() => {
+    const total = data?.total ?? 0;
+    return Math.max(1, Math.ceil(total / pageSize));
+  }, [data?.total, pageSize]);
+
+  function setQuery(next: Record<string, string>) {
+    const sp = new URLSearchParams(searchParams.toString());
+    Object.entries(next).forEach(([k, v]) => {
+      if (!v) sp.delete(k);
+      else sp.set(k, v);
+    });
+    sp.set("page", "1");
+    router.push(`/admin/audit-logs?${sp.toString()}`);
+  }
+
+  function gotoPage(p: number) {
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.set("page", String(p));
+    router.push(`/admin/audit-logs?${sp.toString()}`);
+  }
+
+  if (status === "loading" || isLoading) {
+    return <div className="p-8 text-center text-gray-900 dark:text-gray-100">Laden...</div>;
+  }
+
+  if (session?.user?.role !== "ADMIN") return null;
+
+  return (
+    <div className="relative left-1/2 -translate-x-1/2 w-[90vw] py-8 px-4 space-y-6">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Audit-Log</h1>
+      <AdminNav />
+
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktion (exakt)</div>
+            <input
+              value={actionInput}
+              onChange={(e) => setActionInput(e.target.value)}
+              placeholder='z.B. "USER_PASSWORD_RESET"'
+              className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Admin E-Mail</div>
+            <input
+              value={actorEmailInput}
+              onChange={(e) => setActorEmailInput(e.target.value)}
+              placeholder="admin@..."
+              className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Target E-Mail</div>
+            <input
+              value={targetEmailInput}
+              onChange={(e) => setTargetEmailInput(e.target.value)}
+              placeholder="user@..."
+              className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Suche</div>
+            <input
+              value={qInput}
+              onChange={(e) => setQInput(e.target.value)}
+              placeholder="action/backup..."
+              className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setQuery({ action: actionInput.trim(), actorEmail: actorEmailInput.trim(), targetEmail: targetEmailInput.trim(), q: qInput.trim() })}
+            className="px-3 py-2 rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+          >
+            Filter anwenden
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push("/admin/audit-logs")}
+            className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+          >
+            Zurücksetzen
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {data ? `${data.total} Einträge` : "—"}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => gotoPage(Math.max(1, page - 1))}
+              disabled={page <= 1}
+              className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 disabled:opacity-50"
+            >
+              Zurück
+            </button>
+            <div className="text-sm text-gray-700 dark:text-gray-200">
+              Seite {page} / {totalPages}
+            </div>
+            <button
+              type="button"
+              onClick={() => gotoPage(Math.min(totalPages, page + 1))}
+              disabled={page >= totalPages}
+              className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 disabled:opacity-50"
+            >
+              Weiter
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="text-left text-gray-500 dark:text-gray-400">
+              <tr>
+                <th className="py-2 px-4 whitespace-nowrap">Zeit</th>
+                <th className="py-2 px-4 whitespace-nowrap">Aktion</th>
+                <th className="py-2 px-4 whitespace-nowrap">Admin</th>
+                <th className="py-2 px-4 whitespace-nowrap">Target</th>
+                <th className="py-2 px-4 whitespace-nowrap">Backup</th>
+                <th className="py-2 px-4">Meta</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {(data?.items || []).map((it) => (
+                <tr key={it.id} className="text-gray-800 dark:text-gray-200">
+                  <td className="py-2 px-4 whitespace-nowrap">{new Date(it.createdAt).toLocaleString("de-DE")}</td>
+                  <td className="py-2 px-4 font-mono text-xs whitespace-nowrap">{it.action}</td>
+                  <td className="py-2 px-4 whitespace-nowrap">
+                    <div className="text-sm">{it.actorAdmin.name || "—"}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{it.actorAdmin.email}</div>
+                  </td>
+                  <td className="py-2 px-4 whitespace-nowrap">
+                    {it.targetUser ? (
+                      <div>
+                        <div className="text-sm">{it.targetUser.name || "—"}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{it.targetUser.email}</div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="py-2 px-4 font-mono text-xs whitespace-nowrap">{it.targetBackupFilename || "—"}</td>
+                  <td className="py-2 px-4">
+                    {it.metadata ? (
+                      <details>
+                        <summary className="cursor-pointer select-none text-xs text-indigo-600 dark:text-indigo-300 hover:underline">
+                          Anzeigen
+                        </summary>
+                        <pre className="mt-2 text-xs whitespace-pre-wrap break-words text-gray-700 dark:text-gray-200">
+                          {JSON.stringify(it.metadata, null, 2)}
+                        </pre>
+                      </details>
+                    ) : (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{safeJsonPreview(it.metadata) || "—"}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+
+              {(data?.items || []).length === 0 ? (
+                <tr>
+                  <td className="py-8 px-4 text-sm text-gray-500 dark:text-gray-400" colSpan={6}>
+                    Keine Einträge gefunden.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

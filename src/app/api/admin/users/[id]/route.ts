@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { z } from "zod";
 import { jsonBadRequest, jsonUnauthorized } from "@/lib/apiResponse";
+import { recordAdminAudit } from "@/lib/adminAudit";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -94,6 +95,17 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       },
     });
 
+    await recordAdminAudit({
+      action: "USER_UPDATE",
+      actorAdminId: session.user.id,
+      targetUserId: updated.id,
+      metadata: {
+        role: parsed.data.role,
+        isBlocked: parsed.data.isBlocked,
+        emailVerified: parsed.data.emailVerified,
+      },
+    });
+
     return NextResponse.json({
       ...updated,
       emailVerified: updated.emailVerified ? updated.emailVerified.toISOString() : null,
@@ -116,7 +128,21 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
 
   try {
     await ensureNotLastUnblockedAdmin(id);
+
+    const target = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true },
+    });
+
     await prisma.user.delete({ where: { id } });
+
+    await recordAdminAudit({
+      action: "USER_DELETE",
+      actorAdminId: session.user.id,
+      targetUserId: id,
+      metadata: { email: target?.email ?? null },
+    });
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Fehler";

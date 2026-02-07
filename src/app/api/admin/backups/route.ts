@@ -4,6 +4,7 @@ import path from "path";
 import fs from "node:fs";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { createBackup, purgeOldBackups } from "@/lib/serverBackups";
+import { recordAdminAudit } from "@/lib/adminAudit";
 
 function resolveProjectRoot() {
   let dir = process.cwd();
@@ -88,6 +89,14 @@ export async function POST() {
     const backupDir = await resolveBackupDir();
     const result = await createBackup();
     const purged = await purgeOldBackups();
+
+    await recordAdminAudit({
+      action: "BACKUP_CREATE",
+      actorAdminId: session.user.id,
+      targetBackupFilename: result.filename,
+      metadata: { size: result.size, createdAt: result.createdAt, purged },
+    });
+
     return NextResponse.json({ ...result, purged, backupDir }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
@@ -115,6 +124,13 @@ export async function DELETE(req: Request) {
     if (!exists) return NextResponse.json({ message: "Nicht gefunden" }, { status: 404 });
 
     await rm(fullPath, { force: true });
+
+    await recordAdminAudit({
+      action: "BACKUP_DELETE",
+      actorAdminId: session.user.id,
+      targetBackupFilename: filename,
+    });
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json(

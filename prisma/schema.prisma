@@ -79,6 +79,9 @@ model User {
   directMessageEmailNotificationReceiverStates DirectMessageEmailNotificationState[] @relation("DirectMessageEmailNotificationReceiver")
   directMessageEmailNotificationSenderStates   DirectMessageEmailNotificationState[] @relation("DirectMessageEmailNotificationSender")
 
+  adminAuditLogsAsActor AdminAuditLog[] @relation("AdminAuditActor")
+  adminAuditLogTargets AdminAuditLog[] @relation("AdminAuditTargetUser")
+
   // Group contact inbox
   createdGroupThreads   GroupThread[]          @relation("GroupThreadCreator")
   groupThreadMessages   GroupThreadMessage[]   @relation("GroupThreadMessageAuthor")
@@ -504,6 +507,29 @@ model DirectMessageEmailNotificationState {
   @@unique([receiverId, senderId])
   @@index([receiverId])
   @@index([senderId])
+}
+
+model AdminAuditLog {
+  id String @id @default(cuid())
+
+  action String
+
+  actorAdminId String
+  actorAdmin   User @relation("AdminAuditActor", fields: [actorAdminId], references: [id], onDelete: Cascade)
+
+  targetUserId String?
+  targetUser   User? @relation("AdminAuditTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  targetBackupFilename String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([action])
+  @@index([actorAdminId])
+  @@index([targetUserId])
 }
 
 // Group Contact Threads (Inbox)

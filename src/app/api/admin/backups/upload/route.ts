@@ -3,6 +3,7 @@ import path from "path";
 import fs from "node:fs";
 import { access, mkdir, writeFile, stat } from "fs/promises";
 import { requireAdminSession } from "@/lib/requireAdmin";
+import { recordAdminAudit } from "@/lib/adminAudit";
 
 function resolveProjectRoot() {
   let dir = process.cwd();
@@ -73,6 +74,13 @@ export async function POST(req: Request) {
 
   const s = await stat(targetPath).catch(() => null);
   if (!s) return NextResponse.json({ message: "Konnte Backup nicht speichern" }, { status: 500 });
+
+  await recordAdminAudit({
+    action: "BACKUP_UPLOAD",
+    actorAdminId: session.user.id,
+    targetBackupFilename: safeName,
+    metadata: { originalName, size: s.size, createdAt: s.mtimeMs },
+  });
 
   return NextResponse.json({ filename: safeName, size: s.size, createdAt: s.mtimeMs }, { status: 201 });
 }

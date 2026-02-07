@@ -6,6 +6,7 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight, getEmailBaseUrl, toAbsoluteUrl } from "@/lib/email";
+import { recordAdminAudit } from "@/lib/adminAudit";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -39,6 +40,15 @@ export async function POST(req: Request, { params }: RouteParams) {
     if (!user) return jsonBadRequest("Benutzer nicht gefunden");
 
     if (user.emailVerified) {
+      await recordAdminAudit({
+        action: "USER_RESEND_VERIFICATION",
+        actorAdminId: session.user.id,
+        targetUserId: user.id,
+        metadata: {
+          alreadyVerified: true,
+          sendEmail: parsed.data.sendEmail,
+        },
+      });
       return NextResponse.json({ ok: true, alreadyVerified: true });
     }
 
@@ -70,6 +80,18 @@ export async function POST(req: Request, { params }: RouteParams) {
       const result = await sendEmail(user.email, "E-Mail bestätigen - TribeFinder", html);
       emailed = Boolean(result?.success);
     }
+
+    await recordAdminAudit({
+      action: "USER_RESEND_VERIFICATION",
+      actorAdminId: session.user.id,
+      targetUserId: user.id,
+      metadata: {
+        alreadyVerified: false,
+        emailed,
+        sendEmail: parsed.data.sendEmail,
+        verificationTokenExpiry: verificationTokenExpiry.toISOString(),
+      },
+    });
 
     return NextResponse.json({
       ok: true,

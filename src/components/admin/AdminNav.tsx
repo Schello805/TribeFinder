@@ -28,6 +28,7 @@ function itemClass(active: boolean) {
     isActivePrefix("/admin/errors") ||
     isActivePrefix("/admin/feedback");
   const isSystem = isActivePrefix("/admin/system");
+  const isAudit = isActivePrefix("/admin/audit-logs");
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -48,6 +49,10 @@ function itemClass(active: boolean) {
       </Link>
       <Link href="/admin/system" className={itemClass(isSystem)}>
         System (Erweitert)
+      </Link>
+
+      <Link href="/admin/audit-logs" className={itemClass(isAudit)}>
+        Audit-Log
       </Link>
     </div>
   );

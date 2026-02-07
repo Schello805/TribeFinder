@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { restoreBackup } from "@/lib/serverBackups";
+import { recordAdminAudit } from "@/lib/adminAudit";
 
 export async function POST(req: Request) {
   const session = await requireAdminSession();
@@ -12,6 +13,14 @@ export async function POST(req: Request) {
 
   try {
     const result = await restoreBackup(filename);
+
+    await recordAdminAudit({
+      action: "BACKUP_RESTORE",
+      actorAdminId: session.user.id,
+      targetBackupFilename: filename,
+      metadata: result,
+    });
+
     return NextResponse.json(result);
   } catch (error) {
     const details = error instanceof Error ? error.message : String(error);
