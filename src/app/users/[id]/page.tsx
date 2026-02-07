@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import UserPresenceStatus from "@/components/presence/UserPresenceStatus";
 
 export default async function UserPublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;
@@ -55,6 +56,7 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
             {user.bio ? (
               <p className="mt-1 text-[var(--muted)] whitespace-pre-wrap">{user.bio}</p>
             ) : null}
+            <UserPresenceStatus userId={user.id} />
           </div>
         </div>
       </div>

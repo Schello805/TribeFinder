@@ -6,6 +6,7 @@ import Link from "next/link";
 import AdminEmailTest from "@/components/admin/AdminEmailTest";
 import TagSeeder from "@/components/admin/TagSeeder";
 import AdminNav from "@/components/admin/AdminNav";
+import AdminOnlineCard from "@/components/admin/AdminOnlineCard";
 
 export const dynamic = 'force-dynamic';
 
@@ -94,7 +95,7 @@ export default async function AdminPage() {
 
       <AdminNav />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Quick Stats */}
         <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-5">
           <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Gruppen Gesamt</dt>
@@ -108,6 +109,7 @@ export default async function AdminPage() {
           <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Tags Gesamt</dt>
           <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{totalTagsCount}</dd>
         </div>
+        <AdminOnlineCard />
       </div>
 
       {/* User Management Section */}

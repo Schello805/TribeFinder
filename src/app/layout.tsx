@@ -14,6 +14,7 @@ import MatomoTracker from "@/components/analytics/MatomoTracker";
 import ForceThemeStyles from "@/components/layout/ForceThemeStyles";
 import Image from "next/image";
 import FeedbackWidget from "@/components/feedback/FeedbackWidget";
+import PresencePinger from "@/components/presence/PresencePinger";
 import { unstable_cache } from "next/cache";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import path from "path";
@@ -214,6 +215,7 @@ export default async function RootLayout({
           <AuthProvider>
             <ToastProvider>
               <ErrorBoundary>
+                <PresencePinger />
                 <MatomoTracker
                   url={config.MATOMO_URL}
                   siteId={config.MATOMO_SITE_ID}

@@ -74,7 +74,7 @@ export default function AdminSettingsPage() {
       if (!res.ok) return;
       const data = await res.json().catch(() => null);
       if (!data) return;
-      setMaintenanceEnabled(Boolean(data.enabled));
+      setMaintenanceEnabled(Boolean((data as { envFileEnabled?: unknown; enabled?: unknown }).envFileEnabled ?? (data as { enabled?: unknown }).enabled));
     } catch (error) {
       console.error('Error loading maintenance status:', error);
     } finally {
