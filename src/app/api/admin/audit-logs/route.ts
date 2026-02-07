@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { jsonBadRequest, jsonServerError, jsonUnauthorized } from "@/lib/apiResponse";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 const querySchema = z.object({
@@ -77,6 +78,13 @@ export async function GET(req: Request) {
       })),
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2021" || error.code === "P2022") {
+        const msg =
+          "Audit-Logs konnten nicht geladen werden: Datenbank-Schema ist nicht aktuell (AdminAuditLog fehlt). Bitte lokal `npx prisma db push` ausführen.";
+        return jsonServerError(msg, error);
+      }
+    }
     return jsonServerError("Audit-Logs konnten nicht geladen werden", error);
   }
 }
