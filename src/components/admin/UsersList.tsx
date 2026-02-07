@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useToast } from "@/components/ui/Toast";
 
 interface UserListItem {
@@ -118,6 +119,13 @@ export default function UsersList({
               </div>
 
               <div className="flex items-center gap-2">
+                <Link
+                  href={`/admin/users/${user.id}`}
+                  className="px-3 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  Details
+                </Link>
+
                 <button
                   type="button"
                   disabled={busyId === user.id}

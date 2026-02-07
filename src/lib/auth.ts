@@ -48,6 +48,16 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
+        try {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+            select: { id: true },
+          })
+        } catch {
+          // best-effort only
+        }
+
         return {
           id: user.id,
           email: user.email,
