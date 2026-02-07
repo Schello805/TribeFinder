@@ -23,6 +23,18 @@ type AuditResponse = {
   items: AuditItem[];
 };
 
+const AUDIT_ACTION_OPTIONS = [
+  "USER_UPDATE",
+  "USER_DELETE",
+  "USER_PASSWORD_RESET",
+  "USER_RESEND_VERIFICATION",
+  "BACKUP_CREATE",
+  "BACKUP_DELETE",
+  "BACKUP_UPLOAD",
+  "BACKUP_PURGE",
+  "BACKUP_RESTORE",
+] as const;
+
 function safeJsonPreview(value: unknown) {
   try {
     if (value === null || value === undefined) return "";
@@ -55,11 +67,33 @@ export default function AdminAuditLogsPage() {
   const [targetEmailInput, setTargetEmailInput] = useState(targetEmail);
   const [qInput, setQInput] = useState(q);
 
+  const [actionMode, setActionMode] = useState<"any" | "preset" | "custom">(
+    action ? (AUDIT_ACTION_OPTIONS.includes(action as (typeof AUDIT_ACTION_OPTIONS)[number]) ? "preset" : "custom") : "any"
+  );
+
+  const [presetAction, setPresetAction] = useState<string>(
+    AUDIT_ACTION_OPTIONS.includes(action as (typeof AUDIT_ACTION_OPTIONS)[number]) ? action : ""
+  );
+
   useEffect(() => {
     setActionInput(action);
     setActorEmailInput(actorEmail);
     setTargetEmailInput(targetEmail);
     setQInput(q);
+
+    if (!action) {
+      setActionMode("any");
+      setPresetAction("");
+      return;
+    }
+
+    if (AUDIT_ACTION_OPTIONS.includes(action as (typeof AUDIT_ACTION_OPTIONS)[number])) {
+      setActionMode("preset");
+      setPresetAction(action);
+    } else {
+      setActionMode("custom");
+      setPresetAction("");
+    }
   }, [action, actorEmail, targetEmail, q]);
 
   const load = useCallback(async () => {
@@ -135,12 +169,43 @@ export default function AdminAuditLogsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <div>
             <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktion (exakt)</div>
-            <input
-              value={actionInput}
-              onChange={(e) => setActionInput(e.target.value)}
-              placeholder='z.B. "USER_PASSWORD_RESET"'
+            <select
+              value={actionMode === "any" ? "" : actionMode === "preset" ? presetAction : "__custom__"}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (!v) {
+                  setActionMode("any");
+                  setPresetAction("");
+                  setActionInput("");
+                } else if (v === "__custom__") {
+                  setActionMode("custom");
+                  setPresetAction("");
+                  setActionInput(actionMode === "custom" ? actionInput : "");
+                } else {
+                  setActionMode("preset");
+                  setPresetAction(v);
+                  setActionInput(v);
+                }
+              }}
               className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
-            />
+            >
+              <option value="">Alle</option>
+              {AUDIT_ACTION_OPTIONS.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+              <option value="__custom__">Benutzerdefiniert…</option>
+            </select>
+
+            {actionMode === "custom" ? (
+              <input
+                value={actionInput}
+                onChange={(e) => setActionInput(e.target.value)}
+                placeholder='z.B. "USER_PASSWORD_RESET"'
+                className="mt-2 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
+              />
+            ) : null}
           </div>
           <div>
             <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Admin E-Mail</div>
