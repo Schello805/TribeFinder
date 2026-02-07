@@ -517,7 +517,7 @@ export default async function GroupDetailPage({
                           {regularMemberships.length > 12 ? (
                             <details className="mt-1">
                               <summary className="cursor-pointer text-sm font-medium text-[var(--link)] hover:underline select-none">
-                                Mehr
+                                Mehr ({regularMemberships.length - 12})
                               </summary>
                               <div className="mt-2 space-y-2">
                                 {regularMemberships.map((m) => (
