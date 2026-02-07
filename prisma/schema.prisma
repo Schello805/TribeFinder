@@ -41,6 +41,7 @@ model User {
 
   // Notification Preferences
   emailNotifications  Boolean @default(true)
+  notifyDirectMessages Boolean @default(true)
   notifyInboxMessages Boolean @default(false)
 
   // Location-based Notification Preferences

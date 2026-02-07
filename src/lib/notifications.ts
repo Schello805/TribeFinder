@@ -176,12 +176,16 @@ export async function notifyUserMembershipApproved(userId: string, groupId: stri
 // Notify user about a new message
 export async function notifyUserAboutNewMessage(receiverId: string, senderId: string, senderName: string) {
   try {
-    const receiver = await prisma.user.findUnique({
+    const receiver = (await (prisma as unknown as { user: { findUnique: (args: unknown) => Promise<unknown> } }).user.findUnique({
       where: { id: receiverId },
-      select: { email: true, emailNotifications: true }
-    });
+      select: { email: true, emailNotifications: true, notifyDirectMessages: true },
+    })) as {
+      email: string;
+      emailNotifications: boolean;
+      notifyDirectMessages: boolean;
+    } | null;
 
-    if (!receiver?.email || !receiver.emailNotifications) return;
+    if (!receiver?.email || !receiver.emailNotifications || !receiver.notifyDirectMessages) return;
 
     const subject = `Neue Nachricht von ${senderName}`;
     const content = `
@@ -195,6 +199,9 @@ export async function notifyUserAboutNewMessage(receiverId: string, senderId: st
     await sendEmail(receiver.email, subject, html);
     logger.info({ receiverId, senderName }, "New message notification sent");
   } catch (error) {
+    const err = error as { code?: string; message?: string };
+    // Best-effort: wenn DB noch nicht migriert ist (fehlende Spalte), nicht crashen.
+    if (err?.code === "P2022" || err?.code === "P2021") return;
     logger.error({ error, receiverId }, "Error sending new message notification");
   }
 }

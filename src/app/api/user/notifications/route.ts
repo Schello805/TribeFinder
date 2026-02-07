@@ -7,6 +7,7 @@ import logger from "@/lib/logger";
 
 const DEFAULT_PREFS = {
   emailNotifications: true,
+  notifyDirectMessages: true,
   notifyInboxMessages: true,
   notifyNewGroups: false,
   notifyNewEvents: false,
@@ -17,6 +18,7 @@ const DEFAULT_PREFS = {
 
 const schema = z.object({
   emailNotifications: z.boolean().optional(),
+  notifyDirectMessages: z.boolean().optional(),
   notifyInboxMessages: z.boolean().optional(),
   notifyNewGroups: z.boolean().optional(),
   notifyNewEvents: z.boolean().optional(),
@@ -33,10 +35,11 @@ export async function GET() {
   }
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = (await (prisma as unknown as { user: { findUnique: (args: unknown) => Promise<unknown> } }).user.findUnique({
       where: { id: session.user.id },
       select: {
         emailNotifications: true,
+        notifyDirectMessages: true,
         notifyInboxMessages: true,
         notifyNewGroups: true,
         notifyNewEvents: true,
@@ -44,7 +47,16 @@ export async function GET() {
         notifyLat: true,
         notifyLng: true,
       },
-    });
+    })) as {
+      emailNotifications: boolean;
+      notifyDirectMessages: boolean;
+      notifyInboxMessages: boolean;
+      notifyNewGroups: boolean;
+      notifyNewEvents: boolean;
+      notifyRadius: number;
+      notifyLat: number | null;
+      notifyLng: number | null;
+    } | null;
 
     if (!user) {
       return NextResponse.json(DEFAULT_PREFS);
@@ -89,10 +101,11 @@ export async function PUT(req: Request) {
   const data = parsed.data;
 
   try {
-    const updated = await prisma.user.update({
+    const updated = (await (prisma as unknown as { user: { update: (args: unknown) => Promise<unknown> } }).user.update({
       where: { id: session.user.id },
       data: {
         ...(data.emailNotifications !== undefined ? { emailNotifications: data.emailNotifications } : {}),
+        ...(data.notifyDirectMessages !== undefined ? { notifyDirectMessages: data.notifyDirectMessages } : {}),
         ...(data.notifyInboxMessages !== undefined ? { notifyInboxMessages: data.notifyInboxMessages } : {}),
         ...(data.notifyNewGroups !== undefined ? { notifyNewGroups: data.notifyNewGroups } : {}),
         ...(data.notifyNewEvents !== undefined ? { notifyNewEvents: data.notifyNewEvents } : {}),
@@ -102,6 +115,7 @@ export async function PUT(req: Request) {
       },
       select: {
         emailNotifications: true,
+        notifyDirectMessages: true,
         notifyInboxMessages: true,
         notifyNewGroups: true,
         notifyNewEvents: true,
@@ -109,7 +123,16 @@ export async function PUT(req: Request) {
         notifyLat: true,
         notifyLng: true,
       },
-    });
+    })) as {
+      emailNotifications: boolean;
+      notifyDirectMessages: boolean;
+      notifyInboxMessages: boolean;
+      notifyNewGroups: boolean;
+      notifyNewEvents: boolean;
+      notifyRadius: number;
+      notifyLat: number | null;
+      notifyLng: number | null;
+    };
 
     return NextResponse.json({
       ...DEFAULT_PREFS,

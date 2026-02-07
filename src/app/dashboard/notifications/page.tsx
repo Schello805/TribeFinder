@@ -7,6 +7,7 @@ import RadiusMapPicker from "@/components/user/RadiusMapPicker";
 
 type Prefs = {
   emailNotifications: boolean;
+  notifyDirectMessages: boolean;
   notifyInboxMessages: boolean;
   notifyNewGroups: boolean;
   notifyNewEvents: boolean;
@@ -24,6 +25,7 @@ export default function DashboardNotificationsPage() {
   const [message, setMessage] = useState("");
   const [prefs, setPrefs] = useState<Prefs>({
     emailNotifications: true,
+    notifyDirectMessages: true,
     notifyInboxMessages: false,
     notifyNewGroups: false,
     notifyNewEvents: false,
@@ -101,6 +103,23 @@ export default function DashboardNotificationsPage() {
         </div>
 
         <div className="border-t border-[var(--border)] pt-4 space-y-3">
+          <div className="text-sm font-medium text-[var(--foreground)]">Direktnachrichten</div>
+
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="text-sm text-[var(--muted)]">Benachrichtige mich per E-Mail, wenn ich eine neue Direktnachricht erhalte.</div>
+            <button
+              type="button"
+              onClick={() => setPrefs((p) => ({ ...p, notifyDirectMessages: !p.notifyDirectMessages }))}
+              className={`tf-gothic-btn inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition ${
+                prefs.notifyDirectMessages
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]"
+                  : "bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
+              }`}
+            >
+              {prefs.notifyDirectMessages ? "Aktiv" : "Inaktiv"}
+            </button>
+          </div>
+
           <div className="text-sm font-medium text-[var(--foreground)]">Inbox (Gruppen-Nachrichten)</div>
 
           <div className="flex items-center justify-between gap-4 flex-wrap">
