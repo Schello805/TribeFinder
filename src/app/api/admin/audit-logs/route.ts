@@ -8,6 +8,8 @@ const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(200).default(50),
   sort: z.enum(["desc", "asc"]).optional().default("desc"),
+  sortField: z.enum(["createdAt", "action"]).optional(),
+  sortDir: z.enum(["desc", "asc"]).optional(),
 
   action: z.string().trim().min(1).optional(),
   actorEmail: z.string().trim().min(1).optional(),
@@ -26,7 +28,10 @@ export async function GET(req: Request) {
     return jsonBadRequest("Validierungsfehler", { errors: parsed.error.flatten() });
   }
 
-  const { page, pageSize, sort, action, actorEmail, targetEmail, backup, q } = parsed.data;
+  const { page, pageSize, sort, sortField, sortDir, action, actorEmail, targetEmail, backup, q } = parsed.data;
+
+  const effectiveSortField = sortField ?? "createdAt";
+  const effectiveSortDir = sortDir ?? sort;
 
   const where: Record<string, unknown> = {
     ...(action ? { action } : {}),
@@ -47,7 +52,7 @@ export async function GET(req: Request) {
       prisma.adminAuditLog.count({ where: where as never }),
       prisma.adminAuditLog.findMany({
         where: where as never,
-        orderBy: { createdAt: sort },
+        orderBy: { [effectiveSortField]: effectiveSortDir },
         skip: (page - 1) * pageSize,
         take: pageSize,
         select: {

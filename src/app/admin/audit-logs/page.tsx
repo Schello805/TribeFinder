@@ -61,6 +61,8 @@ export default function AdminAuditLogsPage() {
   const actorEmail = (searchParams.get("actorEmail") || "").trim();
   const targetEmail = (searchParams.get("targetEmail") || "").trim();
   const q = (searchParams.get("q") || "").trim();
+  const sortField = (searchParams.get("sortField") || "createdAt").trim();
+  const sortDir = (searchParams.get("sortDir") || "desc").trim();
 
   const [actionInput, setActionInput] = useState(action);
   const [actorEmailInput, setActorEmailInput] = useState(actorEmail);
@@ -102,6 +104,8 @@ export default function AdminAuditLogsPage() {
       const sp = new URLSearchParams();
       sp.set("page", String(page));
       sp.set("pageSize", String(pageSize));
+      sp.set("sortField", sortField);
+      sp.set("sortDir", sortDir);
       if (action) sp.set("action", action);
       if (actorEmail) sp.set("actorEmail", actorEmail);
       if (targetEmail) sp.set("targetEmail", targetEmail);
@@ -117,7 +121,7 @@ export default function AdminAuditLogsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [action, actorEmail, page, pageSize, q, showToast, targetEmail]);
+  }, [action, actorEmail, page, pageSize, q, showToast, sortDir, sortField, targetEmail]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -152,6 +156,23 @@ export default function AdminAuditLogsPage() {
     const sp = new URLSearchParams(searchParams.toString());
     sp.set("page", String(p));
     router.push(`/admin/audit-logs?${sp.toString()}`);
+  }
+
+  function toggleSort(field: "createdAt" | "action") {
+    const sp = new URLSearchParams(searchParams.toString());
+    const currentField = sp.get("sortField") || "createdAt";
+    const currentDir = sp.get("sortDir") || "desc";
+
+    const nextDir = currentField === field ? (currentDir === "desc" ? "asc" : "desc") : "asc";
+    sp.set("sortField", field);
+    sp.set("sortDir", nextDir);
+    sp.set("page", "1");
+    router.push(`/admin/audit-logs?${sp.toString()}`);
+  }
+
+  function sortIndicator(field: "createdAt" | "action") {
+    if (sortField !== field) return "";
+    return sortDir === "asc" ? "▲" : "▼";
   }
 
   if (status === "loading" || isLoading) {
@@ -286,8 +307,24 @@ export default function AdminAuditLogsPage() {
           <table className="min-w-full text-sm">
             <thead className="text-left text-gray-500 dark:text-gray-400">
               <tr>
-                <th className="py-2 px-4 whitespace-nowrap">Zeit</th>
-                <th className="py-2 px-4 whitespace-nowrap">Aktion</th>
+                <th className="py-2 px-4 whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => toggleSort("createdAt")}
+                    className="inline-flex items-center gap-1 hover:underline"
+                  >
+                    Zeit <span className="text-xs">{sortIndicator("createdAt")}</span>
+                  </button>
+                </th>
+                <th className="py-2 px-4 whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => toggleSort("action")}
+                    className="inline-flex items-center gap-1 hover:underline"
+                  >
+                    Aktion <span className="text-xs">{sortIndicator("action")}</span>
+                  </button>
+                </th>
                 <th className="py-2 px-4 whitespace-nowrap">Admin</th>
                 <th className="py-2 px-4 whitespace-nowrap">Target</th>
                 <th className="py-2 px-4 whitespace-nowrap">Backup</th>
