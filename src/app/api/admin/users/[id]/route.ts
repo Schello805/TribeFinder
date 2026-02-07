@@ -124,6 +124,22 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       }
     }
 
+    let unblockedEmailed = false;
+    if (parsed.data.isBlocked === false && targetBefore && targetBefore.isBlocked) {
+      try {
+        const content = `
+          ${emailHeading("Dein Account wurde entsperrt")}
+          ${emailText("Ein Administrator hat deinen TribeFinder Account wieder freigeschaltet.")}
+          ${emailText("Du kannst dich ab sofort wieder anmelden.")}
+        `;
+        const html = await emailTemplate(content, "Dein Account wurde entsperrt");
+        const result = await sendEmail(updated.email, "Account entsperrt - TribeFinder", html);
+        unblockedEmailed = Boolean(result?.success);
+      } catch {
+        unblockedEmailed = false;
+      }
+    }
+
     await recordAdminAudit({
       action: "USER_UPDATE",
       actorAdminId: session.user.id,
@@ -136,6 +152,11 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           ? {
               blockReason: parsed.data.blockReason,
               emailed,
+            }
+          : {}),
+        ...(parsed.data.isBlocked === false
+          ? {
+              unblockedEmailed,
             }
           : {}),
       },
