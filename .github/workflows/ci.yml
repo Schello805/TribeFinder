@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate Prisma schema
+        run: npm run db:validate
+
       - name: Generate Prisma Client
         run: npm run db:generate
 
@@ -35,7 +38,7 @@ jobs:
         run: npm run lint
 
       - name: Run TypeScript type check
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
   test:
     name: Run Tests
@@ -69,8 +72,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate Prisma schema
+        run: npm run db:validate
+
       - name: Generate Prisma Client
         run: npm run db:generate
+
+      - name: Apply database migrations
+        run: npm run db:migrate:deploy
+        env:
+          DATABASE_URL: "postgresql://tribefinder:tribefinder@localhost:5432/tribefinder?schema=public"
 
       - name: Run tests
         run: npm run test:run
@@ -112,8 +123,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate Prisma schema
+        run: npm run db:validate
+
       - name: Generate Prisma Client
         run: npm run db:generate
+
+      - name: Apply database migrations
+        run: npm run db:migrate:deploy
+        env:
+          DATABASE_URL: "postgresql://tribefinder:tribefinder@localhost:5432/tribefinder?schema=public"
 
       - name: Build application
         run: npm run build

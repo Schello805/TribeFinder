@@ -21,4 +21,4 @@ if [[ "$DATABASE_URL_RAW" == '"'*'"' ]] || [[ "$DATABASE_URL_RAW" == "'"*"'" ]];
   DATABASE_URL_RAW="${DATABASE_URL_RAW:1:${#DATABASE_URL_RAW}-2}"
 fi
 
-npm run db:push
+npm run db:migrate:deploy
