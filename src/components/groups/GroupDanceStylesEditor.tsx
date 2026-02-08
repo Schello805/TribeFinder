@@ -149,9 +149,7 @@ export default function GroupDanceStylesEditor({
               ))}
             </select>
           </div>
-        </div>
 
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)]">Art</label>
             <select
