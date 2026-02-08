@@ -265,7 +265,7 @@ export default function ProfileForm() {
 
           <div className="sm:col-span-6">
             <label className="block text-sm font-medium text-[var(--foreground)]">Profilbild</label>
-            <div className="mt-2 flex items-center space-x-6">
+            <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
               <div className="shrink-0">
                 {formData.image ? (
                   <>
@@ -282,14 +282,14 @@ export default function ProfileForm() {
                   </div>
                 )}
               </div>
-              <div>
+              <div className="w-full sm:w-auto min-w-0">
                 <label className="block">
                   <span className="sr-only">Wähle ein Profilbild</span>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
-                    className="block w-full text-sm text-slate-500
+                    className="block w-full min-w-0 text-sm text-slate-500
                       file:mr-4 file:py-2 file:px-4
                       file:rounded-full file:border file:border-[var(--border)]
                       file:text-sm file:font-semibold

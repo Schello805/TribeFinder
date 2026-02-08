@@ -195,7 +195,7 @@ export default function GroupDanceStylesEditor({
               .map((s) => (
                 <div
                   key={s.styleId}
-                  className="flex items-center justify-between gap-4 flex-wrap border-b border-[var(--border)] pb-3"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[var(--border)] pb-3"
                 >
                   <div className="min-w-0">
                     <div className="font-medium text-[var(--foreground)]">
@@ -203,12 +203,12 @@ export default function GroupDanceStylesEditor({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                     <select
                       value={s.level}
                       onChange={(e) => updateLevel(s.styleId, e.target.value as Level)}
                       disabled={disabled}
-                      className="rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
+                      className="w-full sm:w-auto rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
                     >
                       {(Object.keys(LEVEL_LABEL) as Level[]).map((lvl) => (
                         <option key={lvl} value={lvl}>
@@ -224,7 +224,7 @@ export default function GroupDanceStylesEditor({
                         updateMode(s.styleId, v === "" ? null : (v as Exclude<Mode, null>));
                       }}
                       disabled={disabled}
-                      className="rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
+                      className="w-full sm:w-auto rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
                     >
                       <option value="">Keine Angabe</option>
                       {(Object.keys(MODE_LABEL) as Array<Exclude<Mode, null>>).map((m) => (
@@ -238,7 +238,7 @@ export default function GroupDanceStylesEditor({
                       type="button"
                       onClick={() => remove(s.styleId)}
                       disabled={disabled}
-                      className="inline-flex justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] py-2 px-3 text-sm font-medium text-red-700 shadow-sm hover:bg-[var(--surface-hover)] disabled:opacity-50"
+                      className="w-full sm:w-auto inline-flex justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] py-2 px-3 text-sm font-medium text-red-700 shadow-sm hover:bg-[var(--surface-hover)] disabled:opacity-50"
                     >
                       Entfernen
                     </button>
