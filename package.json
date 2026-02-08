@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
+    "prebuild": "prisma generate",
     "build": "next build --webpack && mkdir -p .next/standalone/.next && rm -rf .next/standalone/.next/static && cp -R .next/static .next/standalone/.next/ && rm -rf .next/standalone/.next/server && cp -R .next/server .next/standalone/.next/ && rm -rf .next/standalone/public && cp -R public .next/standalone/",
     "start": "HOSTNAME=0.0.0.0 PORT=3000 node .next/standalone/server.js",
     "lint": "eslint",
@@ -13,6 +14,7 @@
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate:dev": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",

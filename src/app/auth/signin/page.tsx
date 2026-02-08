@@ -42,6 +42,8 @@ export default function SignInPage() {
         const errorMsg =
           result.error === "EMAIL_NOT_VERIFIED"
             ? "Bitte bestätige zuerst deine E-Mail-Adresse (Link in deiner E-Mail)."
+            : result.error === "LOGIN_LOCKED"
+              ? "Zu viele Fehlversuche. Bitte warte 5 Minuten und versuche es erneut."
             : "Ungültige E-Mail oder Passwort";
         setError(errorMsg);
         showToast(errorMsg, "error");
