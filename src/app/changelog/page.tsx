@@ -2,6 +2,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import fs from "node:fs";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 function resolveProjectRoot() {
   let dir = process.cwd();
@@ -14,6 +15,141 @@ function resolveProjectRoot() {
     dir = parent;
   }
   return process.cwd();
+}
+
+function formatSectionTitle(rawTitle: string) {
+  const title = rawTitle.replace(/\uFFFD/g, "").trim();
+
+  const m = title.match(/^\[(.+?)\]\s*-\s*(\d{4}-\d{2}-\d{2})\s*$/);
+  if (m) {
+    return `${m[2]} · ${m[1]}`;
+  }
+
+  return title;
+}
+
+function renderChangelogBody(body: string) {
+  const lines = (body || "").split("\n");
+  const elements: ReactNode[] = [];
+
+  let inCode = false;
+  let codeLang: string | null = null;
+  let codeLines: string[] = [];
+  let listItems: string[] = [];
+  let paragraphLines: string[] = [];
+
+  const flushParagraph = () => {
+    const text = paragraphLines.join(" ").trim();
+    if (text.length > 0) {
+      elements.push(
+        <p key={`p-${elements.length}`} className="text-sm leading-6 text-[var(--foreground)]">
+          {text}
+        </p>
+      );
+    }
+    paragraphLines = [];
+  };
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="list-disc pl-5 space-y-1 text-sm leading-6 text-[var(--foreground)]">
+          {listItems.map((t, i) => (
+            <li key={i}>{t}</li>
+          ))}
+        </ul>
+      );
+    }
+    listItems = [];
+  };
+
+  const flushCode = () => {
+    const text = codeLines.join("\n").replace(/\s+$/g, "");
+    if (text.length > 0) {
+      elements.push(
+        <pre
+          key={`code-${elements.length}`}
+          className="overflow-x-auto rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4 text-xs leading-5 text-[var(--foreground)]"
+        >
+          <code className={codeLang ? `language-${codeLang}` : undefined}>{text}</code>
+        </pre>
+      );
+    }
+    codeLines = [];
+    codeLang = null;
+  };
+
+  for (const raw of lines) {
+    const line = raw.replace(/\uFFFD/g, "");
+
+    const fence = line.match(/^```\s*(\w+)?\s*$/);
+    if (fence) {
+      if (!inCode) {
+        flushParagraph();
+        flushList();
+        inCode = true;
+        codeLang = fence[1] ?? null;
+        continue;
+      }
+      inCode = false;
+      flushCode();
+      continue;
+    }
+
+    if (inCode) {
+      codeLines.push(raw);
+      continue;
+    }
+
+    const h3 = line.match(/^###\s+(.+)$/);
+    if (h3) {
+      flushParagraph();
+      flushList();
+      elements.push(
+        <h3 key={`h3-${elements.length}`} className="tf-display text-base font-semibold text-[var(--foreground)] mt-4">
+          {h3[1].trim()}
+        </h3>
+      );
+      continue;
+    }
+
+    const h4 = line.match(/^####\s+(.+)$/);
+    if (h4) {
+      flushParagraph();
+      flushList();
+      elements.push(
+        <h4 key={`h4-${elements.length}`} className="text-sm font-semibold text-[var(--foreground)] mt-3">
+          {h4[1].trim()}
+        </h4>
+      );
+      continue;
+    }
+
+    const li = line.match(/^\s*-\s+(.+)$/);
+    if (li) {
+      flushParagraph();
+      listItems.push(li[1].trim());
+      continue;
+    }
+
+    if (line.trim().length === 0) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    paragraphLines.push(line.trim());
+  }
+
+  flushParagraph();
+  flushList();
+  if (inCode) flushCode();
+
+  if (elements.length === 0) {
+    return <div className="text-sm text-[var(--muted)]">–</div>;
+  }
+
+  return <div className="space-y-3">{elements}</div>;
 }
 
 export default async function ChangelogPage() {
@@ -50,12 +186,13 @@ export default async function ChangelogPage() {
     const out: string[] = [];
     let skipping = false;
     for (const line of bodyLines) {
-      if (line.trim().startsWith("###") && line.includes("Installation") && line.includes("Setup")) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("###") && /(installation|setup)/i.test(trimmed)) {
         skipping = true;
         continue;
       }
       if (skipping) {
-        if (line.trim().startsWith("### ")) {
+        if (trimmed.startsWith("### ") || trimmed.startsWith("## ")) {
           skipping = false;
         } else {
           continue;
@@ -73,14 +210,18 @@ export default async function ChangelogPage() {
       const isUnreleased = titleLower.includes("unreleased");
       if (!isUnreleased) return true;
       return (s.body || "").trim().length > 0;
-    });
+    })
+    .filter((s) => s.title.trim().toLowerCase() !== "installation");
 
   const sortedSections = cleanedSections.slice().reverse();
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Changelog</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Changelog</h1>
+          <div className="mt-1 text-sm text-[var(--muted)]">Änderungen & neue Features – neueste Einträge zuerst.</div>
+        </div>
         <Link href="/" className="text-sm text-[var(--link)] hover:opacity-90">
           Zur Startseite
         </Link>
@@ -94,12 +235,10 @@ export default async function ChangelogPage() {
             open={idx === 0}
           >
             <summary className="cursor-pointer select-none px-6 py-4 text-[var(--foreground)] tf-display font-semibold">
-              {s.title}
+              {formatSectionTitle(s.title)}
             </summary>
             <div className="px-6 pb-6">
-              <pre className="whitespace-pre-wrap break-words text-sm text-[var(--foreground)]">
-                {s.body || "–"}
-              </pre>
+              {renderChangelogBody(s.body)}
             </div>
           </details>
         ))}
