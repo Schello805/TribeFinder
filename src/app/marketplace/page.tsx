@@ -108,7 +108,7 @@ export default async function MarketplacePage({
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="min-w-0">
           <h1 className="tf-display text-3xl font-bold text-[var(--foreground)] truncate">Second-Hand</h1>
           <div className="text-sm text-[var(--muted)]">Second-Hand für Kostüme, Schmuck, Accessoires und mehr.</div>
@@ -119,7 +119,7 @@ export default async function MarketplacePage({
         {session?.user ? (
           <Link
             href="/marketplace/new"
-            className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition font-medium"
+            className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm font-medium text-center"
           >
             Inserat erstellen
           </Link>

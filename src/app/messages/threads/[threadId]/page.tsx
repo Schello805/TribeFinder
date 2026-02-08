@@ -111,14 +111,14 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div className="min-w-0">
           <div className="text-sm text-[var(--muted)]">Thread</div>
           <h1 className="tf-display text-2xl font-bold text-[var(--foreground)] truncate">
             {thread.subject || `Nachricht an ${thread.group.name}`}
           </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           {supportsArchive ? <ArchiveThreadButton threadId={threadId} initialArchived={initialArchived} /> : null}
           <Link href="/messages" className="text-[var(--link)] hover:underline font-medium">
             Zur Inbox

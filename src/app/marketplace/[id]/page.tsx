@@ -75,7 +75,7 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="min-w-0">
           <div className="text-sm text-[var(--muted)]">{categoryLabel(listing.category)}</div>
           <h1 className="tf-display text-3xl font-bold text-[var(--foreground)] truncate">{listing.title}</h1>
@@ -123,7 +123,7 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
       )}
 
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 space-y-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="text-sm text-[var(--muted)]">Preis</div>
             <div className="text-xl font-bold text-[var(--foreground)]">

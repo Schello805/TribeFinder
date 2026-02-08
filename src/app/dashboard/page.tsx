@@ -218,7 +218,7 @@ export default async function DashboardPage() {
                     </div>
                   </Link>
 
-                  <div className="flex-shrink-0 flex space-x-2">
+                  <div className="flex-shrink-0 flex flex-wrap gap-2 justify-end">
                     <Link
                       href={`/groups/${group.id}/events`}
                       className="text-[var(--link)] hover:opacity-90 font-medium text-sm border border-[var(--border)] px-3 py-1 rounded hover:bg-[var(--surface-hover)]"

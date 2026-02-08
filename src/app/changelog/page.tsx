@@ -45,7 +45,37 @@ export default async function ChangelogPage() {
     sections.push({ title: current.title, body: current.bodyLines.join("\n").trim() });
   }
 
-  const sortedSections = sections.slice().reverse();
+  const stripInstallSection = (body: string) => {
+    const bodyLines = body.split("\n");
+    const out: string[] = [];
+    let skipping = false;
+    for (const line of bodyLines) {
+      if (line.trim().startsWith("###") && line.includes("Installation") && line.includes("Setup")) {
+        skipping = true;
+        continue;
+      }
+      if (skipping) {
+        if (line.trim().startsWith("### ")) {
+          skipping = false;
+        } else {
+          continue;
+        }
+      }
+      out.push(line);
+    }
+    return out.join("\n").trim();
+  };
+
+  const cleanedSections = sections
+    .map((s) => ({ ...s, body: stripInstallSection(s.body) }))
+    .filter((s) => {
+      const titleLower = s.title.toLowerCase();
+      const isUnreleased = titleLower.includes("unreleased");
+      if (!isUnreleased) return true;
+      return (s.body || "").trim().length > 0;
+    });
+
+  const sortedSections = cleanedSections.slice().reverse();
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
