@@ -293,12 +293,23 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
             const path = err.path.join(".");
             errors[path] = err.message;
           });
+
+          if ((errors["location.lat"] || errors["location.lng"]) && !errors["location.address"]) {
+            errors["location.address"] =
+              errors["location.lat"] || errors["location.lng"] || "Bitte wähle einen Standort auf der Karte.";
+          }
+
           setFieldErrors(errors);
 
           const firstKey = Object.keys(errors)[0];
           if (firstKey) {
             requestAnimationFrame(() => {
-              const el = document.querySelector(`[name="${CSS.escape(firstKey)}"]`) as HTMLElement | null;
+              const direct = document.querySelector(`[name="${CSS.escape(firstKey)}"]`) as HTMLElement | null;
+              const el =
+                direct ||
+                (firstKey.startsWith("location.")
+                  ? (document.querySelector('[name="location.address"]') as HTMLElement | null)
+                  : null);
               if (el?.scrollIntoView) {
                 el.scrollIntoView({ behavior: "smooth", block: "center" });
                 (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).focus?.();
@@ -599,6 +610,9 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
             placeholder="Straße, PLZ, Stadt eingeben..." 
             className="block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:border-[var(--primary)] focus:outline-none focus:ring-[var(--primary)] text-[var(--foreground)] bg-[var(--surface)] placeholder:text-[var(--muted)]"
           />
+          {fieldErrors["location.address"] && (
+            <p className="mt-1 text-sm text-red-600">{fieldErrors["location.address"]}</p>
+          )}
           <button 
             type="button"
             onClick={geocodeAddress}

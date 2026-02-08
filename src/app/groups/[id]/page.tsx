@@ -111,10 +111,22 @@ export default async function GroupDetailPage({
     user: { id: string; name: string | null; image: string | null; email: string };
   }> = [];
   try {
-    group = (await prisma.group.findUnique({
-      where: { id },
-      select: groupSelectWithMode as unknown as Prisma.GroupSelect,
-    })) as unknown as GroupDetailPayload;
+    try {
+      group = (await prisma.group.findUnique({
+        where: { id },
+        select: groupSelectWithMode as unknown as Prisma.GroupSelect,
+      })) as unknown as GroupDetailPayload;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("Unknown field `mode`") || msg.includes("Unknown field 'mode'")) {
+        group = (await prisma.group.findUnique({
+          where: { id },
+          select: groupSelect as unknown as Prisma.GroupSelect,
+        })) as unknown as GroupDetailPayload;
+      } else {
+        throw err;
+      }
+    }
 
     if (group) {
       const isOwner = session?.user?.id === group.ownerId;
