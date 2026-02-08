@@ -29,6 +29,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [locationDirty, setLocationDirty] = useState(false);
 
   const [pendingHeaderFile, setPendingHeaderFile] = useState<File | null>(null);
   const [pendingHeaderPreviewUrl, setPendingHeaderPreviewUrl] = useState<string | null>(null);
@@ -137,6 +138,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
         address: prev.location?.address || "" 
       }
     }));
+    setLocationDirty(false);
   };
   
   const geocodeAddress = async () => {
@@ -163,6 +165,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
             lng: lon
           }
         }));
+        setLocationDirty(false);
       } else {
         setError("Adresse konnte nicht gefunden werden.");
       }
@@ -184,6 +187,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
         address: address
       }
     }));
+    setLocationDirty(true);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -266,6 +270,23 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
     setIsLoading(true);
     setError("");
     setFieldErrors({});
+
+    if (formData.location?.address?.trim()) {
+      const hasLat = Number.isFinite(formData.location.lat);
+      const hasLng = Number.isFinite(formData.location.lng);
+      if (!hasLat || !hasLng || locationDirty) {
+        setIsLoading(false);
+        setFieldErrors({
+          "location.address": "Bitte klicke auf 'Suchen' oder wähle den Standort auf der Karte.",
+        });
+        requestAnimationFrame(() => {
+          const el = document.querySelector('[name="location.address"]') as HTMLElement | null;
+          el?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+          (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).focus?.();
+        });
+        return;
+      }
+    }
 
     try {
       if (isEditing && !groupId) {

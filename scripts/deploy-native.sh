@@ -210,9 +210,10 @@ fi
 echo -e "${YELLOW}Synchronisiere DB Schema (Prisma db push)...${NC}"
 bash ./scripts/db-migrate-safe.sh
 
-echo -e "${YELLOW}Starte Service nach Migration...${NC}"
-sudo systemctl start tribefinder || true
-echo ""
+echo -e "${YELLOW}Generiere Prisma Client nach Migration...${NC}"
+npm run db:generate
+
+
 
 # Default DanceStyles seeden (idempotent)
 echo -e "${YELLOW}[5.1/7] Seede Default DanceStyles...${NC}"
