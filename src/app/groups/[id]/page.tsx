@@ -11,6 +11,11 @@ import MemberManagement from "@/components/groups/MemberManagement";
 import GalleryManager from "@/components/groups/GalleryManager";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import LikeButton from "@/components/groups/LikeButton";
+
+function getGroupLikeDelegate() {
+  return (prisma as unknown as { groupLike?: typeof prisma.favoriteGroup }).groupLike;
+}
 
 export default async function GroupDetailPage({
   params,
@@ -210,6 +215,26 @@ export default async function GroupDetailPage({
   const regularMemberships = approvedMemberships.filter((m) => m.role !== "ADMIN" && m.user.id !== group.owner.id);
   const regularFirst12 = regularMemberships.slice(0, 12);
 
+  const groupLike = getGroupLikeDelegate();
+  const [likeCount, likedByMe] = groupLike
+    ? await Promise.all([
+        groupLike.count({ where: { groupId: id } }),
+        session?.user?.id
+          ? groupLike
+              .findUnique({
+                where: {
+                  userId_groupId: {
+                    userId: session.user.id,
+                    groupId: id,
+                  },
+                },
+                select: { id: true },
+              })
+              .then((x: { id: string } | null) => Boolean(x))
+          : Promise.resolve(false),
+      ])
+    : [0, false];
+
   return (
     <GroupDetailAnimations>
       <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -288,6 +313,12 @@ export default async function GroupDetailPage({
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 mt-4 sm:mt-0">
+                <LikeButton
+                  groupId={group.id}
+                  initialCount={likeCount}
+                  initialLikedByMe={likedByMe}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
+                />
                 {session && !isMember && !isPending && !isAdmin && (
                   <JoinButton groupId={group.id} initialStatus="NONE" />
                 )}

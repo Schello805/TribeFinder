@@ -9,8 +9,9 @@ Eine moderne Plattform für Tanzgruppen (Tribal Style, Fusion & mehr) zur Verwal
 - **Interaktive Karte**: Finde Gruppen und Events in deiner Nähe (basierend auf OpenStreetMap).
 - **Community Feed**: Ein "Schwarzes Brett" für Austausch und Neuigkeiten.
 - **Mitgliederbereich**: Rollenbasierte Zugriffsrechte (Admin/Mitglied).
-- **Marketplace (Second-Hand Börse)**: Inserate (Kostüme, Schmuck, Accessoires, Schuhe, Sonstiges) mit Bildern, Standort/Umkreis-Filter und Versandoption.
+- **Marketplace (Second-Hand)**: Inserate (Kostüme, Schmuck, Accessoires, Schuhe, Sonstiges) mit Bildern, Standort/Umkreis-Filter und Versandoption.
   - Preis ist Pflicht bei „Ich biete“ und optional bei „Ich suche“.
+- **Gruppen Likes**: "Gefällt mir" (Herz) für Gruppen mit Zähler und Toggle-Button.
 - **Direktnachrichten**: 1:1 Messaging zwischen Nutzern (z.B. für Marketplace Kontakt) inkl. optionaler E-Mail Benachrichtigung bei neuen Nachrichten.
 - **Datenschutzfreundlich**: Keine externen Tracker (außer optional Matomo), lokale Datenhaltung.
 
@@ -76,6 +77,11 @@ Hinweise:
 3. **Datenbank vorbereiten**
    ```bash
    npm run db:migrate:dev
+   ```
+
+   Hinweis: Neue Features können zusätzliche Migrationen enthalten (z.B. Gruppen-Likes). Danach ggf. auch den Prisma Client aktualisieren:
+   ```bash
+   npm run db:generate
    ```
 
 4. **Entwicklungsserver starten**
@@ -144,6 +150,16 @@ MAINTENANCE_MODE="0"
 - Wenn `MAINTENANCE_MODE` aktiv ist, sind **Änderungen/Uploads vorübergehend deaktiviert**.
 - Schreib-Requests werden mit **HTTP 503** beantwortet (Header `Retry-After: 300`).
 - Hinweis: In Next.js 16+ heißt die Dateikonvention dafür `src/proxy.ts` (statt `middleware.ts`).
+
+### Gruppen Likes
+
+- Likes werden pro Nutzer und Gruppe gespeichert (1 Like pro Nutzer/Gruppe).
+- API Endpoint:
+  - `GET /api/groups/[id]/like` → `{ count, likedByMe }`
+  - `POST /api/groups/[id]/like` → Like setzen
+  - `DELETE /api/groups/[id]/like` → Like entfernen
+- UI:
+  - Herz-Button mit Anzahl in Gruppenliste und auf der Gruppendetailseite.
 
 ### Hinweise für Serverbetrieb
 

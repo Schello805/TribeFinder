@@ -9,11 +9,16 @@ import logger from "@/lib/logger";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 import { revalidatePath } from "next/cache";
 
+function getGroupLikeDelegate() {
+  return (prisma as unknown as { groupLike?: typeof prisma.favoriteGroup }).groupLike;
+}
+
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
+  const session = await getServerSession(authOptions).catch(() => null);
   const query = searchParams.get("query");
   const tag = searchParams.get("tag");
   const performancesRaw = searchParams.get("performances");
@@ -169,8 +174,52 @@ export async function GET(req: Request) {
       })(),
     ]);
 
+    const groupIds = groups.map((g) => g.id);
+
+    const groupLike = getGroupLikeDelegate();
+    if (!groupLike) {
+      return NextResponse.json({
+        data: groups.map((g) => ({ ...g, likeCount: 0, likedByMe: false })),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasMore: skip + groups.length < total,
+        },
+      });
+    }
+
+    const likeCounts = groupIds.length
+      ? await groupLike.groupBy({
+          by: ["groupId"],
+          where: { groupId: { in: groupIds } },
+          _count: { _all: true },
+        })
+      : [];
+    const likeCountByGroupId = new Map<string, number>(
+      likeCounts.map((x: { groupId: string; _count: { _all: number } }) => [x.groupId, x._count._all])
+    );
+
+    const likedSet = session?.user?.id
+      ? new Set(
+          (
+            await groupLike.findMany({
+              where: { userId: session.user.id, groupId: { in: groupIds } },
+              select: { groupId: true },
+            })
+          ).map((x: { groupId: string }) => x.groupId)
+        )
+      : new Set<string>();
+
+    const enriched = groups.map((g) => ({
+      ...g,
+      likeCount: likeCountByGroupId.get(g.id) ?? 0,
+      likedByMe: likedSet.has(g.id),
+    }));
+
     return NextResponse.json({
-      data: groups,
+      data: enriched,
       pagination: {
         page,
         limit,

@@ -17,12 +17,6 @@ function isEnabled(value: string | undefined) {
   return v === "1" || v === "true" || v === "yes" || v === "on";
 }
 
-async function readEnvFile(projectRoot: string) {
-  const envPath = path.join(projectRoot, ".env");
-  const content = await readFile(envPath, "utf8").catch(() => "");
-  return { envPath, content };
-}
-
 async function findEnvPath(startDir: string) {
   let current = startDir;
   for (let i = 0; i < 6; i++) {

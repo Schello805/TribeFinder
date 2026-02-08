@@ -17,6 +17,8 @@ type GroupListItem = {
   size?: 'SOLO' | 'SMALL' | 'LARGE' | null;
   location?: { address?: string | null } | null;
   tags: GroupTag[];
+  likeCount?: number;
+  likedByMe?: boolean;
 };
 
 function isGroupListItem(v: unknown): v is GroupListItem {

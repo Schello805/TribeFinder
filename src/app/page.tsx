@@ -162,11 +162,11 @@ export default async function Home() {
               className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
             >
               <div className="text-4xl mb-4">🛍️</div>
-              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Second-hand Börse</h3>
+              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Second-Hand</h3>
               <p className="text-[var(--muted)]">
-                Second-Hand Börse für Kostüme, Schmuck & mehr – mit Bildern, Standort und direktem 1:1 Kontakt.
+                Second-Hand für Kostüme, Schmuck & mehr – mit Bildern, Standort und direktem 1:1 Kontakt.
               </p>
-              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zur Second-hand Börse</div>
+              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zu Second-Hand</div>
             </Link>
           </div>
         </div>

@@ -110,8 +110,8 @@ export default async function MarketplacePage({
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="tf-display text-3xl font-bold text-[var(--foreground)] truncate">Second-hand Börse</h1>
-          <div className="text-sm text-[var(--muted)]">Second-Hand Börse für Kostüme, Schmuck, Accessoires und mehr.</div>
+          <h1 className="tf-display text-3xl font-bold text-[var(--foreground)] truncate">Second-Hand</h1>
+          <div className="text-sm text-[var(--muted)]">Second-Hand für Kostüme, Schmuck, Accessoires und mehr.</div>
           <div className="mt-2 text-xs text-[var(--muted)]">
             Hinweis: Das ist eine Plattform für Privatverkäufe. Bitte keine Neuware / gewerblichen Verkauf einstellen.
           </div>

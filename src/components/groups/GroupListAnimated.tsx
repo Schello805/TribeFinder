@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { normalizeUploadedImageUrl } from '@/lib/normalizeUploadedImageUrl';
+import LikeButton from '@/components/groups/LikeButton';
 
 interface GroupListAnimatedProps {
   groups: GroupListAnimatedItem[];
@@ -24,6 +25,8 @@ interface GroupListAnimatedItem {
     address?: string | null;
   } | null;
   tags: GroupTag[];
+  likeCount?: number;
+  likedByMe?: boolean;
 }
 
 export default function GroupListAnimated({ groups }: GroupListAnimatedProps) {
@@ -91,9 +94,17 @@ export default function GroupListAnimated({ groups }: GroupListAnimatedProps) {
                       </p>
                     )}
                   </div>
-                  <span className="text-xs font-medium text-[var(--muted)] bg-[var(--surface-2)] px-2 py-1 rounded-full whitespace-nowrap border border-[var(--border)]">
-                    {new Date(group.createdAt).toLocaleDateString('de-DE')}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <LikeButton
+                      groupId={group.id}
+                      initialCount={typeof group.likeCount === "number" ? group.likeCount : 0}
+                      initialLikedByMe={Boolean(group.likedByMe)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
+                    />
+                    <span className="text-xs font-medium text-[var(--muted)] bg-[var(--surface-2)] px-2 py-1 rounded-full whitespace-nowrap border border-[var(--border)]">
+                      {new Date(group.createdAt).toLocaleDateString('de-DE')}
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-sm text-[var(--muted)] line-clamp-2 leading-relaxed">

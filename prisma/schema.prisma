@@ -93,6 +93,8 @@ model User {
   // Favorites
   favoriteGroups FavoriteGroup[]
 
+  groupLikes GroupLike[]
+
   feedbacks Feedback[]
 
   marketplaceListings MarketplaceListing[]
@@ -162,6 +164,7 @@ model Group {
 
   // Favorites
   favoritedBy FavoriteGroup[]
+  likes GroupLike[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -180,6 +183,21 @@ model GroupMember {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, groupId])
+}
+
+model GroupLike {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, groupId])
+  @@index([groupId])
 }
 
 model FavoriteGroup {
