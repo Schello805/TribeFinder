@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import path from "path";
 import { readFile, writeFile } from "fs/promises";
+import { access } from "fs/promises";
 import { requireAdminSession } from "@/lib/requireAdmin";
 
 function parseEnvValue(raw: string) {
@@ -18,6 +19,29 @@ function isEnabled(value: string | undefined) {
 
 async function readEnvFile(projectRoot: string) {
   const envPath = path.join(projectRoot, ".env");
+  const content = await readFile(envPath, "utf8").catch(() => "");
+  return { envPath, content };
+}
+
+async function findEnvPath(startDir: string) {
+  let current = startDir;
+  for (let i = 0; i < 6; i++) {
+    const candidate = path.join(current, ".env");
+    try {
+      await access(candidate);
+      return candidate;
+    } catch {
+      // keep walking up
+    }
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return path.join(startDir, ".env");
+}
+
+async function readEnvFileSmart(startDir: string) {
+  const envPath = await findEnvPath(startDir);
   const content = await readFile(envPath, "utf8").catch(() => "");
   return { envPath, content };
 }
@@ -41,8 +65,7 @@ export async function GET() {
   const session = await requireAdminSession();
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
-  const projectRoot = process.cwd();
-  const { envPath, content } = await readEnvFile(projectRoot);
+  const { envPath, content } = await readEnvFileSmart(process.cwd());
 
   const match = content
     .split(/\r?\n/)
@@ -65,8 +88,7 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { enabled?: boolean } | null;
   const enabled = Boolean(body?.enabled);
 
-  const projectRoot = process.cwd();
-  const { envPath, content } = await readEnvFile(projectRoot);
+  const { envPath, content } = await readEnvFileSmart(process.cwd());
   const updated = upsertEnvVar(content, "MAINTENANCE_MODE", enabled ? "true" : "false");
 
   await writeFile(envPath, updated, "utf8");
