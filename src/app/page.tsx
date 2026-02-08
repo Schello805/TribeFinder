@@ -116,6 +116,7 @@ export default async function Home() {
               <p className="text-[var(--muted)]">
                 Entdecke Tanzgruppen direkt auf der Karte. Finde schnell heraus, wer in deiner Umgebung tanzt und trainiert.
               </p>
+              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zur Karte</div>
             </Link>
 
             <Link
@@ -127,6 +128,7 @@ export default async function Home() {
               <p className="text-[var(--muted)]">
                 Erstelle einen detaillierten Steckbrief für deine Gruppe mit Beschreibung, Fotos, Tags und Kontaktmöglichkeiten.
               </p>
+              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zu den Gruppen</div>
             </Link>
 
             <div className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)]">
