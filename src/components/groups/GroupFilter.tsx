@@ -381,6 +381,7 @@ export default function GroupFilter() {
               className="w-full px-3 py-2 pr-9 min-h-10 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
             >
               <option value="newest">Neueste</option>
+              <option value="popular">Beliebtheit</option>
               <option value="name">Alphabetisch</option>
               <option value="distance">
                 Entfernung

@@ -308,17 +308,27 @@ export default async function GroupDetailPage({
                       </span>
                     )}
                   </div>
+                  <div className="mt-3 flex justify-center sm:justify-start">
+                    <LikeButton
+                      groupId={group.id}
+                      initialCount={likeCount}
+                      initialLikedByMe={likedByMe}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 mt-4 sm:mt-0">
-                <LikeButton
-                  groupId={group.id}
-                  initialCount={likeCount}
-                  initialLikedByMe={likedByMe}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
-                />
+                {isAdmin ? (
+                  <Link
+                    href={`/groups/${group.id}/edit`}
+                    className="tf-gothic-btn px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] border border-[var(--border)]"
+                  >
+                    Bearbeiten
+                  </Link>
+                ) : null}
                 {session && !isMember && !isPending && !isAdmin && (
                   <JoinButton groupId={group.id} initialStatus="NONE" />
                 )}

@@ -36,7 +36,7 @@ export async function GET(req: Request) {
   const onlySeekingMembers = seekingRaw === "1";
   const size = sizeRaw && ["SOLO", "DUO", "TRIO", "SMALL", "LARGE"].includes(sizeRaw) ? sizeRaw : null;
 
-  const sort = sortRaw === "name" || sortRaw === "distance" ? sortRaw : "newest";
+  const sort = sortRaw === "name" || sortRaw === "distance" || sortRaw === "popular" ? sortRaw : "newest";
   
   // Pagination params
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
@@ -151,26 +151,55 @@ export async function GET(req: Request) {
 
         const orderBy =
           sort === "name"
-            ? ({ name: "asc" } as const)
-            : ({ createdAt: "desc" } as const);
+            ? [{ name: "asc" }]
+            : sort === "popular"
+              ? [
+                  // Works once the Prisma client includes the `likes` relation on Group.
+                  // If the relation is missing (e.g. old client), the query will throw and we fall back below.
+                  { likes: { _count: "desc" } },
+                  { createdAt: "desc" },
+                ]
+              : [{ createdAt: "desc" }];
 
-        return prisma.group.findMany({
-          where: whereClause,
-          include: {
-            location: true,
-            tags: true,
-            danceStyles: { include: { style: true } },
-            owner: {
-              select: {
-                name: true,
-                image: true,
+        try {
+          return await prisma.group.findMany({
+            where: whereClause,
+            include: {
+              location: true,
+              tags: true,
+              danceStyles: { include: { style: true } },
+              owner: {
+                select: {
+                  name: true,
+                  image: true,
+                }
               }
-            }
-          },
-          orderBy,
-          skip,
-          take: limit,
-        });
+            },
+            orderBy: orderBy as unknown as NonNullable<Parameters<typeof prisma.group.findMany>[0]>["orderBy"],
+            skip,
+            take: limit,
+          });
+        } catch (e) {
+          // If `sort=popular` is requested but the prisma client is out of date, fall back to newest.
+          if (sort !== "popular") throw e;
+          return prisma.group.findMany({
+            where: whereClause,
+            include: {
+              location: true,
+              tags: true,
+              danceStyles: { include: { style: true } },
+              owner: {
+                select: {
+                  name: true,
+                  image: true,
+                }
+              }
+            },
+            orderBy: { createdAt: "desc" },
+            skip,
+            take: limit,
+          });
+        }
       })(),
     ]);
 
