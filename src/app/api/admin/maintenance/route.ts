@@ -29,7 +29,11 @@ async function findEnvPath(startDir: string) {
     const candidate = path.join(current, ".env");
     try {
       await access(candidate);
-      return candidate;
+      // In Next.js standalone builds, a copied .env can exist under .next/standalone.
+      // We must ignore .env files inside .next to persist to the real project .env.
+      if (!candidate.includes(`${path.sep}.next${path.sep}`)) {
+        return candidate;
+      }
     } catch {
       // keep walking up
     }
