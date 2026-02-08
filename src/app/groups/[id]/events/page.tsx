@@ -47,12 +47,12 @@ export default async function GroupEventsPage({ params }: { params: Promise<{ id
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 text-[var(--foreground)]">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <div>
           <h1 className="tf-display text-2xl font-bold text-[var(--foreground)]">Events verwalten</h1>
           <p className="text-[var(--muted)]">für {group.name}</p>
         </div>
-        <div className="space-x-4">
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           <Link
             href="/dashboard"
             className="text-[var(--muted)] hover:text-[var(--foreground)]"
