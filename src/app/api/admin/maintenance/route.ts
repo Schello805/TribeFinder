@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import path from "path";
-import { readFile, writeFile } from "fs/promises";
-import { access } from "fs/promises";
+import * as fsPromises from "fs/promises";
 import { requireAdminSession } from "@/lib/requireAdmin";
 
 function parseEnvValue(raw: string) {
@@ -22,7 +21,7 @@ async function findEnvPath(startDir: string) {
   for (let i = 0; i < 6; i++) {
     const candidate = path.join(current, ".env");
     try {
-      await access(candidate);
+      await fsPromises.access(candidate);
       // In Next.js standalone builds, a copied .env can exist under .next/standalone.
       // We must ignore .env files inside .next to persist to the real project .env.
       if (!candidate.includes(`${path.sep}.next${path.sep}`)) {
@@ -40,7 +39,7 @@ async function findEnvPath(startDir: string) {
 
 async function readEnvFileSmart(startDir: string) {
   const envPath = await findEnvPath(startDir);
-  const content = await readFile(envPath, "utf8").catch(() => "");
+  const content = await fsPromises.readFile(envPath, "utf8").catch(() => "");
   return { envPath, content };
 }
 
@@ -89,7 +88,7 @@ export async function POST(req: Request) {
   const { envPath, content } = await readEnvFileSmart(process.cwd());
   const updated = upsertEnvVar(content, "MAINTENANCE_MODE", enabled ? "true" : "false");
 
-  await writeFile(envPath, updated, "utf8");
+  await fsPromises.writeFile(envPath, updated, "utf8");
 
   return NextResponse.json({
     ok: true,
