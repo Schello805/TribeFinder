@@ -43,9 +43,9 @@ export default function HelpPage() {
         </section>
 
         <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
-          <h2 className="tf-display text-xl font-bold mb-2">🛍️ Marketplace (Second-Hand Börse)</h2>
+          <h2 className="tf-display text-xl font-bold mb-2">🛍️ Second-hand Börse</h2>
           <p className="text-[var(--muted)]">
-            Im Marketplace kannst du Inserate erstellen, durchsuchen und Kontakt mit anderen aufnehmen.
+            In der Second-hand Börse kannst du Inserate erstellen, durchsuchen und Kontakt mit anderen aufnehmen.
             Beim Erstellen/Bearbeiten sind einige Felder Pflicht (z.B. PLZ/Ort, Titel und Beschreibung). Der Preis ist bei „Ich biete“ Pflicht,
             bei „Ich suche“ optional.
             Wenn PLZ und Ort möglicherweise nicht zusammenpassen, bekommst du einen Hinweis – speichern ist trotzdem möglich.
