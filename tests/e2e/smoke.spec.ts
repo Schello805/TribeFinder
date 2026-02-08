@@ -10,11 +10,29 @@ test("public pages load", async ({ page, baseURL }) => {
   await page.goto(`${base}/`);
   await expect(page).toHaveURL(/\/$/);
 
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+
   await page.goto(`${base}/groups`);
   await expect(page).toHaveURL(/\/groups/);
 
+  await expect(page.getByRole("heading", { name: "Tanzgruppen finden" })).toBeVisible();
+
   await page.goto(`${base}/events`);
   await expect(page).toHaveURL(/\/events/);
+
+  await expect(page.getByRole("heading", { name: /Event Kalender/i })).toBeVisible();
+
+  await page.goto(`${base}/hilfe`);
+  await expect(page).toHaveURL(/\/hilfe/);
+  await expect(page.getByRole("heading", { name: "Hilfe" })).toBeVisible();
+
+  await page.goto(`${base}/changelog`);
+  await expect(page).toHaveURL(/\/changelog/);
+  await expect(page.getByRole("heading", { name: "Changelog" })).toBeVisible();
+
+  await page.goto(`${base}/marketplace`);
+  await expect(page).toHaveURL(/\/marketplace/);
+  await expect(page.getByRole("heading", { name: "Second-Hand" })).toBeVisible();
 
   await page.goto(`${base}/map`);
   await expect(page).toHaveURL(/\/map/);
