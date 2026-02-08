@@ -23,6 +23,12 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow online presence pings even during maintenance mode.
+  // This endpoint is intentionally lightweight and does not mutate persistent data.
+  if (pathname === "/api/presence/ping") {
+    return NextResponse.next();
+  }
+
   return NextResponse.json(
     {
       error: "Maintenance Mode",
