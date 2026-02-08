@@ -681,17 +681,6 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
           Abbrechen
         </button>
 
-        {isEditing && canDelete ? (
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={isLoading}
-            className="mr-3 px-4 py-2 border border-[var(--border)] rounded-md shadow-sm text-sm font-medium text-red-700 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
-          >
-            Gruppe löschen
-          </button>
-        ) : null}
-
         <button
           type="submit"
           disabled={isLoading}
@@ -700,6 +689,19 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
           {isLoading ? "Speichere..." : (isEditing ? "Aktualisieren" : "Erstellen")}
         </button>
       </div>
+
+      {isEditing && canDelete ? (
+        <div className="mt-8 pt-6 border-t border-[var(--border)]">
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isLoading}
+            className="px-4 py-2 border border-[var(--border)] rounded-md shadow-sm text-sm font-medium text-red-700 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+          >
+            Gruppe löschen
+          </button>
+        </div>
+      ) : null}
     </form>
   );
 }

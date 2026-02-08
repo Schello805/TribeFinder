@@ -12,7 +12,6 @@ import GalleryManager from "@/components/groups/GalleryManager";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import LikeButton from "@/components/groups/LikeButton";
-import DeleteGroupButton from "@/components/groups/DeleteGroupButton";
 
 function getGroupLikeDelegate() {
   return (prisma as unknown as { groupLike?: typeof prisma.favoriteGroup }).groupLike;
@@ -359,9 +358,6 @@ export default async function GroupDetailPage({
                   >
                     Bearbeiten
                   </Link>
-                ) : null}
-                {isAdmin ? (
-                  <DeleteGroupButton groupId={group.id} />
                 ) : null}
                 {session && !isMember && !isPending && !isAdmin && (
                   <JoinButton groupId={group.id} initialStatus="NONE" />
