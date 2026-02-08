@@ -95,6 +95,16 @@ export default function AdminDiagnosticsPanel() {
           <div>
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">Self-Test</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">Prüft Datenbank, Uploads, Konfiguration und wichtige Endpunkte.</p>
+            <div className="mt-3 text-sm text-gray-600 dark:text-gray-300 space-y-2">
+              <div className="font-medium text-gray-900 dark:text-white">So nutzt du die Diagnose:</div>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Klicke auf <span className="font-medium">Diagnose starten</span>. Der Test läuft serverseitig und dauert meist nur wenige Sekunden.</li>
+                <li>Wenn alle Checks <span className="font-medium">OK</span> sind, ist die Installation grundsätzlich gesund (DB/Endpunkte erreichbar).</li>
+                <li><span className="font-medium">WARN</span> bedeutet: läuft, aber mit Hinweis (z.B. Konfiguration/Optionen prüfen).</li>
+                <li><span className="font-medium">FAIL</span> bedeutet: etwas ist kaputt (z.B. DB-Verbindung, Berechtigungen, ein Endpoint). Öffne die Details und behebe den ersten FAIL von oben nach unten.</li>
+                <li>Hinweis: Das ersetzt keine Dev-Tests. Für Code-Regressionen lokal: <span className="font-medium">npm run test:all</span> (oder gezielt <span className="font-medium">npm run test:api</span> / <span className="font-medium">npm run test:lib</span>).</li>
+              </ul>
+            </div>
           </div>
           <button
             onClick={runDiagnostics}
