@@ -22,7 +22,11 @@ function formatSectionTitle(rawTitle: string) {
 
   const m = title.match(/^\[(.+?)\]\s*-\s*(\d{4}-\d{2}-\d{2})\s*$/);
   if (m) {
-    return `${m[2]} · ${m[1]}`;
+    const label = m[1].trim();
+    if (label.toLowerCase() === "unreleased") {
+      return m[2];
+    }
+    return `${m[2]} · ${label}`;
   }
 
   return title;
