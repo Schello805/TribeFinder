@@ -294,6 +294,17 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
             errors[path] = err.message;
           });
           setFieldErrors(errors);
+
+          const firstKey = Object.keys(errors)[0];
+          if (firstKey) {
+            requestAnimationFrame(() => {
+              const el = document.querySelector(`[name="${CSS.escape(firstKey)}"]`) as HTMLElement | null;
+              if (el?.scrollIntoView) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+                (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).focus?.();
+              }
+            });
+          }
           throw new Error("Bitte überprüfe die Eingaben.");
         }
         const errorMessage = data.details ? `${data.message}: ${data.details}` : (data.message || "Fehler beim Speichern");
@@ -582,6 +593,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
         <div className="flex gap-2 mb-4">
           <input 
             type="text" 
+            name="location.address"
             value={formData.location?.address || ""} 
             onChange={handleAddressChange}
             placeholder="Straße, PLZ, Stadt eingeben..." 

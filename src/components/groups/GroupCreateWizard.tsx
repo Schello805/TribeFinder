@@ -92,7 +92,17 @@ export default function GroupCreateWizard() {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
+    if (currentStep === "basics") {
+      if (formData.location?.address?.trim()) {
+        const hasLat = Number.isFinite(formData.location?.lat);
+        const hasLng = Number.isFinite(formData.location?.lng);
+        if (!hasLat || !hasLng) {
+          await geocodeAddress();
+        }
+      }
+    }
+
     if (!validateStep()) return;
     const nextIndex = currentStepIndex + 1;
     if (nextIndex < STEPS.length) {
