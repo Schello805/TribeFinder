@@ -45,6 +45,8 @@ export default async function ChangelogPage() {
     sections.push({ title: current.title, body: current.bodyLines.join("\n").trim() });
   }
 
+  const sortedSections = sections.slice().reverse();
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
@@ -55,7 +57,7 @@ export default async function ChangelogPage() {
       </div>
 
       <div className="space-y-3">
-        {sections.map((s, idx) => (
+        {sortedSections.map((s, idx) => (
           <details
             key={`${idx}-${s.title}`}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface)]"

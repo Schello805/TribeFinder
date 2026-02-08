@@ -12,12 +12,74 @@ const isReadMethod = (method: string) => {
   return m === "GET" || m === "HEAD" || m === "OPTIONS";
 };
 
+const isPublicPagePath = (pathname: string) => {
+  if (pathname === "/") return true;
+  if (pathname === "/changelog") return true;
+  if (pathname === "/hilfe") return true;
+  if (pathname === "/impressum") return true;
+  if (pathname === "/datenschutz") return true;
+  if (pathname.startsWith("/auth")) return true;
+  if (pathname.startsWith("/map")) return true;
+  if (pathname.startsWith("/groups")) return true;
+  if (pathname.startsWith("/marketplace")) return true;
+  if (pathname.startsWith("/events")) return true;
+  return false;
+};
+
+const isPublicApiPath = (pathname: string, method: string) => {
+  if (pathname.startsWith("/api/auth")) return true;
+  if (pathname === "/api/presence/ping") return true;
+
+  if (!isReadMethod(method)) return false;
+
+  if (pathname === "/api/groups") return true;
+  if (/^\/api\/groups\/[^/]+$/.test(pathname)) return true;
+  if (/^\/api\/groups\/[^/]+\/like$/.test(pathname)) return true;
+  if (pathname === "/api/marketplace") return true;
+  if (/^\/api\/marketplace\/[^/]+$/.test(pathname)) return true;
+  if (pathname === "/api/events") return true;
+  if (/^\/api\/events\/[^/]+$/.test(pathname)) return true;
+  if (pathname === "/api/dance-styles") return true;
+  return false;
+};
+
 export async function proxy(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+
+  if (pathname.startsWith("/api")) {
+    if (isPublicApiPath(pathname, req.method)) {
+      // continue
+    } else {
+      let token = null as unknown;
+      try {
+        token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      } catch {
+        token = null;
+      }
+      if (!token) {
+        return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+      }
+    }
+  } else {
+    if (!isPublicPagePath(pathname)) {
+      let token = null as unknown;
+      try {
+        token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      } catch {
+        token = null;
+      }
+      if (!token) {
+        const url = req.nextUrl.clone();
+        url.pathname = "/auth/signin";
+        url.searchParams.set("callbackUrl", req.nextUrl.pathname + req.nextUrl.search);
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
   if (!isMaintenanceEnabled()) return NextResponse.next();
 
   if (isReadMethod(req.method)) return NextResponse.next();
-
-  const pathname = req.nextUrl.pathname;
 
   // Admins can always write, even during maintenance mode (e.g. to disable it).
   try {
