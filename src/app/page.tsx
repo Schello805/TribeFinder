@@ -81,32 +81,6 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-[var(--surface-2)] p-7 rounded-xl border border-[var(--border)]">
-              <div className="text-3xl mb-3">💜</div>
-              <div className="tf-display text-lg font-bold text-[var(--foreground)]">Gemeinsam statt allein</div>
-              <p className="mt-2 text-[var(--muted)]">
-                Entdecke Gruppen in deiner Nähe und vernetze dich unkompliziert – ohne lange Suche.
-              </p>
-            </div>
-
-            <div className="bg-[var(--surface-2)] p-7 rounded-xl border border-[var(--border)]">
-              <div className="text-3xl mb-3">✨</div>
-              <div className="tf-display text-lg font-bold text-[var(--foreground)]">Inspiration & Events</div>
-              <p className="mt-2 text-[var(--muted)]">
-                Finde Workshops, Auftritte und Szene-Events – und trage deine eigenen Termine ein.
-              </p>
-            </div>
-
-            <div className="bg-[var(--surface-2)] p-7 rounded-xl border border-[var(--border)]">
-              <div className="text-3xl mb-3">🌙</div>
-              <div className="tf-display text-lg font-bold text-[var(--foreground)]">Dein Stil, dein Tempo</div>
-              <p className="mt-2 text-[var(--muted)]">
-                Von Orientalisch bis Tribal Fusion: Filter nach Tanzstil, Ort und Umkreis – so wie es zu dir passt.
-              </p>
-            </div>
-          </div>
-
           <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center">
               <div className="text-sm text-[var(--muted)]">Schon dabei</div>
@@ -132,22 +106,28 @@ export default async function Home() {
         <div className="container mx-auto px-4 max-w-6xl">
           <h2 className="tf-display text-3xl font-bold text-center mb-16 text-[var(--foreground)]">Was bietet TribeFinder?</h2>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)]">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Link
+              href="/map"
+              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+            >
               <div className="text-4xl mb-4">🗺️</div>
               <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Interaktive Karte</h3>
               <p className="text-[var(--muted)]">
                 Entdecke Tanzgruppen direkt auf der Karte. Finde schnell heraus, wer in deiner Umgebung tanzt und trainiert.
               </p>
-            </div>
+            </Link>
 
-            <div className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)]">
+            <Link
+              href="/groups"
+              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+            >
               <div className="text-4xl mb-4">👯‍♀️</div>
               <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Gruppen-Profile</h3>
               <p className="text-[var(--muted)]">
                 Erstelle einen detaillierten Steckbrief für deine Gruppe mit Beschreibung, Fotos, Tags und Kontaktmöglichkeiten.
               </p>
-            </div>
+            </Link>
 
             <div className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)]">
               <div className="text-4xl mb-4">🤝</div>

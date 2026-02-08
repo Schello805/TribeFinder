@@ -263,7 +263,10 @@ export default async function RootLayout({
 
                 {appVersion || appCommit ? (
                   <div className="text-xs text-[var(--footer-muted)]">
-                    Version: {appVersion ? `v${appVersion}` : "(unbekannt)"}
+                    Version:{" "}
+                    <Link href="/changelog" className="hover:text-[var(--footer-fg)] transition-colors">
+                      {appVersion ? `v${appVersion}` : "(unbekannt)"}
+                    </Link>
                     {appCommit ? ` (${appCommit})` : ""}
                   </div>
                 ) : null}
