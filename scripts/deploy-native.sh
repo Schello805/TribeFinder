@@ -38,7 +38,23 @@ if [ "$CAN_SUDO" -eq 1 ]; then
 fi
 
 # Stelle sicher dass Upload-Verzeichnis existiert (und beschreibbar ist)
-UPLOADS_DIR="/var/www/tribefinder/uploads"
+APP_DIR="/var/www/tribefinder"
+UPLOADS_DIR="$APP_DIR/uploads"
+BACKUP_DIR="$APP_DIR/backups"
+
+set_env_var() {
+    local key="$1"
+    local value="$2"
+    local escaped
+    escaped="${value//\\/\\\\}"
+    escaped="${escaped//\"/\\\"}"
+    if grep -qE "^${key}=" .env; then
+        sed -i "s|^${key}=.*|${key}=\"${escaped}\"|" .env
+    else
+        echo "${key}=\"${escaped}\"" >> .env
+    fi
+}
+
 if [ ! -d "$UPLOADS_DIR" ]; then
     echo -e "${RED}Fehler: Upload-Verzeichnis existiert nicht: $UPLOADS_DIR${NC}"
     echo "Bitte einmalig als root anlegen (oder setup-native.sh ausführen):"
@@ -78,34 +94,17 @@ if [ -f ".env" ]; then
     APP_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "")
 
     # Persist server paths in .env so API + scripts behave consistently
-    if grep -q '^UPLOADS_DIR=' .env; then
-        sed -i "s|^UPLOADS_DIR=.*|UPLOADS_DIR=\"$UPLOADS_DIR\"|" .env
-    else
-        echo "UPLOADS_DIR=\"$UPLOADS_DIR\"" >> .env
-    fi
-    if grep -q '^BACKUP_DIR=' .env; then
-        sed -i "s|^BACKUP_DIR=.*|BACKUP_DIR=\"/var/www/tribefinder/backups\"|" .env
-    else
-        echo "BACKUP_DIR=\"/var/www/tribefinder/backups\"" >> .env
-    fi
-
+    set_env_var UPLOADS_DIR "$UPLOADS_DIR"
+    set_env_var BACKUP_DIR "/var/www/tribefinder/backups"
     if ! grep -q '^MAINTENANCE_MODE=' .env; then
-        echo "MAINTENANCE_MODE=\"false\"" >> .env
+        set_env_var MAINTENANCE_MODE "false"
     fi
 
     if [ -n "$APP_VERSION" ]; then
-        if grep -q '^NEXT_PUBLIC_APP_VERSION=' .env; then
-            sed -i "s|^NEXT_PUBLIC_APP_VERSION=.*|NEXT_PUBLIC_APP_VERSION=\"$APP_VERSION\"|" .env
-        else
-            echo "NEXT_PUBLIC_APP_VERSION=\"$APP_VERSION\"" >> .env
-        fi
+        set_env_var NEXT_PUBLIC_APP_VERSION "$APP_VERSION"
     fi
     if [ -n "$APP_COMMIT" ]; then
-        if grep -q '^NEXT_PUBLIC_APP_COMMIT=' .env; then
-            sed -i "s|^NEXT_PUBLIC_APP_COMMIT=.*|NEXT_PUBLIC_APP_COMMIT=\"$APP_COMMIT\"|" .env
-        else
-            echo "NEXT_PUBLIC_APP_COMMIT=\"$APP_COMMIT\"" >> .env
-        fi
+        set_env_var NEXT_PUBLIC_APP_COMMIT "$APP_COMMIT"
     fi
 
     NEXTAUTH_URL_CURRENT="$(grep -E '^NEXTAUTH_URL=' .env | head -n 1 | sed -E 's/^[^=]+=//; s/^"//; s/"$//')"
@@ -113,11 +112,24 @@ if [ -f ".env" ]; then
         if echo "$NEXTAUTH_URL_CURRENT" | grep -qi "localhost"; then
             echo -e "${YELLOW}Warnung: NEXTAUTH_URL zeigt auf localhost. Bitte in .env auf die öffentliche Domain setzen.${NC}"
         fi
-        if grep -q '^SITE_URL=' .env; then
-            sed -i "s|^SITE_URL=.*|SITE_URL=\"$NEXTAUTH_URL_CURRENT\"|" .env
-        else
-            echo "SITE_URL=\"$NEXTAUTH_URL_CURRENT\"" >> .env
+        if echo "$NEXTAUTH_URL_CURRENT" | grep -qE '^http://'; then
+            echo -e "${YELLOW}Hinweis: NEXTAUTH_URL nutzt http://. Wenn du über HTTPS (Reverse Proxy) zugreifst, setze NEXTAUTH_URL auf https://... sonst kann Login fehlschlagen.${NC}"
         fi
+        if grep -q '^SITE_URL=' .env; then
+            set_env_var SITE_URL "$NEXTAUTH_URL_CURRENT"
+        else
+            set_env_var SITE_URL "$NEXTAUTH_URL_CURRENT"
+        fi
+    fi
+
+    # Auto-repair common invalid quoting from older setup scripts, e.g.
+    # SMTP_FROM=""TribeFinder" <noreply@...>"
+    if grep -q '^SMTP_FROM=""' .env; then
+        SMTP_FROM_REPAIRED="$(grep -E '^SMTP_FROM=' .env | head -n 1 | sed -E 's/^SMTP_FROM=//; s/^"+//; s/"+$//' | sed -E 's/^"//' | sed -E 's/\\"/"/g')"
+        if [ -z "$SMTP_FROM_REPAIRED" ]; then
+            SMTP_FROM_REPAIRED='TribeFinder <noreply@tribefinder.de>'
+        fi
+        set_env_var SMTP_FROM "$SMTP_FROM_REPAIRED"
     fi
 fi
 

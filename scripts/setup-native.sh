@@ -237,10 +237,15 @@ fi
 set_env_var() {
     local key="$1"
     local value="$2"
+    # Escape backslashes and double quotes for dotenv-style KEY="value" lines.
+    # This prevents broken .env files when values contain quotes (e.g., SMTP_FROM).
+    local escaped
+    escaped="${value//\\/\\\\}"
+    escaped="${escaped//\"/\\\"}"
     if grep -qE "^${key}=" .env; then
-        sed -i "s|^${key}=.*|${key}=\"${value}\"|" .env
+        sed -i "s|^${key}=.*|${key}=\"${escaped}\"|" .env
     else
-        echo "${key}=\"${value}\"" >> .env
+        echo "${key}=\"${escaped}\"" >> .env
     fi
 }
 
@@ -331,8 +336,8 @@ if [ -z "${SMTP_HOST_CURRENT}" ] || [ -z "${SMTP_USER_CURRENT}" ] || [ -z "${SMT
         break
     done
 
-    read -r -p "SMTP From [\"TribeFinder\" <noreply@tribefinder.de>]: " SMTP_FROM
-    SMTP_FROM="${SMTP_FROM:-\"TribeFinder\" <noreply@tribefinder.de>}"
+    read -r -p "SMTP From [TribeFinder <noreply@tribefinder.de>]: " SMTP_FROM
+    SMTP_FROM="${SMTP_FROM:-TribeFinder <noreply@tribefinder.de>}"
 
     set_env_var SMTP_HOST "${SMTP_HOST}"
     set_env_var SMTP_PORT "${SMTP_PORT}"
