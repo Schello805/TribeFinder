@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const DanceLevelSchema = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "PROFESSIONAL"]);
+const DanceModeSchema = z.enum(["IMPRO", "CHOREO"]).nullable();
 
 const baseGroupSchema = z.object({
   name: z.string().min(2, "Name muss mindestens 2 Zeichen lang sein"),
@@ -28,6 +29,7 @@ const baseGroupSchema = z.object({
       z.object({
         styleId: z.string().min(1),
         level: DanceLevelSchema.default("BEGINNER"),
+        mode: DanceModeSchema.optional(),
       })
     )
     .optional(),

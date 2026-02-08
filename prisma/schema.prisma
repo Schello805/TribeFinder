@@ -432,6 +432,11 @@ model MarketplaceListingImage {
   @@index([listingId])
 }
 
+enum DanceMode {
+  IMPRO
+  CHOREO
+}
+
 // Dance Styles (predefined list)
 model DanceStyle {
   id       String  @id @default(cuid())
@@ -467,6 +472,8 @@ model GroupDanceStyle {
   style   DanceStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
 
   level DanceLevel @default(BEGINNER)
+
+  mode DanceMode?
 
   @@unique([groupId, styleId])
 }

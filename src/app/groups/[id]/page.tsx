@@ -87,7 +87,18 @@ export default async function GroupDetailPage({
         startDate: "asc",
       },
     },
-  } satisfies Prisma.GroupSelect;
+  } as const;
+
+  const groupSelectWithMode = {
+    ...groupSelect,
+    danceStyles: {
+      ...groupSelect.danceStyles,
+      select: {
+        ...groupSelect.danceStyles.select,
+        mode: true,
+      },
+    },
+  } as const;
 
   type GroupDetailPayload = Prisma.GroupGetPayload<{ select: typeof groupSelect }>;
 
@@ -100,10 +111,10 @@ export default async function GroupDetailPage({
     user: { id: string; name: string | null; image: string | null; email: string };
   }> = [];
   try {
-    group = await prisma.group.findUnique({
+    group = (await prisma.group.findUnique({
       where: { id },
-      select: groupSelect,
-    });
+      select: groupSelectWithMode as unknown as Prisma.GroupSelect,
+    })) as unknown as GroupDetailPayload;
 
     if (group) {
       const isOwner = session?.user?.id === group.ownerId;
@@ -199,16 +210,23 @@ export default async function GroupDetailPage({
   const headerFocusY = typeof headerFocusYRaw === "number" && Number.isFinite(headerFocusYRaw) ? Math.min(100, Math.max(0, headerFocusYRaw)) : 50;
   const headerStyle = !headerImageUrl && headerFrom && headerTo ? { backgroundImage: `linear-gradient(to right, ${headerFrom}, ${headerTo})` } : undefined;
 
-  const danceStylesForDisplay = group.danceStyles.length
-    ? group.danceStyles.map((ds) => ({
+  const danceStylesForDisplay: Array<{
+    key: string;
+    name: string;
+    level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL";
+    mode: "IMPRO" | "CHOREO" | null;
+  }> = (group.danceStyles as unknown as Array<{ id: string; level: string; mode?: string | null; style: { name: string } }>).length
+    ? (group.danceStyles as unknown as Array<{ id: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | null; style: { name: string } }>).map((ds) => ({
         key: ds.id,
         name: ds.style.name,
         level: ds.level,
+        mode: ds.mode ?? null,
       }))
     : group.tags.map((t) => ({
         key: `tag-${t.id}`,
         name: t.name,
-        level: "INTERMEDIATE" as const,
+        level: "INTERMEDIATE",
+        mode: null,
       }));
 
   const approvedMemberships = group.members.filter((m) => m.status === "APPROVED");
@@ -462,6 +480,11 @@ export default async function GroupDetailPage({
                             {ds.level === "ADVANCED" && "Sehr fortgeschritten"}
                             {ds.level === "PROFESSIONAL" && "Profi"}
                           </span>
+                          {ds.mode ? (
+                            <span className="ml-2 text-[10px] text-[var(--muted)]">
+                              {ds.mode === "IMPRO" ? "Impro" : "Choreo"}
+                            </span>
+                          ) : null}
                         </span>
                       ))}
                     </dd>

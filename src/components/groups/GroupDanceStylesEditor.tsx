@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Level = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL";
+type Mode = "IMPRO" | "CHOREO" | null;
 
 type DanceStyle = {
   id: string;
@@ -13,6 +14,7 @@ type DanceStyle = {
 type GroupDanceStyleValue = {
   styleId: string;
   level: Level;
+  mode?: Mode;
 };
 
 const LEVEL_LABEL: Record<Level, string> = {
@@ -20,6 +22,11 @@ const LEVEL_LABEL: Record<Level, string> = {
   INTERMEDIATE: "Fortgeschritten",
   ADVANCED: "Sehr fortgeschritten",
   PROFESSIONAL: "Profi",
+};
+
+const MODE_LABEL: Record<Exclude<Mode, null>, string> = {
+  IMPRO: "Impro",
+  CHOREO: "Choreo",
 };
 
 export default function GroupDanceStylesEditor({
@@ -37,6 +44,7 @@ export default function GroupDanceStylesEditor({
 
   const [newStyleId, setNewStyleId] = useState<string>("");
   const [newLevel, setNewLevel] = useState<Level>("BEGINNER");
+  const [newMode, setNewMode] = useState<Mode>(null);
 
   const selectedIds = useMemo(() => new Set(value.map((s) => s.styleId)), [value]);
 
@@ -75,7 +83,7 @@ export default function GroupDanceStylesEditor({
     if (!newStyleId) return;
     if (selectedIds.has(newStyleId)) return;
 
-    const next = [...value, { styleId: newStyleId, level: newLevel }].sort((a, b) => {
+    const next = [...value, { styleId: newStyleId, level: newLevel, mode: newMode }].sort((a, b) => {
       const an = nameById.get(a.styleId) || "";
       const bn = nameById.get(b.styleId) || "";
       return an.localeCompare(bn);
@@ -83,11 +91,16 @@ export default function GroupDanceStylesEditor({
     onChange(next);
     setNewStyleId("");
     setNewLevel("BEGINNER");
+    setNewMode(null);
     setMessage("");
   };
 
   const updateLevel = (styleId: string, level: Level) => {
     onChange(value.map((x) => (x.styleId === styleId ? { ...x, level } : x)));
+  };
+
+  const updateMode = (styleId: string, mode: Mode) => {
+    onChange(value.map((x) => (x.styleId === styleId ? { ...x, mode } : x)));
   };
 
   const remove = (styleId: string) => {
@@ -138,6 +151,28 @@ export default function GroupDanceStylesEditor({
           </div>
         </div>
 
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground)]">Art</label>
+            <select
+              value={newMode ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                setNewMode(v === "" ? null : (v as Exclude<Mode, null>));
+              }}
+              className="mt-1 block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
+              disabled={disabled}
+            >
+              <option value="">Keine Angabe</option>
+              {(Object.keys(MODE_LABEL) as Array<Exclude<Mode, null>>).map((m) => (
+                <option key={m} value={m}>
+                  {MODE_LABEL[m]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <div className="flex justify-end mt-3">
           <button
             type="button"
@@ -180,6 +215,23 @@ export default function GroupDanceStylesEditor({
                       {(Object.keys(LEVEL_LABEL) as Level[]).map((lvl) => (
                         <option key={lvl} value={lvl}>
                           {LEVEL_LABEL[lvl]}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={s.mode ?? ""}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateMode(s.styleId, v === "" ? null : (v as Exclude<Mode, null>));
+                      }}
+                      disabled={disabled}
+                      className="rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
+                    >
+                      <option value="">Keine Angabe</option>
+                      {(Object.keys(MODE_LABEL) as Array<Exclude<Mode, null>>).map((m) => (
+                        <option key={m} value={m}>
+                          {MODE_LABEL[m]}
                         </option>
                       ))}
                     </select>

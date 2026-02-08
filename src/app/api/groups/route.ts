@@ -324,7 +324,7 @@ export async function POST(req: Request) {
           create: await Promise.all(
             danceStylesInput.map(async (ds) => {
               if ("styleId" in ds) {
-                return { level: ds.level, style: { connect: { id: ds.styleId } } };
+                return { level: ds.level, mode: ds.mode ?? null, style: { connect: { id: ds.styleId } } };
               }
               const style = await prisma.danceStyle.upsert({
                 where: { name: ds.name },
@@ -332,7 +332,7 @@ export async function POST(req: Request) {
                 create: { name: ds.name },
                 select: { id: true },
               });
-              return { level: ds.level, style: { connect: { id: style.id } } };
+              return { level: ds.level, mode: null, style: { connect: { id: style.id } } };
             })
           ),
         }

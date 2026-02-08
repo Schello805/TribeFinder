@@ -17,7 +17,7 @@ interface GroupFormProps {
     id?: string;
     location?: { lat: number; lng: number; address?: string | null } | null;
     tags?: Array<{ name: string } | string>;
-    danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL" }>;
+    danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | null }>;
   });
   isEditing?: boolean;
   isOwner?: boolean;

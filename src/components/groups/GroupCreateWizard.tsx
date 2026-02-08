@@ -32,7 +32,7 @@ interface FormData {
     lng: number;
     address?: string;
   };
-  danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL" }>;
+  danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | null }>;
 }
 
 type WizardStep = "basics" | "details";
