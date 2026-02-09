@@ -13,6 +13,11 @@ vi.mock("@/lib/prisma", () => {
         findUnique: vi.fn(),
         update: vi.fn(),
       },
+      group: {
+        findUnique: vi.fn(),
+        delete: vi.fn(),
+        update: vi.fn(),
+      },
       groupThread: {
         findUnique: vi.fn(),
       },
@@ -21,6 +26,10 @@ vi.mock("@/lib/prisma", () => {
       },
       groupThreadReadState: {
         upsert: vi.fn(),
+      },
+      groupThreadMessage: {
+        findUnique: vi.fn(),
+        update: vi.fn(),
       },
     },
   };
@@ -91,5 +100,101 @@ describe("AuthZ regression", () => {
 
     expect(res.status).toBe(403);
     expect(vi.mocked(prismaMock.groupThreadReadState.upsert)).not.toHaveBeenCalled();
+  });
+
+  it("denies group update for non-owner and non-admin-member", async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({
+      user: { id: "u2", role: "USER" },
+    } as unknown as Session);
+
+    const prismaMock = prisma as unknown as {
+      group: {
+        findUnique: (args: unknown) => unknown;
+        update: (args: unknown) => unknown;
+      };
+      groupMember: { findUnique: (args: unknown) => unknown };
+    };
+
+    vi.mocked(prismaMock.group.findUnique).mockResolvedValueOnce({ ownerId: "u1" });
+    vi.mocked(prismaMock.groupMember.findUnique).mockResolvedValueOnce(null);
+
+    const { PUT } = await import("@/app/api/groups/[id]/route");
+
+    const req = new Request("https://example.com/api/groups/g1", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "x" }),
+    });
+
+    const res = await PUT(req, { params: Promise.resolve({ id: "g1" }) });
+    expect(res.status).toBe(403);
+    expect(vi.mocked(prismaMock.group.update)).not.toHaveBeenCalled();
+  });
+
+  it("denies group delete for non-owner and non-admin-member", async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({
+      user: { id: "u2", role: "USER" },
+    } as unknown as Session);
+
+    const prismaMock = prisma as unknown as {
+      group: {
+        findUnique: (args: unknown) => unknown;
+        delete: (args: unknown) => unknown;
+      };
+      groupMember: { findUnique: (args: unknown) => unknown };
+    };
+
+    vi.mocked(prismaMock.group.findUnique).mockResolvedValueOnce({ ownerId: "u1" });
+    vi.mocked(prismaMock.groupMember.findUnique).mockResolvedValueOnce(null);
+
+    const { DELETE } = await import("@/app/api/groups/[id]/route");
+
+    const req = new Request("https://example.com/api/groups/g1", { method: "DELETE" });
+    const res = await DELETE(req, { params: Promise.resolve({ id: "g1" }) });
+
+    expect(res.status).toBe(403);
+    expect(vi.mocked(prismaMock.group.delete)).not.toHaveBeenCalled();
+  });
+
+  it("denies editing a thread message when not the author", async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({
+      user: { id: "u2" },
+    } as unknown as Session);
+
+    const prismaMock = prisma as unknown as {
+      groupThread: { findUnique: (args: unknown) => unknown };
+      groupMember: { findUnique: (args: unknown) => unknown };
+      groupThreadMessage: {
+        findUnique: (args: unknown) => unknown;
+        update: (args: unknown) => unknown;
+      };
+      groupThreadReadState: { findMany: (args: unknown) => unknown };
+    };
+
+    vi.mocked(prismaMock.groupThread.findUnique).mockResolvedValueOnce({
+      id: "t1",
+      groupId: "g1",
+      createdByUserId: "u1",
+      createdAt: new Date("2025-01-01T00:00:00.000Z"),
+    });
+    vi.mocked(prismaMock.groupMember.findUnique).mockResolvedValueOnce({ status: "APPROVED" });
+    vi.mocked(prismaMock.groupThreadMessage.findUnique).mockResolvedValueOnce({
+      id: "m1",
+      threadId: "t1",
+      authorId: "u1",
+      createdAt: new Date("2025-01-01T00:00:00.000Z"),
+    });
+
+    const { PATCH } = await import("@/app/api/messages/threads/[threadId]/messages/[messageId]/route");
+
+    const req = new Request("https://example.com/api/messages/threads/t1/messages/m1", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content: "hi" }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ threadId: "t1", messageId: "m1" }) });
+
+    expect(res.status).toBe(403);
+    expect(vi.mocked(prismaMock.groupThreadMessage.update)).not.toHaveBeenCalled();
   });
 });
