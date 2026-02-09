@@ -42,7 +42,7 @@ export default function DeleteEventButton({ eventId, redirectTo }: DeleteEventBu
     <button 
       onClick={handleDelete} 
       disabled={isDeleting}
-      className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50"
+      className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-base font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-50"
     >
       {isDeleting ? "Lösche..." : "Löschen"}
     </button>
