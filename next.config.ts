@@ -17,6 +17,24 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@react-pdf/renderer"],
   
   async headers() {
+    const isProd = process.env.NODE_ENV === "production";
+    const csp = isProd
+      ? [
+          "default-src 'self'",
+          "base-uri 'self'",
+          "object-src 'none'",
+          "frame-ancestors 'self'",
+          "form-action 'self'",
+          "img-src 'self' data: blob: https:",
+          "font-src 'self' data: https:",
+          "style-src 'self' 'unsafe-inline' https:",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+          "connect-src 'self' https: wss:",
+          "worker-src 'self' blob:",
+          "manifest-src 'self'",
+        ].join("; ")
+      : null;
+
     return [
       {
         source: "/:path*",
@@ -48,6 +66,22 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(self)"
+          },
+          ...(csp
+            ? [
+                {
+                  key: "Content-Security-Policy",
+                  value: csp,
+                },
+              ]
+            : []),
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+          {
+            key: "Cross-Origin-Resource-Policy",
+            value: "same-origin",
           }
         ]
       }
