@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight, getEmailBaseUrl, toAbsoluteUrl } from "@/lib/email";
 import { recordAdminAudit } from "@/lib/adminAudit";
+import { hashToken } from "@/lib/tokenHash";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -41,11 +42,12 @@ export async function POST(req: Request, { params }: RouteParams) {
 
     const resetToken = uuidv4();
     const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+    const resetTokenHash = hashToken(resetToken);
 
     await prisma.user.update({
       where: { id: targetUserId },
       data: {
-        resetToken,
+        resetToken: resetTokenHash,
         resetTokenExpiry,
       },
       select: { id: true },

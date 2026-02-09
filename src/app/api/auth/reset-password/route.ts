@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
+import { hashToken } from "@/lib/tokenHash";
 
 export async function POST(req: Request) {
   // Rate limiting
@@ -18,9 +19,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Token und neues Passwort sind erforderlich' }, { status: 400 });
     }
 
+    const tokenHash = hashToken(token);
+
     const user = await prisma.user.findFirst({
       where: {
-        resetToken: token,
+        resetToken: tokenHash,
         resetTokenExpiry: {
           gt: new Date(),
         },

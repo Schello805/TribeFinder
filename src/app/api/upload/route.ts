@@ -6,6 +6,8 @@ import fs from "node:fs";
 import logger from "@/lib/logger";
 import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE, AllowedImageType } from "@/types";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const resolveProjectRoot = () => {
   let dir = process.cwd();
@@ -40,9 +42,14 @@ async function fileExists(p: string) {
 }
 
 export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  }
+
   // Rate limiting
   const clientId = getClientIdentifier(req);
-  const rateCheck = checkRateLimit(`upload:${clientId}`, RATE_LIMITS.upload);
+  const rateCheck = checkRateLimit(`upload:${session.user.id}:${clientId}`, RATE_LIMITS.upload);
   if (!rateCheck.success) {
     return rateLimitResponse(rateCheck);
   }

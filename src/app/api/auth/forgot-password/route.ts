@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight, getEmailBaseUrl, toAbsoluteUrl } from '@/lib/email';
 import { v4 as uuidv4 } from 'uuid';
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
+import { hashToken } from "@/lib/tokenHash";
 
 export async function POST(req: Request) {
   // Rate limiting
@@ -30,11 +31,12 @@ export async function POST(req: Request) {
 
     const resetToken = uuidv4();
     const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 Stunde gültig
+    const resetTokenHash = hashToken(resetToken);
 
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        resetToken,
+        resetToken: resetTokenHash,
         resetTokenExpiry,
       },
     });

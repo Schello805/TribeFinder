@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { hashToken } from "@/lib/tokenHash";
 
 export async function POST(req: Request) {
   try {
@@ -9,9 +10,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Token fehlt" }, { status: 400 });
     }
 
+    const tokenHash = hashToken(token);
+
     const user = await prisma.user.findFirst({
       where: {
-        verificationToken: token,
+        verificationToken: tokenHash,
         verificationTokenExpiry: {
           gt: new Date(),
         },

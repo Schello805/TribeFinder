@@ -5,6 +5,7 @@ import { z } from "zod";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 import { v4 as uuidv4 } from "uuid";
 import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight, getEmailBaseUrl, toAbsoluteUrl } from "@/lib/email";
+import { hashToken } from "@/lib/tokenHash";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -52,6 +53,7 @@ export async function POST(req: Request) {
 
     const verificationToken = autoVerify ? null : uuidv4();
     const verificationTokenExpiry = autoVerify ? null : new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const verificationTokenHash = verificationToken ? hashToken(verificationToken) : null;
 
     const user = await prisma.user.create({
       data: {
@@ -62,7 +64,7 @@ export async function POST(req: Request) {
         role,
         notifyInboxMessages: true,
         emailVerified: autoVerify ? new Date() : null,
-        verificationToken,
+        verificationToken: verificationTokenHash,
         verificationTokenExpiry,
       },
     });
