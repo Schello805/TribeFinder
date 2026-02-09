@@ -128,6 +128,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   // Check editing permissions (Creator or Group Admin)
   let canEdit = false;
   if (session?.user?.id) {
+    if (session.user.role === "ADMIN") canEdit = true;
     if (event.creatorId === session.user.id) canEdit = true;
     if (event.group && event.group.ownerId === session.user.id) canEdit = true;
     if (!canEdit && event.groupId) {
