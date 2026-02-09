@@ -191,6 +191,14 @@ Im Admin-Bereich (`/admin`) können konfiguriert werden:
   - **Matomo**: Optional. Wenn konfiguriert, wird das Tracking-Skript von *deiner* Matomo-Instanz geladen.
 - **Schriften**: Google Fonts werden durch Next.js lokal optimiert und nicht von Google-Servern geladen.
 
+## Sicherheit (allgemein)
+
+- Halte `NEXTAUTH_SECRET` geheim und verwende für Produktion einen langen, zufälligen Wert.
+- Stelle sicher, dass die App ausschließlich über HTTPS erreichbar ist (Reverse Proxy/Load Balancer).
+- Verwende in Produktion eine feste `DEFAULT_ADMIN_EMAIL` und gib Admin-Rechte nur gezielt.
+- Halte Abhängigkeiten aktuell und prüfe regelmäßig auf Sicherheitsupdates.
+- Erstelle vor Updates mit Migrationen immer ein Datenbank-Backup.
+
 ## Deployment
 
 ### Native Installation (empfohlen)

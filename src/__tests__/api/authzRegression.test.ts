@@ -12,6 +12,7 @@ vi.mock("@/lib/prisma", () => {
       marketplaceListing: {
         findUnique: vi.fn(),
         update: vi.fn(),
+        delete: vi.fn(),
       },
       group: {
         findUnique: vi.fn(),
@@ -30,6 +31,7 @@ vi.mock("@/lib/prisma", () => {
       groupThreadMessage: {
         findUnique: vi.fn(),
         update: vi.fn(),
+        delete: vi.fn(),
       },
     },
   };
@@ -72,6 +74,31 @@ describe("AuthZ regression", () => {
 
     const res = await PUT(req, { params: Promise.resolve({ id: "l1" }) });
     expect(res.status).toBe(403);
+  });
+
+  it("denies marketplace listing delete for non-owner non-admin", async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({
+      user: { id: "u2", role: "USER" },
+    } as unknown as Session);
+
+    const prismaMock = prisma as unknown as {
+      marketplaceListing: {
+        findUnique: (args: unknown) => unknown;
+        delete: (args: unknown) => unknown;
+      };
+    };
+
+    vi.mocked(prismaMock.marketplaceListing.findUnique).mockResolvedValueOnce({
+      id: "l1",
+      ownerId: "u1",
+    });
+
+    const { DELETE } = await import("@/app/api/marketplace/[id]/route");
+
+    const req = new Request("https://example.com/api/marketplace/l1", { method: "DELETE" });
+    const res = await DELETE(req, { params: Promise.resolve({ id: "l1" }) });
+    expect(res.status).toBe(403);
+    expect(vi.mocked(prismaMock.marketplaceListing.delete)).not.toHaveBeenCalled();
   });
 
   it("denies thread access for non-member non-creator", async () => {
@@ -196,5 +223,42 @@ describe("AuthZ regression", () => {
 
     expect(res.status).toBe(403);
     expect(vi.mocked(prismaMock.groupThreadMessage.update)).not.toHaveBeenCalled();
+  });
+
+  it("denies deleting a thread message when not the author", async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({
+      user: { id: "u2" },
+    } as unknown as Session);
+
+    const prismaMock = prisma as unknown as {
+      groupThread: { findUnique: (args: unknown) => unknown };
+      groupMember: { findUnique: (args: unknown) => unknown };
+      groupThreadMessage: {
+        findUnique: (args: unknown) => unknown;
+        delete: (args: unknown) => unknown;
+      };
+    };
+
+    vi.mocked(prismaMock.groupThread.findUnique).mockResolvedValueOnce({
+      id: "t1",
+      groupId: "g1",
+      createdByUserId: "u1",
+      createdAt: new Date("2025-01-01T00:00:00.000Z"),
+    });
+    vi.mocked(prismaMock.groupMember.findUnique).mockResolvedValueOnce({ status: "APPROVED" });
+    vi.mocked(prismaMock.groupThreadMessage.findUnique).mockResolvedValueOnce({
+      id: "m1",
+      threadId: "t1",
+      authorId: "u1",
+      createdAt: new Date("2025-01-01T00:00:00.000Z"),
+    });
+
+    const { DELETE } = await import("@/app/api/messages/threads/[threadId]/messages/[messageId]/route");
+
+    const req = new Request("https://example.com/api/messages/threads/t1/messages/m1", { method: "DELETE" });
+    const res = await DELETE(req, { params: Promise.resolve({ threadId: "t1", messageId: "m1" }) });
+
+    expect(res.status).toBe(403);
+    expect(vi.mocked(prismaMock.groupThreadMessage.delete)).not.toHaveBeenCalled();
   });
 });
