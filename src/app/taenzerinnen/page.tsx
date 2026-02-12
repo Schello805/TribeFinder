@@ -50,11 +50,31 @@ export default async function DancersPage() {
         <p className="mt-2 text-[var(--muted)]">
           Hier findest du Tänzerinnen, die ein Profil angelegt haben.
         </p>
-        {!session?.user?.id ? (
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Hinweis: Private Profile werden nur eingeloggten Besuchern angezeigt.
-          </p>
-        ) : null}
+        {session?.user?.id ? (
+          <div className="mt-4">
+            <Link
+              href="/dashboard/profile"
+              className="inline-flex items-center justify-center rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition"
+            >
+              Tänzerinnenprofil erstellen
+            </Link>
+            <div className="mt-2 text-sm text-[var(--muted)]">
+              Dort kannst du „Als Tänzerin eintragen“ aktivieren und optional dein Profil privat lassen.
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4">
+            <Link
+              href="/auth/signin"
+              className="inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Anmelden, um ein Tänzerinnenprofil zu erstellen
+            </Link>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Hinweis: Private Profile werden nur eingeloggten Besuchern angezeigt.
+            </p>
+          </div>
+        )}
       </div>
 
       {dancers.length > 0 ? (
