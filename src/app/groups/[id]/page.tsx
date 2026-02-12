@@ -71,6 +71,9 @@ export default async function GroupDetailPage({
             id: true,
             name: true,
             image: true,
+            dancerName: true,
+            isDancerProfileEnabled: true,
+            isDancerProfilePrivate: true,
           },
         },
       },
@@ -244,6 +247,22 @@ export default async function GroupDetailPage({
   const adminMemberships = approvedMemberships.filter((m) => m.role === "ADMIN" && m.user.id !== group.owner.id);
   const regularMemberships = approvedMemberships.filter((m) => m.role !== "ADMIN" && m.user.id !== group.owner.id);
   const regularFirst12 = regularMemberships.slice(0, 12);
+
+  const showPrivateDancers = Boolean(session?.user?.id);
+  const dancerMemberships = approvedMemberships
+    .filter((m) => {
+      const u = m.user as unknown as { isDancerProfileEnabled?: boolean; isDancerProfilePrivate?: boolean };
+      if (!u.isDancerProfileEnabled) return false;
+      if (u.isDancerProfilePrivate && !showPrivateDancers) return false;
+      return true;
+    })
+    .map((m) => ({
+      id: m.id,
+      userId: m.user.id,
+      name: (m.user as unknown as { dancerName?: string | null; name?: string | null }).dancerName || m.user.name,
+      image: m.user.image,
+      role: m.role,
+    }));
 
   const groupLike = getGroupLikeDelegate();
   const [likeCount, likedByMe] = groupLike
@@ -625,6 +644,44 @@ export default async function GroupDetailPage({
                         </>
                       ) : (
                         <div className="text-sm text-[var(--muted)]">Noch keine Mitglieder hinterlegt.</div>
+                      )}
+                    </dd>
+                  </div>
+
+                  <div className="pt-4 border-t border-[var(--border)]">
+                    <dt className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Tänzerinnen</dt>
+                    <dd className="space-y-2">
+                      {dancerMemberships.length > 0 ? (
+                        dancerMemberships.slice(0, 12).map((m) => (
+                          <Link
+                            key={m.userId}
+                            href={`/users/${m.userId}`}
+                            className="flex items-center space-x-3 bg-[var(--surface)] p-3 rounded-lg border border-[var(--border)] shadow-sm hover:bg-[var(--surface-hover)] transition"
+                          >
+                            {m.image ? (
+                              <>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  className="h-9 w-9 rounded-full object-cover border border-[var(--border)]"
+                                  src={normalizeUploadedImageUrl(m.image) ?? ""}
+                                  alt={m.name || "Tänzerin"}
+                                />
+                              </>
+                            ) : (
+                              <div className="h-9 w-9 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold border border-[var(--border)]">
+                                {(m.name || "?").charAt(0)}
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium text-[var(--foreground)] truncate">{m.name || "Unbekannt"}</div>
+                              <div className="mt-0.5 text-xs text-[var(--muted)]">
+                                {m.role === "ADMIN" ? "Gruppenleitung" : "Mitglied"}
+                              </div>
+                            </div>
+                          </Link>
+                        ))
+                      ) : (
+                        <div className="text-sm text-[var(--muted)]">Noch keine Tänzerinnen-Profile in dieser Gruppe.</div>
                       )}
                     </dd>
                   </div>

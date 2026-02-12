@@ -3,9 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import UserPresenceStatus from "@/components/presence/UserPresenceStatus";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export default async function UserPublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;
+
+  const session = await getServerSession(authOptions);
 
   const user = await prisma.user.findUnique({
     where: { id },
@@ -15,6 +19,8 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
       image: true,
       dancerName: true,
       bio: true,
+      isDancerProfileEnabled: true,
+      isDancerProfilePrivate: true,
       memberships: {
         where: { status: "APPROVED" },
         select: {
@@ -35,9 +41,13 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
 
   if (!user) notFound();
 
+  if (!user.isDancerProfileEnabled) notFound();
+  if (user.isDancerProfilePrivate && !session?.user?.id) notFound();
+
   const displayName = user.dancerName || user.name || "Unbekannt";
   const avatar = normalizeUploadedImageUrl(user.image) ?? "";
   const memberships = user.memberships;
+  type Membership = (typeof memberships)[number];
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -65,7 +75,7 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
         <h2 className="tf-display text-lg font-bold text-[var(--foreground)]">Gruppen</h2>
         {memberships.length > 0 ? (
           <ul className="mt-4 divide-y divide-[var(--border)]">
-            {memberships.map((m) => (
+            {memberships.map((m: Membership) => (
               <li key={`${m.group.id}-${m.createdAt.toISOString?.() ?? String(m.createdAt)}`} className="py-3 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
                   {m.group.image ? (

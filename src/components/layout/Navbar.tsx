@@ -182,6 +182,9 @@ export default function Navbar() {
             <Link href="/groups" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
               Gruppen finden
             </Link>
+            <Link href="/taenzerinnen" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
+              Tänzerinnen
+            </Link>
             <Link href="/events" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
               Events
             </Link>
@@ -348,6 +351,9 @@ export default function Navbar() {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link href="/groups" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
               Gruppen finden
+            </Link>
+            <Link href="/taenzerinnen" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
+              Tänzerinnen
             </Link>
             <Link href="/events" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
               Events

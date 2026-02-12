@@ -11,6 +11,8 @@ interface UserProfile {
   dancerName?: string | null;
   bio?: string | null;
   image?: string | null;
+  isDancerProfileEnabled?: boolean;
+  isDancerProfilePrivate?: boolean;
   youtubeUrl?: string | null;
   instagramUrl?: string | null;
   facebookUrl?: string | null;
@@ -34,6 +36,8 @@ export default function ProfileForm() {
     dancerName: "",
     bio: "",
     image: "",
+    isDancerProfileEnabled: false,
+    isDancerProfilePrivate: false,
     youtubeUrl: "",
     instagramUrl: "",
     facebookUrl: "",
@@ -73,6 +77,11 @@ export default function ProfileForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: checked }));
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -210,6 +219,48 @@ export default function ProfileForm() {
                 onChange={handleChange}
                 className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
               />
+            </div>
+          </div>
+
+          <div className="sm:col-span-6">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4">
+              <div className="flex items-start gap-3">
+                <input
+                  id="isDancerProfileEnabled"
+                  name="isDancerProfileEnabled"
+                  type="checkbox"
+                  checked={Boolean(formData.isDancerProfileEnabled)}
+                  onChange={handleCheckboxChange}
+                  className="mt-1 h-4 w-4 rounded border-[var(--border)]"
+                />
+                <div className="min-w-0">
+                  <label htmlFor="isDancerProfileEnabled" className="block text-sm font-semibold text-[var(--foreground)]">
+                    Als Tänzerin eintragen
+                  </label>
+                  <p className="mt-1 text-sm text-[var(--muted)]">
+                    Wenn aktiv, erscheinst du in der Tänzerinnen-Übersicht und kannst von anderen gefunden werden.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-start gap-3">
+                <input
+                  id="isDancerProfilePrivate"
+                  name="isDancerProfilePrivate"
+                  type="checkbox"
+                  checked={Boolean(formData.isDancerProfilePrivate)}
+                  onChange={handleCheckboxChange}
+                  className="mt-1 h-4 w-4 rounded border-[var(--border)]"
+                />
+                <div className="min-w-0">
+                  <label htmlFor="isDancerProfilePrivate" className="block text-sm font-semibold text-[var(--foreground)]">
+                    Profil privat lassen
+                  </label>
+                  <p className="mt-1 text-sm text-[var(--muted)]">
+                    Privat bedeutet: Dein Profil ist nur für eingeloggte Besucher sichtbar.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 

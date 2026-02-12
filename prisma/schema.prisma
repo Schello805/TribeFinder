@@ -28,6 +28,9 @@ model User {
   dancerName String?
   bio        String?
 
+  isDancerProfileEnabled Boolean @default(false)
+  isDancerProfilePrivate Boolean @default(false)
+
   // Dance Profile
   danceLevel String? // "BEGINNER", "INTERMEDIATE", "ADVANCED", "PROFESSIONAL"
   lookingFor String? // "GROUP", "PARTNER", "BOTH", "NONE"
