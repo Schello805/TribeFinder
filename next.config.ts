@@ -12,9 +12,10 @@ const withPWA = withPWAInit({
   },
 });
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   output: "standalone",
   serverExternalPackages: ["@react-pdf/renderer"],
+  middlewareClientMaxBodySize: "600mb",
   
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
@@ -87,6 +88,6 @@ const nextConfig: NextConfig = {
       }
     ];
   }
-};
+} as unknown as NextConfig;
 
 export default withPWA(nextConfig);
