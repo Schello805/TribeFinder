@@ -33,6 +33,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
   - Tanzstil + Standort/Umkreis im Accordion „Filter“
   - Sortierung „Entfernung“: Hinweis + Accordion-Öffnung wenn Standort fehlt
 - Tänzerinnen-Übersicht (`/taenzerinnen`): Layout/Filter wie Gruppenübersicht (Suche, Sortierung, Filter)
+- Tänzerinnen-Profile: Phase 2 Felder ergänzt (Unterricht + Ort, Schwerpunkte, Ausbildung/Training, Auftritte/Referenzen) + Filter „Unterricht“
 - Gruppenseite: Öffentliche Sidebar zeigt jetzt Gruppenleitung (Owner + Admins) und Mitgliederliste (erste 12 + „Mehr“)
 - User-Profil: Gruppenliste zeigt jetzt Rolle (Mitglied/Gruppenleitung) und Beitrittsdatum
 - Neue Hilfeseite `/hilfe` und Link im Footer
