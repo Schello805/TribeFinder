@@ -5,6 +5,9 @@ Eine moderne Plattform für Tanzgruppen (Tribal Style, Fusion & mehr) zur Verwal
 ## Features
 
 - **Gruppenverwaltung**: Erstelle und verwalte Tanzgruppen-Steckbriefe.
+- **Tänzerinnen-Profile**: Optional im Profil aktivierbar und in der Übersicht `/taenzerinnen` sichtbar.
+  - Privat-Option: Private Profile sind nur für eingeloggte Besucher sichtbar.
+  - Verknüpft: Profile zeigen zugehörige Gruppen (Mitgliedschaften).
 - **Event-Management**: Plane Auftritte und Veranstaltungen.
 - **Interaktive Karte**: Finde Gruppen und Events in deiner Nähe (basierend auf OpenStreetMap).
 - **Community Feed**: Ein "Schwarzes Brett" für Austausch und Neuigkeiten.

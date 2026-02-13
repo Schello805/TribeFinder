@@ -32,6 +32,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
   - Oben nur noch Suche + Sortierung
   - Tanzstil + Standort/Umkreis im Accordion „Filter“
   - Sortierung „Entfernung“: Hinweis + Accordion-Öffnung wenn Standort fehlt
+- Tänzerinnen-Übersicht (`/taenzerinnen`): Layout/Filter wie Gruppenübersicht (Suche, Sortierung, Filter)
 - Gruppenseite: Öffentliche Sidebar zeigt jetzt Gruppenleitung (Owner + Admins) und Mitgliederliste (erste 12 + „Mehr“)
 - User-Profil: Gruppenliste zeigt jetzt Rolle (Mitglied/Gruppenleitung) und Beitrittsdatum
 - Neue Hilfeseite `/hilfe` und Link im Footer
@@ -86,6 +87,11 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - "Ungültiger Wert" bei Datum/Uhrzeit Eingabe in Safari (Browser-Validation der versteckten Inputs)
 - Weiterleitung nach Event-Erstellung für Events ohne Gruppe
 - Event löschen: Delete-Button auf Detailseite + API-Route für Events ohne Gruppe
+- Öffentliche Seiten: Nicht eingeloggte Nutzer sehen wieder Gruppenlogos/Profilbilder (Uploads werden nicht mehr auf Login umgeleitet)
+
+### 🎉 Neu hinzugefügt
+
+- Tänzerinnen-Profile: Optional im Nutzerprofil aktivierbar (inkl. Privat-Option) und sichtbar in `/taenzerinnen` + Gruppen-Detailseiten
 
 ### 🎉 Neu hinzugefügt
 
