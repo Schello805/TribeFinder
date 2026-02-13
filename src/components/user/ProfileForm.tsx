@@ -13,6 +13,11 @@ interface UserProfile {
   image?: string | null;
   isDancerProfileEnabled?: boolean;
   isDancerProfilePrivate?: boolean;
+  dancerTeaches?: boolean;
+  dancerTeachingWhere?: string | null;
+  dancerTeachingFocus?: string | null;
+  dancerEducation?: string | null;
+  dancerPerformances?: string | null;
   youtubeUrl?: string | null;
   instagramUrl?: string | null;
   facebookUrl?: string | null;
@@ -38,6 +43,11 @@ export default function ProfileForm() {
     image: "",
     isDancerProfileEnabled: false,
     isDancerProfilePrivate: false,
+    dancerTeaches: false,
+    dancerTeachingWhere: "",
+    dancerTeachingFocus: "",
+    dancerEducation: "",
+    dancerPerformances: "",
     youtubeUrl: "",
     instagramUrl: "",
     facebookUrl: "",
@@ -261,6 +271,100 @@ export default function ProfileForm() {
                   </p>
                 </div>
               </div>
+
+
+              {Boolean(formData.isDancerProfileEnabled) ? (
+                <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  <div className="sm:col-span-6">
+                    <div className="flex items-start gap-3">
+                      <input
+                        id="dancerTeaches"
+                        name="dancerTeaches"
+                        type="checkbox"
+                        checked={Boolean(formData.dancerTeaches)}
+                        onChange={handleCheckboxChange}
+                        className="mt-1 h-4 w-4 rounded border-[var(--border)]"
+                      />
+                      <div className="min-w-0">
+                        <label htmlFor="dancerTeaches" className="block text-sm font-semibold text-[var(--foreground)]">
+                          Ich unterrichte
+                        </label>
+                        <p className="mt-1 text-sm text-[var(--muted)]">
+                          Optional: Wenn aktiv, kannst du unten Ort/Schwerpunkte ergänzen.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label htmlFor="dancerTeachingWhere" className="block text-sm font-medium text-[var(--foreground)]">
+                      Unterricht (wo?)
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="dancerTeachingWhere"
+                        id="dancerTeachingWhere"
+                        value={formData.dancerTeachingWhere || ""}
+                        onChange={handleChange}
+                        placeholder="z.B. Berlin, Online, Studio XY"
+                        className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label htmlFor="dancerTeachingFocus" className="block text-sm font-medium text-[var(--foreground)]">
+                      Unterricht-Schwerpunkte
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        id="dancerTeachingFocus"
+                        name="dancerTeachingFocus"
+                        rows={3}
+                        value={formData.dancerTeachingFocus || ""}
+                        onChange={handleChange}
+                        className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
+                        placeholder="z.B. Technik, Choreo, Improvisation, Anfängerinnen"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label htmlFor="dancerEducation" className="block text-sm font-medium text-[var(--foreground)]">
+                      Ausbildung / Training
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        id="dancerEducation"
+                        name="dancerEducation"
+                        rows={3}
+                        value={formData.dancerEducation || ""}
+                        onChange={handleChange}
+                        className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
+                        placeholder="z.B. Workshops, Teachers, jahrelanges Training"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label htmlFor="dancerPerformances" className="block text-sm font-medium text-[var(--foreground)]">
+                      Auftritte / Referenzen
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        id="dancerPerformances"
+                        name="dancerPerformances"
+                        rows={3}
+                        value={formData.dancerPerformances || ""}
+                        onChange={handleChange}
+                        className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
+                        placeholder="z.B. Festivals, Shows, Kooperationen"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
 

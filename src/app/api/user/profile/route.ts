@@ -13,6 +13,11 @@ const profileSchema = z.object({
   image: z.string().optional().nullable(),
   isDancerProfileEnabled: z.boolean().optional(),
   isDancerProfilePrivate: z.boolean().optional(),
+  dancerTeaches: z.boolean().optional(),
+  dancerTeachingWhere: z.string().optional().nullable(),
+  dancerTeachingFocus: z.string().optional().nullable(),
+  dancerEducation: z.string().optional().nullable(),
+  dancerPerformances: z.string().optional().nullable(),
   youtubeUrl: z.string().url().optional().or(z.literal("")).nullable(),
   instagramUrl: z.string().url().optional().or(z.literal("")).nullable(),
   facebookUrl: z.string().url().optional().or(z.literal("")).nullable(),
@@ -27,24 +32,31 @@ export async function GET() {
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        firstName: true,
-        lastName: true,
-        dancerName: true,
-        bio: true,
-        image: true,
-        isDancerProfileEnabled: true,
-        isDancerProfilePrivate: true,
-        youtubeUrl: true,
-        instagramUrl: true,
-        facebookUrl: true,
-        tiktokUrl: true,
-        email: true, // Read-only
-        name: true, // Legacy/Display name
-      }
-    });
+    const user = await prisma.user.findUnique(
+      {
+        where: { id: session.user.id },
+        select: {
+          firstName: true,
+          lastName: true,
+          dancerName: true,
+          bio: true,
+          image: true,
+          isDancerProfileEnabled: true,
+          isDancerProfilePrivate: true,
+          dancerTeaches: true,
+          dancerTeachingWhere: true,
+          dancerTeachingFocus: true,
+          dancerEducation: true,
+          dancerPerformances: true,
+          youtubeUrl: true,
+          instagramUrl: true,
+          facebookUrl: true,
+          tiktokUrl: true,
+          email: true, // Read-only
+          name: true, // Legacy/Display name
+        },
+      } as unknown as Parameters<typeof prisma.user.findUnique>[0]
+    );
 
     if (!user) {
       return NextResponse.json({ message: "Benutzer nicht gefunden" }, { status: 404 });
@@ -78,6 +90,11 @@ export async function GET() {
         image: normalizeUploadedImageUrl((session.user as { image?: string | null }).image ?? null),
         isDancerProfileEnabled: false,
         isDancerProfilePrivate: false,
+        dancerTeaches: false,
+        dancerTeachingWhere: null,
+        dancerTeachingFocus: null,
+        dancerEducation: null,
+        dancerPerformances: null,
         youtubeUrl: null,
         instagramUrl: null,
         facebookUrl: null,
@@ -114,7 +131,7 @@ export async function PUT(req: Request) {
 
     const data = result.data;
 
-    const updatedUser = await prisma.user.update({
+    const updateArgs = {
       where: { id: session.user.id },
       data: {
         firstName: data.firstName,
@@ -122,16 +139,27 @@ export async function PUT(req: Request) {
         dancerName: data.dancerName,
         bio: data.bio,
         image: normalizeUploadedImageUrl(data.image),
-        isDancerProfileEnabled: typeof data.isDancerProfileEnabled === "boolean" ? data.isDancerProfileEnabled : undefined,
-        isDancerProfilePrivate: typeof data.isDancerProfilePrivate === "boolean" ? data.isDancerProfilePrivate : undefined,
+        isDancerProfileEnabled:
+          typeof data.isDancerProfileEnabled === "boolean" ? data.isDancerProfileEnabled : undefined,
+        isDancerProfilePrivate:
+          typeof data.isDancerProfilePrivate === "boolean" ? data.isDancerProfilePrivate : undefined,
+        dancerTeaches: typeof data.dancerTeaches === "boolean" ? data.dancerTeaches : undefined,
+        dancerTeachingWhere: data.dancerTeachingWhere,
+        dancerTeachingFocus: data.dancerTeachingFocus,
+        dancerEducation: data.dancerEducation,
+        dancerPerformances: data.dancerPerformances,
         youtubeUrl: data.youtubeUrl,
         instagramUrl: data.instagramUrl,
         facebookUrl: data.facebookUrl,
         tiktokUrl: data.tiktokUrl,
         // Update generic name as well if dancerName is provided, otherwise combine first/last
-        name: data.dancerName || (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : session.user.name),
+        name:
+          data.dancerName ||
+          (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : session.user.name),
       },
-    });
+    } as unknown as Parameters<typeof prisma.user.update>[0];
+
+    const updatedUser = await prisma.user.update(updateArgs);
 
     return NextResponse.json({
       ...updatedUser,

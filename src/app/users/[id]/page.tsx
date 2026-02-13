@@ -19,6 +19,11 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
     bio: string | null;
     isDancerProfileEnabled: boolean;
     isDancerProfilePrivate: boolean;
+    dancerTeaches: boolean;
+    dancerTeachingWhere: string | null;
+    dancerTeachingFocus: string | null;
+    dancerEducation: string | null;
+    dancerPerformances: string | null;
     memberships: Array<{
       role: string;
       createdAt: Date;
@@ -36,6 +41,11 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
       bio: true,
       isDancerProfileEnabled: true,
       isDancerProfilePrivate: true,
+      dancerTeaches: true,
+      dancerTeachingWhere: true,
+      dancerTeachingFocus: true,
+      dancerEducation: true,
+      dancerPerformances: true,
       memberships: {
         where: { status: "APPROVED" },
         select: {
@@ -63,6 +73,12 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
   const avatar = normalizeUploadedImageUrl(user.image) ?? "";
   const memberships = user.memberships;
   type Membership = UserPublicProfile["memberships"][number];
+  const hasPhase2 =
+    user.dancerTeaches ||
+    Boolean(user.dancerTeachingWhere?.trim()) ||
+    Boolean(user.dancerTeachingFocus?.trim()) ||
+    Boolean(user.dancerEducation?.trim()) ||
+    Boolean(user.dancerPerformances?.trim());
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -85,6 +101,43 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
           </div>
         </div>
       </div>
+
+      {hasPhase2 ? (
+        <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-2xl shadow-sm border border-[var(--border)] p-6">
+          <h2 className="tf-display text-lg font-bold text-[var(--foreground)]">Unterricht & Erfahrung</h2>
+          <div className="mt-4 space-y-4">
+            {user.dancerTeaches ? (
+              <div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Unterricht</div>
+                <div className="mt-1 text-sm text-[var(--muted)]">
+                  {user.dancerTeachingWhere ? user.dancerTeachingWhere : "Ja"}
+                </div>
+              </div>
+            ) : null}
+
+            {user.dancerTeachingFocus ? (
+              <div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Schwerpunkte</div>
+                <div className="mt-1 text-sm text-[var(--muted)] whitespace-pre-wrap">{user.dancerTeachingFocus}</div>
+              </div>
+            ) : null}
+
+            {user.dancerEducation ? (
+              <div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Ausbildung / Training</div>
+                <div className="mt-1 text-sm text-[var(--muted)] whitespace-pre-wrap">{user.dancerEducation}</div>
+              </div>
+            ) : null}
+
+            {user.dancerPerformances ? (
+              <div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Auftritte / Referenzen</div>
+                <div className="mt-1 text-sm text-[var(--muted)] whitespace-pre-wrap">{user.dancerPerformances}</div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-2xl shadow-sm border border-[var(--border)] p-6">
         <h2 className="tf-display text-lg font-bold text-[var(--foreground)]">Gruppen</h2>

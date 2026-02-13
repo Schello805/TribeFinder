@@ -14,6 +14,7 @@ export async function GET(req: Request) {
   const query = (searchParams.get("query") || "").trim();
   const hasBio = searchParams.get("hasBio") === "1";
   const hasGroups = searchParams.get("hasGroups") === "1";
+  const teaches = searchParams.get("teaches") === "1";
   const sortRaw = (searchParams.get("sort") || "").trim();
   const sort = sortRaw === "name" ? "name" : "newest";
 
@@ -27,6 +28,7 @@ export async function GET(req: Request) {
   const whereClause: {
     isDancerProfileEnabled: boolean;
     isDancerProfilePrivate?: boolean;
+    dancerTeaches?: boolean;
     OR?: Array<{ dancerName?: { contains: string }; name?: { contains: string }; bio?: { contains: string } }>;
     bio?: { not: null };
     memberships?: { some: { status: "APPROVED" } };
@@ -51,6 +53,10 @@ export async function GET(req: Request) {
     whereClause.memberships = { some: { status: "APPROVED" } };
   }
 
+  if (teaches) {
+    whereClause.dancerTeaches = true;
+  }
+
   try {
     // Cast for resilience in case a stale Prisma client is used locally.
     // (Runtime still requires `prisma generate` to have the new fields.)
@@ -59,29 +65,36 @@ export async function GET(req: Request) {
 
     const [total, users] = await Promise.all([
       prisma.user.count({ where: whereAny }),
-      prisma.user.findMany({
-        where: whereAny,
-        select: {
-          id: true,
-          name: true,
-          dancerName: true,
-          image: true,
-          bio: true,
-          updatedAt: true,
-          memberships: {
-            where: { status: "APPROVED" },
-            select: {
-              role: true,
-              group: { select: { id: true, name: true } },
+      prisma.user.findMany(
+        {
+          where: whereAny,
+          select: {
+            id: true,
+            name: true,
+            dancerName: true,
+            image: true,
+            bio: true,
+            dancerTeaches: true,
+            dancerTeachingWhere: true,
+            dancerTeachingFocus: true,
+            dancerEducation: true,
+            dancerPerformances: true,
+            updatedAt: true,
+            memberships: {
+              where: { status: "APPROVED" },
+              select: {
+                role: true,
+                group: { select: { id: true, name: true } },
+              },
+              orderBy: { createdAt: "desc" },
+              take: 10,
             },
-            orderBy: { createdAt: "desc" },
-            take: 10,
           },
-        },
-        orderBy: sort === "name" ? [{ dancerName: "asc" }, { name: "asc" }] : [{ updatedAt: "desc" }],
-        skip,
-        take: limit,
-      }),
+          orderBy: sort === "name" ? [{ dancerName: "asc" }, { name: "asc" }] : [{ updatedAt: "desc" }],
+          skip,
+          take: limit,
+        } as unknown as FindManyArgs
+      ),
     ]);
 
     return NextResponse.json({

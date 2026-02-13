@@ -13,12 +13,13 @@ export default function DancerFilter() {
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
   const [hasBio, setHasBio] = useState(searchParams.get("hasBio") === "1");
   const [hasGroups, setHasGroups] = useState(searchParams.get("hasGroups") === "1");
+  const [teaches, setTeaches] = useState(searchParams.get("teaches") === "1");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const updateUrl = useCallback(
-    (newQuery: string, newSort: string, newHasBio: boolean, newHasGroups: boolean) => {
+    (newQuery: string, newSort: string, newHasBio: boolean, newHasGroups: boolean, newTeaches: boolean) => {
       const params = new URLSearchParams(searchParamsString);
 
       if (newQuery) params.set("query", newQuery);
@@ -33,6 +34,9 @@ export default function DancerFilter() {
       if (newHasGroups) params.set("hasGroups", "1");
       else params.delete("hasGroups");
 
+      if (newTeaches) params.set("teaches", "1");
+      else params.delete("teaches");
+
       const nextQuery = params.toString();
       const nextUrl = nextQuery ? `/taenzerinnen?${nextQuery}` : "/taenzerinnen";
       const currentUrl = searchParamsString ? `/taenzerinnen?${searchParamsString}` : "/taenzerinnen";
@@ -44,18 +48,20 @@ export default function DancerFilter() {
   );
 
   useEffect(() => {
-    updateUrl(debouncedSearchTerm, sort, hasBio, hasGroups);
-  }, [debouncedSearchTerm, sort, hasBio, hasGroups, updateUrl]);
+    updateUrl(debouncedSearchTerm, sort, hasBio, hasGroups, teaches);
+  }, [debouncedSearchTerm, sort, hasBio, hasGroups, teaches, updateUrl]);
 
   const clearAll = () => {
     setSearchTerm("");
     setSort("newest");
     setHasBio(false);
     setHasGroups(false);
-    updateUrl("", "newest", false, false);
+    setTeaches(false);
+    updateUrl("", "newest", false, false, false);
   };
 
-  const hasActiveFilters = Boolean(searchTerm.trim()) || Boolean(sort && sort !== "newest") || hasBio || hasGroups;
+  const hasActiveFilters =
+    Boolean(searchTerm.trim()) || Boolean(sort && sort !== "newest") || hasBio || hasGroups || teaches;
 
   return (
     <div className="mb-4 bg-[var(--surface)] text-[var(--foreground)] p-3 rounded-lg shadow-sm border border-[var(--border)] space-y-3">
@@ -126,6 +132,15 @@ export default function DancerFilter() {
                   />
                   Mit Gruppen
                 </label>
+                <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+                  <input
+                    type="checkbox"
+                    checked={teaches}
+                    onChange={(e) => setTeaches(e.target.checked)}
+                    className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                  />
+                  Unterricht
+                </label>
               </div>
             </div>
           </div>
@@ -152,6 +167,17 @@ export default function DancerFilter() {
               className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-[11px] text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
             >
               Mit Gruppen
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          {teaches ? (
+            <button
+              type="button"
+              onClick={() => setTeaches(false)}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-[11px] text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Unterricht
               <span className="text-[var(--muted)]">×</span>
             </button>
           ) : null}

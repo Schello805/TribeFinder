@@ -19,6 +19,8 @@ interface DancerListAnimatedItem {
   dancerName: string | null;
   image: string | null;
   bio: string | null;
+  dancerTeaches?: boolean;
+  dancerTeachingWhere?: string | null;
   updatedAt?: string | Date;
   memberships: Membership[];
 }
@@ -98,6 +100,17 @@ export default function DancerListAnimated({ dancers }: DancerListAnimatedProps)
 
                   {d.bio ? (
                     <p className="text-sm text-[var(--muted)] line-clamp-2 leading-relaxed whitespace-pre-wrap">{d.bio}</p>
+                  ) : null}
+
+                  {d.dancerTeaches ? (
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)]">
+                        Unterricht
+                      </span>
+                      {d.dancerTeachingWhere ? (
+                        <span className="text-xs text-[var(--muted)] truncate">{d.dancerTeachingWhere}</span>
+                      ) : null}
+                    </div>
                   ) : null}
 
                   {d.memberships?.length ? (
