@@ -43,6 +43,15 @@ async function createServerBackup(settingsPayload) {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
 
+  let databaseUrlCli = databaseUrl;
+  try {
+    const u = new URL(databaseUrl);
+    u.searchParams.delete("schema");
+    databaseUrlCli = u.toString();
+  } catch {
+    databaseUrlCli = databaseUrl;
+  }
+
   const uploadsDir = path.join(process.cwd(), "public/uploads");
 
   const backupDir = path.join(process.cwd(), "backups");
@@ -61,7 +70,7 @@ async function createServerBackup(settingsPayload) {
     await new Promise((resolve, reject) => {
       const proc = spawn(
         "pg_dump",
-        ["--no-owner", "--no-privileges", "--format=p", "-f", tmpDb, "-d", databaseUrl],
+        ["--no-owner", "--no-privileges", "--format=p", "-f", tmpDb, "-d", databaseUrlCli],
         { cwd: process.cwd(), env: process.env }
       );
       let stderr = "";
