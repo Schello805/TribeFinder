@@ -19,8 +19,11 @@ const isPublicPagePath = (pathname: string) => {
   if (pathname === "/impressum") return true;
   if (pathname === "/datenschutz") return true;
   if (pathname.startsWith("/auth")) return true;
+  if (pathname.startsWith("/uploads")) return true;
   if (pathname.startsWith("/map")) return true;
   if (pathname.startsWith("/groups")) return true;
+  if (pathname.startsWith("/taenzerinnen")) return true;
+  if (pathname.startsWith("/users")) return true;
   if (pathname.startsWith("/marketplace")) return true;
   if (pathname.startsWith("/events")) return true;
   return false;
@@ -35,6 +38,7 @@ const isPublicApiPath = (pathname: string, method: string) => {
   if (pathname === "/api/groups") return true;
   if (/^\/api\/groups\/[^/]+$/.test(pathname)) return true;
   if (/^\/api\/groups\/[^/]+\/like$/.test(pathname)) return true;
+  if (pathname === "/api/taenzerinnen") return true;
   if (pathname === "/api/marketplace") return true;
   if (/^\/api\/marketplace\/[^/]+$/.test(pathname)) return true;
   if (pathname === "/api/events") return true;
