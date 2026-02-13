@@ -11,7 +11,22 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
 
   const session = await getServerSession(authOptions);
 
-  const user = await prisma.user.findUnique({
+  type UserPublicProfile = {
+    id: string;
+    name: string | null;
+    image: string | null;
+    dancerName: string | null;
+    bio: string | null;
+    isDancerProfileEnabled: boolean;
+    isDancerProfilePrivate: boolean;
+    memberships: Array<{
+      role: string;
+      createdAt: Date;
+      group: { id: string; name: string; image: string | null };
+    }>;
+  };
+
+  const user = (await prisma.user.findUnique({
     where: { id },
     select: {
       id: true,
@@ -37,7 +52,7 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
         orderBy: { createdAt: "desc" },
       },
     },
-  });
+  } as unknown as Parameters<typeof prisma.user.findUnique>[0])) as unknown as UserPublicProfile | null;
 
   if (!user) notFound();
 
@@ -47,7 +62,7 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
   const displayName = user.dancerName || user.name || "Unbekannt";
   const avatar = normalizeUploadedImageUrl(user.image) ?? "";
   const memberships = user.memberships;
-  type Membership = (typeof memberships)[number];
+  type Membership = UserPublicProfile["memberships"][number];
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -113,9 +128,14 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
       </div>
 
       <div>
-        <Link href="/groups" className="text-[var(--muted)] hover:text-[var(--link)] font-medium">
-          Zurück zu Gruppen
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Link href="/taenzerinnen" className="text-[var(--muted)] hover:text-[var(--link)] font-medium">
+            Zurück zu Tänzerinnen
+          </Link>
+          <Link href="/groups" className="text-[var(--muted)] hover:text-[var(--link)] font-medium">
+            Zurück zu Gruppen
+          </Link>
+        </div>
       </div>
     </div>
   );
