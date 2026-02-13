@@ -249,6 +249,7 @@ export default function ProfileForm() {
                   </label>
                   <p className="mt-1 text-sm text-[var(--muted)]">
                     Wenn aktiv, erscheinst du in der Tänzerinnen-Übersicht und kannst von anderen gefunden werden.
+                    Ohne Aktivierung ist dein Profil nicht öffentlich über /taenzerinnen bzw. /users/[id] sichtbar.
                   </p>
                 </div>
               </div>
@@ -267,7 +268,8 @@ export default function ProfileForm() {
                     Profil privat lassen
                   </label>
                   <p className="mt-1 text-sm text-[var(--muted)]">
-                    Privat bedeutet: Dein Profil ist nur für eingeloggte Besucher sichtbar.
+                    Wirkt nur, wenn du dich als Tänzerin einträgst.
+                    Privat bedeutet: Dein Tänzerinnenprofil ist nur für eingeloggte Besucher sichtbar.
                   </p>
                 </div>
               </div>
