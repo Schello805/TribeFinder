@@ -46,7 +46,29 @@ export async function POST(req: Request) {
   const session = await requireAdminSession();
   if (!session) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
-  const form = await req.formData().catch(() => null);
+  const contentType = req.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("multipart/form-data")) {
+    return NextResponse.json(
+      {
+        message: "Ungültiger Content-Type",
+        details: `Erwartet multipart/form-data, bekommen: ${contentType || "(leer)"}`,
+      },
+      { status: 415 }
+    );
+  }
+
+  let form: FormData | null = null;
+  try {
+    form = await req.formData();
+  } catch (e) {
+    return NextResponse.json(
+      {
+        message: "Ungültige Formdaten",
+        details: e instanceof Error ? e.message : String(e),
+      },
+      { status: 400 }
+    );
+  }
   if (!form) return NextResponse.json({ message: "Ungültige Formdaten" }, { status: 400 });
 
   const fileEntry = form.get("file");
