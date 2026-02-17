@@ -35,6 +35,8 @@ const isPublicApiPath = (pathname: string, method: string) => {
 
   if (!isReadMethod(method)) return false;
 
+  if (pathname === "/api/branding") return true;
+  if (pathname === "/api/tags") return true;
   if (pathname === "/api/groups") return true;
   if (/^\/api\/groups\/[^/]+$/.test(pathname)) return true;
   if (/^\/api\/groups\/[^/]+\/like$/.test(pathname)) return true;
