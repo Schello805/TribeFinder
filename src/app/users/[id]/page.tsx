@@ -24,6 +24,9 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
     dancerTeachingFocus: string | null;
     dancerEducation: string | null;
     dancerPerformances: string | null;
+    dancerGivesWorkshops: boolean;
+    dancerBookableForShows: boolean;
+    dancerWorkshopConditions: string | null;
     memberships: Array<{
       role: string;
       createdAt: Date;
@@ -46,6 +49,9 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
       dancerTeachingFocus: true,
       dancerEducation: true,
       dancerPerformances: true,
+      dancerGivesWorkshops: true,
+      dancerBookableForShows: true,
+      dancerWorkshopConditions: true,
       memberships: {
         where: { status: "APPROVED" },
         select: {
@@ -78,7 +84,10 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
     Boolean(user.dancerTeachingWhere?.trim()) ||
     Boolean(user.dancerTeachingFocus?.trim()) ||
     Boolean(user.dancerEducation?.trim()) ||
-    Boolean(user.dancerPerformances?.trim());
+    Boolean(user.dancerPerformances?.trim()) ||
+    user.dancerGivesWorkshops ||
+    user.dancerBookableForShows ||
+    Boolean(user.dancerWorkshopConditions?.trim());
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -133,6 +142,27 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
               <div>
                 <div className="text-sm font-semibold text-[var(--foreground)]">Auftritte / Referenzen</div>
                 <div className="mt-1 text-sm text-[var(--muted)] whitespace-pre-wrap">{user.dancerPerformances}</div>
+              </div>
+            ) : null}
+
+            {user.dancerGivesWorkshops ? (
+              <div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Workshops</div>
+                <div className="mt-1 text-sm text-[var(--muted)]">Ja</div>
+              </div>
+            ) : null}
+
+            {user.dancerBookableForShows ? (
+              <div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Für Auftritte buchbar</div>
+                <div className="mt-1 text-sm text-[var(--muted)]">Ja</div>
+              </div>
+            ) : null}
+
+            {user.dancerWorkshopConditions ? (
+              <div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Konditionen</div>
+                <div className="mt-1 text-sm text-[var(--muted)] whitespace-pre-wrap">{user.dancerWorkshopConditions}</div>
               </div>
             ) : null}
           </div>

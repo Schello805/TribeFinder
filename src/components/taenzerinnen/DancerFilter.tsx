@@ -14,12 +14,20 @@ export default function DancerFilter() {
   const [hasBio, setHasBio] = useState(searchParams.get("hasBio") === "1");
   const [hasGroups, setHasGroups] = useState(searchParams.get("hasGroups") === "1");
   const [teaches, setTeaches] = useState(searchParams.get("teaches") === "1");
+  const [workshops, setWorkshops] = useState(searchParams.get("workshops") === "1");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const updateUrl = useCallback(
-    (newQuery: string, newSort: string, newHasBio: boolean, newHasGroups: boolean, newTeaches: boolean) => {
+    (
+      newQuery: string,
+      newSort: string,
+      newHasBio: boolean,
+      newHasGroups: boolean,
+      newTeaches: boolean,
+      newWorkshops: boolean
+    ) => {
       const params = new URLSearchParams(searchParamsString);
 
       if (newQuery) params.set("query", newQuery);
@@ -37,6 +45,9 @@ export default function DancerFilter() {
       if (newTeaches) params.set("teaches", "1");
       else params.delete("teaches");
 
+      if (newWorkshops) params.set("workshops", "1");
+      else params.delete("workshops");
+
       const nextQuery = params.toString();
       const nextUrl = nextQuery ? `/taenzerinnen?${nextQuery}` : "/taenzerinnen";
       const currentUrl = searchParamsString ? `/taenzerinnen?${searchParamsString}` : "/taenzerinnen";
@@ -48,8 +59,8 @@ export default function DancerFilter() {
   );
 
   useEffect(() => {
-    updateUrl(debouncedSearchTerm, sort, hasBio, hasGroups, teaches);
-  }, [debouncedSearchTerm, sort, hasBio, hasGroups, teaches, updateUrl]);
+    updateUrl(debouncedSearchTerm, sort, hasBio, hasGroups, teaches, workshops);
+  }, [debouncedSearchTerm, sort, hasBio, hasGroups, teaches, workshops, updateUrl]);
 
   const clearAll = () => {
     setSearchTerm("");
@@ -57,11 +68,12 @@ export default function DancerFilter() {
     setHasBio(false);
     setHasGroups(false);
     setTeaches(false);
-    updateUrl("", "newest", false, false, false);
+    setWorkshops(false);
+    updateUrl("", "newest", false, false, false, false);
   };
 
   const hasActiveFilters =
-    Boolean(searchTerm.trim()) || Boolean(sort && sort !== "newest") || hasBio || hasGroups || teaches;
+    Boolean(searchTerm.trim()) || Boolean(sort && sort !== "newest") || hasBio || hasGroups || teaches || workshops;
 
   return (
     <div className="mb-4 bg-[var(--surface)] text-[var(--foreground)] p-3 rounded-lg shadow-sm border border-[var(--border)] space-y-3">
@@ -141,6 +153,15 @@ export default function DancerFilter() {
                   />
                   Unterricht
                 </label>
+                <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+                  <input
+                    type="checkbox"
+                    checked={workshops}
+                    onChange={(e) => setWorkshops(e.target.checked)}
+                    className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                  />
+                  Workshops
+                </label>
               </div>
             </div>
           </div>
@@ -178,6 +199,17 @@ export default function DancerFilter() {
               className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-[11px] text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
             >
               Unterricht
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          {workshops ? (
+            <button
+              type="button"
+              onClick={() => setWorkshops(false)}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-[11px] text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Workshops
               <span className="text-[var(--muted)]">×</span>
             </button>
           ) : null}

@@ -37,6 +37,10 @@ model User {
   dancerEducation     String?
   dancerPerformances  String?
 
+  dancerGivesWorkshops       Boolean @default(false)
+  dancerBookableForShows     Boolean @default(false)
+  dancerWorkshopConditions   String?
+
   // Dance Profile
   danceLevel String? // "BEGINNER", "INTERMEDIATE", "ADVANCED", "PROFESSIONAL"
   lookingFor String? // "GROUP", "PARTNER", "BOTH", "NONE"

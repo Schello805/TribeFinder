@@ -48,6 +48,7 @@ async function ensureDanceStylesSeeded() {
           "Folklore (Orient)",
           "Drum Solo",
           "Fusion",
+          "Fantasy",
         ];
 
     await prisma.$transaction(

@@ -21,6 +21,9 @@ interface DancerListAnimatedItem {
   bio: string | null;
   dancerTeaches?: boolean;
   dancerTeachingWhere?: string | null;
+  dancerGivesWorkshops?: boolean;
+  dancerBookableForShows?: boolean;
+  dancerWorkshopConditions?: string | null;
   updatedAt?: string | Date;
   memberships: Membership[];
 }
@@ -109,6 +112,21 @@ export default function DancerListAnimated({ dancers }: DancerListAnimatedProps)
                       </span>
                       {d.dancerTeachingWhere ? (
                         <span className="text-xs text-[var(--muted)] truncate">{d.dancerTeachingWhere}</span>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {d.dancerGivesWorkshops || d.dancerBookableForShows ? (
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      {d.dancerGivesWorkshops ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)]">
+                          Workshops
+                        </span>
+                      ) : null}
+                      {d.dancerBookableForShows ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)]">
+                          Buchbar
+                        </span>
                       ) : null}
                     </div>
                   ) : null}

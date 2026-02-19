@@ -9,6 +9,7 @@ Eine moderne Plattform für Tanzgruppen (Tribal Style, Fusion & mehr) zur Verwal
   - Privat-Option: Private Profile sind nur für eingeloggte Besucher sichtbar.
   - Verknüpft: Profile zeigen zugehörige Gruppen (Mitgliedschaften).
   - Optional: Unterricht (wo), Unterricht-Schwerpunkte, Ausbildung/Training, Auftritte/Referenzen.
+  - Optional: Workshops, buchbar für Auftritte, Konditionen (Freitext).
 - **Event-Management**: Plane Auftritte und Veranstaltungen.
 - **Interaktive Karte**: Finde Gruppen und Events in deiner Nähe (basierend auf OpenStreetMap).
 - **Community Feed**: Ein "Schwarzes Brett" für Austausch und Neuigkeiten.

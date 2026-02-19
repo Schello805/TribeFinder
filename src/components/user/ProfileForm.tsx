@@ -18,6 +18,9 @@ interface UserProfile {
   dancerTeachingFocus?: string | null;
   dancerEducation?: string | null;
   dancerPerformances?: string | null;
+  dancerGivesWorkshops?: boolean;
+  dancerBookableForShows?: boolean;
+  dancerWorkshopConditions?: string | null;
   youtubeUrl?: string | null;
   instagramUrl?: string | null;
   facebookUrl?: string | null;
@@ -48,6 +51,9 @@ export default function ProfileForm() {
     dancerTeachingFocus: "",
     dancerEducation: "",
     dancerPerformances: "",
+    dancerGivesWorkshops: false,
+    dancerBookableForShows: false,
+    dancerWorkshopConditions: "",
     youtubeUrl: "",
     instagramUrl: "",
     facebookUrl: "",
@@ -362,6 +368,55 @@ export default function ProfileForm() {
                         onChange={handleChange}
                         className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
                         placeholder="z.B. Festivals, Shows, Kooperationen"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <div className="flex flex-col gap-3">
+                      <label className="inline-flex items-start gap-3 text-sm text-[var(--foreground)]">
+                        <input
+                          id="dancerGivesWorkshops"
+                          name="dancerGivesWorkshops"
+                          type="checkbox"
+                          checked={Boolean(formData.dancerGivesWorkshops)}
+                          onChange={handleCheckboxChange}
+                          className="mt-1 h-4 w-4 rounded border-[var(--border)]"
+                        />
+                        <span className="min-w-0">
+                          <span className="block font-semibold text-[var(--foreground)]">Ich gebe Workshops</span>
+                        </span>
+                      </label>
+
+                      <label className="inline-flex items-start gap-3 text-sm text-[var(--foreground)]">
+                        <input
+                          id="dancerBookableForShows"
+                          name="dancerBookableForShows"
+                          type="checkbox"
+                          checked={Boolean(formData.dancerBookableForShows)}
+                          onChange={handleCheckboxChange}
+                          className="mt-1 h-4 w-4 rounded border-[var(--border)]"
+                        />
+                        <span className="min-w-0">
+                          <span className="block font-semibold text-[var(--foreground)]">Für Auftritte buchbar</span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label htmlFor="dancerWorkshopConditions" className="block text-sm font-medium text-[var(--foreground)]">
+                      Konditionen (optional)
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        id="dancerWorkshopConditions"
+                        name="dancerWorkshopConditions"
+                        rows={3}
+                        value={formData.dancerWorkshopConditions || ""}
+                        onChange={handleChange}
+                        className="block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] sm:text-sm px-3 py-2"
+                        placeholder="z.B. Honorar, Fahrtkosten, Mindestdauer, Link zur Webseite"
                       />
                     </div>
                   </div>

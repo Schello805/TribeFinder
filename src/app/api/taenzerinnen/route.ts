@@ -15,6 +15,7 @@ export async function GET(req: Request) {
   const hasBio = searchParams.get("hasBio") === "1";
   const hasGroups = searchParams.get("hasGroups") === "1";
   const teaches = searchParams.get("teaches") === "1";
+  const workshops = searchParams.get("workshops") === "1";
   const sortRaw = (searchParams.get("sort") || "").trim();
   const sort = sortRaw === "name" ? "name" : "newest";
 
@@ -29,6 +30,7 @@ export async function GET(req: Request) {
     isDancerProfileEnabled: boolean;
     isDancerProfilePrivate?: boolean;
     dancerTeaches?: boolean;
+    dancerGivesWorkshops?: boolean;
     OR?: Array<{ dancerName?: { contains: string }; name?: { contains: string }; bio?: { contains: string } }>;
     bio?: { not: null };
     memberships?: { some: { status: "APPROVED" } };
@@ -57,6 +59,10 @@ export async function GET(req: Request) {
     whereClause.dancerTeaches = true;
   }
 
+  if (workshops) {
+    whereClause.dancerGivesWorkshops = true;
+  }
+
   try {
     // Cast for resilience in case a stale Prisma client is used locally.
     // (Runtime still requires `prisma generate` to have the new fields.)
@@ -79,6 +85,9 @@ export async function GET(req: Request) {
             dancerTeachingFocus: true,
             dancerEducation: true,
             dancerPerformances: true,
+            dancerGivesWorkshops: true,
+            dancerBookableForShows: true,
+            dancerWorkshopConditions: true,
             updatedAt: true,
             memberships: {
               where: { status: "APPROVED" },

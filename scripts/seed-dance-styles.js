@@ -43,6 +43,7 @@ const DEFAULT_DANCE_STYLES = [
   "Tribal Fusion",
   "ATS / FCBD Style",
   "Tribal Style",
+  "Fantasy",
   "Folklore (Orient)",
   "Drum Solo",
   "Fusion",
