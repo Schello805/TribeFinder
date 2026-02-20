@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EventFormData } from "@/lib/validations/event";
 import { useToast } from "@/components/ui/Toast";
@@ -191,7 +191,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     };
   }, []);
  
-  const parseGermanAddress = (raw: string) => {
+  const parseGermanAddress = useCallback((raw: string) => {
     const q = (raw || "").trim();
     if (!q) return null;
     const m = q.match(/\b(\d{5})\b\s*([^,\n]+)?/);
@@ -203,9 +203,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     if (city.length < 2) return null;
     const street = q.replace(new RegExp(`\\b${postalcode}\\b\\s*${cityRaw.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}`, "i"), "").replace(/,\s*Deutschland\s*$/i, "").trim();
     return { postalcode, city, street: street || "" };
-  };
+  }, []);
 
-  const buildNominatimFreeTextUrl = (rawQuery: string, limit = 1) => {
+  const buildNominatimFreeTextUrl = useCallback((rawQuery: string, limit = 1) => {
     const q = (rawQuery || "").trim();
     if (!q) return "";
     const normalizedQuery = /\bdeutschland\b/i.test(q) ? q : `${q}, Deutschland`;
@@ -218,9 +218,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       addressdetails: "1",
     });
     return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-  };
+  }, []);
 
-  const buildNominatimStructuredUrl = (rawQuery: string, limit = 1) => {
+  const buildNominatimStructuredUrl = useCallback((rawQuery: string, limit = 1) => {
     const parsed = parseGermanAddress(rawQuery);
     if (!parsed) return "";
     const params = new URLSearchParams({
@@ -235,9 +235,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     });
     if (parsed.street) params.set("street", parsed.street);
     return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-  };
+  }, [parseGermanAddress]);
 
-  const fetchGeocodeResults = async (query: string, limit = 5, signal?: AbortSignal) => {
+  const fetchGeocodeResults = useCallback(async (query: string, limit = 5, signal?: AbortSignal) => {
     const structuredUrl = buildNominatimStructuredUrl(query, limit);
     const freeTextUrl = buildNominatimFreeTextUrl(query, limit);
 
@@ -255,7 +255,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
     const fallback = await tryFetch(freeTextUrl);
     return fallback || [];
-  };
+  }, [buildNominatimFreeTextUrl, buildNominatimStructuredUrl]);
 
   const buildNominatimReverseUrl = (lat: number, lng: number) => {
     const params = new URLSearchParams({
@@ -396,7 +396,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     }, 650);
 
     return () => window.clearTimeout(t);
-  }, [formData.address]);
+  }, [formData.address, fetchGeocodeResults]);
 
   const initialStartParts = splitLocalDateTime(isEditing ? (formData.startDate || "") : "");
   const initialEndParts = splitLocalDateTime(isEditing ? (formData.endDate || "") : "");
@@ -908,14 +908,11 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
             <div className="relative">
-              <input
-                type="text"
-                readOnly
-                value={startDateOnly ? toDisplayDate(startDateOnly) : ""}
-                autoComplete="off"
-                placeholder="Datum auswählen"
-                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] placeholder:text-[var(--muted)] pointer-events-none ${startDateOnly && !startDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
-              />
+              <div
+                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm bg-[var(--surface)] ${startDateOnly && !startDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
+              >
+                {startDateOnly ? toDisplayDate(startDateOnly) : "Datum auswählen"}
+              </div>
               <input
                 type="date"
                 value={startDateOnly}
@@ -926,14 +923,11 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
               />
             </div>
             <div className="relative">
-              <input
-                type="text"
-                readOnly
-                value={startTimeOnly ? startTimeOnly : ""}
-                autoComplete="off"
-                placeholder="Uhrzeit auswählen"
-                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] placeholder:text-[var(--muted)] pointer-events-none ${startTimeOnly && !startTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
-              />
+              <div
+                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm bg-[var(--surface)] ${startTimeOnly && !startTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
+              >
+                {startTimeOnly ? startTimeOnly : "Uhrzeit auswählen"}
+              </div>
               <input
                 type="time"
                 value={startTimeOnly}
@@ -959,14 +953,11 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
             <div className="relative">
-              <input
-                type="text"
-                readOnly
-                value={endDateOnly ? toDisplayDate(endDateOnly) : ""}
-                autoComplete="off"
-                placeholder="Datum auswählen"
-                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] placeholder:text-[var(--muted)] pointer-events-none ${endDateOnly && !endDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
-              />
+              <div
+                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm bg-[var(--surface)] ${endDateOnly && !endDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
+              >
+                {endDateOnly ? toDisplayDate(endDateOnly) : "Datum auswählen"}
+              </div>
               <input
                 type="date"
                 value={endDateOnly}
@@ -978,14 +969,11 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
               />
             </div>
             <div className="relative">
-              <input
-                type="text"
-                readOnly
-                value={endTimeOnly ? endTimeOnly : ""}
-                autoComplete="off"
-                placeholder="Uhrzeit auswählen"
-                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] placeholder:text-[var(--muted)] pointer-events-none ${endTimeOnly && !endTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
-              />
+              <div
+                className={`block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm bg-[var(--surface)] ${endTimeOnly && !endTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
+              >
+                {endTimeOnly ? endTimeOnly : "Uhrzeit auswählen"}
+              </div>
               <input
                 type="time"
                 value={endTimeOnly}
