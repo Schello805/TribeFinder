@@ -19,6 +19,19 @@ type NominatimSearchResult = {
   display_name?: string;
 };
 
+type NominatimReverseResult = {
+  address?: {
+    postcode?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    state?: string;
+    country_code?: string;
+  };
+  display_name?: string;
+};
+
 const DEFAULT_EVENT_DURATION_MINUTES = 90;
 
 // Helper to format date for datetime-local input (YYYY-MM-DDThh:mm) in Local Time
@@ -191,6 +204,69 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       addressdetails: "1",
     });
     return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+  };
+
+  const buildNominatimReverseUrl = (lat: number, lng: number) => {
+    const params = new URLSearchParams({
+      format: "json",
+      lat: String(lat),
+      lon: String(lng),
+      zoom: "18",
+      addressdetails: "1",
+      "accept-language": "de",
+    });
+    return `https://nominatim.openstreetmap.org/reverse?${params.toString()}`;
+  };
+
+  const extractPostcode = (address: string) => {
+    const m = (address || "").match(/\b(\d{5})\b/);
+    return m ? m[1] : null;
+  };
+
+  const normalizeCity = (s: unknown) => {
+    if (typeof s !== "string") return "";
+    return s.trim().toLowerCase();
+  };
+
+  const verifyAddressMatchesCoordinates = async (address: string, lat: number, lng: number) => {
+    const addr = (address || "").trim();
+    if (!addr) return { ok: false as const, reason: "Adresse fehlt" };
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { ok: false as const, reason: "Koordinaten fehlen" };
+
+    const url = buildNominatimReverseUrl(lat, lng);
+    const res = await fetch(url);
+    const json = (await res.json().catch(() => null)) as NominatimReverseResult | null;
+    if (!json || typeof json !== "object") return { ok: false as const, reason: "Koordinaten konnten nicht geprüft werden" };
+
+    const postcodeInAddress = extractPostcode(addr);
+    const postcode = typeof json.address?.postcode === "string" ? json.address.postcode.trim() : "";
+    if (postcodeInAddress && postcode && postcodeInAddress !== postcode) {
+      return {
+        ok: false as const,
+        reason: `PLZ passt nicht zur Position (Adresse: ${postcodeInAddress}, Karte: ${postcode})`,
+      };
+    }
+
+    const cityToken = /\bn[üu]rnberg\b/i.test(addr) ? "nürnberg" : null;
+    if (cityToken) {
+      const city =
+        normalizeCity(json.address?.city) ||
+        normalizeCity(json.address?.town) ||
+        normalizeCity(json.address?.village) ||
+        normalizeCity(json.address?.municipality);
+      if (city && !city.includes("nürnberg") && !city.includes("nuernberg") && !city.includes("nurnberg")) {
+        return {
+          ok: false as const,
+          reason: `Ort passt nicht zur Position (Adresse: Nürnberg, Karte: ${city})`,
+        };
+      }
+    }
+
+    if (typeof json.address?.country_code === "string" && json.address.country_code.toLowerCase() !== "de") {
+      return { ok: false as const, reason: "Position liegt nicht in Deutschland" };
+    }
+
+    return { ok: true as const };
   };
   const [formData, setFormData] = useState<EventFormData>({
     title: initialData?.title || "",
@@ -688,6 +764,18 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
       if (!start || !end) {
         throw new Error("Bitte überprüfe die Eingaben.");
+      }
+
+      try {
+        const verified = await verifyAddressMatchesCoordinates(formData.address, formData.lat, formData.lng);
+        if (!verified.ok) {
+          throw new Error(
+            `Adresse/Position stimmen nicht überein. Bitte Adresse erneut suchen und einen passenden Treffer auswählen. (${verified.reason})`
+          );
+        }
+      } catch (geoErr) {
+        const msg = geoErr instanceof Error ? geoErr.message : "Adresse/Position konnten nicht geprüft werden";
+        throw new Error(msg);
       }
 
       // Prepare data for submission: Convert local datetime strings to UTC ISO strings
