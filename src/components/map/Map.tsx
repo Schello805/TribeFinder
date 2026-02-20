@@ -48,24 +48,23 @@ interface MapEvent {
   flyer2?: string | null;
 }
 
-// Define icons
-const groupIcon = new L.Icon({
-  iconUrl: "/images/markers/marker-icon-2x-blue.png",
-  shadowUrl: "/images/markers/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const createPinIcon = (color: string) =>
+  L.divIcon({
+    className: "",
+    iconSize: [26, 41],
+    iconAnchor: [13, 41],
+    popupAnchor: [0, -38],
+    html: `
+      <svg width="26" height="41" viewBox="0 0 26 41" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M13 41s13-14.9 13-26C26 6.7 20.2 0 13 0S0 6.7 0 15c0 11.1 13 26 13 26z" fill="${color}"/>
+        <path d="M13 21.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z" fill="white" opacity="0.95"/>
+        <path d="M13 20.3a5.3 5.3 0 1 0 0-10.6 5.3 5.3 0 0 0 0 10.6z" fill="${color}" opacity="0.25"/>
+      </svg>
+    `.trim(),
+  });
 
-const eventIcon = new L.Icon({
-  iconUrl: "/images/markers/marker-icon-2x-red.png",
-  shadowUrl: "/images/markers/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const groupIcon = createPinIcon("#2563eb");
+const eventIcon = createPinIcon("#dc2626");
 
 interface MapProps {
   groups: MapGroup[];
