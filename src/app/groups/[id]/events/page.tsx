@@ -80,7 +80,7 @@ export default async function GroupEventsPage({ params }: { params: Promise<{ id
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <Link href={`/events/${event.id}`} className="block hover:underline">
-                      <p className="text-sm font-medium text-[var(--link)] truncate">{event.title}</p>
+                      <p className="text-sm font-medium text-[var(--link)] whitespace-normal break-words line-clamp-2">{event.title}</p>
                     </Link>
                     <p className="text-sm text-[var(--muted)]">
                       {new Date(event.startDate).toLocaleDateString('de-DE', {

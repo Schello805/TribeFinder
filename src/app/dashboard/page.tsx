@@ -88,11 +88,11 @@ export default async function DashboardPage() {
                 )}
              </div>
              <div className="min-w-0 flex-1">
-                <p className="tf-display text-xl font-bold text-[var(--foreground)] truncate">
+                <p className="tf-display text-xl font-bold text-[var(--foreground)] whitespace-normal break-words line-clamp-2">
                   {currentUser?.dancerName || currentUser?.name || "Tänzer"}
                 </p>
                 {currentUser?.dancerName && currentUser?.name && (
-                  <p className="text-sm text-[var(--muted)] truncate">{currentUser.name}</p>
+                  <p className="text-sm text-[var(--muted)] whitespace-normal break-words line-clamp-1">{currentUser.name}</p>
                 )}
                 <p className="text-sm text-[var(--muted)] truncate">{currentUser?.email}</p>
                 
@@ -142,7 +142,7 @@ export default async function DashboardPage() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-medium text-[var(--foreground)] truncate">{g.name}</div>
+                        <div className="font-medium text-[var(--foreground)] whitespace-normal break-words line-clamp-2">{g.name}</div>
                         <div className="text-sm text-[var(--muted)]">{g.pendingCount} offene Anfrage{g.pendingCount === 1 ? "" : "n"}</div>
                       </div>
                     </div>
@@ -197,9 +197,9 @@ export default async function DashboardPage() {
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-[var(--link)] truncate">{group.name}</p>
+                      <p className="text-sm font-medium text-[var(--link)] whitespace-normal break-words line-clamp-2">{group.name}</p>
                       <p className="mt-1 flex items-center text-sm text-[var(--muted)]">
-                        <span className="truncate">{group.description.substring(0, 100)}...</span>
+                        <span className="whitespace-normal break-words line-clamp-2">{group.description.substring(0, 100)}...</span>
                       </p>
                       <div className="mt-2 flex items-center text-sm text-[var(--muted)] sm:mt-0">
                         {group.location ? (

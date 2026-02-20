@@ -331,8 +331,8 @@ export default async function GroupDetailPage({
 
               {/* Title & Basic Info */}
               <div className="flex-1 text-center sm:text-left pt-2 sm:pt-0 min-w-0">
-                <div className="inline-block max-w-full bg-[var(--surface)] backdrop-blur-md rounded-2xl px-4 py-3 shadow-sm border border-[var(--border)]">
-                  <h1 className="tf-display text-2xl sm:text-4xl font-extrabold text-[var(--foreground)] tracking-tight mb-2 break-words sm:truncate">{group.name}</h1>
+                <div className="block w-full bg-[var(--surface)] backdrop-blur-md rounded-2xl px-4 py-3 shadow-sm border border-[var(--border)]">
+                  <h1 className="tf-display text-[1.45rem] sm:text-4xl font-extrabold text-[var(--foreground)] tracking-tight leading-tight mb-2 whitespace-normal break-words">{group.name}</h1>
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 sm:gap-x-6 gap-y-2 text-xs sm:text-sm text-[var(--foreground)]">
                     <span className="flex items-center gap-1.5">
                       <svg className="w-4 h-4 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
