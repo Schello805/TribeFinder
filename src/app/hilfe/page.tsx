@@ -27,10 +27,26 @@ export default function HelpPage() {
         </section>
 
         <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
-          <h2 className="tf-display text-xl font-bold mb-2">👯 Gruppen</h2>
+          <h2 className="tf-display text-xl font-bold mb-2">� Tänzerinnen</h2>
+          <p className="text-[var(--muted)]">
+            In der Tänzerinnen-Übersicht kannst du Profile finden und nach Kriterien filtern (z.B. Unterricht/Workshops).
+            Wenn du selbst sichtbar sein möchtest, kannst du das in deinem Profil aktivieren.
+          </p>
+        </section>
+
+        <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
+          <h2 className="tf-display text-xl font-bold mb-2">� Gruppen</h2>
           <p className="text-[var(--muted)]">
             Du kannst Gruppen entdecken, Favoriten speichern und Profile ansehen. Wenn du selbst eine Gruppe betreibst, kannst du einen
             Steckbrief erstellen, Bilder hochladen und Mitglieder verwalten.
+          </p>
+        </section>
+
+        <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
+          <h2 className="tf-display text-xl font-bold mb-2">🧩 Gruppen-Details (neu)</h2>
+          <p className="text-[var(--muted)]">
+            Bei Tanzstilen kannst du jetzt auswählen, ob ihr vor allem Impro macht, Choreo oder beides.
+            Zusätzlich gibt es ein optionales Feld für Accessoires (z.B. Schleier, Fächer), das im Gruppenprofil angezeigt wird.
           </p>
         </section>
 
@@ -39,6 +55,21 @@ export default function HelpPage() {
           <p className="text-[var(--muted)]">
             Events zeigen dir Workshops, Auftritte oder Treffen. Je nach Event kannst du teilnehmen bzw. dich registrieren.
             Auf Event-Seiten findest du Datum, Ort, ggf. Flyer und weitere Infos.
+          </p>
+        </section>
+
+        <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
+          <h2 className="tf-display text-xl font-bold mb-2">🖼️ Uploads</h2>
+          <p className="text-[var(--muted)]">
+            Beim Hochladen von Bildern (z.B. Gruppenlogo oder Event-Flyer) gibt es eine Maximalgröße.
+            Wenn ein Upload fehlschlägt, bekommst du jetzt eine klarere Fehlermeldung (z.B. &quot;Datei zu groß&quot;).
+          </p>
+        </section>
+
+        <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
+          <h2 className="tf-display text-xl font-bold mb-2">💃 Tanzstile</h2>
+          <p className="text-[var(--muted)]">
+            Die Standard-Tanzstile wurden ergänzt. Falls du „Oriental Fusion“ suchst, sollte es jetzt in der Liste auftauchen.
           </p>
         </section>
 
