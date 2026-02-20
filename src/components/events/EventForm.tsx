@@ -191,7 +191,21 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     };
   }, []);
  
-  const buildNominatimUrl = (rawQuery: string, limit = 1) => {
+  const parseGermanAddress = (raw: string) => {
+    const q = (raw || "").trim();
+    if (!q) return null;
+    const m = q.match(/\b(\d{5})\b\s*([^,\n]+)?/);
+    if (!m) return null;
+    const postalcode = m[1];
+    const cityRaw = (m[2] || "").trim();
+    if (!postalcode || cityRaw.length < 2) return null;
+    const city = cityRaw.replace(/\s+Deutschland\s*$/i, "").trim();
+    if (city.length < 2) return null;
+    const street = q.replace(new RegExp(`\\b${postalcode}\\b\\s*${cityRaw.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}`, "i"), "").replace(/,\s*Deutschland\s*$/i, "").trim();
+    return { postalcode, city, street: street || "" };
+  };
+
+  const buildNominatimFreeTextUrl = (rawQuery: string, limit = 1) => {
     const q = (rawQuery || "").trim();
     if (!q) return "";
     const normalizedQuery = /\bdeutschland\b/i.test(q) ? q : `${q}, Deutschland`;
@@ -204,6 +218,43 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       addressdetails: "1",
     });
     return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+  };
+
+  const buildNominatimStructuredUrl = (rawQuery: string, limit = 1) => {
+    const parsed = parseGermanAddress(rawQuery);
+    if (!parsed) return "";
+    const params = new URLSearchParams({
+      format: "json",
+      limit: String(limit),
+      countrycodes: "de",
+      "accept-language": "de",
+      addressdetails: "1",
+      postalcode: parsed.postalcode,
+      city: parsed.city,
+      country: "Deutschland",
+    });
+    if (parsed.street) params.set("street", parsed.street);
+    return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+  };
+
+  const fetchGeocodeResults = async (query: string, limit = 5, signal?: AbortSignal) => {
+    const structuredUrl = buildNominatimStructuredUrl(query, limit);
+    const freeTextUrl = buildNominatimFreeTextUrl(query, limit);
+
+    const tryFetch = async (url: string) => {
+      if (!url) return null;
+      const res = await fetch(url, signal ? { signal } : undefined);
+      const data = (await res.json().catch(() => null)) as NominatimSearchResult[] | null;
+      return Array.isArray(data) ? data : null;
+    };
+
+    if (structuredUrl) {
+      const structured = await tryFetch(structuredUrl);
+      if (structured && structured.length > 0) return structured;
+    }
+
+    const fallback = await tryFetch(freeTextUrl);
+    return fallback || [];
   };
 
   const buildNominatimReverseUrl = (lat: number, lng: number) => {
@@ -314,13 +365,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       setGeocodeError("");
 
       try {
-        const url = buildNominatimUrl(normalized, 5);
-        if (!url) return;
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("[EventForm] geocode (debounced)", { query: normalized, url });
-        }
-        const res = await fetch(url, { signal: controller.signal });
-        const data = (await res.json()) as NominatimSearchResult[];
+        const data = await fetchGeocodeResults(normalized, 5, controller.signal);
         if (controller.signal.aborted) return;
 
         lastGeocodeQueryRef.current = normalized;
@@ -619,13 +664,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     setGeocodeResults([]);
     
     try {
-      const url = buildNominatimUrl(address, 5);
-      if (!url) return;
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("[EventForm] geocodeAddress", { address, url });
-      }
-      const res = await fetch(url);
-      const data = (await res.json()) as NominatimSearchResult[];
+      const data = await fetchGeocodeResults(address, 5);
       
       if (data && data.length === 1 && data[0]) {
         setFormData(prev => ({
@@ -688,10 +727,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     setGeocodeError("");
     setGeocodeResults([]);
     try {
-      const url = buildNominatimUrl(query, 5);
-      if (!url) return;
-      const res = await fetch(url);
-      const data = (await res.json()) as NominatimSearchResult[];
+      const data = await fetchGeocodeResults(query, 5);
       
       if (data && data.length === 1) {
         const { lat, lon } = data[0];

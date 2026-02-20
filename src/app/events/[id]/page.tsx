@@ -10,6 +10,13 @@ import DynamicEventMap from "@/components/map/DynamicEventMap";
 
 const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
+const formatTicketPrice = (raw: string | null) => {
+  const v = (raw || "").trim();
+  if (!v) return "";
+  if (/€/.test(v) || /\bEUR\b/i.test(v)) return v;
+  return `${v} €`;
+};
+
 type EventGroupLike = {
   id: string;
   name: string;
@@ -227,7 +234,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   rel="noopener noreferrer"
                   className="w-full py-2.5 sm:py-3 px-4 bg-[var(--primary)] text-[var(--primary-foreground)] text-center rounded-md font-bold hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm flex items-center justify-center gap-2"
                 >
-                  <span>🎟️</span> Tickets {event.ticketPrice ? `(${event.ticketPrice})` : ""}
+                  <span>🎟️</span> Tickets {event.ticketPrice ? `(${formatTicketPrice(event.ticketPrice)})` : ""}
                 </a>
               )}
 
