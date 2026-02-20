@@ -173,7 +173,7 @@ export async function PUT(
           create: await Promise.all(
             danceStylesInput.map(async (ds) => {
               if ("styleId" in ds) {
-                return { level: ds.level, mode: ds.mode ?? null, style: { connect: { id: ds.styleId } } };
+                return { level: ds.level, mode: (ds.mode ?? null) as unknown, style: { connect: { id: ds.styleId } } };
               }
               const style = await prisma.danceStyle.upsert({
                 where: { name: ds.name },
@@ -218,6 +218,7 @@ export async function PUT(
         headerGradientTo: validatedData.headerGradientTo,
         
         trainingTime: validatedData.trainingTime,
+        accessories: (validatedData as unknown as { accessories?: string }).accessories,
         performances: validatedData.performances ?? false,
         foundingYear: validatedData.foundingYear,
         seekingMembers: validatedData.seekingMembers ?? false,
@@ -245,7 +246,7 @@ export async function PUT(
         } : undefined,
         danceStyles: danceStylesCreate,
       }
-    });
+    } as unknown as Parameters<typeof prisma.group.update>[0]);
     logger.info({ groupId: id }, "PUT /api/groups - Group updated");
 
     // Benachrichtigung senden

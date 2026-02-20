@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { EventFormData } from "@/lib/validations/event";
 import { useToast } from "@/components/ui/Toast";
 import { normalizeUploadedImageUrl } from '@/lib/normalizeUploadedImageUrl';
+import { MAX_FILE_SIZE } from "@/types";
 
 interface EventFormProps {
   initialData?: Partial<EventFormData> & { id?: string; flyerImage?: string | null };
@@ -519,13 +520,13 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
         body: uploadFormData,
       });
 
-      if (!res.ok) throw new Error('Upload fehlgeschlagen');
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || data?.message || 'Upload fehlgeschlagen');
 
-      const data = await res.json();
       setFormData(prev => ({ ...prev, [field]: data.url }));
     } catch (err) {
       console.error(err);
-      const errorMsg = 'Fehler beim Bild-Upload';
+      const errorMsg = err instanceof Error ? err.message : 'Fehler beim Bild-Upload';
       setError(errorMsg);
       showToast(errorMsg, 'error');
     } finally {
@@ -993,6 +994,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 onChange={(e) => handleFlyerUpload(e, 'flyer1')}
                 className="block w-full text-sm text-[var(--foreground)] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:border-[var(--border)] file:text-sm file:font-semibold file:bg-[var(--surface-2)] file:text-[var(--foreground)] hover:file:bg-[var(--surface-hover)]"
               />
+              <p className="mt-1 text-xs text-[var(--muted)]">Max. {Math.floor(MAX_FILE_SIZE / 1024 / 1024)}MB (JPG/PNG/GIF/WebP).</p>
             </div>
         </div>
         <div>
@@ -1017,6 +1019,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 onChange={(e) => handleFlyerUpload(e, 'flyer2')}
                 className="block w-full text-sm text-[var(--foreground)] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:border-[var(--border)] file:text-sm file:font-semibold file:bg-[var(--surface-2)] file:text-[var(--foreground)] hover:file:bg-[var(--surface-hover)]"
               />
+              <p className="mt-1 text-xs text-[var(--muted)]">Max. {Math.floor(MAX_FILE_SIZE / 1024 / 1024)}MB (JPG/PNG/GIF/WebP).</p>
             </div>
         </div>
       </div>

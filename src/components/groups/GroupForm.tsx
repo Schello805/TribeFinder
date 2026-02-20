@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { GroupFormData } from "@/lib/validations/group";
 import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
+import { MAX_FILE_SIZE } from "@/types";
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), {
@@ -17,7 +18,7 @@ interface GroupFormProps {
     id?: string;
     location?: { lat: number; lng: number; address?: string | null } | null;
     tags?: Array<{ name: string } | string>;
-    danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | null }>;
+    danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | "BOTH" | null }>;
   });
   isEditing?: boolean;
   isOwner?: boolean;
@@ -53,6 +54,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
     headerGradientTo: initialData?.headerGradientTo || "",
     
     trainingTime: initialData?.trainingTime || "",
+    accessories: ((initialData as unknown as { accessories?: string | null } | undefined)?.accessories ?? "") || "",
     performances: initialData?.performances || false,
     foundingYear: initialData?.foundingYear || undefined,
     seekingMembers: initialData?.seekingMembers || false,
@@ -204,13 +206,13 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
         body: formData,
       });
 
-      if (!res.ok) throw new Error('Upload fehlgeschlagen');
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || data?.message || 'Upload fehlgeschlagen');
 
-      const data = await res.json();
       setFormData(prev => ({ ...prev, image: data.url }));
     } catch (err) {
       console.error(err);
-      setError('Fehler beim Bild-Upload');
+      setError(err instanceof Error ? err.message : 'Fehler beim Bild-Upload');
     } finally {
       setIsLoading(false);
     }
@@ -463,6 +465,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
               hover:file:bg-[var(--surface-hover)]"
           />
         </div>
+        <p className="mt-1 text-xs text-[var(--muted)]">Max. {Math.floor(MAX_FILE_SIZE / 1024 / 1024)}MB (JPG/PNG/GIF/WebP).</p>
       </div>
 
       <div>
@@ -544,6 +547,19 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
           placeholder="z.B. Montags 18:00 - 20:00 Uhr"
         />
         <p className="mt-1 text-xs text-[var(--muted)]">Gib an, wann und wie oft ihr trainiert.</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--foreground)]">Accessoires (Optional)</label>
+        <input
+          type="text"
+          name="accessories"
+          value={((formData as unknown as { accessories?: string }).accessories ?? "")}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:border-[var(--primary)] focus:outline-none focus:ring-[var(--primary)] text-[var(--foreground)] bg-[var(--surface)] placeholder:text-[var(--muted)]"
+          placeholder="z.B. Schleier, Fächer, Isis Wings..."
+        />
+        <p className="mt-1 text-xs text-[var(--muted)]">Optional: Was verwendet ihr häufig in Choreos?</p>
       </div>
 
       <div className="flex flex-col gap-4 bg-[var(--surface-2)] p-4 rounded-md border border-[var(--border)]">

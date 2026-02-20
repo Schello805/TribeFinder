@@ -40,6 +40,7 @@ const prisma = new PrismaClient();
 const DEFAULT_DANCE_STYLES = [
   "Orientalischer Tanz",
   "Bauchtanz",
+  "Oriental Fusion",
   "Tribal Fusion",
   "ATS / FCBD Style",
   "Tribal Style",

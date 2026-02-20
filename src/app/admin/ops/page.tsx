@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import AdminNav from "@/components/admin/AdminNav";
 import type { ReactNode } from "react";
 import AdminBackupsPanel from "@/components/admin/panels/AdminBackupsPanel";
+import AdminTransferPanel from "@/components/admin/panels/AdminTransferPanel";
 import AdminDiagnosticsPanel from "@/components/admin/panels/AdminDiagnosticsPanel";
 import AdminErrorsPanel from "@/components/admin/panels/AdminErrorsPanel";
 import AdminFeedbackPanel from "@/components/admin/panels/AdminFeedbackPanel";
@@ -58,6 +59,13 @@ export default async function AdminOpsPage() {
           description="Manuelle Backups, Upload/Inspect, Restore und Auto-Backup Status."
         >
           <AdminBackupsPanel />
+        </OpsAccordionItem>
+
+        <OpsAccordionItem
+          title="Transfer (Import/Export)"
+          description="Selektiv Gruppen/Events/User/Memberships inkl. Upload-Dateien zwischen Systemen übertragen."
+        >
+          <AdminTransferPanel />
         </OpsAccordionItem>
 
         <OpsAccordionItem

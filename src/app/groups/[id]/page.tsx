@@ -39,6 +39,7 @@ export default async function GroupDetailPage({
     seekingMembers: true,
     performances: true,
     trainingTime: true,
+    accessories: true,
     headerImage: true,
     headerImageFocusY: true,
     headerGradientFrom: true,
@@ -228,9 +229,9 @@ export default async function GroupDetailPage({
     key: string;
     name: string;
     level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL";
-    mode: "IMPRO" | "CHOREO" | null;
+    mode: "IMPRO" | "CHOREO" | "BOTH" | null;
   }> = (group.danceStyles as unknown as Array<{ id: string; level: string; mode?: string | null; style: { name: string } }>).length
-    ? (group.danceStyles as unknown as Array<{ id: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | null; style: { name: string } }>).map((ds) => ({
+    ? (group.danceStyles as unknown as Array<{ id: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | "BOTH" | null; style: { name: string } }>).map((ds) => ({
         key: ds.id,
         name: ds.style.name,
         level: ds.level,
@@ -420,6 +421,17 @@ export default async function GroupDetailPage({
                     </div>
                   )}
 
+                  {typeof (group as unknown as { accessories?: string | null }).accessories === "string" &&
+                  ((group as unknown as { accessories?: string | null }).accessories || "").trim() ? (
+                    <div>
+                      <dt className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Accessoires</dt>
+                      <dd className="text-base text-[var(--foreground)] bg-[var(--surface-2)] p-3 rounded-lg border border-[var(--border)] flex items-start gap-3">
+                        <span className="text-xl">🧣</span>
+                        <span>{(group as unknown as { accessories?: string | null }).accessories}</span>
+                      </dd>
+                    </div>
+                  ) : null}
+
                   {videoEmbedUrl && (
                     <div>
                       <dt className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">Vorstellungsvideo</dt>
@@ -509,7 +521,7 @@ export default async function GroupDetailPage({
                           </span>
                           {ds.mode ? (
                             <span className="ml-2 text-[10px] text-[var(--muted)]">
-                              {ds.mode === "IMPRO" ? "Impro" : "Choreo"}
+                              {ds.mode === "IMPRO" ? "Impro" : ds.mode === "CHOREO" ? "Choreo" : "Beides"}
                             </span>
                           ) : null}
                         </span>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
 import { useToast } from "@/components/ui/Toast";
+import { MAX_FILE_SIZE } from "@/types";
 
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), {
   ssr: false,
@@ -24,6 +25,7 @@ interface FormData {
   contactEmail?: string;
   videoUrl?: string;
   trainingTime?: string;
+  accessories?: string;
   performances: boolean;
   foundingYear?: number | null;
   seekingMembers: boolean;
@@ -32,7 +34,7 @@ interface FormData {
     lng: number;
     address?: string;
   };
-  danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | null }>;
+  danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | "BOTH" | null }>;
 }
 
 type WizardStep = "basics" | "details";
@@ -131,12 +133,12 @@ export default function GroupCreateWizard() {
         body: uploadData,
       });
 
-      if (!res.ok) throw new Error("Upload fehlgeschlagen");
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || data?.message || "Upload fehlgeschlagen");
 
-      const data = await res.json();
       updateField("image", data.url);
-    } catch {
-      setError("Fehler beim Bild-Upload");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Fehler beim Bild-Upload");
     } finally {
       setIsLoading(false);
     }
@@ -419,6 +421,7 @@ export default function GroupCreateWizard() {
                   className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-[var(--border)] file:bg-[var(--surface-2)] file:text-[var(--foreground)] hover:file:bg-[var(--surface-hover)]"
                 />
               </div>
+              <p className="mt-1 text-xs text-[var(--muted)]">Max. {Math.floor(MAX_FILE_SIZE / 1024 / 1024)}MB (JPG/PNG/GIF/WebP).</p>
             </div>
 
             <div>
@@ -443,6 +446,18 @@ export default function GroupCreateWizard() {
                   onChange={(e) => updateField("trainingTime", e.target.value)}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="z.B. Mo 18-20 Uhr"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  Accessoires
+                </label>
+                <input
+                  type="text"
+                  value={((formData as unknown as { accessories?: string }).accessories ?? "")}
+                  onChange={(e) => updateField("accessories" as unknown as keyof FormData, e.target.value as unknown as FormData[keyof FormData])}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="z.B. Schleier, Fächer"
                 />
               </div>
               <div>

@@ -5,6 +5,70 @@ const path = require("path");
 const os = require("os");
 const { spawn } = require("child_process");
 
+function resolveProjectRoot() {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    try {
+      const hasPackageJson = require("fs").existsSync(path.join(dir, "package.json"));
+      const hasPrismaSchema = require("fs").existsSync(path.join(dir, "prisma", "schema.prisma"));
+      if (hasPackageJson && hasPrismaSchema) return dir;
+    } catch {
+      // ignore
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+}
+
+async function resolveBackupDir(projectRoot) {
+  const envDir = (process.env.BACKUP_DIR || "").trim();
+  const candidates = [
+    ...(envDir ? [envDir] : []),
+    path.join(projectRoot, "backups"),
+    "/var/www/tribefinder/backups",
+  ];
+
+  let lastError = null;
+  for (const dir of candidates) {
+    try {
+      await fs.mkdir(dir, { recursive: true });
+      await fs.access(dir, require("fs").constants.W_OK | require("fs").constants.X_OK);
+      return dir;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+
+  throw new Error(
+    `Konnte kein Backup-Verzeichnis anlegen. Kandidaten: ${candidates.join(", ")}. ` +
+      (lastError && lastError.message ? lastError.message : String(lastError))
+  );
+}
+
+async function resolveUploadsDir(projectRoot) {
+  const envDir = (process.env.UPLOADS_DIR || "").trim();
+  const candidates = [
+    ...(envDir ? [envDir] : []),
+    path.join(projectRoot, "public", "uploads"),
+    "/var/www/tribefinder/uploads",
+  ];
+
+  for (const dir of candidates) {
+    try {
+      const resolved = await require("fs/promises").realpath(dir).catch(() => dir);
+      await fs.mkdir(resolved, { recursive: true });
+      await fs.access(resolved, require("fs").constants.W_OK | require("fs").constants.X_OK);
+      return resolved;
+    } catch {
+      // try next
+    }
+  }
+
+  return path.join(projectRoot, "public", "uploads");
+}
+
 function runCommand(cmd, args, cwd) {
   return new Promise((resolve, reject) => {
     const proc = spawn(cmd, args, { cwd });
@@ -40,6 +104,7 @@ async function createTarGz(outPath, cwd, files) {
 }
 
 async function createServerBackup(settingsPayload) {
+  const projectRoot = resolveProjectRoot();
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL fehlt");
 
@@ -52,10 +117,8 @@ async function createServerBackup(settingsPayload) {
     databaseUrlCli = databaseUrl;
   }
 
-  const uploadsDir = path.join(process.cwd(), "public/uploads");
-
-  const backupDir = path.join(process.cwd(), "backups");
-  await fs.mkdir(backupDir, { recursive: true });
+  const uploadsDir = await resolveUploadsDir(projectRoot);
+  const backupDir = await resolveBackupDir(projectRoot);
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const filename = `tribefinder-backup-${timestamp}.tar.gz`;
@@ -90,7 +153,7 @@ async function createServerBackup(settingsPayload) {
       .catch(() => false);
 
     if (uploadsExists) {
-      await fs.cp(uploadsDir, tmpUploads, { recursive: true });
+      await fs.cp(uploadsDir, tmpUploads, { recursive: true, dereference: true });
     } else {
       await fs.mkdir(tmpUploads, { recursive: true });
     }
@@ -154,7 +217,8 @@ async function main() {
       create: { key: "LAST_AUTO_BACKUP_AT", value: String(now) },
     });
 
-    const backupDir = path.join(process.cwd(), "backups");
+    const projectRoot = resolveProjectRoot();
+    const backupDir = await resolveBackupDir(projectRoot);
     const entries = await fs.readdir(backupDir).catch(() => []);
     const backups = await Promise.all(
       entries

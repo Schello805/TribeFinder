@@ -154,6 +154,7 @@ model Group {
   size               String  @default("SMALL") // SOLO, DUO, TRIO, SMALL (<10), LARGE (>10)
 
   trainingTime   String? // Free text for training times (e.g. "Mo 18:00-20:00")
+  accessories    String? // Optional free text about used accessories
   performances   Boolean @default(false)
   foundingYear   Int?
   seekingMembers Boolean @default(false)
@@ -448,6 +449,7 @@ model MarketplaceListingImage {
 enum DanceMode {
   IMPRO
   CHOREO
+  BOTH
 }
 
 // Dance Styles (predefined list)

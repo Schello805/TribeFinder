@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const DanceLevelSchema = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "PROFESSIONAL"]);
-const DanceModeSchema = z.enum(["IMPRO", "CHOREO"]).nullable();
+const DanceModeSchema = z.enum(["IMPRO", "CHOREO", "BOTH"]).nullable();
 
 const baseGroupSchema = z.object({
   name: z.string().min(2, "Name muss mindestens 2 Zeichen lang sein"),
@@ -12,6 +12,7 @@ const baseGroupSchema = z.object({
   size: z.enum(["SOLO", "DUO", "TRIO", "SMALL", "LARGE"]),
   
   trainingTime: z.string().optional(),
+  accessories: z.string().optional(),
   performances: z.boolean().optional(),
   foundingYear: z.number().min(1900).max(new Date().getFullYear()).optional().nullable(),
   seekingMembers: z.boolean().optional(),

@@ -36,6 +36,10 @@ test("public pages load", async ({ page, baseURL }) => {
 
   await page.goto(`${base}/map`);
   await expect(page).toHaveURL(/\/map/);
+
+  await page.goto(`${base}/taenzerinnen`);
+  await expect(page).toHaveURL(/\/taenzerinnen/);
+  await expect(page.getByRole("heading", { name: "Tänzerinnen finden" })).toBeVisible();
 });
 
 test("dashboard smoke (optional, needs E2E_EMAIL/E2E_PASSWORD)", async ({ page, baseURL }) => {

@@ -17,6 +17,7 @@ async function ensureDanceStylesSeeded() {
       : [
           "Orientalischer Tanz",
           "Bauchtanz",
+          "Oriental Fusion",
           "Tribal Fusion",
           "ATS / FCBD Style",
           "Tribal",

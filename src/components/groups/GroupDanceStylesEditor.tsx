@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Level = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL";
-type Mode = "IMPRO" | "CHOREO" | null;
+type Mode = "IMPRO" | "CHOREO" | "BOTH" | null;
 
 type DanceStyle = {
   id: string;
@@ -27,6 +27,7 @@ const LEVEL_LABEL: Record<Level, string> = {
 const MODE_LABEL: Record<Exclude<Mode, null>, string> = {
   IMPRO: "Impro",
   CHOREO: "Choreo",
+  BOTH: "Beides",
 };
 
 export default function GroupDanceStylesEditor({

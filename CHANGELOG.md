@@ -10,6 +10,28 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ## [Unreleased] - 2026-02-06
 
+## [Unreleased] - 2026-02-20
+
+### 🧩 Gruppen
+
+- Tanzstile: `DanceMode` um Option **Beides (BOTH)** erweitert
+- Gruppen: Neues optionales Textfeld **Accessoires** (Create/Edit + Anzeige auf Gruppenseite)
+
+### 🖼️ Uploads
+
+- Upload Limit für Bilder/Flyer auf **15MB** erhöht
+- Upload UX: Klarere Fehlermeldungen aus dem Backend werden im UI angezeigt (statt generischem "Upload fehlgeschlagen")
+- Upload UX: Hinweistext mit Maximalgröße direkt an den Upload-Feldern (Gruppen-Form, Gruppen-Wizard, Event-Form)
+
+### 💃 Tanzstile
+
+- Default-Liste ergänzt: **Oriental Fusion** (Seed-Scripts + API Default-Seeding)
+
+### 🧰 Admin / Transfer
+
+- Transfer-Upload API: Fallback für Raw-Uploads (`application/gzip`/`octet-stream`) zusätzlich zu Multipart
+- Tests: Transfer Upload Test an Vitest-Umgebung angepasst
+
 ### 🛍️ Marketplace (Second-Hand Börse)
 
 - Inserate: Create/Detail/Edit/Delete komplett (Owner/Admin Berechtigungen)

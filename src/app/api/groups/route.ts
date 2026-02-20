@@ -324,7 +324,8 @@ export async function POST(req: Request) {
           create: await Promise.all(
             danceStylesInput.map(async (ds) => {
               if ("styleId" in ds) {
-                return { level: ds.level, mode: ds.mode ?? null, style: { connect: { id: ds.styleId } } };
+                // Cast for resilience when a stale Prisma client type is used locally.
+                return { level: ds.level, mode: (ds.mode ?? null) as unknown, style: { connect: { id: ds.styleId } } };
               }
               const style = await prisma.danceStyle.upsert({
                 where: { name: ds.name },
@@ -365,6 +366,7 @@ export async function POST(req: Request) {
         headerGradientTo: validatedData.headerGradientTo,
         
         trainingTime: validatedData.trainingTime,
+        accessories: (validatedData as unknown as { accessories?: string }).accessories,
         performances: validatedData.performances || false,
         foundingYear: validatedData.foundingYear,
         seekingMembers: validatedData.seekingMembers || false,
@@ -394,7 +396,7 @@ export async function POST(req: Request) {
         } : undefined,
         danceStyles: danceStylesCreate,
       }
-    });
+    } as unknown as Parameters<typeof prisma.group.create>[0]);
     logger.info({ groupId: group.id }, "POST /api/groups - Group created");
 
     // Benachrichtigung senden (async, wir warten nicht zwingend auf den Erfolg)
