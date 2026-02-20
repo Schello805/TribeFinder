@@ -907,9 +907,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             <p className="mt-1 text-xs text-[var(--muted)]">Zeitzone: {browserTimeZone}</p>
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
-            <div className="relative rounded-md border border-[hsl(var(--input-border))] focus-within:border-[hsl(var(--primary))] focus-within:ring-2 focus-within:ring-[hsl(var(--primary))]">
+            <div className="relative block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
               <div
-                className={`block w-full rounded-md px-3 py-2 bg-[var(--surface)] ${startDateOnly && !startDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
+                className={`block w-full ${startDateOnly && !startDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
                 {startDateOnly ? toDisplayDate(startDateOnly) : "Datum auswählen"}
               </div>
@@ -922,9 +922,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
               />
             </div>
-            <div className="relative rounded-md border border-[hsl(var(--input-border))] focus-within:border-[hsl(var(--primary))] focus-within:ring-2 focus-within:ring-[hsl(var(--primary))]">
+            <div className="relative block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
               <div
-                className={`block w-full rounded-md px-3 py-2 bg-[var(--surface)] ${startTimeOnly && !startTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
+                className={`block w-full ${startTimeOnly && !startTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
                 {startTimeOnly ? startTimeOnly : "Uhrzeit auswählen"}
               </div>
@@ -952,9 +952,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             <p className="mt-1 text-xs text-[var(--link)]">{endShiftHint}</p>
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
-            <div className="relative rounded-md border border-[hsl(var(--input-border))] focus-within:border-[hsl(var(--primary))] focus-within:ring-2 focus-within:ring-[hsl(var(--primary))]">
+            <div className="relative block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
               <div
-                className={`block w-full rounded-md px-3 py-2 bg-[var(--surface)] ${endDateOnly && !endDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
+                className={`block w-full ${endDateOnly && !endDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
                 {endDateOnly ? toDisplayDate(endDateOnly) : "Datum auswählen"}
               </div>
@@ -968,9 +968,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
               />
             </div>
-            <div className="relative rounded-md border border-[hsl(var(--input-border))] focus-within:border-[hsl(var(--primary))] focus-within:ring-2 focus-within:ring-[hsl(var(--primary))]">
+            <div className="relative block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
               <div
-                className={`block w-full rounded-md px-3 py-2 bg-[var(--surface)] ${endTimeOnly && !endTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
+                className={`block w-full ${endTimeOnly && !endTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
                 {endTimeOnly ? endTimeOnly : "Uhrzeit auswählen"}
               </div>
