@@ -907,7 +907,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             <p className="mt-1 text-xs text-[var(--muted)]">Zeitzone: {browserTimeZone}</p>
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
-            <div className="relative rounded-md ring-1 ring-inset ring-[var(--border)] focus-within:ring-2 focus-within:ring-[var(--primary)]">
+            <div className="relative rounded-md ring-1 ring-inset ring-[var(--input-border)] focus-within:ring-2 focus-within:ring-[var(--primary)]">
               <div
                 className={`block w-full rounded-md px-3 py-2 bg-[var(--surface)] ${startDateOnly && !startDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
@@ -922,7 +922,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
               />
             </div>
-            <div className="relative rounded-md ring-1 ring-inset ring-[var(--border)] focus-within:ring-2 focus-within:ring-[var(--primary)]">
+            <div className="relative rounded-md ring-1 ring-inset ring-[var(--input-border)] focus-within:ring-2 focus-within:ring-[var(--primary)]">
               <div
                 className={`block w-full rounded-md px-3 py-2 bg-[var(--surface)] ${startTimeOnly && !startTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
@@ -952,7 +952,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             <p className="mt-1 text-xs text-[var(--link)]">{endShiftHint}</p>
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
-            <div className="relative rounded-md ring-1 ring-inset ring-[var(--border)] focus-within:ring-2 focus-within:ring-[var(--primary)]">
+            <div className="relative rounded-md ring-1 ring-inset ring-[var(--input-border)] focus-within:ring-2 focus-within:ring-[var(--primary)]">
               <div
                 className={`block w-full rounded-md px-3 py-2 bg-[var(--surface)] ${endDateOnly && !endDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
@@ -968,7 +968,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
               />
             </div>
-            <div className="relative rounded-md ring-1 ring-inset ring-[var(--border)] focus-within:ring-2 focus-within:ring-[var(--primary)]">
+            <div className="relative rounded-md ring-1 ring-inset ring-[var(--input-border)] focus-within:ring-2 focus-within:ring-[var(--primary)]">
               <div
                 className={`block w-full rounded-md px-3 py-2 bg-[var(--surface)] ${endTimeOnly && !endTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
