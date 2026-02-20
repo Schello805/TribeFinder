@@ -907,7 +907,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             <p className="mt-1 text-xs text-[var(--muted)]">Zeitzone: {browserTimeZone}</p>
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
-            <div className="relative block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
+            <div className="relative block w-full rounded-md overflow-hidden border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
               <div
                 className={`block w-full ${startDateOnly && !startDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
@@ -919,10 +919,10 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 onChange={(e) => handleStartDateOnlyChange(e.target.value)}
                 onBlur={handleStartDateBlur}
                 autoComplete="off"
-                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer rounded-md"
               />
             </div>
-            <div className="relative block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
+            <div className="relative block w-full rounded-md overflow-hidden border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
               <div
                 className={`block w-full ${startTimeOnly && !startTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
@@ -934,7 +934,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 onChange={(e) => handleStartTimeOnlyChange(e.target.value)}
                 onBlur={handleStartTimeBlur}
                 autoComplete="off"
-                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer rounded-md"
               />
             </div>
           </div>
@@ -952,7 +952,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             <p className="mt-1 text-xs text-[var(--link)]">{endShiftHint}</p>
           ) : null}
           <div className="mt-1 grid grid-cols-2 gap-2">
-            <div className="relative block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
+            <div className="relative block w-full rounded-md overflow-hidden border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
               <div
                 className={`block w-full ${endDateOnly && !endDateTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
@@ -965,10 +965,10 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 onChange={(e) => handleEndDateOnlyChange(e.target.value)}
                 onBlur={handleEndDateBlur}
                 autoComplete="off"
-                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer rounded-md"
               />
             </div>
-            <div className="relative block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
+            <div className="relative block w-full rounded-md overflow-hidden border border-[var(--border)] px-3 py-2 shadow-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)]">
               <div
                 className={`block w-full ${endTimeOnly && !endTimeTouched ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}
               >
@@ -980,7 +980,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
                 onChange={(e) => handleEndTimeOnlyChange(e.target.value)}
                 onBlur={handleEndTimeBlur}
                 autoComplete="off"
-                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer rounded-md"
               />
             </div>
           </div>
