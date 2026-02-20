@@ -287,13 +287,13 @@ export default async function GroupDetailPage({
 
   return (
     <GroupDetailAnimations>
-      <div className="max-w-4xl mx-auto space-y-8 pb-12">
+      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 pb-12 px-4 sm:px-0">
         
         {/* Profile Header Card */}
         <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-2xl shadow-sm border border-[var(--border)] overflow-hidden transition-colors">
           {/* ... existing header content ... */}
           {/* Banner Area */}
-          <div className="h-48 w-full relative" style={headerStyle}>
+          <div className="h-32 sm:h-48 w-full relative" style={headerStyle}>
             {headerImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -310,10 +310,10 @@ export default async function GroupDetailPage({
             ) : null}
           </div>
 
-          <div className="px-6 pb-6">
-            <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-16 mb-6 gap-6 relative z-10">
+          <div className="px-4 sm:px-6 pb-5 sm:pb-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-12 sm:-mt-16 mb-5 sm:mb-6 gap-4 sm:gap-6 relative z-10">
               {/* Logo / Avatar */}
-              <div className="flex-shrink-0 h-32 w-32 rounded-2xl border-4 border-[var(--surface)] bg-[var(--surface)] shadow-lg overflow-hidden flex items-center justify-center">
+              <div className="flex-shrink-0 h-24 w-24 sm:h-32 sm:w-32 rounded-2xl border-4 border-[var(--surface)] bg-[var(--surface)] shadow-lg overflow-hidden flex items-center justify-center">
                 {group.image ? (
                   <>
                     <ImageWithFallback 
@@ -332,8 +332,8 @@ export default async function GroupDetailPage({
               {/* Title & Basic Info */}
               <div className="flex-1 text-center sm:text-left pt-2 sm:pt-0 min-w-0">
                 <div className="inline-block max-w-full bg-[var(--surface)] backdrop-blur-md rounded-2xl px-4 py-3 shadow-sm border border-[var(--border)]">
-                  <h1 className="tf-display text-3xl sm:text-4xl font-extrabold text-[var(--foreground)] tracking-tight mb-2 truncate">{group.name}</h1>
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-2 text-sm text-[var(--foreground)]">
+                  <h1 className="tf-display text-2xl sm:text-4xl font-extrabold text-[var(--foreground)] tracking-tight mb-2 break-words sm:truncate">{group.name}</h1>
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 sm:gap-x-6 gap-y-2 text-xs sm:text-sm text-[var(--foreground)]">
                     <span className="flex items-center gap-1.5">
                       <svg className="w-4 h-4 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                       Seit {group.foundingYear || new Date(group.createdAt).getFullYear()}
@@ -363,7 +363,7 @@ export default async function GroupDetailPage({
                       groupId={group.id}
                       initialCount={likeCount}
                       initialLikedByMe={likedByMe}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 sm:py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
                     />
                   </div>
                 </div>

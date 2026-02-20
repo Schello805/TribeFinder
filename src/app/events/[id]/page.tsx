@@ -167,12 +167,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       {(event.flyer1 || event.flyer2) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {event.flyer1 && (
-            <div className="relative h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-[var(--surface-2)]">
+            <div className="relative h-48 sm:h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-[var(--surface-2)]">
               <ImageWithFallback src={event.flyer1} alt={`Flyer für ${event.title}`} className="w-full h-full object-contain" />
             </div>
           )}
           {event.flyer2 && (
-            <div className="relative h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-[var(--surface-2)]">
+            <div className="relative h-48 sm:h-64 md:h-96 rounded-lg overflow-hidden shadow-md bg-[var(--surface-2)]">
               <ImageWithFallback src={event.flyer2} alt={`Flyer für ${event.title}`} className="w-full h-full object-contain" />
             </div>
           )}
@@ -181,7 +181,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
       {/* Main Content Card */}
       <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-md border border-[var(--border)] overflow-hidden">
-        <div className="p-6 md:p-8 space-y-6">
+        <div className="p-4 sm:p-6 md:p-8 space-y-6">
           
           {/* Title & Meta Header */}
           <div className="flex flex-col md:flex-row justify-between gap-6">
@@ -196,9 +196,9 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   </span>
                 )}
               </div>
-              <h1 className="tf-display text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-3 leading-tight">{event.title}</h1>
+              <h1 className="tf-display text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-3 leading-tight break-words">{event.title}</h1>
               
-              <div className="text-[var(--muted)] flex flex-wrap items-center gap-4 text-lg">
+              <div className="text-[var(--muted)] flex flex-wrap items-center gap-3 sm:gap-4 text-base sm:text-lg">
                 <div className="flex items-center gap-2">
                   <span>🗓️</span> 
                   <span className="font-medium text-[var(--foreground)]">
@@ -219,13 +219,13 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             </div>
             
             {/* Action Buttons (Tickets & Nav) */}
-            <div className="flex flex-col gap-3 min-w-[220px]">
+            <div className="flex flex-col gap-3 w-full md:w-auto md:min-w-[220px]">
               {event.ticketLink && (
                 <a 
                   href={event.ticketLink} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="w-full py-3 px-4 bg-[var(--primary)] text-[var(--primary-foreground)] text-center rounded-md font-bold hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm flex items-center justify-center gap-2"
+                  className="w-full py-2.5 sm:py-3 px-4 bg-[var(--primary)] text-[var(--primary-foreground)] text-center rounded-md font-bold hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm flex items-center justify-center gap-2"
                 >
                   <span>🎟️</span> Tickets {event.ticketPrice ? `(${event.ticketPrice})` : ""}
                 </a>
@@ -234,7 +234,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               <a 
                 href={`/api/events/${event.id}/calendar`}
                 download
-                className="w-full py-3 px-4 bg-[var(--surface)] text-[var(--foreground)] text-center rounded-md font-bold hover:bg-[var(--surface-hover)] transition shadow-sm flex items-center justify-center gap-2 border border-[var(--border)]"
+                className="w-full py-2.5 sm:py-3 px-4 bg-[var(--surface)] text-[var(--foreground)] text-center rounded-md font-bold hover:bg-[var(--surface-hover)] transition shadow-sm flex items-center justify-center gap-2 border border-[var(--border)]"
               >
                 <span>📅</span> Zum Kalender hinzufügen
               </a>
@@ -243,7 +243,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <>
                   <Link
                     href={event.group ? `/groups/${event.group.id}/events/${event.id}/edit` : `/events/${event.id}/edit`}
-                    className="w-full py-3 px-4 bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] text-center rounded-md font-bold hover:bg-[var(--surface-hover)] transition shadow-sm flex items-center justify-center"
+                    className="w-full py-2.5 sm:py-3 px-4 bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] text-center rounded-md font-bold hover:bg-[var(--surface-hover)] transition shadow-sm flex items-center justify-center"
                   >
                     Bearbeiten
                   </Link>

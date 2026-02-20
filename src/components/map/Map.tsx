@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { useToast } from "@/components/ui/Toast";
 import "leaflet/dist/leaflet.css";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+
+type NominatimReverseResult = {
+  address?: {
+    postcode?: string;
+    country_code?: string;
+  };
+};
 
 interface MapTag {
   name: string;
@@ -71,11 +78,60 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const eventLocationOkCache = useRef<globalThis.Map<string, boolean>>(new globalThis.Map());
   const [mapReady, setMapReady] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [showGroups, setShowGroups] = useState(true);
   const [showEvents, setShowEvents] = useState(true);
+
+  const extractPostcode = useCallback((address: string) => {
+    const m = (address || "").match(/\b(\d{5})\b/);
+    return m ? m[1] : null;
+  }, []);
+
+  const buildNominatimReverseUrl = useCallback((lat: number, lng: number) => {
+    const params = new URLSearchParams({
+      format: "json",
+      lat: String(lat),
+      lon: String(lng),
+      zoom: "18",
+      addressdetails: "1",
+      "accept-language": "de",
+    });
+    return `https://nominatim.openstreetmap.org/reverse?${params.toString()}`;
+  }, []);
+
+  const isEventLocationReliable = useCallback(async (event: MapEvent) => {
+    if (!event.id) return false;
+    const cached = eventLocationOkCache.current.get(event.id);
+    if (typeof cached === "boolean") return cached;
+
+    const lat = typeof event.lat === "number" ? event.lat : null;
+    const lng = typeof event.lng === "number" ? event.lng : null;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      eventLocationOkCache.current.set(event.id, false);
+      return false;
+    }
+
+    const postcodeInAddress = extractPostcode(String((event as unknown as { address?: string | null }).address || ""));
+    if (!postcodeInAddress) {
+      eventLocationOkCache.current.set(event.id, true);
+      return true;
+    }
+
+    try {
+      const res = await fetch(buildNominatimReverseUrl(lat!, lng!));
+      const json = (await res.json().catch(() => null)) as NominatimReverseResult | null;
+      const postcode = typeof json?.address?.postcode === "string" ? json.address.postcode.trim() : "";
+      const ok = Boolean(postcode && postcode === postcodeInAddress);
+      eventLocationOkCache.current.set(event.id, ok);
+      return ok;
+    } catch {
+      eventLocationOkCache.current.set(event.id, false);
+      return false;
+    }
+  }, [buildNominatimReverseUrl, extractPostcode]);
 
   const handleLocateMe = () => {
     setIsLocating(true);
@@ -225,8 +281,15 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
 
     // Add markers for events
     if (showEvents) {
-      events?.forEach((event) => {
-        if (event.lat && event.lng) {
+      (async () => {
+        for (const event of events || []) {
+          const lat = typeof event.lat === "number" ? event.lat : null;
+          const lng = typeof event.lng === "number" ? event.lng : null;
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+
+          const ok = await isEventLocationReliable(event);
+          if (!ok) continue;
+
         const date = new Date(event.startDate).toLocaleDateString('de-DE', {
           day: '2-digit',
           month: '2-digit',
@@ -239,7 +302,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         const organizerName = ((event.organizer || '').trim() || (event.group?.name || '').trim());
         const flyerUrl = normalizeUploadedImageUrl((event.flyer1 || event.flyer2 || '').trim()) || '';
         
-        const marker = L.marker([event.lat, event.lng], { icon: eventIcon })
+        const marker = L.marker([lat!, lng!], { icon: eventIcon })
           .addTo(mapRef.current!)
           .bindPopup(`
             <div class="min-w-[260px] font-sans -m-1">
@@ -273,7 +336,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
           `);
           markersRef.current.push(marker);
         }
-      });
+      })();
     }
   }, [groups, events, selectedTag, showGroups, showEvents, mapReady]);
 

@@ -22,6 +22,16 @@ vi.mock("@/lib/serverTransfer", () => {
   };
 });
 
+vi.mock("@/lib/prisma", () => {
+  return {
+    default: {
+      group: { findMany: vi.fn() },
+      event: { findMany: vi.fn() },
+      user: { findMany: vi.fn() },
+    },
+  };
+});
+
 import { requireAdminSession } from "@/lib/requireAdmin";
 import {
   createTransferArchive,
@@ -30,6 +40,8 @@ import {
   getTransferArchiveBuffer,
   applyTransfer,
 } from "@/lib/serverTransfer";
+
+import prisma from "@/lib/prisma";
 
 type AdminSession = Awaited<ReturnType<typeof requireAdminSession>>;
 
@@ -55,6 +67,12 @@ describe("/api/admin/transfer/*", () => {
     vi.mocked(createTransferArchive).mockResolvedValueOnce(
       ({ filename: "x.tar.gz", size: 123, createdAt: 1 } as unknown) as Awaited<ReturnType<typeof createTransferArchive>>
     );
+
+    vi.mocked((prisma as unknown as { group: { findMany: (...args: unknown[]) => unknown } }).group.findMany).mockResolvedValueOnce(
+      [{ id: "g1" }, { id: "g2" }]
+    );
+    vi.mocked((prisma as unknown as { event: { findMany: (...args: unknown[]) => unknown } }).event.findMany).mockResolvedValueOnce([]);
+    vi.mocked((prisma as unknown as { user: { findMany: (...args: unknown[]) => unknown } }).user.findMany).mockResolvedValueOnce([]);
 
     const { POST } = await import("@/app/api/admin/transfer/export/route");
     const req = new Request("https://example.com/api/admin/transfer/export", {

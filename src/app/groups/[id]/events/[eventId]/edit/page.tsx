@@ -43,11 +43,23 @@ export default async function EditEventPage({
      // If the event has no group (independent), check if the user is the creator
      // However, this page is under /groups/[id]/events, so it implies a group context.
      // If data is corrupted and groupId is set but group relation is missing:
-     notFound();
+    notFound();
   }
 
-  if (event.group.ownerId !== session.user.id) {
-    redirect("/dashboard");
+  if (event.group.ownerId !== session.user.id && session.user.role !== "ADMIN") {
+    const membership = await prisma.groupMember.findUnique({
+      where: {
+        userId_groupId: {
+          userId: session.user.id,
+          groupId: id,
+        },
+      },
+      select: { role: true, status: true },
+    });
+
+    if (!membership || membership.role !== "ADMIN" || membership.status !== "APPROVED") {
+      redirect("/dashboard");
+    }
   }
 
   const initialData: Partial<EventFormData> & { id?: string } = {

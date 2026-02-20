@@ -39,7 +39,7 @@ export default async function EditEventPage({
   }
 
   // Independent event: only creator can edit
-  if (event.creatorId !== session.user.id) {
+  if (event.creatorId !== session.user.id && session.user.role !== "ADMIN") {
     redirect("/dashboard");
   }
 
