@@ -90,24 +90,53 @@ export default async function UserPublicProfilePage({ params }: { params: Promis
     Boolean(user.dancerWorkshopConditions?.trim());
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-2xl shadow-sm border border-[var(--border)] p-6">
-        <div className="flex items-center gap-4">
-          {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatar} alt={displayName} className="h-16 w-16 rounded-full object-cover border border-[var(--border)]" />
-          ) : (
-            <div className="h-16 w-16 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold text-2xl border border-[var(--border)]">
-              {displayName.charAt(0)}
+    <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8 px-4 sm:px-0">
+      <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-2xl shadow-sm border border-[var(--border)] overflow-hidden">
+        <div className="h-24 sm:h-32 bg-[var(--primary)] relative">
+          <div className="absolute inset-0 opacity-15 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+          <div className="absolute inset-0 bg-black/10" />
+        </div>
+
+        <div className="px-4 sm:px-6 pb-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-10 sm:-mt-12 gap-4 sm:gap-6 relative z-10">
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatar}
+                alt={displayName}
+                className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl object-cover border-4 border-[var(--surface)] shadow-lg"
+              />
+            ) : (
+              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-[var(--surface-2)] flex items-center justify-center text-[var(--muted)] font-bold text-3xl border-4 border-[var(--surface)] shadow-lg">
+                {displayName.charAt(0)}
+              </div>
+            )}
+
+            <div className="flex-1 text-center sm:text-left min-w-0">
+              <h1 className="tf-display text-2xl sm:text-3xl font-extrabold text-[var(--foreground)] tracking-tight break-words">
+                {displayName}
+              </h1>
+              <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                <div className="flex justify-center sm:justify-start">
+                  <UserPresenceStatus userId={user.id} />
+                </div>
+                {memberships.length > 0 ? (
+                  <div className="flex justify-center sm:justify-start">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)]">
+                      In {memberships.length} Gruppe{memberships.length === 1 ? "" : "n"}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
             </div>
-          )}
-          <div className="min-w-0">
-            <h1 className="tf-display text-2xl font-bold text-[var(--foreground)] truncate">{displayName}</h1>
-            {user.bio ? (
-              <p className="mt-1 text-[var(--muted)] whitespace-pre-wrap">{user.bio}</p>
-            ) : null}
-            <UserPresenceStatus userId={user.id} />
           </div>
+
+          {user.bio ? (
+            <div className="mt-5">
+              <div className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Über mich</div>
+              <p className="text-[var(--foreground)] whitespace-pre-wrap leading-relaxed">{user.bio}</p>
+            </div>
+          ) : null}
         </div>
       </div>
 

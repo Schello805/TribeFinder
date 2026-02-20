@@ -338,7 +338,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         }
       })();
     }
-  }, [groups, events, selectedTag, showGroups, showEvents, mapReady]);
+  }, [groups, events, selectedTag, showGroups, showEvents, mapReady, isEventLocationReliable]);
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full z-0">
