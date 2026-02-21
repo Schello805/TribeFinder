@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { jsonBadRequest, jsonServerError, jsonUnauthorized } from "@/lib/apiResponse";
-import { mkdir, writeFile } from "fs/promises";
+import { chmod, mkdir, writeFile } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { resolveUploadsDir } from "@/lib/uploadFiles";
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = [
@@ -80,7 +81,8 @@ export async function POST(req: Request) {
       return jsonBadRequest("Ungültiger Dateityp");
     }
 
-    const uploadDir = path.join(process.cwd(), "public/uploads/marketing");
+    const uploadsDir = await resolveUploadsDir();
+    const uploadDir = path.join(uploadsDir, "marketing");
     await mkdir(uploadDir, { recursive: true });
 
     const ext = extFromFileOrMime(file.name || "", file.type);
@@ -89,6 +91,7 @@ export async function POST(req: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(filepath, buffer);
+    await chmod(filepath, 0o644).catch(() => undefined);
 
     const fileUrl = `/uploads/marketing/${filename}`;
 
