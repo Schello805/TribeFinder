@@ -7,6 +7,7 @@ import DeleteEventButton from '@/components/events/DeleteEventButton';
 import EventRegistration from '@/components/events/EventRegistration';
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import DynamicEventMap from "@/components/map/DynamicEventMap";
+import DuplicateEventButton from "@/components/events/DuplicateEventButton";
 
 const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
@@ -166,6 +167,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
   const isDefaultLatLng = event.lat === 51.1657 && event.lng === 10.4515;
   const hasLocation = Boolean((event.address || "").trim()) || (!isDefaultLatLng && Number.isFinite(event.lat) && Number.isFinite(event.lng));
+  const isExpired = new Date(event.startDate).getTime() < +new Date();
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12 px-4 sm:px-0">
@@ -197,6 +199,11 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)]">
                   {getTypeLabel(event.eventType)}
                 </span>
+                {isExpired ? (
+                  <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)]">
+                    Abgelaufen
+                  </span>
+                ) : null}
                 {canEdit && (
                   <span className="text-xs bg-[var(--surface-2)] text-[var(--foreground)] px-2 py-1 rounded border border-[var(--border)]">
                     Du verwaltest dieses Event
@@ -254,6 +261,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   >
                     Bearbeiten
                   </Link>
+                  <DuplicateEventButton eventId={event.id} />
                   <div className="flex items-center justify-end pt-1">
                     <DeleteEventButton eventId={event.id} redirectTo="/events" />
                   </div>
