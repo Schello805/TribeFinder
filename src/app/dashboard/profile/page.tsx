@@ -17,6 +17,10 @@ export default async function ProfilePage() {
         Verwalte deine persönlichen Daten und wie du für andere sichtbar bist.
       </p>
 
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm text-[var(--muted)]">
+        Tipp: Dein Tänzerinnenprofil kannst du jederzeit hier vervollständigen (Bio, Social Links, Unterricht/Workshops, Buchbarkeit usw.).
+      </div>
+
       <ProfileForm />
     </div>
   );

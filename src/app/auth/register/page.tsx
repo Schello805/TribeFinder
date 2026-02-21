@@ -82,6 +82,11 @@ export default function RegisterPage() {
         </div>
       )}
 
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm text-[var(--muted)]">
+        Deine detaillierten Tänzerinnen-Infos (Bio, Social Links, Unterricht/Workshops, Buchbarkeit usw.) kannst du nach dem ersten Login unter
+        <span className="font-medium text-[var(--foreground)]"> Dashboard → Profil bearbeiten</span> ausfüllen.
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-[var(--foreground)] font-medium mb-1">Name</label>

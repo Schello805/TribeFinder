@@ -529,10 +529,23 @@ export default function GroupCreateWizard() {
                 />
               </div>
             </div>
+
+          <div className="mt-6 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4">
+            <div className="text-sm font-semibold text-[var(--foreground)]">Nach dem Erstellen kannst du noch mehr einstellen</div>
+            <div className="mt-1 text-sm text-[var(--muted)]">
+              In <span className="font-medium text-[var(--foreground)]">Gruppe bearbeiten</span> kannst du später u.a. ergänzen:
+            </div>
+            <div className="mt-3 grid grid-cols-1 gap-1 text-sm text-[var(--muted)]">
+              <div>Banner/Header-Bild + Fokus/Gradient</div>
+              <div>Video-Link (YouTube)</div>
+              <div>Weitere Texte/Details & Optimierungen am Profil</div>
+            </div>
+          </div>
+
+          {/* details step doubles as review + submit */}
           </div>
         )}
 
-        {/* details step doubles as review + submit */}
       </div>
 
       {/* Navigation Buttons */}
