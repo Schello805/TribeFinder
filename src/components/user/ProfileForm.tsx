@@ -33,6 +33,7 @@ export default function ProfileForm() {
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -143,27 +144,57 @@ export default function ProfileForm() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Allow selecting the same file again
+    e.target.value = "";
+
     const uploadData = new FormData();
     uploadData.append("file", file);
 
     try {
-      setIsLoading(true);
+      setIsUploadingImage(true);
+
       const res = await fetch("/api/upload", {
         method: "POST",
         body: uploadData,
       });
 
-      if (!res.ok) throw new Error("Upload fehlgeschlagen");
+      const json = (await res.json().catch(() => null)) as { url?: string; error?: string; message?: string } | null;
 
-      const data = await res.json();
-      setFormData((prev) => ({ ...prev, image: normalizeUploadedImageUrl(data.url) ?? "" }));
+      if (!res.ok) {
+        const reason = (json?.error || json?.message || "Upload fehlgeschlagen").toString();
+        showToast(reason, "error");
+        return;
+      }
+
+      const uploadedUrl = normalizeUploadedImageUrl(json?.url) ?? "";
+      if (!uploadedUrl) {
+        showToast("Upload erfolgreich, aber die URL fehlt. Bitte erneut versuchen.", "error");
+        return;
+      }
+
+      const nextFormData = { ...formData, image: uploadedUrl };
+      setFormData(nextFormData);
+
+      // IMPORTANT: Persist immediately so the user doesn't have to hit "Profil speichern"
+      const saveRes = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nextFormData),
+      });
+      const saveJson = (await saveRes.json().catch(() => null)) as { message?: string; error?: string } | null;
+      if (!saveRes.ok) {
+        showToast(saveJson?.message || saveJson?.error || "Profilbild hochgeladen, aber Speichern fehlgeschlagen.", "error");
+        return;
+      }
+
+      showToast("Profilbild gespeichert", "success");
+      router.refresh();
     } catch (err) {
       console.error(err);
-      const errorMsg = "Fehler beim Bild-Upload";
-      setError(errorMsg);
-      showToast(errorMsg, "error");
+      const msg = err instanceof Error ? err.message : "Fehler beim Bild-Upload";
+      showToast(msg, "error");
     } finally {
-      setIsLoading(false);
+      setIsUploadingImage(false);
     }
   };
 
@@ -501,24 +532,19 @@ export default function ProfileForm() {
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
+                    disabled={isUploadingImage}
                     className="block w-full min-w-0 text-sm text-slate-500
                       file:mr-4 file:py-2 file:px-4
                       file:rounded-full file:border file:border-[var(--border)]
                       file:text-sm file:font-semibold
-                      file:bg-[var(--surface-2)] file:text-[var(--foreground)]
+                      file:bg-[var(--surface)] file:text-[var(--foreground)]
                       hover:file:bg-[var(--surface-hover)]
                     "
                   />
                 </label>
-                {formData.image && (
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, image: "" }))}
-                    className="mt-2 text-sm text-red-600 hover:text-red-800"
-                  >
-                    Bild entfernen
-                  </button>
-                )}
+                <div className="mt-2 text-xs text-[var(--muted)]">
+                  {isUploadingImage ? "Upload läuft…" : ""}
+                </div>
               </div>
             </div>
           </div>
