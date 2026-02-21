@@ -11,7 +11,6 @@ export default function NewMessagePage() {
 
   const groupId = useMemo(() => params.get("groupId") || "", [params]);
 
-  const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,7 +29,7 @@ export default function NewMessagePage() {
       const res = await fetch(`/api/groups/${groupId}/threads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: subject.trim() || undefined, content }),
+        body: JSON.stringify({ content }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -60,16 +59,6 @@ export default function NewMessagePage() {
       <h1 className="tf-display text-2xl font-bold text-[var(--foreground)]">Nachricht an Gruppe</h1>
 
       <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-xl border border-[var(--border)] p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-[var(--foreground)]">Betreff (optional)</label>
-          <input
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
-            placeholder="z.B. Auftritt / Training / Frage"
-          />
-        </div>
-
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">Nachricht</label>
           <textarea

@@ -20,7 +20,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   const body = await req.json().catch(() => ({}));
-  const subject = typeof body?.subject === "string" ? body.subject.slice(0, 200) : null;
   const content = typeof body?.content === "string" ? body.content.trim() : "";
 
   if (!content) {
@@ -54,7 +53,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     data: {
       groupId: id,
       createdByUserId: session.user.id,
-      subject,
+      subject: null,
       lastMessageAt: new Date(),
       messages: {
         create: {
@@ -78,7 +77,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     authorId: session.user.id,
     authorName: session.user.name || session.user.email || "Unbekannt",
     preview: content.slice(0, 120),
-    subject,
+    subject: null,
   }).catch(() => undefined);
 
   return NextResponse.json({ threadId: thread.id }, { status: 201 });
