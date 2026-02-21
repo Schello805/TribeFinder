@@ -5,6 +5,9 @@ import L from "leaflet";
 import { useToast } from "@/components/ui/Toast";
 import "leaflet/dist/leaflet.css";
 import "leaflet-gesture-handling/dist/leaflet-gesture-handling.css";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 type NominatimReverseResult = {
@@ -77,6 +80,8 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const groupClusterRef = useRef<L.MarkerClusterGroup | null>(null);
+  const eventClusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const eventLocationOkCache = useRef<globalThis.Map<string, boolean>>(new globalThis.Map());
   const [mapReady, setMapReady] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -180,6 +185,20 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(mapRef.current);
 
+        groupClusterRef.current = L.markerClusterGroup({
+          showCoverageOnHover: false,
+          spiderfyOnMaxZoom: true,
+          maxClusterRadius: 46,
+        });
+        eventClusterRef.current = L.markerClusterGroup({
+          showCoverageOnHover: false,
+          spiderfyOnMaxZoom: true,
+          maxClusterRadius: 46,
+        });
+
+        groupClusterRef.current.addTo(mapRef.current);
+        eventClusterRef.current.addTo(mapRef.current);
+
         setMapReady(true);
       }
     });
@@ -187,6 +206,14 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
     // Cleanup function will handle marker removal
     return () => {
       if (mapRef.current) {
+        if (groupClusterRef.current) {
+          groupClusterRef.current.clearLayers();
+          groupClusterRef.current = null;
+        }
+        if (eventClusterRef.current) {
+          eventClusterRef.current.clearLayers();
+          eventClusterRef.current = null;
+        }
         mapRef.current.remove();
         mapRef.current = null;
       }
@@ -200,6 +227,9 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
     // Clear existing markers
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
+
+    groupClusterRef.current?.clearLayers();
+    eventClusterRef.current?.clearLayers();
 
     // Filter groups by selected tag
     const filteredGroups = selectedTag
@@ -228,7 +258,6 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
           : '';
 
         const marker = L.marker([group.location.lat, group.location.lng], { icon: groupIcon })
-          .addTo(mapRef.current!)
           .bindPopup(`
             <div class="min-w-[260px] font-sans -m-1">
               <!-- Card Header -->
@@ -273,6 +302,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
             className: 'custom-popup-style',
             closeButton: false
           });
+          groupClusterRef.current?.addLayer(marker);
           markersRef.current.push(marker);
         }
       });
@@ -302,7 +332,6 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         const flyerUrl = normalizeUploadedImageUrl((event.flyer1 || event.flyer2 || '').trim()) || '';
         
         const marker = L.marker([lat!, lng!], { icon: eventIcon })
-          .addTo(mapRef.current!)
           .bindPopup(`
             <div class="min-w-[260px] font-sans -m-1">
               <div class="p-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-lg border border-[var(--border)]">
@@ -333,6 +362,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
               </div>
             </div>
           `);
+          eventClusterRef.current?.addLayer(marker);
           markersRef.current.push(marker);
         }
       })();

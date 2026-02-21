@@ -2,15 +2,15 @@
 
 Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
-## [Unreleased] - 2026-01-19
-
-## [Unreleased] - 2026-01-28
-
-## [Unreleased] - 2026-02-04
-
-## [Unreleased] - 2026-02-06
-
 ## [Unreleased] - 2026-02-20
+
+### 🗺️ Karte
+
+- Marker-Clustering für Gruppen und Events (bessere Übersicht und Performance)
+
+### 🧩 Events
+
+- Trust-Hinweise: Adress-/Positions-Check im Event-Formular + Hinweis bei abgelaufenen Events (inkl. Duplizieren-Flow)
 
 ### 🧩 Gruppen
 
