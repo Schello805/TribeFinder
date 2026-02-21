@@ -32,6 +32,7 @@ const isPublicPagePath = (pathname: string) => {
 const isPublicApiPath = (pathname: string, method: string) => {
   if (pathname.startsWith("/api/auth")) return true;
   if (pathname === "/api/presence/ping") return true;
+  if (pathname === "/api/register") return true;
 
   if (!isReadMethod(method)) return false;
 
