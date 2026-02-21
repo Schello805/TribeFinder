@@ -326,9 +326,30 @@ enum MarketplaceLocationSource {
   GEOCODE
 }
 
+enum MarketingAssetType {
+  LOGO
+  HEADER
+  POSTER
+}
+
 model SystemSetting {
   key   String @id
   value String
+}
+
+model MarketingAsset {
+  id          String             @id @default(cuid())
+  type        MarketingAssetType
+  title       String
+  description String?
+  fileUrl     String
+  mimeType    String
+  sizeBytes   Int
+
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
 }
 
 model Feedback {

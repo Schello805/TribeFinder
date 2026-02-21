@@ -15,6 +15,7 @@ const isReadMethod = (method: string) => {
 const isPublicPagePath = (pathname: string) => {
   if (pathname === "/") return true;
   if (pathname === "/changelog") return true;
+  if (pathname === "/marketing") return true;
   if (pathname === "/hilfe") return true;
   if (pathname === "/impressum") return true;
   if (pathname === "/datenschutz") return true;
