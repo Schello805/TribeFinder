@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/types";
 
 interface UserProfile {
   firstName?: string | null;
@@ -146,6 +147,19 @@ export default function ProfileForm() {
 
     // Allow selecting the same file again
     e.target.value = "";
+
+    if (file.size > MAX_FILE_SIZE) {
+      showToast(`Datei zu groß. Maximum: ${Math.floor(MAX_FILE_SIZE / 1024 / 1024)}MB`, "error");
+      return;
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type as (typeof ALLOWED_IMAGE_TYPES)[number])) {
+      showToast(
+        `Ungültiger Dateityp (${file.type || "unbekannt"}). Bitte JPG, PNG, GIF oder WebP verwenden (z.B. iPhone-HEIC vorher in JPG umwandeln).`,
+        "error"
+      );
+      return;
+    }
 
     const uploadData = new FormData();
     uploadData.append("file", file);
@@ -530,7 +544,7 @@ export default function ProfileForm() {
                   <span className="sr-only">Wähle ein Profilbild</span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={ALLOWED_IMAGE_TYPES.join(",")}
                     onChange={handleImageUpload}
                     disabled={isUploadingImage}
                     className="block w-full min-w-0 text-sm text-slate-500
