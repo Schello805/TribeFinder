@@ -79,6 +79,7 @@ export default async function MarketingPage() {
                 {list.map((item) => {
                   const url = normalizeUploadedImageUrl(item.fileUrl) || item.fileUrl;
                   const isPdf = (item.mimeType || "").toLowerCase().includes("pdf") || url.toLowerCase().endsWith(".pdf");
+                  const isLogo = item.type === "LOGO";
                   return (
                     <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
                       <div className="p-4 space-y-2">
@@ -99,7 +100,7 @@ export default async function MarketingPage() {
                             <img
                               src={url}
                               alt={item.title}
-                              className="w-full h-auto max-h-[70vh] object-contain"
+                              className={isLogo ? "w-full h-auto max-h-48 object-contain" : "w-full h-auto max-h-[70vh] object-contain"}
                               loading="lazy"
                             />
                           </div>

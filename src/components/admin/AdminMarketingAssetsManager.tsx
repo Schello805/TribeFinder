@@ -198,6 +198,7 @@ export default function AdminMarketingAssetsManager() {
                   {grouped[t].map((item) => {
                     const url = normalizeUploadedImageUrl(item.fileUrl) || item.fileUrl;
                     const isPdf = (item.mimeType || "").toLowerCase().includes("pdf") || url.toLowerCase().endsWith(".pdf");
+                    const isLogo = item.type === "LOGO";
                     return (
                       <div key={item.id} className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden">
                         <div className="p-4 space-y-2">
@@ -219,7 +220,7 @@ export default function AdminMarketingAssetsManager() {
                             <img
                               src={url}
                               alt={item.title}
-                              className="w-full h-auto max-h-96 object-contain"
+                              className={isLogo ? "w-full h-auto max-h-48 object-contain" : "w-full h-auto max-h-96 object-contain"}
                               loading="lazy"
                             />
                           </div>
