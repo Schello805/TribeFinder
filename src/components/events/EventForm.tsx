@@ -1164,6 +1164,13 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
       <div>
         <label className="block text-sm font-medium text-[var(--foreground)]">Adresse *</label>
+        <div className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm text-[var(--foreground)]">
+          <div className="font-semibold">Hinweis</div>
+          <div className="mt-1 text-[var(--muted)]">
+            Bitte prüfe, ob die Adresse wirklich zur Position passt. Wenn mehrere Treffer erscheinen, wähle den passenden Eintrag aus.
+            Abgelaufene (wiederkehrende) Events kannst du später in der Event-Ansicht duplizieren und nur Datum/Uhrzeit anpassen.
+          </div>
+        </div>
         <div className="flex gap-2 items-start">
           <div className="flex-1">
             <input

@@ -210,6 +210,16 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   </span>
                 )}
               </div>
+
+              {isExpired ? (
+                <div className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm text-[var(--foreground)]">
+                  <div className="font-semibold">Hinweis</div>
+                  <div className="mt-1 text-[var(--muted)]">
+                    Dieses Event ist abgelaufen und wird nicht mehr im öffentlichen Kalender angezeigt.
+                    {canEdit ? " Du kannst es duplizieren und nur Datum/Uhrzeit anpassen." : ""}
+                  </div>
+                </div>
+              ) : null}
               <h1 className="tf-display text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-3 leading-tight break-words">{event.title}</h1>
               
               <div className="text-[var(--muted)] flex flex-wrap items-center gap-3 sm:gap-4 text-base sm:text-lg">
