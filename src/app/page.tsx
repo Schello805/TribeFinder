@@ -131,12 +131,38 @@ export default async function Home() {
             </p>
           </div>
 
-          <NearbyStats
-            radiusKm={25}
-            fallbackGroups={groupCount}
-            fallbackEvents={eventCount}
-            fallbackMembers={userCount}
-          />
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center">
+              <div className="text-sm text-[var(--muted)]">Schon dabei</div>
+              <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{groupCount}</div>
+              <div className="mt-1 text-sm text-[var(--muted)]">Tanzgruppen</div>
+            </div>
+            <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center">
+              <div className="text-sm text-[var(--muted)]">Aktuell geplant</div>
+              <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{eventCount}</div>
+              <div className="mt-1 text-sm text-[var(--muted)]">Events</div>
+            </div>
+            <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center">
+              <div className="text-sm text-[var(--muted)]">Mitglieder</div>
+              <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{userCount}</div>
+              <div className="mt-1 text-sm text-[var(--muted)]">in der Community</div>
+            </div>
+          </div>
+
+          <div className="mt-10 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-6">
+            <div className="text-center">
+              <div className="tf-display text-xl font-bold text-[var(--foreground)]">In deiner Nähe</div>
+              <div className="mt-2 text-sm text-[var(--muted)]">
+                Aktiviere Standortzugriff, um Zahlen im Umkreis von 25km zu sehen.
+              </div>
+            </div>
+            <NearbyStats
+              radiusKm={25}
+              fallbackGroups={groupCount}
+              fallbackEvents={eventCount}
+              fallbackMembers={userCount}
+            />
+          </div>
         </div>
       </section>
 
