@@ -79,9 +79,6 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description:
       "Finde Tanzgruppen, Workshops und News zu Tribal Style Dance und Bauchtanz auf Tribefinder.de. Deine Online-Plattform für den Austausch und die Vernetzung innerhalb der deutschsprachigen Tanzszene.",
-    alternates: {
-      canonical: baseUrl,
-    },
     openGraph: {
       type: "website",
       locale: "de_DE",

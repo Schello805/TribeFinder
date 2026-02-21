@@ -1,7 +1,14 @@
 import prisma from "@/lib/prisma";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Marketing",
+  description:
+    "Offizielles Marketing-Material von TribeFinder: Logo, Header und Plakate zum Download und Teilen.",
+};
 
 type MarketingAssetType = "LOGO" | "HEADER" | "POSTER";
 
