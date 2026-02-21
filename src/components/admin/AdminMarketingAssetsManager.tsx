@@ -215,7 +215,9 @@ export default function AdminMarketingAssetsManager() {
                           <div className="px-4 pb-4 text-xs text-gray-500 dark:text-gray-400">PDF Vorschau nicht eingebettet.</div>
                         ) : (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={url} alt={item.title} className="w-full h-48 object-cover" loading="lazy" />
+                          <div className="w-full h-48 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                            <img src={url} alt={item.title} className="max-w-full max-h-full object-contain" loading="lazy" />
+                          </div>
                         )}
 
                         <div className="p-4 flex items-center gap-2">

@@ -95,7 +95,9 @@ export default async function MarketingPage() {
                           <div className="p-4 text-sm text-[var(--muted)]">PDF Vorschau nicht eingebettet – bitte herunterladen.</div>
                         ) : (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={url} alt={item.title} className="w-full h-56 object-cover" loading="lazy" />
+                          <div className="w-full h-56 bg-[var(--surface)] flex items-center justify-center">
+                            <img src={url} alt={item.title} className="max-w-full max-h-full object-contain" loading="lazy" />
+                          </div>
                         )}
                         <div className="p-4">
                           <a
