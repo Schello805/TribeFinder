@@ -62,6 +62,10 @@ export default function AdminMarketingAssetsManager() {
 
   const onUpload = useCallback(
     async (file: File) => {
+      if (!title.trim()) {
+        showToast("Bitte zuerst einen Titel eingeben.", "error");
+        return;
+      }
       setSaving(true);
       try {
         const fd = new FormData();
@@ -164,7 +168,7 @@ export default function AdminMarketingAssetsManager() {
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
-              disabled={saving || !title.trim()}
+              disabled={saving}
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) void onUpload(f);
