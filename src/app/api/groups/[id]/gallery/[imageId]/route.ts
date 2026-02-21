@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { deleteUploadByPublicUrl } from "@/lib/uploadFiles";
 
 async function canEditGroup(groupId: string, userId: string) {
   const group = await prisma.group.findUnique({ where: { id: groupId }, select: { ownerId: true } });
@@ -29,13 +30,17 @@ export async function DELETE(
 
   const { id: groupId, imageId } = await params;
 
-  const permission = await canEditGroup(groupId, session.user.id);
-  if (!permission.ok) return NextResponse.json({ message: permission.message }, { status: permission.status });
+  if (session.user.role !== "ADMIN") {
+    const permission = await canEditGroup(groupId, session.user.id);
+    if (!permission.ok) return NextResponse.json({ message: permission.message }, { status: permission.status });
+  }
 
   const existing = await prisma.galleryImage.findFirst({ where: { id: imageId, groupId } });
   if (!existing) return NextResponse.json({ message: "Nicht gefunden" }, { status: 404 });
 
   await prisma.galleryImage.delete({ where: { id: imageId } });
+
+  await deleteUploadByPublicUrl(existing.url).catch(() => undefined);
 
   return NextResponse.json({ ok: true });
 }
