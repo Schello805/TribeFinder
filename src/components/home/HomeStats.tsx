@@ -138,7 +138,7 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
         setNearbyDenied(true);
         setNearbyLoading(false);
       },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 5 * 60 * 1000 }
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
     );
   }, [radiusKm]);
 
@@ -306,7 +306,7 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
           >
             <div className="text-sm text-[var(--muted)]">{nearbyLabel}</div>
             <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">
-              {nearbyLoading ? "…" : nearbyStats?.groups ?? "–"}
+              {nearbyLoading ? "…" : nearbyStats?.groups ?? 0}
             </div>
             <div className="mt-1 text-sm text-[var(--muted)]">Tanzgruppen</div>
           </button>
@@ -319,7 +319,7 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
           >
             <div className="text-sm text-[var(--muted)]">{nearbyLabel}</div>
             <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">
-              {nearbyLoading ? "…" : nearbyStats?.events ?? "–"}
+              {nearbyLoading ? "…" : nearbyStats?.events ?? 0}
             </div>
             <div className="mt-1 text-sm text-[var(--muted)]">Events</div>
           </button>
@@ -327,7 +327,7 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
           <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center">
             <div className="text-sm text-[var(--muted)]">{nearbyLabel}</div>
             <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">
-              {nearbyLoading ? "…" : nearbyStats?.members ?? "–"}
+              {nearbyLoading ? "…" : nearbyStats?.members ?? 0}
             </div>
             <div className="mt-1 text-sm text-[var(--muted)]">Mitglieder</div>
           </div>
