@@ -31,7 +31,7 @@ fi
 
 if [ "$CAN_SUDO" -eq 1 ]; then
     # Ensure service user can rename within /var/www/tribefinder during backup restore
-    sudo mkdir -p /var/www/tribefinder/uploads /var/www/tribefinder/backups
+    sudo mkdir -p /var/www/tribefinder/uploads /var/www/tribefinder/backups /var/www/tribefinder/maintenance
     sudo chown -R tribefinder:tribefinder /var/www/tribefinder
     sudo chmod 755 /var/www/tribefinder || true
     sudo chmod 755 /var/www/tribefinder/uploads /var/www/tribefinder/backups || true
@@ -41,6 +41,7 @@ fi
 APP_DIR="/var/www/tribefinder"
 UPLOADS_DIR="$APP_DIR/uploads"
 BACKUP_DIR="$APP_DIR/backups"
+MAINTENANCE_DIR="$APP_DIR/maintenance"
 
 set_env_var() {
     local key="$1"
@@ -62,6 +63,18 @@ if [ ! -d "$UPLOADS_DIR" ]; then
     echo "  sudo chown -R tribefinder:tribefinder $UPLOADS_DIR"
     echo "  sudo chmod 755 $UPLOADS_DIR"
     exit 1
+fi
+
+# Apache Fallback Wartungsseite (statisch) aktualisieren
+if [ "$CAN_SUDO" -eq 1 ]; then
+    if [ -f "config/maintenance/index.html" ] && [ -f "public/icons/icon-512.png" ]; then
+        sudo mkdir -p "$MAINTENANCE_DIR"
+        sudo cp -f "config/maintenance/index.html" "$MAINTENANCE_DIR/index.html"
+        sudo cp -f "public/icons/icon-512.png" "$MAINTENANCE_DIR/logo.png"
+        sudo chmod 755 "$MAINTENANCE_DIR" || true
+        sudo chmod 644 "$MAINTENANCE_DIR/index.html" "$MAINTENANCE_DIR/logo.png" || true
+        sudo chown -R root:root "$MAINTENANCE_DIR" || true
+    fi
 fi
 
 if [ ! -w "$UPLOADS_DIR" ]; then

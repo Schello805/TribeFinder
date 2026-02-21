@@ -150,6 +150,12 @@ mkdir -p "$UPLOADS_DIR"
 chown -R tribefinder:tribefinder "$UPLOADS_DIR"
 chmod 755 "$UPLOADS_DIR"
 
+# Wartungsseite (Apache Fallback) Verzeichnis anlegen
+MAINTENANCE_DIR="/var/www/tribefinder/maintenance"
+mkdir -p "$MAINTENANCE_DIR"
+chown -R root:root "$MAINTENANCE_DIR"
+chmod 755 "$MAINTENANCE_DIR" || true
+
 # Backups-Verzeichnis auf dem Server-Dateisystem (für Backup/Restore API)
 SERVER_BACKUPS_DIR="/var/www/tribefinder/backups"
 mkdir -p "$SERVER_BACKUPS_DIR"
@@ -455,6 +461,14 @@ sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && e
 echo "Erstelle Production Build..."
 cd "$INSTALL_DIR"
 sudo -u tribefinder env HOME=/home/tribefinder bash -c 'cd '"$INSTALL_DIR"' && echo HOME=$HOME && npm run build'
+
+# Apache Fallback Wartungsseite (statisch) installieren
+if [ -f "config/maintenance/index.html" ] && [ -f "public/icons/icon-512.png" ]; then
+    echo "Installiere Wartungsseite (Apache Fallback)..."
+    cp -f "config/maintenance/index.html" "$MAINTENANCE_DIR/index.html"
+    cp -f "public/icons/icon-512.png" "$MAINTENANCE_DIR/logo.png"
+    chmod 644 "$MAINTENANCE_DIR/index.html" "$MAINTENANCE_DIR/logo.png" || true
+fi
 
 # Next.js standalone served static files live under .next/standalone/public
 # Ensure uploads are reachable under /uploads/* in production

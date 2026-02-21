@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TribeFinder – Wartung</title>
+  <meta http-equiv="refresh" content="15">
+  <style>
+    :root{
+      --bg:#0b1220;
+      --muted:#a9b3c7;
+      --fg:#e9eefb;
+      --accent:#b86b2a;
+      --border:rgba(255,255,255,.10);
+    }
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(184,107,42,.25), transparent 60%),
+        radial-gradient(900px 500px at 80% 20%, rgba(79,70,229,.18), transparent 60%),
+        var(--bg);
+      color:var(--fg);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .wrap{width:100%; max-width:760px;}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:28px;
+      box-shadow:0 18px 60px rgba(0,0,0,.35);
+      text-align:center;
+    }
+    .logo{
+      width:min(320px, 80vw);
+      height:auto;
+      margin:0 auto 18px;
+      display:block;
+      filter: drop-shadow(0 12px 28px rgba(0,0,0,.45));
+    }
+    h1{
+      margin:0 0 10px;
+      font-size:28px;
+      letter-spacing:.2px;
+    }
+    p{margin:0; color:var(--muted); line-height:1.5;}
+    .hint{margin-top:14px; font-size:14px;}
+    .pill{
+      display:inline-block;
+      margin-top:18px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(17,27,46,.6);
+      color:var(--fg);
+      font-size:14px;
+    }
+    .pill b{color:var(--accent);}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <img class="logo" src="/__maintenance/logo.png" alt="TribeFinder Logo">
+      <h1>Wir sind gleich wieder da</h1>
+      <p>TribeFinder wird gerade aktualisiert.</p>
+      <p class="hint">Du musst nichts tun – sobald das Update fertig ist, wird die Seite automatisch wieder normal angezeigt.</p>
+      <div class="pill">Automatischer Reload: <b>alle 15 Sekunden</b></div>
+    </div>
+  </div>
+</body>
+</html>
