@@ -20,6 +20,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen: Steckbrief-Druck optimiert (Print-Icon am Steckbrief-Button; beim Drucken werden Navbar/Footer ausgeblendet + höhere Kontraste)
 - Gruppen: Steckbrief-Link öffnet in neuem Tab
 - Gruppen: Steckbrief zeigt Gruppen-Logo; Safari-Druckvorschau fix (nur Steckbrief sichtbar via Print-CSS)
+- Gruppen: Steckbrief ist jetzt immer hell (lesbar auch im Darkmode)
 
 ## [Unreleased] - 2026-02-20
 

@@ -142,6 +142,20 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
       <style
         dangerouslySetInnerHTML={{
           __html: `
+#tf-promote-root {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #111827;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --border: #e5e7eb;
+  --muted: #6b7280;
+  --link: #2563eb;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --primary-hover: #4338ca;
+}
+
 @page { size: A4; margin: 12mm; }
 @media print {
   html, body { background: #fff !important; }
