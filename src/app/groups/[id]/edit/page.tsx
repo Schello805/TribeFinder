@@ -1,4 +1,5 @@
 import GroupForm from "@/components/groups/GroupForm";
+import FlyerGenerator from "@/components/groups/FlyerGenerator";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -54,7 +55,26 @@ export default async function EditGroupPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="tf-display text-3xl font-bold text-[var(--foreground)] mb-6">Gruppe bearbeiten</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+        <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Gruppe bearbeiten</h1>
+        <FlyerGenerator
+          group={{
+            id: group.id,
+            name: group.name,
+            description: group.description,
+            image: group.image,
+            website: group.website,
+            contactEmail: group.contactEmail,
+            trainingTime: group.trainingTime,
+            size: group.size,
+            foundingYear: group.foundingYear,
+            seekingMembers: group.seekingMembers,
+            performances: group.performances,
+            location: group.location ? { address: group.location.address } : null,
+            tags: group.tags,
+          }}
+        />
+      </div>
       <GroupForm initialData={serializedGroup} isEditing={true} isOwner={isOwner} canDelete={canDelete} />
     </div>
   );
