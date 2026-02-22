@@ -34,9 +34,9 @@ function ActionSelect({ value, onChange }: { value: Action; onChange: (v: Action
       onChange={(e) => onChange(e.target.value as Action)}
       className="px-2 py-1 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-black dark:text-white"
     >
-      <option value="skip">skip</option>
-      <option value="overwrite">overwrite</option>
-      <option value="copy">copy</option>
+      <option value="skip">überspringen</option>
+      <option value="overwrite">erstellen / überschreiben</option>
+      <option value="copy">duplizieren (kopieren)</option>
     </select>
   );
 }
