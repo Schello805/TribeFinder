@@ -381,6 +381,8 @@ export default async function GroupDetailPage({
                 ) : null}
                 <Link
                   href={`/groups/${group.id}/promote`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="tf-gothic-btn inline-flex items-center gap-2 px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] border border-[var(--border)]"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
