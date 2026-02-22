@@ -333,10 +333,8 @@ export async function GET(req: Request, { params }: RouteParams) {
     const detailsBoxHeight = 62;
     const stylesBoxHeight = 46;
 
-    // Place blocks strictly top-down so "Über uns" can never disappear.
-    // We reserve fixed heights for Details/Styles/Contact and let About take the remaining space.
-    const availableH = contentMaxY - y;
-    const reservedH = detailsBoxHeight + stylesBoxHeight + contactBoxHeight + gap * 3;
+    // Anchor contact block to the bottom and stack everything above it.
+    // This guarantees that Styles can never overlap Contact.
     const minAboutH = 60;
 
     // If there is not enough room (e.g. due to badges), shrink the fixed boxes slightly
@@ -349,7 +347,10 @@ export async function GET(req: Request, { params }: RouteParams) {
     let dynStylesH = stylesBoxHeight;
     let dynContactH = contactBoxHeight;
 
+    const availableH = contentMaxY - y;
+    const reservedH = dynDetailsH + dynStylesH + dynContactH + gap * 3;
     let aboutBoxH = availableH - reservedH;
+
     if (aboutBoxH < minAboutH) {
       let need = minAboutH - aboutBoxH;
 
@@ -372,13 +373,15 @@ export async function GET(req: Request, { params }: RouteParams) {
     }
 
     const aboutBoxY = y;
-    const detailsBoxY = aboutBoxY + aboutBoxH + gap;
-    const stylesBoxY = detailsBoxY + dynDetailsH + gap;
-    const contactBoxY = stylesBoxY + dynStylesH + gap;
+    const contactBoxY = contentMaxY - dynContactH;
+    const stylesBoxY = contactBoxY - gap - dynStylesH;
+    const detailsBoxY = stylesBoxY - gap - dynDetailsH;
 
-    // Keep inside bounds (should already hold, but clamp defensively)
-    const maxContactY = contentMaxY - dynContactH;
-    const clampedContactBoxY = Math.min(contactBoxY, maxContactY);
+    // If About would overlap Details (very tight space), clamp its height.
+    aboutBoxH = Math.max(40, Math.min(aboutBoxH, detailsBoxY - gap - aboutBoxY));
+
+    // Also clamp Contact defensively inside bounds.
+    const clampedContactBoxY = Math.min(contactBoxY, contentMaxY - dynContactH);
 
     // About box
     doc.setFillColor(255, 255, 255);

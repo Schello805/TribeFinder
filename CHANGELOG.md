@@ -13,6 +13,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen-Flyer PDF: Download-/Preview-Endpoint ist nicht mehr öffentlich (nur Owner/Gruppen-Admins/Global-Admins)
 - Gruppen-Flyer PDF: DIN-A4 Layout stärker gerastert (fixe Bereiche) + deutlich mehr Platz für Beschreibung; TribeFinder-Logo im Footer
 - Gruppen-Flyer PDF: "Über uns" wird wieder zuverlässig angezeigt (Layout strikt top-down; Boxen schrumpfen bei wenig Platz)
+- Gruppen-Flyer PDF: Overlap-Fix (Kontaktblock unten verankert; Tanzstile/Events darüber)
 
 ## [Unreleased] - 2026-02-20
 
