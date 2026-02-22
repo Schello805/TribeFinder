@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
 import PrintButton from "@/components/ui/PrintButton";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import { Prisma } from "@prisma/client";
 
 async function getPublicOrigin() {
   const envSiteUrl = (process.env.SITE_URL || "").trim().replace(/\/$/, "");
@@ -29,56 +31,70 @@ function formatEventTime(dt: Date) {
 export default async function GroupPromotePage({ params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;
 
-  let group = await prisma.group
-    .findUnique({
-      where: { id },
-      include: {
-        location: true,
-        tags: true,
-        events: {
-          where: { startDate: { gte: new Date() } },
-          orderBy: { startDate: "asc" },
-          take: 5,
-          select: { id: true, title: true, startDate: true, locationName: true },
-        },
-        danceStyles: {
-          select: {
-            id: true,
-            level: true,
-            mode: true,
-            style: { select: { id: true, name: true } },
-          },
-          orderBy: { style: { name: "asc" } },
-        },
+  const baseSelect = {
+    id: true,
+    name: true,
+    description: true,
+    website: true,
+    contactEmail: true,
+    image: true,
+    seekingMembers: true,
+    performances: true,
+    trainingTime: true,
+    foundingYear: true,
+    size: true,
+    location: { select: { address: true } },
+    tags: { select: { id: true, name: true } },
+    events: {
+      where: { startDate: { gte: new Date() } },
+      orderBy: { startDate: "asc" },
+      take: 5,
+      select: { id: true, title: true, startDate: true, locationName: true },
+    },
+    danceStyles: {
+      select: {
+        id: true,
+        level: true,
+        mode: true,
+        style: { select: { id: true, name: true } },
       },
-    })
-    .catch(async (err) => {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("Unknown field `mode`") || msg.includes("Unknown field 'mode'")) {
-        return await prisma.group.findUnique({
-          where: { id },
-          include: {
-            location: true,
-            tags: true,
-            events: {
-              where: { startDate: { gte: new Date() } },
-              orderBy: { startDate: "asc" },
-              take: 5,
-              select: { id: true, title: true, startDate: true, locationName: true },
-            },
-            danceStyles: {
-              select: {
-                id: true,
-                level: true,
-                style: { select: { id: true, name: true } },
-              },
-              orderBy: { style: { name: "asc" } },
-            },
-          },
-        });
-      }
+      orderBy: { style: { name: "asc" } },
+    },
+  } as const;
+
+  const baseSelectWithoutMode = {
+    ...baseSelect,
+    danceStyles: {
+      select: {
+        id: true,
+        level: true,
+        style: { select: { id: true, name: true } },
+      },
+      orderBy: { style: { name: "asc" } },
+    },
+  } as const;
+
+  type GroupPromotePayloadWithMode = Prisma.GroupGetPayload<{ select: typeof baseSelect }>;
+  type GroupPromotePayloadWithoutMode = Prisma.GroupGetPayload<{ select: typeof baseSelectWithoutMode }>;
+
+  let group: GroupPromotePayloadWithMode | GroupPromotePayloadWithoutMode | null = null;
+
+  try {
+    group = (await prisma.group.findUnique({
+      where: { id },
+      select: baseSelect as unknown as Prisma.GroupSelect,
+    })) as unknown as GroupPromotePayloadWithMode;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("Unknown field `mode`") || msg.includes("Unknown field 'mode'")) {
+      group = (await prisma.group.findUnique({
+        where: { id },
+        select: baseSelectWithoutMode as unknown as Prisma.GroupSelect,
+      })) as unknown as GroupPromotePayloadWithoutMode;
+    } else {
       throw err;
-    });
+    }
+  }
 
   if (!group) {
     notFound();
@@ -92,6 +108,9 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
     errorCorrectionLevel: "M",
     color: { dark: "#111827", light: "#FFFFFF" },
   });
+
+  const normalizedLogo = group.image ? (normalizeUploadedImageUrl(String(group.image)) ?? String(group.image)) : "";
+  const logoUrl = normalizedLogo ? (normalizedLogo.startsWith("/") && origin ? `${origin}${normalizedLogo}` : normalizedLogo) : "";
 
   const displayWebsite = (group.website || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
   const getLevelLabel = (level: string) => {
@@ -116,10 +135,10 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
         const parts = [getLevelLabel(ds.level), getModeLabel(ds.mode || "")].filter(Boolean);
         return { key: ds.id, label: parts.length ? `${ds.style.name} (${parts.join(" · ")})` : ds.style.name };
       })
-    : group.tags.map((t) => ({ key: `tag-${t.id}`, label: t.name }));
+    : (group.tags as Array<{ id: string; name: string }>).map((t) => ({ key: `tag-${t.id}`, label: t.name }));
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] px-4 py-6">
+    <div id="tf-promote-root" className="min-h-screen bg-[var(--background)] text-[var(--foreground)] px-4 py-6">
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -128,25 +147,12 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
   html, body { background: #fff !important; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-  /* Hide global app chrome (layout Navbar/footer/banners/widgets) */
-  header, nav, footer { display: none !important; }
-  [data-site-banner],
-  [data-feedback-widget],
-  #__next-build-watcher,
-  #__next-route-announcer,
-  .tf-site-banner,
-  .feedback-widget {
-    display: none !important;
-  }
+  /* Safari-safe: hide everything, then show only the promote root */
+  body * { visibility: hidden !important; }
+  #tf-promote-root, #tf-promote-root * { visibility: visible !important; }
+  #tf-promote-root { position: absolute; left: 0; top: 0; width: 100%; }
 
-  /* Next.js App Router layout wrappers */
-  body > div:has(> header),
-  body > div:has(> nav),
-  body > div:has(> footer) {
-    display: none !important;
-  }
-
-  /* Make sure the promote content is the only visible thing */
+  /* Remove app layout padding that can push content off-page */
   main, .container { padding: 0 !important; margin: 0 !important; max-width: none !important; }
   .no-print { display: none !important; }
   .sheet { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
@@ -172,6 +178,15 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
         <div className="px-8 py-7 border-b border-[var(--border)] bg-[var(--surface-2)]">
           <div className="flex items-start justify-between gap-6">
             <div className="min-w-0">
+              <div className="flex items-start gap-3">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="w-14 h-14 rounded-xl object-cover border border-[var(--border)] bg-white flex-shrink-0"
+                  />
+                ) : null}
+                <div className="min-w-0">
               <div className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Steckbrief</div>
               <h1 className="tf-display text-3xl font-bold text-[var(--foreground)] mt-1 break-words">{group.name}</h1>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -185,6 +200,8 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
                     🎭 Auftritte möglich
                   </span>
                 ) : null}
+              </div>
+                </div>
               </div>
             </div>
 
@@ -223,9 +240,9 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
             <section>
               <h2 className="tf-display text-base font-bold text-[var(--foreground)]">Kommende Events</h2>
               <div className="mt-2">
-                {group.events.length ? (
+                {(group.events as Array<{ id: string; title: string; startDate: Date; locationName: string | null }>).length ? (
                   <div className="space-y-2">
-                    {group.events.map((e) => (
+                    {(group.events as Array<{ id: string; title: string; startDate: Date; locationName: string | null }>).map((e) => (
                       <div key={e.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <div className="font-semibold text-sm text-[var(--foreground)]">{e.title}</div>
