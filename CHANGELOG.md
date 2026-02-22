@@ -10,6 +10,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen-Flyer PDF: Footer zeigt jetzt "Erstellt mit TribeFinder.de"; QR-Code und Footer-URL nutzen kanonische `SITE_URL` (Fallback: `NEXTAUTH_URL`)
 - Gruppen-Flyer PDF: Details-Layout robuster (kein Überlagern von Standort/Training durch Kontakt-Block) + Tanzstile nutzen echte `danceStyles` (Fallback: Tags)
 - Gruppen-Flyer PDF: Kontaktblock zeigt immer E-Mail + Website (mit Platzhalter falls nicht hinterlegt)
+- Gruppen-Flyer PDF: Download-/Preview-Endpoint ist nicht mehr öffentlich (nur Owner/Gruppen-Admins/Global-Admins)
 
 ## [Unreleased] - 2026-02-20
 

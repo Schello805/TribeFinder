@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { jsPDF } from "jspdf";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const h = hex.trim().replace(/^#/, "");
@@ -124,6 +126,11 @@ export async function GET(req: Request, { params }: RouteParams) {
   };
 
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "Nicht angemeldet" }, { status: 401 });
+    }
+
     const baseInclude = {
       location: true,
       tags: true,
@@ -183,6 +190,27 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     if (!group) {
       return NextResponse.json({ error: "Gruppe nicht gefunden" }, { status: 404 });
+    }
+
+    const isGlobalAdmin = session.user.role === "ADMIN";
+    const isOwner = session.user.id === group.ownerId;
+    let isGroupAdmin = false;
+
+    if (!isOwner && !isGlobalAdmin) {
+      const membership = await prisma.groupMember.findUnique({
+        where: {
+          userId_groupId: {
+            userId: session.user.id,
+            groupId: id,
+          },
+        },
+        select: { role: true, status: true },
+      });
+      isGroupAdmin = membership?.role === "ADMIN" && membership?.status === "APPROVED";
+    }
+
+    if (!isOwner && !isGlobalAdmin && !isGroupAdmin) {
+      return NextResponse.json({ message: "Nicht autorisiert" }, { status: 403 });
     }
 
     // Create PDF
