@@ -6,6 +6,16 @@ import { requireAdminSession } from "@/lib/requireAdmin";
 import { createBackup, purgeOldBackups } from "@/lib/serverBackups";
 import { recordAdminAudit } from "@/lib/adminAudit";
 
+function isNormalBackupFilename(filename: string) {
+  if (!filename.endsWith(".tar.gz")) return false;
+  if (filename.includes("/") || filename.includes("..")) return false;
+  // Normal backups created by this server start with tribefinder-backup-.
+  // Uploaded full backups are stored with an upload- prefix.
+  // Transfer archives (tribefinder-transfer-/transfer-upload-) must not be treated as normal backups.
+  if (filename.startsWith("tribefinder-backup-") || filename.startsWith("upload-")) return true;
+  return false;
+}
+
 function resolveProjectRoot() {
   let dir = process.cwd();
   for (let i = 0; i < 10; i++) {
@@ -55,7 +65,7 @@ export async function GET() {
     const entries = await readdir(backupDir).catch(() => []);
     const backups = await Promise.all(
       entries
-        .filter((f) => f.endsWith(".tar.gz"))
+        .filter((f) => isNormalBackupFilename(f))
         .map(async (filename) => {
           const full = path.join(backupDir, filename);
           const s = await stat(full);
@@ -113,7 +123,7 @@ export async function DELETE(req: Request) {
   const { searchParams } = new URL(req.url);
   const filename = searchParams.get("file") || "";
 
-  if (!filename || !filename.endsWith(".tar.gz") || filename.includes("/") || filename.includes("..")) {
+  if (!isNormalBackupFilename(filename)) {
     return NextResponse.json({ message: "Ungültiger Dateiname" }, { status: 400 });
   }
 
