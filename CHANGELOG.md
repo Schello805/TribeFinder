@@ -11,6 +11,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen-Flyer PDF: Details-Layout robuster (kein Überlagern von Standort/Training durch Kontakt-Block) + Tanzstile nutzen echte `danceStyles` (Fallback: Tags)
 - Gruppen-Flyer PDF: Kontaktblock zeigt immer E-Mail + Website (mit Platzhalter falls nicht hinterlegt)
 - Gruppen-Flyer PDF: Download-/Preview-Endpoint ist nicht mehr öffentlich (nur Owner/Gruppen-Admins/Global-Admins)
+- Gruppen-Flyer PDF: DIN-A4 Layout stärker gerastert (fixe Bereiche) + deutlich mehr Platz für Beschreibung; TribeFinder-Logo im Footer
 
 ## [Unreleased] - 2026-02-20
 

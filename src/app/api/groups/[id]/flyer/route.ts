@@ -217,7 +217,7 @@ export async function GET(req: Request, { params }: RouteParams) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 16;
     const contentWidth = pageWidth - 2 * margin;
     let y = margin;
 
@@ -327,105 +327,70 @@ export async function GET(req: Request, { params }: RouteParams) {
     const innerX = margin;
     const innerW = contentWidth;
 
-    // Reserve a fixed bottom area for the contact box (prevents overlap)
-    const contactBoxHeight = 45;
-    const contactBoxY = contentMaxY - contactBoxHeight - 4;
-    const contentBottomY = contactBoxY - 10;
+    // Fixed DIN A4 layout blocks (no overlap, no hidden content)
+    const gap = 7;
+    const contactBoxHeight = 52;
+    const detailsBoxHeight = 62;
+    const stylesBoxHeight = 46;
 
-    // Description Section
-    y = sectionHeader(doc, "Über uns", innerX, y, 64, { r: 79, g: 70, b: 229 });
+    const contactBoxY = contentMaxY - contactBoxHeight;
+    const stylesBoxY = contactBoxY - gap - stylesBoxHeight;
+    const detailsBoxY = stylesBoxY - gap - detailsBoxHeight;
+
+    const aboutBoxY = y;
+    const aboutBoxH = Math.max(40, detailsBoxY - gap - aboutBoxY);
+
+    // About box
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(innerX, aboutBoxY, innerW, aboutBoxH, 6, 6, "F");
+    let aboutY = sectionHeader(doc, "Über uns", innerX, aboutBoxY + 4, 64, { r: 79, g: 70, b: 229 });
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(55, 65, 81);
-    
-    // Word wrap description
-    const descLines = doc.splitTextToSize(group.description, innerW);
-    const descMaxLines = Math.max(0, Math.floor((contentBottomY - y) / 5) - 18);
-    const descOut = clampLines(descLines, Math.max(3, descMaxLines));
-    doc.text(descOut, innerX, y);
-    y += descOut.length * 5 + 10;
 
-    // Details Section
-    if (y < contentBottomY - 40) {
-      y = sectionHeader(doc, "Details", innerX, y, 54, { r: 30, g: 64, b: 175 });
-    }
+    const aboutTextTop = aboutY;
+    const aboutTextBottom = aboutBoxY + aboutBoxH - 6;
+    const aboutMaxLines = Math.max(3, Math.floor((aboutTextBottom - aboutTextTop) / 5));
+    const descLines = doc.splitTextToSize(group.description || "", innerW);
+    const descOut = clampLines(descLines, aboutMaxLines);
+    doc.text(descOut, innerX, aboutTextTop);
+
+    // Details box
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(innerX, detailsBoxY, innerW, detailsBoxHeight, 6, 6, "F");
+    let detailsY = sectionHeader(doc, "Details", innerX, detailsBoxY + 4, 54, { r: 30, g: 64, b: 175 });
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-
-    // Fixed label width for alignment
     const labelWidth = 45;
     const valueMaxWidth = Math.max(10, innerW - labelWidth);
 
-    // Size
-    doc.setTextColor(107, 114, 128);
-    doc.text("Gruppengröße:", innerX, y);
-    doc.setTextColor(31, 41, 55);
-    doc.setFont("helvetica", "bold");
-    {
-      const lines = doc.splitTextToSize(getSizeLabel(group.size), valueMaxWidth);
-      doc.text(lines, innerX + labelWidth, y);
-      y += lines.length * 5 + 2;
-    }
+    const writeDetailRow = (label: string, value: string) => {
+      if (!value) return;
+      if (detailsY > detailsBoxY + detailsBoxHeight - 8) return;
 
-    // Founding Year
-    if (group.foundingYear) {
-      doc.setFont("helvetica", "normal");
       doc.setTextColor(107, 114, 128);
-      doc.text("Gegründet:", innerX, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(label, innerX, detailsY);
+
       doc.setTextColor(31, 41, 55);
       doc.setFont("helvetica", "bold");
-      {
-        const lines = doc.splitTextToSize(String(group.foundingYear), valueMaxWidth);
-        doc.text(lines, innerX + labelWidth, y);
-        y += lines.length * 5 + 2;
-      }
-    }
+      const lines = clampLines(doc.splitTextToSize(value, valueMaxWidth), 2);
+      doc.text(lines, innerX + labelWidth, detailsY);
+      detailsY += lines.length * 5 + 2;
+    };
 
-    // Location
-    if (group.location?.address) {
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(107, 114, 128);
-      doc.text("Standort:", innerX, y);
-      doc.setTextColor(31, 41, 55);
-      doc.setFont("helvetica", "bold");
-      {
-        const lines = clampLines(doc.splitTextToSize(group.location.address, valueMaxWidth), 3);
-        doc.text(lines, innerX + labelWidth, y);
-        y += lines.length * 5 + 2;
-      }
-    }
+    writeDetailRow("Gruppengröße:", getSizeLabel(group.size));
+    if (group.foundingYear) writeDetailRow("Gegründet:", String(group.foundingYear));
+    if (group.location?.address) writeDetailRow("Standort:", group.location.address);
+    if (group.trainingTime) writeDetailRow("Training:", group.trainingTime);
+    if (group.performances) writeDetailRow("Auftritte:", "Ja, wir treten auf!");
 
-    // Training Time
-    if (group.trainingTime) {
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(107, 114, 128);
-      doc.text("Training:", innerX, y);
-      doc.setTextColor(31, 41, 55);
-      doc.setFont("helvetica", "bold");
-      {
-        const lines = clampLines(doc.splitTextToSize(group.trainingTime, valueMaxWidth), 3);
-        doc.text(lines, innerX + labelWidth, y);
-        y += lines.length * 5 + 2;
-      }
-    }
-
-    // Performances
-    if (group.performances) {
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(107, 114, 128);
-      doc.text("Auftritte:", innerX, y);
-      doc.setTextColor(31, 41, 55);
-      doc.setFont("helvetica", "bold");
-      {
-        const lines = doc.splitTextToSize("Ja, wir treten auf!", valueMaxWidth);
-        doc.text(lines, innerX + labelWidth, y);
-        y += lines.length * 5 + 2;
-      }
-    }
-
-    y += 8;
+    // Styles / Events box
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(innerX, stylesBoxY, innerW, stylesBoxHeight, 6, 6, "F");
+    let stylesY = sectionHeader(doc, "Tanzstile & Events", innerX, stylesBoxY + 4, 96, { r: 67, g: 56, b: 202 });
 
     // Dance Styles (prefer structured danceStyles; fallback to tags)
     const danceStylesAny = (group as unknown as { danceStyles?: Array<{ level: string; mode?: string | null; style: { name: string } }> }).danceStyles;
@@ -441,37 +406,29 @@ export async function GET(req: Request, { params }: RouteParams) {
         })
       : (group.tags || []).map((t: { name: string }) => t.name);
 
-    if (danceStyleItems.length > 0 && y < contentBottomY - 30) {
-      y = sectionHeader(doc, "Tanzstile", innerX, y, 64, { r: 67, g: 56, b: 202 });
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(67, 56, 202);
-      const text = danceStyleItems.join(" • ");
-      const lines = clampLines(doc.splitTextToSize(text, innerW), 3);
-      doc.text(lines, innerX, y);
-      y += lines.length * 5 + 8;
-    }
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(67, 56, 202);
+    const styleText = danceStyleItems.join(" • ");
+    const styleLines = clampLines(doc.splitTextToSize(styleText, innerW), 2);
+    doc.text(styleLines, innerX, stylesY);
+    stylesY += styleLines.length * 5 + 2;
 
-    // Events (only if space remains; never add pages)
-    if (group.events && group.events.length > 0 && y < contentBottomY - 40) {
-      y = sectionHeader(doc, "Kommende Events", innerX, y, 88, { r: 17, g: 94, b: 89 });
-      doc.setFontSize(10);
+    // Events (up to 2 lines)
+    if (group.events && group.events.length > 0) {
+      doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(55, 65, 81);
-
-      for (const event of group.events) {
-        if (y > contentBottomY - 30) break;
-        const date = new Date(event.startDate).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
-        const time = new Date(event.startDate).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-        const loc = event.locationName ? ` – ${event.locationName}` : "";
-        const line = `${date} ${time} – ${event.title}${loc}`;
-        const lines = clampLines(doc.splitTextToSize(line, innerW), 2);
-        doc.text(lines, innerX, y);
-        y += lines.length * 5 + 2;
-      }
-
-      y += 6;
+      const first = group.events[0];
+      const date = new Date(first.startDate).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+      const time = new Date(first.startDate).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+      const loc = first.locationName ? ` – ${first.locationName}` : "";
+      const line = `Nächstes Event: ${date} ${time} – ${first.title}${loc}`;
+      const lines = clampLines(doc.splitTextToSize(line, innerW), 2);
+      doc.text(lines, innerX, stylesY);
     }
+
+    y = stylesBoxY + stylesBoxHeight + gap;
 
     // QR Codes (Group URL + Video URL)
     const groupUrl = `${publicOrigin}/groups/${group.id}`;
@@ -479,7 +436,7 @@ export async function GET(req: Request, { params }: RouteParams) {
     const videoQr = group.videoUrl ? await tryGenerateQrDataUrl(group.videoUrl) : null;
 
     // Contact Section (two columns: left contact info, right QR codes)
-    y = Math.min(y, contactBoxY);
+    y = contactBoxY;
 
     doc.setFillColor(249, 250, 251);
     doc.roundedRect(innerX, y, innerW, contactBoxHeight, 6, 6, "F");
@@ -556,6 +513,14 @@ export async function GET(req: Request, { params }: RouteParams) {
     doc.text("Erstellt mit TribeFinder.de", margin, footerY);
     doc.text(publicOrigin, pageWidth / 2, footerY, { align: "center" });
     doc.text(new Date().toLocaleDateString("de-DE"), pageWidth - margin, footerY, { align: "right" });
+
+    // TribeFinder project logo (app icon) in footer
+    const projectLogoUrl = `${origin}/icons/icon-192.png`;
+    const projectLogo = await tryFetchImageAsDataUrl(projectLogoUrl);
+    if (projectLogo) {
+      const s = 10;
+      doc.addImage(projectLogo.dataUrl, projectLogo.format, pageWidth - margin - s, footerY - 10.5, s, s);
+    }
 
     // Generate PDF buffer
     const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
