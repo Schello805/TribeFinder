@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
+import PrintButton from "@/components/ui/PrintButton";
 
 async function getPublicOrigin() {
   const envSiteUrl = (process.env.SITE_URL || "").trim().replace(/\/$/, "");
@@ -28,27 +29,56 @@ function formatEventTime(dt: Date) {
 export default async function GroupPromotePage({ params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;
 
-  const group = await prisma.group.findUnique({
-    where: { id },
-    include: {
-      location: true,
-      tags: true,
-      events: {
-        where: { startDate: { gte: new Date() } },
-        orderBy: { startDate: "asc" },
-        take: 5,
-        select: { id: true, title: true, startDate: true, locationName: true },
-      },
-      danceStyles: {
-        select: {
-          id: true,
-          level: true,
-          style: { select: { id: true, name: true } },
+  let group = await prisma.group
+    .findUnique({
+      where: { id },
+      include: {
+        location: true,
+        tags: true,
+        events: {
+          where: { startDate: { gte: new Date() } },
+          orderBy: { startDate: "asc" },
+          take: 5,
+          select: { id: true, title: true, startDate: true, locationName: true },
         },
-        orderBy: { style: { name: "asc" } },
+        danceStyles: {
+          select: {
+            id: true,
+            level: true,
+            mode: true,
+            style: { select: { id: true, name: true } },
+          },
+          orderBy: { style: { name: "asc" } },
+        },
       },
-    },
-  });
+    })
+    .catch(async (err) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("Unknown field `mode`") || msg.includes("Unknown field 'mode'")) {
+        return await prisma.group.findUnique({
+          where: { id },
+          include: {
+            location: true,
+            tags: true,
+            events: {
+              where: { startDate: { gte: new Date() } },
+              orderBy: { startDate: "asc" },
+              take: 5,
+              select: { id: true, title: true, startDate: true, locationName: true },
+            },
+            danceStyles: {
+              select: {
+                id: true,
+                level: true,
+                style: { select: { id: true, name: true } },
+              },
+              orderBy: { style: { name: "asc" } },
+            },
+          },
+        });
+      }
+      throw err;
+    });
 
   if (!group) {
     notFound();
@@ -64,9 +94,29 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
   });
 
   const displayWebsite = (group.website || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
-  const danceStyleNames = group.danceStyles.length
-    ? group.danceStyles.map((ds) => ds.style.name)
-    : group.tags.map((t) => t.name);
+  const getLevelLabel = (level: string) => {
+    const v = (level || "").toLowerCase();
+    if (v === "beginner") return "Anfänger";
+    if (v === "intermediate") return "Fortgeschritten";
+    if (v === "advanced") return "Sehr fortgeschritten";
+    if (v === "professional") return "Profi";
+    return "";
+  };
+
+  const getModeLabel = (mode: string) => {
+    const v = (mode || "").toLowerCase();
+    if (v === "impro") return "Impro";
+    if (v === "choreo") return "Choreo";
+    if (v === "both") return "Impro + Choreo";
+    return "";
+  };
+
+  const danceStyleBadges: Array<{ key: string; label: string }> = (group.danceStyles as unknown as Array<{ id: string; level: string; mode?: string | null; style: { name: string } }>).length
+    ? (group.danceStyles as unknown as Array<{ id: string; level: string; mode?: string | null; style: { name: string } }>).map((ds) => {
+        const parts = [getLevelLabel(ds.level), getModeLabel(ds.mode || "")].filter(Boolean);
+        return { key: ds.id, label: parts.length ? `${ds.style.name} (${parts.join(" · ")})` : ds.style.name };
+      })
+    : group.tags.map((t) => ({ key: `tag-${t.id}`, label: t.name }));
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] px-4 py-6">
@@ -88,7 +138,9 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
         <Link href={`/groups/${group.id}`} className="text-sm text-[var(--link)] hover:opacity-90">
           ← Zur Gruppe
         </Link>
-        <div className="text-xs text-[var(--muted)]">Tipp: Im Browser „Drucken“ auswählen</div>
+        <PrintButton className="tf-gothic-btn px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">
+          Drucken
+        </PrintButton>
       </div>
 
       <div className="sheet max-w-3xl mx-auto bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-sm overflow-hidden">
@@ -128,13 +180,13 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
             <section>
               <h2 className="tf-display text-base font-bold text-[var(--foreground)]">Tanzstile</h2>
               <div className="mt-2 flex flex-wrap gap-2">
-                {danceStyleNames.length ? (
-                  danceStyleNames.map((name) => (
+                {danceStyleBadges.length ? (
+                  danceStyleBadges.map((item) => (
                     <span
-                      key={name}
+                      key={item.key}
                       className="inline-flex items-center px-2.5 py-1 rounded-full bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] text-sm"
                     >
-                      {name}
+                      {item.label}
                     </span>
                   ))
                 ) : (
@@ -209,7 +261,6 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
                   <div className="text-[var(--muted)] w-24">Web</div>
                   <div className="text-[var(--foreground)] flex-1 break-words">{displayWebsite || "(nicht hinterlegt)"}</div>
                 </div>
-                <div className="pt-2 text-xs text-[var(--muted)] break-words">Link: {groupUrl}</div>
               </div>
             </section>
           </div>

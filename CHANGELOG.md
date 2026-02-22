@@ -16,6 +16,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen-Flyer PDF: Overlap-Fix (Kontaktblock unten verankert; Tanzstile/Events darüber)
 - Gruppen: Neue öffentliche Steckbrief-Seite zum Drucken/Teilen unter `/groups/[id]/promote` (A4-Print-Layout + QR-Code)
 - Gruppen: UI vereinfacht – statt PDF-Flyer Button gibt es jetzt den Steckbrief-Link (Promote-Seite)
+- Gruppen: Steckbrief verbessert (Drucken-Button wieder verfügbar; Tanzstile zeigen Level + Impro/Choreo; Link-Text entfernt – QR genügt)
 
 ## [Unreleased] - 2026-02-20
 
