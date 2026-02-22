@@ -487,14 +487,16 @@ export async function GET(req: Request, { params }: RouteParams) {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(75, 85, 99);
 
-    if (group.contactEmail) {
-      const emailLines = doc.splitTextToSize(`E-Mail: ${group.contactEmail}`, leftMaxWidth);
+    {
+      const emailValue = (group.contactEmail || "(nicht hinterlegt)").toString();
+      const emailLines = clampLines(doc.splitTextToSize(`E-Mail: ${emailValue}`, leftMaxWidth), 2);
       doc.text(emailLines, leftX, contactY);
       contactY += emailLines.length * 5 + 1;
     }
 
-    if (group.website) {
-      const webLines = doc.splitTextToSize(`Web: ${group.website}`, leftMaxWidth);
+    {
+      const webValue = (group.website || "(nicht hinterlegt)").toString();
+      const webLines = clampLines(doc.splitTextToSize(`Web: ${webValue}`, leftMaxWidth), 2);
       doc.text(webLines, leftX, contactY);
       contactY += webLines.length * 5 + 1;
     }
