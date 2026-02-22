@@ -221,25 +221,6 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ---
 
-## Nächste geplante Features
-
-### Kurzfristig
-- Input Sanitization in Frontend-Formularen aktivieren
-- CSRF-Schutz für Formulare
-
-### Mittelfristig
-- Infinite Scroll für Gruppen/Events
-- Favoriten/Bookmarks Feature
-- Performance-Optimierung (ISR Caching)
-
-### Langfristig
-- E2E Tests mit Playwright
-- Error Tracking (Sentry)
-- PostgreSQL Migration für Produktion
-- CI/CD Pipeline (GitHub Actions)
-
----
-
 ## Installation
 
 ### Native Installation (empfohlen)
