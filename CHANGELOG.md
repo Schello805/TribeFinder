@@ -15,6 +15,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen-Flyer PDF: "Über uns" wird wieder zuverlässig angezeigt (Layout strikt top-down; Boxen schrumpfen bei wenig Platz)
 - Gruppen-Flyer PDF: Overlap-Fix (Kontaktblock unten verankert; Tanzstile/Events darüber)
 - Gruppen: Neue öffentliche Steckbrief-Seite zum Drucken/Teilen unter `/groups/[id]/promote` (A4-Print-Layout + QR-Code)
+- Gruppen: UI vereinfacht – statt PDF-Flyer Button gibt es jetzt den Steckbrief-Link (Promote-Seite)
 
 ## [Unreleased] - 2026-02-20
 

@@ -12,7 +12,6 @@ import GalleryManager from "@/components/groups/GalleryManager";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import LikeButton from "@/components/groups/LikeButton";
-import FlyerGenerator from "@/components/groups/FlyerGenerator";
 
 function getGroupLikeDelegate() {
   return (prisma as unknown as { groupLike?: typeof prisma.favoriteGroup }).groupLike;
@@ -386,25 +385,6 @@ export default async function GroupDetailPage({
                 >
                   Steckbrief
                 </Link>
-                {isAdmin ? (
-                  <FlyerGenerator
-                    group={{
-                      id: group.id,
-                      name: group.name,
-                      description: group.description,
-                      image: group.image,
-                      website: group.website,
-                      contactEmail: contactEmail,
-                      trainingTime: group.trainingTime,
-                      size: group.size,
-                      foundingYear: group.foundingYear,
-                      seekingMembers: group.seekingMembers,
-                      performances: group.performances,
-                      location: group.location,
-                      tags: group.tags,
-                    }}
-                  />
-                ) : null}
                 {session && !isMember && !isPending && !isAdmin && (
                   <JoinButton groupId={group.id} initialStatus="NONE" />
                 )}

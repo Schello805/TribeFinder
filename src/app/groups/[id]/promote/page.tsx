@@ -88,13 +88,7 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
         <Link href={`/groups/${group.id}`} className="text-sm text-[var(--link)] hover:opacity-90">
           ← Zur Gruppe
         </Link>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="tf-gothic-btn px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]"
-        >
-          Drucken
-        </button>
+        <div className="text-xs text-[var(--muted)]">Tipp: Im Browser „Drucken“ auswählen</div>
       </div>
 
       <div className="sheet max-w-3xl mx-auto bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-sm overflow-hidden">
