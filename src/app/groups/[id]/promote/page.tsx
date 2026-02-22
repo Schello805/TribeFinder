@@ -126,9 +126,34 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
 @page { size: A4; margin: 12mm; }
 @media print {
   html, body { background: #fff !important; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* Hide global app chrome (layout Navbar/footer/banners/widgets) */
+  header, nav, footer { display: none !important; }
+  [data-site-banner],
+  [data-feedback-widget],
+  #__next-build-watcher,
+  #__next-route-announcer,
+  .tf-site-banner,
+  .feedback-widget {
+    display: none !important;
+  }
+
+  /* Next.js App Router layout wrappers */
+  body > div:has(> header),
+  body > div:has(> nav),
+  body > div:has(> footer) {
+    display: none !important;
+  }
+
+  /* Make sure the promote content is the only visible thing */
+  main, .container { padding: 0 !important; margin: 0 !important; max-width: none !important; }
   .no-print { display: none !important; }
-  .sheet { box-shadow: none !important; border: none !important; }
+  .sheet { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
   a { color: inherit !important; text-decoration: none !important; }
+
+  /* Stronger print contrast */
+  * { color: #111827 !important; }
 }
 `,
         }}

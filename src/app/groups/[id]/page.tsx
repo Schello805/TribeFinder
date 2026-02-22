@@ -381,8 +381,16 @@ export default async function GroupDetailPage({
                 ) : null}
                 <Link
                   href={`/groups/${group.id}/promote`}
-                  className="tf-gothic-btn px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] border border-[var(--border)]"
+                  className="tf-gothic-btn inline-flex items-center gap-2 px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] border border-[var(--border)]"
                 >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 9V4a1 1 0 011-1h10a1 1 0 011 1v5M6 18H5a2 2 0 01-2-2v-5a2 2 0 012-2h14a2 2 0 012 2v5a2 2 0 01-2 2h-1M6 14h12v7H6v-7z"
+                    />
+                  </svg>
                   Steckbrief
                 </Link>
                 {session && !isMember && !isPending && !isAdmin && (
