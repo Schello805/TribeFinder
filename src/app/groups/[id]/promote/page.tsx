@@ -36,6 +36,7 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
     name: true,
     description: true,
     website: true,
+    videoUrl: true,
     contactEmail: true,
     image: true,
     seekingMembers: true,
@@ -108,6 +109,16 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
     errorCorrectionLevel: "M",
     color: { dark: "#111827", light: "#FFFFFF" },
   });
+
+  const videoUrl = (group.videoUrl || "").toString().trim();
+  const videoQrDataUrl = videoUrl
+    ? await QRCode.toDataURL(videoUrl, {
+        margin: 1,
+        width: 220,
+        errorCorrectionLevel: "M",
+        color: { dark: "#111827", light: "#FFFFFF" },
+      })
+    : "";
 
   const normalizedLogo = group.image ? (normalizeUploadedImageUrl(String(group.image)) ?? String(group.image)) : "";
   const logoUrl = normalizedLogo ? (normalizedLogo.startsWith("/") && origin ? `${origin}${normalizedLogo}` : normalizedLogo) : "";
@@ -219,9 +230,19 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
               </div>
             </div>
 
-            <div className="flex-shrink-0 text-center">
-              <img src={qrDataUrl} alt="QR Code" className="w-[120px] h-[120px] bg-white rounded-xl border border-[var(--border)] p-2" />
-              <div className="mt-2 text-xs text-[var(--muted)]">Zur Gruppe</div>
+            <div className="flex-shrink-0">
+              <div className="flex items-start gap-3">
+                <div className="text-center">
+                  <img src={qrDataUrl} alt="QR Code" className="w-[120px] h-[120px] bg-white rounded-xl border border-[var(--border)] p-2" />
+                  <div className="mt-2 text-xs text-[var(--muted)]">Gruppe</div>
+                </div>
+                {videoQrDataUrl ? (
+                  <div className="text-center">
+                    <img src={videoQrDataUrl} alt="QR Code Video" className="w-[120px] h-[120px] bg-white rounded-xl border border-[var(--border)] p-2" />
+                    <div className="mt-2 text-xs text-[var(--muted)]">Video</div>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
