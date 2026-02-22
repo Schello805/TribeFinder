@@ -333,12 +333,52 @@ export async function GET(req: Request, { params }: RouteParams) {
     const detailsBoxHeight = 62;
     const stylesBoxHeight = 46;
 
-    const contactBoxY = contentMaxY - contactBoxHeight;
-    const stylesBoxY = contactBoxY - gap - stylesBoxHeight;
-    const detailsBoxY = stylesBoxY - gap - detailsBoxHeight;
+    // Place blocks strictly top-down so "Über uns" can never disappear.
+    // We reserve fixed heights for Details/Styles/Contact and let About take the remaining space.
+    const availableH = contentMaxY - y;
+    const reservedH = detailsBoxHeight + stylesBoxHeight + contactBoxHeight + gap * 3;
+    const minAboutH = 60;
+
+    // If there is not enough room (e.g. due to badges), shrink the fixed boxes slightly
+    // but never below safe minima.
+    const safeMinDetailsH = 54;
+    const safeMinStylesH = 40;
+    const safeMinContactH = 48;
+
+    let dynDetailsH = detailsBoxHeight;
+    let dynStylesH = stylesBoxHeight;
+    let dynContactH = contactBoxHeight;
+
+    let aboutBoxH = availableH - reservedH;
+    if (aboutBoxH < minAboutH) {
+      let need = minAboutH - aboutBoxH;
+
+      const reducibleDetails = Math.max(0, dynDetailsH - safeMinDetailsH);
+      const takeDetails = Math.min(need, reducibleDetails);
+      dynDetailsH -= takeDetails;
+      need -= takeDetails;
+
+      const reducibleStyles = Math.max(0, dynStylesH - safeMinStylesH);
+      const takeStyles = Math.min(need, reducibleStyles);
+      dynStylesH -= takeStyles;
+      need -= takeStyles;
+
+      const reducibleContact = Math.max(0, dynContactH - safeMinContactH);
+      const takeContact = Math.min(need, reducibleContact);
+      dynContactH -= takeContact;
+      need -= takeContact;
+
+      aboutBoxH = Math.max(40, minAboutH - need);
+    }
 
     const aboutBoxY = y;
-    const aboutBoxH = Math.max(40, detailsBoxY - gap - aboutBoxY);
+    const detailsBoxY = aboutBoxY + aboutBoxH + gap;
+    const stylesBoxY = detailsBoxY + dynDetailsH + gap;
+    const contactBoxY = stylesBoxY + dynStylesH + gap;
+
+    // Keep inside bounds (should already hold, but clamp defensively)
+    const maxContactY = contentMaxY - dynContactH;
+    const clampedContactBoxY = Math.min(contactBoxY, maxContactY);
 
     // About box
     doc.setFillColor(255, 255, 255);
@@ -358,7 +398,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     // Details box
     doc.setFillColor(255, 255, 255);
-    doc.roundedRect(innerX, detailsBoxY, innerW, detailsBoxHeight, 6, 6, "F");
+    doc.roundedRect(innerX, detailsBoxY, innerW, dynDetailsH, 6, 6, "F");
     let detailsY = sectionHeader(doc, "Details", innerX, detailsBoxY + 4, 54, { r: 30, g: 64, b: 175 });
 
     doc.setFontSize(10);
@@ -368,7 +408,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     const writeDetailRow = (label: string, value: string) => {
       if (!value) return;
-      if (detailsY > detailsBoxY + detailsBoxHeight - 8) return;
+      if (detailsY > detailsBoxY + dynDetailsH - 8) return;
 
       doc.setTextColor(107, 114, 128);
       doc.setFont("helvetica", "normal");
@@ -389,7 +429,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     // Styles / Events box
     doc.setFillColor(255, 255, 255);
-    doc.roundedRect(innerX, stylesBoxY, innerW, stylesBoxHeight, 6, 6, "F");
+    doc.roundedRect(innerX, stylesBoxY, innerW, dynStylesH, 6, 6, "F");
     let stylesY = sectionHeader(doc, "Tanzstile & Events", innerX, stylesBoxY + 4, 96, { r: 67, g: 56, b: 202 });
 
     // Dance Styles (prefer structured danceStyles; fallback to tags)
@@ -428,7 +468,7 @@ export async function GET(req: Request, { params }: RouteParams) {
       doc.text(lines, innerX, stylesY);
     }
 
-    y = stylesBoxY + stylesBoxHeight + gap;
+    y = stylesBoxY + dynStylesH + gap;
 
     // QR Codes (Group URL + Video URL)
     const groupUrl = `${publicOrigin}/groups/${group.id}`;
@@ -436,10 +476,10 @@ export async function GET(req: Request, { params }: RouteParams) {
     const videoQr = group.videoUrl ? await tryGenerateQrDataUrl(group.videoUrl) : null;
 
     // Contact Section (two columns: left contact info, right QR codes)
-    y = contactBoxY;
+    y = clampedContactBoxY;
 
     doc.setFillColor(249, 250, 251);
-    doc.roundedRect(innerX, y, innerW, contactBoxHeight, 6, 6, "F");
+    doc.roundedRect(innerX, y, innerW, dynContactH, 6, 6, "F");
 
     const boxPaddingX = 5;
     const boxPaddingY = 10;
@@ -502,7 +542,7 @@ export async function GET(req: Request, { params }: RouteParams) {
       }
     }
 
-    y += contactBoxHeight + 5;
+    y += dynContactH + 5;
 
     // Footer
     doc.setDrawColor(229, 231, 235);

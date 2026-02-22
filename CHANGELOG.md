@@ -12,6 +12,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen-Flyer PDF: Kontaktblock zeigt immer E-Mail + Website (mit Platzhalter falls nicht hinterlegt)
 - Gruppen-Flyer PDF: Download-/Preview-Endpoint ist nicht mehr öffentlich (nur Owner/Gruppen-Admins/Global-Admins)
 - Gruppen-Flyer PDF: DIN-A4 Layout stärker gerastert (fixe Bereiche) + deutlich mehr Platz für Beschreibung; TribeFinder-Logo im Footer
+- Gruppen-Flyer PDF: "Über uns" wird wieder zuverlässig angezeigt (Layout strikt top-down; Boxen schrumpfen bei wenig Platz)
 
 ## [Unreleased] - 2026-02-20
 
