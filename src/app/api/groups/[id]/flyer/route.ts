@@ -124,30 +124,62 @@ export async function GET(req: Request, { params }: RouteParams) {
   };
 
   try {
-    const group = await prisma.group.findUnique({
-      where: { id },
-      include: {
-        location: true,
-        tags: true,
-        events: {
-          where: {
-            startDate: {
-              gte: new Date(),
-            },
-          },
-          orderBy: {
-            startDate: "asc",
-          },
-          take: 3,
-          select: {
-            id: true,
-            title: true,
-            startDate: true,
-            locationName: true,
+    const baseInclude = {
+      location: true,
+      tags: true,
+      events: {
+        where: {
+          startDate: {
+            gte: new Date(),
           },
         },
+        orderBy: {
+          startDate: "asc",
+        },
+        take: 3,
+        select: {
+          id: true,
+          title: true,
+          startDate: true,
+          locationName: true,
+        },
       },
-    });
+    } as const;
+
+    let group = await prisma.group
+      .findUnique({
+        where: { id },
+        include: {
+          ...baseInclude,
+          danceStyles: {
+            select: {
+              level: true,
+              mode: true,
+              style: { select: { name: true } },
+            },
+            orderBy: { style: { name: "asc" } },
+          },
+        },
+      })
+      .catch(async (err) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("Unknown field `mode`") || msg.includes("Unknown field 'mode'")) {
+          return await prisma.group.findUnique({
+            where: { id },
+            include: {
+              ...baseInclude,
+              danceStyles: {
+                select: {
+                  level: true,
+                  style: { select: { name: true } },
+                },
+                orderBy: { style: { name: "asc" } },
+              },
+            },
+          });
+        }
+        throw err;
+      });
 
     if (!group) {
       return NextResponse.json({ error: "Gruppe nicht gefunden" }, { status: 404 });
@@ -267,6 +299,11 @@ export async function GET(req: Request, { params }: RouteParams) {
     const innerX = margin;
     const innerW = contentWidth;
 
+    // Reserve a fixed bottom area for the contact box (prevents overlap)
+    const contactBoxHeight = 45;
+    const contactBoxY = contentMaxY - contactBoxHeight - 4;
+    const contentBottomY = contactBoxY - 10;
+
     // Description Section
     y = sectionHeader(doc, "Über uns", innerX, y, 64, { r: 79, g: 70, b: 229 });
 
@@ -276,13 +313,13 @@ export async function GET(req: Request, { params }: RouteParams) {
     
     // Word wrap description
     const descLines = doc.splitTextToSize(group.description, innerW);
-    const descMaxLines = Math.max(0, Math.floor((contentMaxY - y) / 5) - 18);
+    const descMaxLines = Math.max(0, Math.floor((contentBottomY - y) / 5) - 18);
     const descOut = clampLines(descLines, Math.max(3, descMaxLines));
     doc.text(descOut, innerX, y);
     y += descOut.length * 5 + 10;
 
     // Details Section
-    if (y < contentMaxY - 40) {
+    if (y < contentBottomY - 40) {
       y = sectionHeader(doc, "Details", innerX, y, 54, { r: 30, g: 64, b: 175 });
     }
 
@@ -291,24 +328,31 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     // Fixed label width for alignment
     const labelWidth = 45;
+    const valueMaxWidth = Math.max(10, innerW - labelWidth);
 
     // Size
     doc.setTextColor(107, 114, 128);
-    doc.text("Gruppengroesse:", innerX, y);
+    doc.text("Gruppengröße:", innerX, y);
     doc.setTextColor(31, 41, 55);
     doc.setFont("helvetica", "bold");
-    doc.text(getSizeLabel(group.size), innerX + labelWidth, y);
-    y += 7;
+    {
+      const lines = doc.splitTextToSize(getSizeLabel(group.size), valueMaxWidth);
+      doc.text(lines, innerX + labelWidth, y);
+      y += lines.length * 5 + 2;
+    }
 
     // Founding Year
     if (group.foundingYear) {
       doc.setFont("helvetica", "normal");
       doc.setTextColor(107, 114, 128);
-      doc.text("Gegruendet:", innerX, y);
+      doc.text("Gegründet:", innerX, y);
       doc.setTextColor(31, 41, 55);
       doc.setFont("helvetica", "bold");
-      doc.text(String(group.foundingYear), innerX + labelWidth, y);
-      y += 7;
+      {
+        const lines = doc.splitTextToSize(String(group.foundingYear), valueMaxWidth);
+        doc.text(lines, innerX + labelWidth, y);
+        y += lines.length * 5 + 2;
+      }
     }
 
     // Location
@@ -318,8 +362,11 @@ export async function GET(req: Request, { params }: RouteParams) {
       doc.text("Standort:", innerX, y);
       doc.setTextColor(31, 41, 55);
       doc.setFont("helvetica", "bold");
-      doc.text(group.location.address, innerX + labelWidth, y);
-      y += 7;
+      {
+        const lines = clampLines(doc.splitTextToSize(group.location.address, valueMaxWidth), 3);
+        doc.text(lines, innerX + labelWidth, y);
+        y += lines.length * 5 + 2;
+      }
     }
 
     // Training Time
@@ -329,8 +376,11 @@ export async function GET(req: Request, { params }: RouteParams) {
       doc.text("Training:", innerX, y);
       doc.setTextColor(31, 41, 55);
       doc.setFont("helvetica", "bold");
-      doc.text(group.trainingTime, innerX + labelWidth, y);
-      y += 7;
+      {
+        const lines = clampLines(doc.splitTextToSize(group.trainingTime, valueMaxWidth), 3);
+        doc.text(lines, innerX + labelWidth, y);
+        y += lines.length * 5 + 2;
+      }
     }
 
     // Performances
@@ -340,33 +390,49 @@ export async function GET(req: Request, { params }: RouteParams) {
       doc.text("Auftritte:", innerX, y);
       doc.setTextColor(31, 41, 55);
       doc.setFont("helvetica", "bold");
-      doc.text("Ja, wir treten auf!", innerX + labelWidth, y);
-      y += 7;
+      {
+        const lines = doc.splitTextToSize("Ja, wir treten auf!", valueMaxWidth);
+        doc.text(lines, innerX + labelWidth, y);
+        y += lines.length * 5 + 2;
+      }
     }
 
     y += 8;
 
-    // Dance Styles
-    if (group.tags && group.tags.length > 0 && y < contentMaxY - 30) {
+    // Dance Styles (prefer structured danceStyles; fallback to tags)
+    const danceStylesAny = (group as unknown as { danceStyles?: Array<{ level: string; mode?: string | null; style: { name: string } }> }).danceStyles;
+    const danceStyles = Array.isArray(danceStylesAny) ? danceStylesAny : [];
+    const danceStyleItems = danceStyles.length
+      ? danceStyles.map((ds) => {
+          const level = String(ds.level || "").toLowerCase();
+          const levelLabel = level === "beginner" ? "Anfänger" : level === "intermediate" ? "Fortgeschritten" : level === "advanced" ? "Sehr fortgeschritten" : level === "professional" ? "Profi" : "";
+          const mode = String(ds.mode || "").toLowerCase();
+          const modeLabel = mode === "impro" ? "Impro" : mode === "choreo" ? "Choreo" : mode === "both" ? "Beides" : "";
+          const suffix = [levelLabel, modeLabel].filter(Boolean).join(" · ");
+          return suffix ? `${ds.style.name} (${suffix})` : ds.style.name;
+        })
+      : (group.tags || []).map((t: { name: string }) => t.name);
+
+    if (danceStyleItems.length > 0 && y < contentBottomY - 30) {
       y = sectionHeader(doc, "Tanzstile", innerX, y, 64, { r: 67, g: 56, b: 202 });
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(67, 56, 202);
-      const tagsText = group.tags.map((t: { name: string }) => t.name).join(" • ");
-      const tagLines = clampLines(doc.splitTextToSize(tagsText, innerW), 2);
-      doc.text(tagLines, innerX, y);
-      y += tagLines.length * 5 + 8;
+      const text = danceStyleItems.join(" • ");
+      const lines = clampLines(doc.splitTextToSize(text, innerW), 3);
+      doc.text(lines, innerX, y);
+      y += lines.length * 5 + 8;
     }
 
     // Events (only if space remains; never add pages)
-    if (group.events && group.events.length > 0 && y < contentMaxY - 40) {
+    if (group.events && group.events.length > 0 && y < contentBottomY - 40) {
       y = sectionHeader(doc, "Kommende Events", innerX, y, 88, { r: 17, g: 94, b: 89 });
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(55, 65, 81);
 
       for (const event of group.events) {
-        if (y > contentMaxY - 30) break;
+        if (y > contentBottomY - 30) break;
         const date = new Date(event.startDate).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
         const time = new Date(event.startDate).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
         const loc = event.locationName ? ` – ${event.locationName}` : "";
@@ -385,8 +451,7 @@ export async function GET(req: Request, { params }: RouteParams) {
     const videoQr = group.videoUrl ? await tryGenerateQrDataUrl(group.videoUrl) : null;
 
     // Contact Section (two columns: left contact info, right QR codes)
-    const contactBoxHeight = 45;
-    y = Math.min(y, contentMaxY - contactBoxHeight - 4);
+    y = Math.min(y, contactBoxY);
 
     doc.setFillColor(249, 250, 251);
     doc.roundedRect(innerX, y, innerW, contactBoxHeight, 6, 6, "F");
