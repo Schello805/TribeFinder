@@ -2,6 +2,13 @@
 
 Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [Unreleased] - 2026-02-22
+
+### 🧩 Gruppen
+
+- Gruppen-Flyer: Button "Flyer Vorschau" wieder sichtbar auf Gruppen-Detailseite und in "Gruppe bearbeiten" (für Admins/Owner)
+- Gruppen-Flyer PDF: Footer zeigt jetzt "Erstellt mit TribeFinder.de"; QR-Code und Footer-URL nutzen kanonische `SITE_URL` (Fallback: `NEXTAUTH_URL`)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte
