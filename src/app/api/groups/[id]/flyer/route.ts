@@ -77,6 +77,9 @@ export async function GET(req: Request, { params }: RouteParams) {
   const envBase = (process.env.NEXTAUTH_URL || "").replace(/\/$/, "");
   const origin = forwardedProto && forwardedHost ? `${forwardedProto}://${forwardedHost}` : (envBase || requestUrl.origin);
 
+  const envSiteUrl = (process.env.SITE_URL || "").trim().replace(/\/$/, "");
+  const publicOrigin = envSiteUrl || envBase || origin;
+
   const drawGradientHeader = (doc: jsPDF, pageWidth: number, startHex?: string | null, endHex?: string | null) => {
     const topH = 52;
     const steps = 26;
@@ -377,7 +380,7 @@ export async function GET(req: Request, { params }: RouteParams) {
     }
 
     // QR Codes (Group URL + Video URL)
-    const groupUrl = `${origin}/groups/${group.id}`;
+    const groupUrl = `${publicOrigin}/groups/${group.id}`;
     const groupQr = await tryGenerateQrDataUrl(groupUrl);
     const videoQr = group.videoUrl ? await tryGenerateQrDataUrl(group.videoUrl) : null;
 
@@ -455,8 +458,8 @@ export async function GET(req: Request, { params }: RouteParams) {
     
     doc.setFontSize(8);
     doc.setTextColor(156, 163, 175);
-    doc.text("Erstellt mit TribeFinder", margin, footerY);
-    doc.text(origin, pageWidth / 2, footerY, { align: "center" });
+    doc.text("Erstellt mit TribeFinder.de", margin, footerY);
+    doc.text(publicOrigin, pageWidth / 2, footerY, { align: "center" });
     doc.text(new Date().toLocaleDateString("de-DE"), pageWidth - margin, footerY, { align: "right" });
 
     // Generate PDF buffer
