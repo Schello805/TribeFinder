@@ -380,6 +380,12 @@ export default async function GroupDetailPage({
                     Bearbeiten
                   </Link>
                 ) : null}
+                <Link
+                  href={`/groups/${group.id}/promote`}
+                  className="tf-gothic-btn px-4 py-2 rounded-md shadow-sm text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-hover)] border border-[var(--border)]"
+                >
+                  Steckbrief
+                </Link>
                 {isAdmin ? (
                   <FlyerGenerator
                     group={{
