@@ -16,6 +16,8 @@ export async function GET() {
       emailVerified: true,
       role: true,
       isBlocked: true,
+      isDancerProfileEnabled: true,
+      isDancerProfilePrivate: true,
       createdAt: true,
     },
   });

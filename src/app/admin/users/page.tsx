@@ -23,6 +23,8 @@ export default async function AdminUsersPage() {
       emailVerified: true,
       role: true,
       isBlocked: true,
+      isDancerProfileEnabled: true,
+      isDancerProfilePrivate: true,
       createdAt: true
     }
   });
@@ -35,6 +37,8 @@ export default async function AdminUsersPage() {
     emailVerified: user.emailVerified ? user.emailVerified.toISOString() : null,
     role: user.role,
     isBlocked: user.isBlocked,
+    isDancerProfileEnabled: user.isDancerProfileEnabled,
+    isDancerProfilePrivate: user.isDancerProfilePrivate,
     createdAt: user.createdAt.toISOString(),
   }));
 

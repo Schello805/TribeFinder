@@ -24,6 +24,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen: Steckbrief zeigt optionalen Video-QR-Code, wenn ein Video verlinkt ist
 - Gruppen: Gruppenleitung/Mitglieder verlinken nur noch auf Tänzerinnen-Profile, wenn diese aktiviert sind (kein 404 beim Klick)
 
+### 🧰 Admin
+
+- Admin: Benutzerliste zeigt jetzt Tänzerinnenprofil-Status (aktiv/privat) zur Fehlersuche
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte

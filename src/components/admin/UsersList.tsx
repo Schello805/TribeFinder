@@ -11,6 +11,8 @@ interface UserListItem {
   emailVerified: string | null;
   role: string;
   isBlocked: boolean;
+  isDancerProfileEnabled?: boolean;
+  isDancerProfilePrivate?: boolean;
   createdAt: string;
 }
 
@@ -156,6 +158,22 @@ export default function UsersList({
                   <div>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">
                       GESPERRT
+                    </span>
+                  </div>
+                ) : null}
+
+                {user.isDancerProfileEnabled ? (
+                  <div>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200">
+                      TÄNZERIN
+                    </span>
+                  </div>
+                ) : null}
+
+                {user.isDancerProfileEnabled && user.isDancerProfilePrivate ? (
+                  <div>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200">
+                      PRIVAT
                     </span>
                   </div>
                 ) : null}
