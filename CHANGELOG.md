@@ -28,6 +28,8 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Admin: Benutzerliste zeigt jetzt Tänzerinnenprofil-Status (aktiv/privat) zur Fehlersuche
 - Admin: Benutzer-Detailseite zeigt jetzt Tänzerinnenprofil-Status (aktiv/privat)
+- Admin: Benutzerliste zeigt Online/Offline Status
+- Admin: Benutzer-Detailseite zeigt Online-Status + zusätzliche Debug-Felder (User ID, zuletzt aktualisiert)
 
 ## [Unreleased] - 2026-02-20
 

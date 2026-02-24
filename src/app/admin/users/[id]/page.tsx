@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import AdminNav from "@/components/admin/AdminNav";
 import Link from "next/link";
 import AdminUserSupportPanel from "@/components/admin/AdminUserSupportPanel";
+import UserPresenceStatus from "@/components/presence/UserPresenceStatus";
 
 export const dynamic = "force-dynamic";
 
@@ -90,8 +91,18 @@ export default async function AdminUserDetailPage({ params }: RouteParams) {
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{user.name || "—"}</dd>
               </div>
               <div>
+                <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User ID</dt>
+                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 break-all">{user.id}</dd>
+              </div>
+              <div>
                 <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rolle</dt>
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{user.role}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Online-Status</dt>
+                <dd className="mt-1">
+                  <UserPresenceStatus userId={user.id} />
+                </dd>
               </div>
               <div>
                 <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Verifiziert</dt>
@@ -116,6 +127,10 @@ export default async function AdminUserDetailPage({ params }: RouteParams) {
               <div>
                 <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Letzter Login</dt>
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{lastLoginText}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Zuletzt aktualisiert</dt>
+                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{new Date(user.updatedAt).toLocaleString("de-DE")}</dd>
               </div>
               <div>
                 <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Profil privat</dt>

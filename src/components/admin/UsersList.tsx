@@ -1,8 +1,66 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/Toast";
+
+type PresenceStatus = {
+  online: boolean;
+  lastSeen: number | null;
+  windowMinutes: number;
+};
+
+function PresenceBadge({ userId }: { userId: string }) {
+  const [data, setData] = useState<PresenceStatus | null>(null);
+  const url = useMemo(() => `/api/presence/status?userId=${encodeURIComponent(userId)}`, [userId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        const json = (await res.json().catch(() => null)) as PresenceStatus | { message?: string } | null;
+        if (!res.ok) return;
+        if (!json || typeof json !== "object") return;
+        if (cancelled) return;
+        if ("online" in json) setData(json as PresenceStatus);
+      } catch {
+        // ignore
+      }
+    };
+
+    void load();
+    const t = window.setInterval(load, 30_000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(t);
+    };
+  }, [url]);
+
+  if (!data) {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-300">
+        …
+      </span>
+    );
+  }
+
+  if (data.online) {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+        Online
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200">
+      Offline
+    </span>
+  );
+}
 
 interface UserListItem {
   id: string;
@@ -138,6 +196,10 @@ export default function UsersList({
                     }`}>
                         {user.role}
                     </span>
+                </div>
+
+                <div>
+                  <PresenceBadge userId={user.id} />
                 </div>
 
                 {user.emailVerified ? (
