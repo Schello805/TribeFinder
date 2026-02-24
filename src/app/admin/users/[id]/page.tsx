@@ -26,6 +26,8 @@ export default async function AdminUserDetailPage({ params }: RouteParams) {
       email: true,
       role: true,
       isBlocked: true,
+      isDancerProfileEnabled: true,
+      isDancerProfilePrivate: true,
       emailVerified: true,
       createdAt: true,
       updatedAt: true,
@@ -106,8 +108,20 @@ export default async function AdminUserDetailPage({ params }: RouteParams) {
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{new Date(user.createdAt).toLocaleString("de-DE")}</dd>
               </div>
               <div>
+                <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tänzerinnenprofil</dt>
+                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                  {user.isDancerProfileEnabled ? "Aktiv" : "Deaktiviert"}
+                </dd>
+              </div>
+              <div>
                 <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Letzter Login</dt>
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{lastLoginText}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Profil privat</dt>
+                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                  {user.isDancerProfileEnabled ? (user.isDancerProfilePrivate ? "Ja" : "Nein") : "—"}
+                </dd>
               </div>
             </dl>
           </div>
