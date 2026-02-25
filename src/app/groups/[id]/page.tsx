@@ -50,6 +50,7 @@ export default async function GroupDetailPage({
       select: {
         id: true,
         level: true,
+        mode: true,
         style: { select: { id: true, name: true } },
       },
       orderBy: { style: { name: "asc" } },
@@ -230,18 +231,21 @@ export default async function GroupDetailPage({
   const danceStylesForDisplay: Array<{
     key: string;
     name: string;
+    styleId: string | null;
     level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL";
     mode: "IMPRO" | "CHOREO" | "BOTH" | null;
-  }> = (group.danceStyles as unknown as Array<{ id: string; level: string; mode?: string | null; style: { name: string } }>).length
-    ? (group.danceStyles as unknown as Array<{ id: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | "BOTH" | null; style: { name: string } }>).map((ds) => ({
+  }> = (group.danceStyles as unknown as Array<{ id: string; level: string; mode?: string | null; style: { id: string; name: string } }>).length
+    ? (group.danceStyles as unknown as Array<{ id: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | "BOTH" | null; style: { id: string; name: string } }>).map((ds) => ({
         key: ds.id,
         name: ds.style.name,
+        styleId: ds.style.id,
         level: ds.level,
         mode: ds.mode ?? null,
       }))
     : group.tags.map((t) => ({
         key: `tag-${t.id}`,
         name: t.name,
+        styleId: null,
         level: "INTERMEDIATE",
         mode: null,
       }));
@@ -529,23 +533,44 @@ export default async function GroupDetailPage({
                     <dt className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Tanzstile</dt>
                     <dd className="flex flex-wrap gap-2">
                       {danceStylesForDisplay.map((ds) => (
-                        <span
-                          key={ds.key}
-                          className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm"
-                        >
-                          {ds.name}
-                          <span className="ml-2 text-[10px] text-[var(--muted)]">
-                            {ds.level === "BEGINNER" && "Anfänger"}
-                            {ds.level === "INTERMEDIATE" && "Fortgeschritten"}
-                            {ds.level === "ADVANCED" && "Sehr fortgeschritten"}
-                            {ds.level === "PROFESSIONAL" && "Profi"}
-                          </span>
-                          {ds.mode ? (
+                        ds.styleId ? (
+                          <Link
+                            key={ds.key}
+                            href={`/dance-styles/${encodeURIComponent(ds.styleId)}`}
+                            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm hover:underline"
+                          >
+                            {ds.name}
                             <span className="ml-2 text-[10px] text-[var(--muted)]">
-                              {ds.mode === "IMPRO" ? "Impro" : ds.mode === "CHOREO" ? "Choreo" : "Beides"}
+                              {ds.level === "BEGINNER" && "Anfänger"}
+                              {ds.level === "INTERMEDIATE" && "Fortgeschritten"}
+                              {ds.level === "ADVANCED" && "Sehr fortgeschritten"}
+                              {ds.level === "PROFESSIONAL" && "Profi"}
                             </span>
-                          ) : null}
-                        </span>
+                            {ds.mode ? (
+                              <span className="ml-2 text-[10px] text-[var(--muted)]">
+                                {ds.mode === "IMPRO" ? "Impro" : ds.mode === "CHOREO" ? "Choreo" : "Beides"}
+                              </span>
+                            ) : null}
+                          </Link>
+                        ) : (
+                          <span
+                            key={ds.key}
+                            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm"
+                          >
+                            {ds.name}
+                            <span className="ml-2 text-[10px] text-[var(--muted)]">
+                              {ds.level === "BEGINNER" && "Anfänger"}
+                              {ds.level === "INTERMEDIATE" && "Fortgeschritten"}
+                              {ds.level === "ADVANCED" && "Sehr fortgeschritten"}
+                              {ds.level === "PROFESSIONAL" && "Profi"}
+                            </span>
+                            {ds.mode ? (
+                              <span className="ml-2 text-[10px] text-[var(--muted)]">
+                                {ds.mode === "IMPRO" ? "Impro" : ds.mode === "CHOREO" ? "Choreo" : "Beides"}
+                              </span>
+                            ) : null}
+                          </span>
+                        )
                       ))}
                     </dd>
                   </div>

@@ -41,12 +41,20 @@ export default function DanceStylesDirectory({ styles }: { styles: StyleItem[] }
               </Link>
               {s.category ? <div className="text-xs text-[var(--muted)]">{s.category}</div> : null}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)]">
-                Gruppen: {s.groups}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <span
+                title={`Gruppen: ${s.groups}`}
+                className="inline-flex items-center px-2 py-0.5 sm:px-2.5 rounded-full text-[11px] sm:text-xs font-medium bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)]"
+              >
+                <span className="sr-only sm:not-sr-only">Gruppen: </span>
+                {s.groups}
               </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)]">
-                Tänzerinnen: {s.dancers}
+              <span
+                title={`Tänzerinnen: ${s.dancers}`}
+                className="inline-flex items-center px-2 py-0.5 sm:px-2.5 rounded-full text-[11px] sm:text-xs font-medium bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)]"
+              >
+                <span className="sr-only sm:not-sr-only">Tänzerinnen: </span>
+                {s.dancers}
               </span>
             </div>
           </div>
