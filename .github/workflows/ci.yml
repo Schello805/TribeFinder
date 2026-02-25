@@ -31,8 +31,7 @@ jobs:
       - name: Ensure npm public registry (no auth)
         run: |
           rm -f ~/.npmrc || true
-          npm config set registry https://registry.npmjs.org/
-          npm config set always-auth false
+          echo "registry=https://registry.npmjs.org/" > ~/.npmrc
 
       - name: Install dependencies
         run: npm ci
@@ -81,8 +80,7 @@ jobs:
       - name: Ensure npm public registry (no auth)
         run: |
           rm -f ~/.npmrc || true
-          npm config set registry https://registry.npmjs.org/
-          npm config set always-auth false
+          echo "registry=https://registry.npmjs.org/" > ~/.npmrc
 
       - name: Install dependencies
         run: npm ci
@@ -135,8 +133,7 @@ jobs:
       - name: Ensure npm public registry (no auth)
         run: |
           rm -f ~/.npmrc || true
-          npm config set registry https://registry.npmjs.org/
-          npm config set always-auth false
+          echo "registry=https://registry.npmjs.org/" > ~/.npmrc
 
       - name: Install dependencies
         run: npm ci
