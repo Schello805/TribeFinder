@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
+import Image from "next/image";
 import QRCode from "qrcode";
 import PrintButton from "@/components/ui/PrintButton";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
@@ -205,9 +206,12 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
             <div className="min-w-0">
               <div className="flex items-start gap-3">
                 {logoUrl ? (
-                  <img
+                  <Image
                     src={logoUrl}
                     alt="Logo"
+                    width={56}
+                    height={56}
+                    unoptimized
                     className="w-14 h-14 rounded-xl object-cover border border-[var(--border)] bg-white flex-shrink-0"
                   />
                 ) : null}
@@ -233,12 +237,26 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
             <div className="flex-shrink-0">
               <div className="flex items-start gap-3">
                 <div className="text-center">
-                  <img src={qrDataUrl} alt="QR Code" className="w-[120px] h-[120px] bg-white rounded-xl border border-[var(--border)] p-2" />
+                  <Image
+                    src={qrDataUrl}
+                    alt="QR Code"
+                    width={120}
+                    height={120}
+                    unoptimized
+                    className="w-[120px] h-[120px] bg-white rounded-xl border border-[var(--border)] p-2"
+                  />
                   <div className="mt-2 text-xs text-[var(--muted)]">Gruppe</div>
                 </div>
                 {videoQrDataUrl ? (
                   <div className="text-center">
-                    <img src={videoQrDataUrl} alt="QR Code Video" className="w-[120px] h-[120px] bg-white rounded-xl border border-[var(--border)] p-2" />
+                    <Image
+                      src={videoQrDataUrl}
+                      alt="QR Code Video"
+                      width={120}
+                      height={120}
+                      unoptimized
+                      className="w-[120px] h-[120px] bg-white rounded-xl border border-[var(--border)] p-2"
+                    />
                     <div className="mt-2 text-xs text-[var(--muted)]">Video</div>
                   </div>
                 ) : null}

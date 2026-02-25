@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import { useToast } from "@/components/ui/Toast";
 
@@ -215,13 +216,14 @@ export default function AdminMarketingAssetsManager() {
                         {isPdf ? (
                           <div className="px-4 pb-4 text-xs text-gray-500 dark:text-gray-400">PDF Vorschau nicht eingebettet.</div>
                         ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <div className="w-full bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
-                            <img
+                            <Image
                               src={url}
                               alt={item.title}
+                              width={1200}
+                              height={800}
+                              unoptimized
                               className={isLogo ? "w-full h-auto max-h-48 object-contain" : "w-full h-auto max-h-96 object-contain"}
-                              loading="lazy"
                             />
                           </div>
                         )}

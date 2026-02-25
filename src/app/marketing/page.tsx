@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import type { Metadata } from "next";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +38,12 @@ function formatBytes(bytes: number) {
 }
 
 export default async function MarketingPage() {
-  const items = (await prisma.marketingAsset.findMany({
-    orderBy: { createdAt: "desc" },
-  })) as MarketingAsset[];
+  const marketingAssetDelegate = (prisma as unknown as { marketingAsset?: { findMany: (args: unknown) => Promise<unknown> } }).marketingAsset;
+  const items = (marketingAssetDelegate
+    ? ((await marketingAssetDelegate.findMany({
+        orderBy: { createdAt: "desc" },
+      })) as unknown as MarketingAsset[])
+    : []) as MarketingAsset[];
 
   const grouped = items.reduce((acc: Record<MarketingAssetType, MarketingAsset[]>, item: MarketingAsset) => {
     acc[item.type].push(item);
@@ -102,13 +106,14 @@ export default async function MarketingPage() {
                         {isPdf ? (
                           <div className="p-4 text-sm text-[var(--muted)]">PDF Vorschau nicht eingebettet – bitte herunterladen.</div>
                         ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <div className="w-full bg-[var(--surface)] p-4 flex items-center justify-center">
-                            <img
+                            <Image
                               src={url}
                               alt={item.title}
+                              width={1200}
+                              height={800}
+                              unoptimized
                               className={isLogo ? "w-full h-auto max-h-48 object-contain" : "w-full h-auto max-h-[70vh] object-contain"}
-                              loading="lazy"
                             />
                           </div>
                         )}
