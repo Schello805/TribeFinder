@@ -31,6 +31,28 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Admin: Benutzerliste zeigt Online/Offline Status
 - Admin: Benutzer-Detailseite zeigt Online-Status + zusätzliche Debug-Felder (User ID, zuletzt aktualisiert)
 
+## [Unreleased] - 2026-02-25
+
+### 💃 Tanzstile
+
+- Öffentliche Tanzstile-Übersicht unter `/dance-styles` mit Suche sowie Counts für Gruppen & Tänzerinnen (nur Profile mit `isDancerProfileEnabled = true`)
+- Öffentliche Tanzstil-Detailseiten unter `/dance-styles/[id]` inkl. Website/Beschreibung/„früherer Name“ sowie optionalem Video-Link (YouTube wird eingebettet)
+- Tanzstile: Vorschlagsformular für neue Stile (nur eingeloggte User); Vorschläge sind nicht öffentlich sichtbar bis zur Admin-Freigabe
+- Admin: Review-Seite für Tanzstil-Vorschläge unter `/admin/dance-style-suggestions` (Freigeben/Ablehnen)
+- Datenmodell: Neues Prisma-Model `DanceStyleSuggestion` inkl. Status (PENDING/APPROVED/REJECTED)
+- Seed: Default-Liste ergänzt um **ITS** und **Wüstenrosen ATS**
+- Admin: Zentrale Tanzstil-Verwaltung unter `/admin/dance-styles` (manuell hinzufügen/bearbeiten/löschen)
+- Admin: Tanzstile können jetzt auch einen optionalen Video-Link speichern (für Detailansicht)
+- Admin: Legacy-Tag-Verwaltung (`/admin/tags`, Admin → Inhalte) auf zentrale Tanzstil-Verwaltung umgestellt
+- Gruppen: Tanzstil-Filter lädt Tanzstile zentral aus `/api/dance-styles` (kein leerer Dropdown mehr)
+- Tänzerinnen: Tanzstil-Filter in der Übersicht (`/taenzerinnen`) ergänzt
+- Admin: Tanzstil-Vorschläge werden oben auf `/admin/dance-styles` eingeblendet, wenn offene Vorschläge existieren (Approve/Reject direkt dort)
+- Admin: E-Mail-Benachrichtigung an Admins bei neuem Tanzstil-Vorschlag
+
+### 🧭 Navigation
+
+- Navbar: Primärlinks auf Gruppen/Tänzerinnen/Events/Karte fokussiert; Tanzstile + Second-Hand unter „Mehr“ (Desktop Dropdown + Mobile aufklappbar)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte

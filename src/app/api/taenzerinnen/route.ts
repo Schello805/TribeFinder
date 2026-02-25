@@ -16,6 +16,7 @@ export async function GET(req: Request) {
   const hasGroups = searchParams.get("hasGroups") === "1";
   const teaches = searchParams.get("teaches") === "1";
   const workshops = searchParams.get("workshops") === "1";
+  const style = (searchParams.get("style") || "").trim();
   const sortRaw = (searchParams.get("sort") || "").trim();
   const sort = sortRaw === "name" ? "name" : "newest";
 
@@ -34,6 +35,7 @@ export async function GET(req: Request) {
     OR?: Array<{ dancerName?: { contains: string }; name?: { contains: string }; bio?: { contains: string } }>;
     bio?: { not: null };
     memberships?: { some: { status: "APPROVED" } };
+    danceStyles?: { some: { style: { name: string } } };
   } = {
     isDancerProfileEnabled: true,
     ...(showPrivate ? {} : { isDancerProfilePrivate: false }),
@@ -61,6 +63,10 @@ export async function GET(req: Request) {
 
   if (workshops) {
     whereClause.dancerGivesWorkshops = true;
+  }
+
+  if (style) {
+    whereClause.danceStyles = { some: { style: { name: style } } };
   }
 
   try {

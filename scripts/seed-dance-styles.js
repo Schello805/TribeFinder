@@ -43,6 +43,8 @@ const DEFAULT_DANCE_STYLES = [
   "Oriental Fusion",
   "Tribal Fusion",
   "ATS / FCBD Style",
+  "ITS",
+  "Wüstenrosen ATS",
   "Tribal Style",
   "Fantasy",
   "Folklore (Orient)",

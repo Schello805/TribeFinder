@@ -8,6 +8,41 @@ function getEmailBaseUrl() {
   return raw.endsWith("/") ? raw.slice(0, -1) : raw;
 }
 
+export async function notifyAdminsAboutNewDanceStyleSuggestion(styleName: string, creatorName: string) {
+  if (!styleName) return;
+
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { email: true },
+    });
+
+    if (admins.length === 0) return;
+
+    const subject = `Neuer Tanzstil-Vorschlag: ${styleName}`;
+    const content = `
+      ${emailHeading("Neuer Tanzstil-Vorschlag 💃")}
+      ${emailText(`Der Benutzer <strong>${creatorName}</strong> hat einen neuen Tanzstil vorgeschlagen:`)}
+      <p style="margin: 16px 0; color: #111827; font-size: 16px;"><strong>${styleName}</strong></p>
+      ${emailText("Du kannst den Vorschlag direkt im Admin-Bereich prüfen und freigeben/ablehnen.")}
+      ${emailButton("Tanzstile verwalten", `${process.env.NEXTAUTH_URL}/admin/dance-styles`)}
+    `;
+
+    const promises = admins.map((admin: { email: string | null }) => {
+      if (admin.email) {
+        return emailTemplate(content, `Neuer Tanzstil: ${styleName}`).then((html) =>
+          sendEmail(admin.email as string, subject, html)
+        );
+      }
+      return Promise.resolve();
+    });
+
+    await Promise.all(promises);
+  } catch (error) {
+    console.error("Fehler beim Senden der Tanzstil-Vorschlag Benachrichtigung:", error);
+  }
+}
+
 function buildEmailUrl(path: string) {
   const base = getEmailBaseUrl();
   if (!base) return null;

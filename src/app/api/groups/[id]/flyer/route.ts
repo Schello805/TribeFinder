@@ -153,7 +153,7 @@ export async function GET(req: Request, { params }: RouteParams) {
       },
     } as const;
 
-    let group = await prisma.group
+    const group = await prisma.group
       .findUnique({
         where: { id },
         include: {
@@ -386,7 +386,7 @@ export async function GET(req: Request, { params }: RouteParams) {
     // About box
     doc.setFillColor(255, 255, 255);
     doc.roundedRect(innerX, aboutBoxY, innerW, aboutBoxH, 6, 6, "F");
-    let aboutY = sectionHeader(doc, "Über uns", innerX, aboutBoxY + 4, 64, { r: 79, g: 70, b: 229 });
+    const aboutY = sectionHeader(doc, "Über uns", innerX, aboutBoxY + 4, 64, { r: 79, g: 70, b: 229 });
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");

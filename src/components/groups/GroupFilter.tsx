@@ -22,7 +22,7 @@ export default function GroupFilter() {
   const [groupSize, setGroupSize] = useState(searchParams.get("size") || "");
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [availableTags, setAvailableTags] = useState<{ id: string, name: string }[]>([]);
+  const [availableTags, setAvailableTags] = useState<{ id: string; name: string }[]>([]);
   const [isLocating, setIsLocating] = useState(false);
   const geocodeSeq = useRef(0);
 
@@ -37,20 +37,31 @@ export default function GroupFilter() {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const debouncedLocation = useDebounce(location, 800); // Längerer Debounce für Geocoding API
 
-  // Fetch tags for filter
+  // Fetch dance styles for filter
   useEffect(() => {
-    const fetchTags = async () => {
+    const fetchStyles = async () => {
       try {
-        const res = await fetch('/api/tags?approvedOnly=true');
+        const res = await fetch('/api/dance-styles');
         if (res.ok) {
-          const data = await res.json();
-          setAvailableTags(data);
+          const data = await res.json().catch(() => ({}));
+          const available = Array.isArray(data?.available) ? (data.available as unknown[]) : [];
+          const mapped = available
+            .map((x) => {
+              if (!x || typeof x !== "object") return null;
+              const id = "id" in x && typeof (x as { id?: unknown }).id === "string" ? (x as { id: string }).id : null;
+              const name =
+                "name" in x && typeof (x as { name?: unknown }).name === "string" ? (x as { name: string }).name : null;
+              if (!id || !name) return null;
+              return { id, name };
+            })
+            .filter(Boolean) as { id: string; name: string }[];
+          setAvailableTags(mapped);
         }
       } catch {
-        console.error("Failed to load tags");
+        console.error("Failed to load dance styles");
       }
     };
-    fetchTags();
+    fetchStyles();
   }, []);
 
   // Update URL function
@@ -245,9 +256,9 @@ export default function GroupFilter() {
             className="w-full px-4 py-2 pr-10 min-h-11 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
           >
             <option value="">Alle Tanzstile</option>
-            {availableTags.map((tag) => (
-              <option key={tag.id} value={tag.name}>
-                {tag.name}
+            {availableTags.map((style) => (
+              <option key={style.id} value={style.name}>
+                {style.name}
               </option>
             ))}
           </select>

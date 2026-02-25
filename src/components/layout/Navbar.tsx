@@ -16,6 +16,8 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [isMoreMobileOpen, setIsMoreMobileOpen] = useState(false);
 
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
@@ -161,6 +163,8 @@ export default function Navbar() {
     const t = window.setTimeout(() => {
       setIsMenuOpen(false);
       setIsUserMenuOpen(false);
+      setIsMoreMenuOpen(false);
+      setIsMoreMobileOpen(false);
     }, 0);
     return () => window.clearTimeout(t);
   }, [pathname]);
@@ -191,9 +195,39 @@ export default function Navbar() {
             <Link href="/map" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
               Karte
             </Link>
-            <Link href="/marketplace" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
-              Second-Hand
-            </Link>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsMoreMenuOpen((v) => !v)}
+                className="inline-flex items-center gap-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium"
+                aria-haspopup="menu"
+                aria-expanded={isMoreMenuOpen}
+              >
+                Mehr
+                <svg className="w-4 h-4 opacity-80" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                </svg>
+              </button>
+
+              {isMoreMenuOpen && (
+                <div className="absolute left-0 mt-2 w-56 rounded-lg border border-[var(--nav-border)] bg-[var(--nav-bg)] shadow-xl overflow-hidden z-50">
+                  <Link
+                    href="/dance-styles"
+                    className="block px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-[var(--nav-surface)]"
+                    onClick={() => setIsMoreMenuOpen(false)}
+                  >
+                    Tanzstile
+                  </Link>
+                  <Link
+                    href="/marketplace"
+                    className="block px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-[var(--nav-surface)]"
+                    onClick={() => setIsMoreMenuOpen(false)}
+                  >
+                    Second-Hand
+                  </Link>
+                </div>
+              )}
+            </div>
 
             {session ? (
               <>
@@ -361,9 +395,37 @@ export default function Navbar() {
             <Link href="/map" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
               Karte
             </Link>
-            <Link href="/marketplace" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
-              Second-Hand
-            </Link>
+
+            <button
+              type="button"
+              onClick={() => setIsMoreMobileOpen((v) => !v)}
+              className="w-full flex items-center justify-between px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md"
+              aria-expanded={isMoreMobileOpen}
+            >
+              <span>Mehr</span>
+              <svg className={`w-4 h-4 opacity-80 transition-transform ${isMoreMobileOpen ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+              </svg>
+            </button>
+
+            {isMoreMobileOpen && (
+              <div className="pl-3">
+                <Link
+                  href="/dance-styles"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md"
+                >
+                  Tanzstile
+                </Link>
+                <Link
+                  href="/marketplace"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md"
+                >
+                  Second-Hand
+                </Link>
+              </div>
+            )}
             <div className="px-3 py-2">
               <div className="text-xs font-semibold text-[var(--nav-muted)] mb-2">Design</div>
               <div className="inline-flex items-center rounded-md border border-[var(--nav-border)] bg-[var(--nav-surface)] overflow-hidden">

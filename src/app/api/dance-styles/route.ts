@@ -20,6 +20,8 @@ async function ensureDanceStylesSeeded() {
           "Oriental Fusion",
           "Tribal Fusion",
           "ATS / FCBD Style",
+          "ITS",
+          "Wüstenrosen ATS",
           "Tribal",
           "Folklore (Orient)",
           "Drum Solo",

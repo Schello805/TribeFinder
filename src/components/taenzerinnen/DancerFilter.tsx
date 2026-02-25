@@ -15,7 +15,10 @@ export default function DancerFilter() {
   const [hasGroups, setHasGroups] = useState(searchParams.get("hasGroups") === "1");
   const [teaches, setTeaches] = useState(searchParams.get("teaches") === "1");
   const [workshops, setWorkshops] = useState(searchParams.get("workshops") === "1");
+  const [style, setStyle] = useState(searchParams.get("style") || "");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const [availableStyles, setAvailableStyles] = useState<Array<{ id: string; name: string }>>([]);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -26,7 +29,8 @@ export default function DancerFilter() {
       newHasBio: boolean,
       newHasGroups: boolean,
       newTeaches: boolean,
-      newWorkshops: boolean
+      newWorkshops: boolean,
+      newStyle: string
     ) => {
       const params = new URLSearchParams(searchParamsString);
 
@@ -48,6 +52,9 @@ export default function DancerFilter() {
       if (newWorkshops) params.set("workshops", "1");
       else params.delete("workshops");
 
+      if (newStyle) params.set("style", newStyle);
+      else params.delete("style");
+
       const nextQuery = params.toString();
       const nextUrl = nextQuery ? `/taenzerinnen?${nextQuery}` : "/taenzerinnen";
       const currentUrl = searchParamsString ? `/taenzerinnen?${searchParamsString}` : "/taenzerinnen";
@@ -59,8 +66,36 @@ export default function DancerFilter() {
   );
 
   useEffect(() => {
-    updateUrl(debouncedSearchTerm, sort, hasBio, hasGroups, teaches, workshops);
-  }, [debouncedSearchTerm, sort, hasBio, hasGroups, teaches, workshops, updateUrl]);
+    updateUrl(debouncedSearchTerm, sort, hasBio, hasGroups, teaches, workshops, style);
+  }, [debouncedSearchTerm, sort, hasBio, hasGroups, teaches, workshops, style, updateUrl]);
+
+  useEffect(() => {
+    const fetchStyles = async () => {
+      try {
+        const res = await fetch("/api/dance-styles");
+        if (!res.ok) return;
+        const data = (await res.json().catch(() => ({}))) as unknown;
+        const available =
+          typeof data === "object" && data !== null && "available" in data && Array.isArray((data as { available?: unknown }).available)
+            ? ((data as { available: unknown[] }).available as unknown[])
+            : [];
+        const mapped = available
+          .map((x) => {
+            if (!x || typeof x !== "object") return null;
+            const id = "id" in x && typeof (x as { id?: unknown }).id === "string" ? (x as { id: string }).id : null;
+            const name = "name" in x && typeof (x as { name?: unknown }).name === "string" ? (x as { name: string }).name : null;
+            if (!id || !name) return null;
+            return { id, name };
+          })
+          .filter(Boolean) as Array<{ id: string; name: string }>;
+        setAvailableStyles(mapped);
+      } catch {
+        return;
+      }
+    };
+
+    fetchStyles();
+  }, []);
 
   const clearAll = () => {
     setSearchTerm("");
@@ -69,11 +104,12 @@ export default function DancerFilter() {
     setHasGroups(false);
     setTeaches(false);
     setWorkshops(false);
-    updateUrl("", "newest", false, false, false, false);
+    setStyle("");
+    updateUrl("", "newest", false, false, false, false, "");
   };
 
   const hasActiveFilters =
-    Boolean(searchTerm.trim()) || Boolean(sort && sort !== "newest") || hasBio || hasGroups || teaches || workshops;
+    Boolean(searchTerm.trim()) || Boolean(sort && sort !== "newest") || hasBio || hasGroups || teaches || workshops || Boolean(style);
 
   return (
     <div className="mb-4 bg-[var(--surface)] text-[var(--foreground)] p-3 rounded-lg shadow-sm border border-[var(--border)] space-y-3">
@@ -164,6 +200,33 @@ export default function DancerFilter() {
                 </label>
               </div>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Tanzstil</label>
+              <div className="relative">
+                <select
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value)}
+                  className="w-full px-3 py-2 pr-9 min-h-10 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] appearance-none"
+                >
+                  <option value="">Alle</option>
+                  {availableStyles.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--muted)]">
+                  <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </details>
@@ -210,6 +273,17 @@ export default function DancerFilter() {
               className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-[11px] text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
             >
               Workshops
+              <span className="text-[var(--muted)]">×</span>
+            </button>
+          ) : null}
+
+          {style ? (
+            <button
+              type="button"
+              onClick={() => setStyle("")}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-[11px] text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
+            >
+              Tanzstil
               <span className="text-[var(--muted)]">×</span>
             </button>
           ) : null}

@@ -19,7 +19,8 @@ function itemClass(active: boolean) {
 
   const isOverview = isActiveExact("/admin");
   const isDesign = isActivePrefix("/admin/design") || isActivePrefix("/admin/settings");
-  const isContent = isActivePrefix("/admin/content") || isActivePrefix("/admin/tags");
+  const isDanceStyles =
+    isActivePrefix("/admin/dance-styles") || isActivePrefix("/admin/dance-style-suggestions");
   const isMarketing = isActivePrefix("/admin/marketing");
   const isUsers = isActivePrefix("/admin/users");
   const isOps =
@@ -39,8 +40,8 @@ function itemClass(active: boolean) {
       <Link href="/admin/design" className={itemClass(isDesign)}>
         Design
       </Link>
-      <Link href="/admin/content" className={itemClass(isContent)}>
-        Inhalte
+      <Link href="/admin/dance-styles" className={itemClass(isDanceStyles)}>
+        Tanzstile
       </Link>
       <Link href="/admin/marketing" className={itemClass(isMarketing)}>
         Marketing

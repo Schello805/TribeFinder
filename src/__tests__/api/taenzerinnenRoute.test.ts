@@ -117,4 +117,24 @@ describe("GET /api/taenzerinnen", () => {
     expect(findManyCall.skip).toBe(5);
     expect(findManyCall.take).toBe(5);
   });
+
+  it("supports filtering by dance style", async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce(null as unknown as Session);
+
+    const prismaMock = prisma as unknown as PrismaMock;
+    vi.mocked(prismaMock.user.count).mockResolvedValueOnce(0);
+    vi.mocked(prismaMock.user.findMany).mockResolvedValueOnce([]);
+
+    const req = new Request("https://example.com/api/taenzerinnen?style=ITS");
+    const res = await GET(req);
+
+    expect(res.status).toBe(200);
+
+    const countCall = vi.mocked(prismaMock.user.count).mock.calls[0]?.[0] as unknown as { where: Record<string, unknown> };
+    expect(countCall.where).toMatchObject({
+      isDancerProfileEnabled: true,
+      isDancerProfilePrivate: false,
+      danceStyles: { some: { style: { name: "ITS" } } },
+    });
+  });
 });
