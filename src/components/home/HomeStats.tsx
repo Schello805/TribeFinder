@@ -112,27 +112,37 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
   const [items, setItems] = useState<Array<EventItem | GroupItem>>([]);
   const [eventPreset, setEventPreset] = useState<"all" | "today" | "thisWeekend" | "nextWeekend">("all");
 
-  useEffect(() => {
-    if (!navigator.geolocation) return;
+  const loadNearbyStats = useCallback(
+    async (nextCoords: { lat: number; lng: number }) => {
+      setNearbyLoading(true);
+      try {
+        const res = await fetch(
+          `/api/stats/nearby?lat=${encodeURIComponent(String(nextCoords.lat))}&lng=${encodeURIComponent(
+            String(nextCoords.lng)
+          )}&radiusKm=${encodeURIComponent(String(radiusKm))}`,
+          { cache: "no-store" }
+        );
+        const data = (await res.json().catch(() => null)) as NearbyStatsResponse | null;
+        if (res.ok && data) setNearbyStats(data);
+      } finally {
+        setNearbyLoading(false);
+      }
+    },
+    [radiusKm]
+  );
 
-    setNearbyLoading(true);
+  const requestLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setNearbyDenied(true);
+      return;
+    }
+
+    setNearbyDenied(false);
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setCoords({ lat, lng });
-        try {
-          const res = await fetch(
-            `/api/stats/nearby?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(
-              String(lng)
-            )}&radiusKm=${encodeURIComponent(String(radiusKm))}`,
-            { cache: "no-store" }
-          );
-          const data = (await res.json().catch(() => null)) as NearbyStatsResponse | null;
-          if (res.ok && data) setNearbyStats(data);
-        } finally {
-          setNearbyLoading(false);
-        }
+      (pos) => {
+        const next = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setCoords(next);
+        void loadNearbyStats(next);
       },
       () => {
         setNearbyDenied(true);
@@ -140,7 +150,12 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
       },
       { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
     );
-  }, [radiusKm]);
+  }, [loadNearbyStats]);
+
+  useEffect(() => {
+    if (!coords) return;
+    void loadNearbyStats(coords);
+  }, [coords, loadNearbyStats, radiusKm]);
 
   const openSheet = useCallback((next: ActiveSheet) => {
     setEventPreset("all");
@@ -295,6 +310,19 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
               ? "Standort-Zugriff deaktiviert."
               : "Aktiviere Standortzugriff, um Listen im Umkreis von 25km zu sehen."}
           </div>
+
+          {!coords && !nearbyDenied ? (
+            <div className="mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={requestLocation}
+                disabled={nearbyLoading}
+                className="inline-flex justify-center rounded-md border border-transparent bg-[var(--primary)] py-2 px-4 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50"
+              >
+                Standort aktivieren
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
