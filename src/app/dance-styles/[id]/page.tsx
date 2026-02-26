@@ -215,11 +215,14 @@ export default async function DanceStyleDetailPage({ params }: RouteParams) {
         <h1 className="tf-display text-3xl font-extrabold text-[var(--foreground)]">{style.name}</h1>
 
         <div className="flex flex-wrap items-center gap-2">
-          {style.category ? (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)]">
-              {style.category}
-            </span>
-          ) : null}
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--surface-2)] border border-[var(--border)] ${
+              style.category ? "text-[var(--foreground)]" : "text-[var(--muted)]"
+            }`}
+            title="Kategorie"
+          >
+            {style.category || "Keine Kategorie"}
+          </span>
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)]">
             Gruppen: {groupsCount}
           </span>
@@ -228,47 +231,54 @@ export default async function DanceStyleDetailPage({ params }: RouteParams) {
           </span>
         </div>
 
-        {style.formerName ? (
-          <div className="text-sm text-[var(--muted)]">Früher: {style.formerName}</div>
-        ) : null}
+        <div className="text-sm text-[var(--muted)]">
+          <span className="font-medium">Voriger Name:</span> {style.formerName || "—"}
+        </div>
       </div>
 
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 space-y-4">
-        {style.websiteUrl ? (
-          <div>
-            <div className="text-sm font-medium text-[var(--foreground)]">Website</div>
+
+        <div>
+          <div className="text-sm font-medium text-[var(--foreground)]">Website</div>
+          {style.websiteUrl ? (
             <a href={style.websiteUrl} target="_blank" rel="noreferrer" className="text-sm text-[var(--link)] hover:underline break-all">
               {style.websiteUrl}
             </a>
-          </div>
-        ) : null}
+          ) : (
+            <div className="text-sm text-[var(--muted)]">—</div>
+          )}
+        </div>
 
-        {style.description ? (
-          <div>
-            <div className="text-sm font-medium text-[var(--foreground)]">Beschreibung</div>
+        <div>
+          <div className="text-sm font-medium text-[var(--foreground)]">Beschreibung</div>
+          {style.description ? (
             <div className="text-sm text-[var(--foreground)] whitespace-pre-wrap">{style.description}</div>
-          </div>
-        ) : null}
+          ) : (
+            <div className="text-sm text-[var(--muted)]">Noch keine Angaben.</div>
+          )}
+        </div>
 
-        {style.videoUrl ? (
-          <div className="space-y-2">
-            <div className="text-sm font-medium text-[var(--foreground)]">Video</div>
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-[var(--foreground)]">Video</div>
+          {style.videoUrl ? (
             <a href={style.videoUrl} target="_blank" rel="noreferrer" className="text-sm text-[var(--link)] hover:underline break-all">
               {style.videoUrl}
             </a>
-            {youtubeEmbed ? (
-              <div className="aspect-video w-full overflow-hidden rounded-xl border border-[var(--border)] bg-black">
-                <iframe
-                  src={youtubeEmbed}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title={`${style.name} Video`}
-                />
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+          ) : (
+            <div className="text-sm text-[var(--muted)]">—</div>
+          )}
+          {style.videoUrl && youtubeEmbed ? (
+            <div className="aspect-video w-full overflow-hidden rounded-xl border border-[var(--border)] bg-black">
+              <iframe
+                src={youtubeEmbed}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={`${style.name} Video`}
+              />
+            </div>
+          ) : null}
+        </div>
 
         <div className="pt-2">
           <Link
