@@ -10,13 +10,22 @@ const schema = z.object({
   category: z.string().trim().min(2).max(200).nullable().optional(),
   formerName: z.string().trim().min(2).max(200).nullable().optional(),
   websiteUrl: z.string().trim().url().nullable().optional(),
+  videoUrl: z.string().trim().url().nullable().optional(),
   description: z.string().trim().min(2).max(2000).nullable().optional(),
+  styleId: z.string().trim().min(1).max(200).nullable().optional(),
 });
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  }
+
+  const user = await prisma.user
+    .findUnique({ where: { id: session.user.id }, select: { emailVerified: true } })
+    .catch(() => null);
+  if (!user?.emailVerified) {
+    return NextResponse.json({ message: "Bitte bestätige zuerst deine E-Mail-Adresse." }, { status: 403 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -28,7 +37,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { name, category, formerName, websiteUrl, description } = parsed.data;
+  const { name, category, formerName, websiteUrl, videoUrl, description, styleId } = parsed.data;
 
   try {
     const suggestionDelegate = (prisma as unknown as { danceStyleSuggestion?: unknown }).danceStyleSuggestion as
@@ -58,7 +67,9 @@ export async function POST(req: Request) {
         category: category ?? null,
         formerName: formerName ?? null,
         websiteUrl: websiteUrl ?? null,
+        videoUrl: videoUrl ?? null,
         description: description ?? null,
+        styleId: styleId ?? null,
         createdById: session.user.id,
       },
       select: {

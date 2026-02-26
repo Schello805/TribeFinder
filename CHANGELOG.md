@@ -38,6 +38,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Öffentliche Tanzstile-Übersicht unter `/dance-styles` mit Suche sowie Counts für Gruppen & Tänzerinnen (nur Profile mit `isDancerProfileEnabled = true`)
 - Öffentliche Tanzstil-Detailseiten unter `/dance-styles/[id]` inkl. Website/Beschreibung/„früherer Name“ sowie optionalem Video-Link (YouTube wird eingebettet)
 - Tanzstile: Vorschlagsformular für neue Stile (nur eingeloggte User); Vorschläge sind nicht öffentlich sichtbar bis zur Admin-Freigabe
+- Tanzstile: Änderungsvorschläge für bestehende Tanzstile (nur verifizierte User) inkl. Felder wie Website/Beschreibung/Video/„früherer Name“
 - Admin: Review-Seite für Tanzstil-Vorschläge unter `/admin/dance-style-suggestions` (Freigeben/Ablehnen)
 - Datenmodell: Neues Prisma-Model `DanceStyleSuggestion` inkl. Status (PENDING/APPROVED/REJECTED)
 - Seed: Default-Liste ergänzt um **ITS** und **Wüstenrosen ATS**

@@ -497,6 +497,8 @@ model DanceStyle {
   groups GroupDanceStyle[]
 
   approvedSuggestions DanceStyleSuggestion[]
+
+  targetedSuggestions DanceStyleSuggestion[] @relation("DanceStyleSuggestionTarget")
 }
 
 // User's Dance Styles with Level
@@ -538,6 +540,10 @@ model DanceStyleSuggestion {
   formerName String?
   websiteUrl String?
   description String?
+  videoUrl String?
+
+  styleId String?
+  style   DanceStyle? @relation("DanceStyleSuggestionTarget", fields: [styleId], references: [id], onDelete: SetNull)
 
   status DanceStyleSuggestionStatus @default(PENDING)
 
@@ -557,6 +563,7 @@ model DanceStyleSuggestion {
   @@index([status])
   @@index([createdById])
   @@index([approvedStyleId])
+  @@index([styleId])
 }
 
 // Workshop/Event Registrations

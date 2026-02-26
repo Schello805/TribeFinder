@@ -8,6 +8,7 @@ type SuggestionItem = {
   name: string;
   formerName: string | null;
   websiteUrl: string | null;
+  videoUrl: string | null;
   description: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: string;
@@ -15,6 +16,7 @@ type SuggestionItem = {
   createdBy: { id: string; email: string; name: string | null };
   decidedByAdmin: { id: string; email: string; name: string | null } | null;
   approvedStyle: { id: string; name: string } | null;
+  style: { id: string; name: string } | null;
 };
 
 function Badge({ children, className }: { children: ReactNode; className: string }) {
@@ -105,6 +107,13 @@ export default function AdminDanceStyleSuggestionsManager() {
                       </a>
                     </div>
                   ) : null}
+                  {x.videoUrl ? (
+                    <div className="mt-0.5 text-sm">
+                      <a href={x.videoUrl} target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-300 hover:underline break-all">
+                        {x.videoUrl}
+                      </a>
+                    </div>
+                  ) : null}
                   {x.description ? <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{x.description}</div> : null}
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -117,6 +126,12 @@ export default function AdminDanceStyleSuggestionsManager() {
                     )}
 
                     <Badge className="bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200">{x.createdBy.email}</Badge>
+
+                    {x.style ? (
+                      <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">Edit: {x.style.name}</Badge>
+                    ) : (
+                      <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200">Neu</Badge>
+                    )}
 
                     {x.approvedStyle ? (
                       <Badge className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200">Stil: {x.approvedStyle.name}</Badge>

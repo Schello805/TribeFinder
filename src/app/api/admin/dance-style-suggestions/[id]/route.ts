@@ -36,7 +36,9 @@ export async function PATCH(req: Request, { params }: RouteParams) {
                 category: string | null;
                 formerName: string | null;
                 websiteUrl: string | null;
+                videoUrl: string | null;
                 description: string | null;
+                styleId: string | null;
               }
             | null
           >;
@@ -62,7 +64,9 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         category: true,
         formerName: true,
         websiteUrl: true,
+        videoUrl: true,
         description: true,
+        styleId: true,
       },
     });
 
@@ -92,12 +96,14 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const nextCategory = typeof suggestion.category === "string" ? suggestion.category : null;
     const nextFormerName = typeof suggestion.formerName === "string" ? suggestion.formerName : null;
     const nextWebsiteUrl = typeof suggestion.websiteUrl === "string" ? suggestion.websiteUrl : null;
+    const nextVideoUrl = typeof suggestion.videoUrl === "string" ? suggestion.videoUrl : null;
     const nextDescription = typeof suggestion.description === "string" ? suggestion.description : null;
 
     const danceStyleDelegate = (prisma as unknown as { danceStyle?: unknown }).danceStyle as
       | undefined
       | {
           upsert: (args: unknown) => Promise<{ id: string; name: string }>;
+          update: (args: unknown) => Promise<{ id: string; name: string }>;
         };
 
     if (!danceStyleDelegate) {
@@ -110,23 +116,37 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       );
     }
 
-    const style = await danceStyleDelegate.upsert({
-      where: { name: suggestion.name },
-      update: {
-        category: nextCategory || undefined,
-        formerName: nextFormerName || undefined,
-        websiteUrl: nextWebsiteUrl || undefined,
-        description: nextDescription || undefined,
-      },
-      create: {
-        name: suggestion.name,
-        category: nextCategory,
-        formerName: nextFormerName,
-        websiteUrl: nextWebsiteUrl,
-        description: nextDescription,
-      },
-      select: { id: true, name: true },
-    });
+    const style = suggestion.styleId
+      ? await danceStyleDelegate.update({
+          where: { id: suggestion.styleId },
+          data: {
+            category: nextCategory || undefined,
+            formerName: nextFormerName || undefined,
+            websiteUrl: nextWebsiteUrl || undefined,
+            videoUrl: nextVideoUrl || undefined,
+            description: nextDescription || undefined,
+          },
+          select: { id: true, name: true },
+        })
+      : await danceStyleDelegate.upsert({
+          where: { name: suggestion.name },
+          update: {
+            category: nextCategory || undefined,
+            formerName: nextFormerName || undefined,
+            websiteUrl: nextWebsiteUrl || undefined,
+            videoUrl: nextVideoUrl || undefined,
+            description: nextDescription || undefined,
+          },
+          create: {
+            name: suggestion.name,
+            category: nextCategory,
+            formerName: nextFormerName,
+            websiteUrl: nextWebsiteUrl,
+            videoUrl: nextVideoUrl,
+            description: nextDescription,
+          },
+          select: { id: true, name: true },
+        });
 
     const updated = (await suggestionDelegate.update({
       where: { id },

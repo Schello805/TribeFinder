@@ -1,6 +1,9 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import DanceStyleEditSuggestionForm from "@/components/dance-styles/DanceStyleEditSuggestionForm";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +35,8 @@ function toYoutubeEmbed(url: string): string | null {
 
 export default async function DanceStyleDetailPage({ params }: RouteParams) {
   const { id } = await params;
+
+  const session = await getServerSession(authOptions).catch(() => null);
 
   let decodedKey = id;
   try {
@@ -288,6 +293,25 @@ export default async function DanceStyleDetailPage({ params }: RouteParams) {
             Gruppen mit diesem Tanzstil ansehen
           </Link>
         </div>
+      </div>
+
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 space-y-3">
+        <h2 className="tf-display text-lg font-bold text-[var(--foreground)]">Änderung vorschlagen</h2>
+        {session?.user?.id ? (
+          <DanceStyleEditSuggestionForm
+            styleId={style.id}
+            styleName={style.name}
+            initialCategory={style.category}
+            initialFormerName={style.formerName}
+            initialWebsiteUrl={style.websiteUrl}
+            initialVideoUrl={style.videoUrl}
+            initialDescription={style.description}
+          />
+        ) : (
+          <div className="text-sm text-[var(--muted)]">
+            Bitte <Link href="/auth/signin" className="text-[var(--link)] hover:underline">einloggen</Link>, um Änderungen vorzuschlagen.
+          </div>
+        )}
       </div>
     </div>
   );
