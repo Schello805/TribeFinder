@@ -54,6 +54,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Navbar: Primärlinks auf Gruppen/Tänzerinnen/Events/Karte fokussiert; Tanzstile + Second-Hand unter „Mehr“ (Desktop Dropdown + Mobile aufklappbar)
 
+### 📍 Standort
+
+- Startseite: Standort wird erst nach Klick („Standort aktivieren“) abgefragt (kein automatisches GPS-Popup beim Seitenaufruf)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte
