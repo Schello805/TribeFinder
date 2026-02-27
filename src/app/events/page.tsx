@@ -1,8 +1,5 @@
-"use client";
-
-import { useCallback, useEffect, useState } from "react";
+import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { ListSkeleton } from "@/components/ui/SkeletonLoader";
 
 const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
@@ -11,45 +8,23 @@ type Event = {
   title: string;
   description: string;
   eventType: string;
-  startDate: string;
+  startDate: Date;
   locationName: string | null;
   group: {
     id: string;
     name: string;
-  };
+  } | null;
 };
 
-export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+export const dynamic = "force-dynamic";
 
+export default async function EventsPage() {
   const formatBerlin = (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions) => {
     if (!value) return "";
     const d = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(d.getTime())) return "";
     return new Intl.DateTimeFormat("de-DE", { ...options, timeZone: TZ_EUROPE_BERLIN }).format(d);
   };
-
-  const fetchEvents = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    params.append("upcoming", "true");
-
-    try {
-      const res = await fetch(`/api/events?${params.toString()}`);
-      const data = await res.json();
-      // Support both old array format and new paginated format
-      setEvents(Array.isArray(data) ? data : data.data || []);
-    } catch (error) {
-      console.error("Failed to fetch events", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
 
   const getTypeLabel = (type: string) => {
     switch (type) {
@@ -73,6 +48,28 @@ export default function EventsPage() {
     }
   };
 
+  const events: Event[] = await prisma.event
+    .findMany({
+      where: {
+        startDate: {
+          gte: new Date(),
+        },
+      },
+      include: {
+        group: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        startDate: "asc",
+      },
+      take: 200,
+    })
+    .catch(() => []);
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -91,9 +88,7 @@ export default function EventsPage() {
         </div>
       </div>
 
-      {loading ? (
-        <ListSkeleton count={6} type="event" />
-      ) : events.length === 0 ? (
+      {events.length === 0 ? (
         <div className="text-center py-20 bg-[var(--surface-2)] text-[var(--foreground)] rounded-lg border border-dashed border-[var(--border)]">
           <p className="text-[var(--muted)]">Aktuell keine Events gefunden.</p>
         </div>

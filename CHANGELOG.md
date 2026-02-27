@@ -68,6 +68,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Detailseite: Video-Bereich wird nur angezeigt, wenn das verlinkte YouTube-Video verfügbar ist
 - Admin: Änderungsvorschläge zeigen Alt/Neu (Vergleich) für bessere Freigabe-Entscheidungen; Freigabe kann Felder auch leeren (setzt NULL)
 
+### 🔎 SEO
+
+- Events: Kalender-Seite (`/events`) wird serverseitig gerendert (bessere Indexierbarkeit, kein Client-only Fetch)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte
