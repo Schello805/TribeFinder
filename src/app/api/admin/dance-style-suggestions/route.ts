@@ -26,7 +26,17 @@ export async function GET() {
               createdBy: { id: string; email: string; name: string | null };
               decidedByAdmin: { id: string; email: string; name: string | null } | null;
               approvedStyle: { id: string; name: string } | null;
-              style: { id: string; name: string } | null;
+              style:
+                | {
+                    id: string;
+                    name: string;
+                    category: string | null;
+                    formerName: string | null;
+                    websiteUrl: string | null;
+                    videoUrl: string | null;
+                    description: string | null;
+                  }
+                | null;
             }>
           >;
         };
@@ -57,7 +67,7 @@ export async function GET() {
         createdBy: { select: { id: true, email: true, name: true } },
         decidedByAdmin: { select: { id: true, email: true, name: true } },
         approvedStyle: { select: { id: true, name: true } },
-        style: { select: { id: true, name: true } },
+        style: { select: { id: true, name: true, category: true, formerName: true, websiteUrl: true, videoUrl: true, description: true } },
       },
     });
 

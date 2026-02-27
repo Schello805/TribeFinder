@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/Toast";
 type SuggestionItem = {
   id: string;
   name: string;
+  category?: string | null;
   formerName: string | null;
   websiteUrl: string | null;
   videoUrl: string | null;
@@ -16,8 +17,43 @@ type SuggestionItem = {
   createdBy: { id: string; email: string; name: string | null };
   decidedByAdmin: { id: string; email: string; name: string | null } | null;
   approvedStyle: { id: string; name: string } | null;
-  style: { id: string; name: string } | null;
+  style:
+    | {
+        id: string;
+        name: string;
+        category: string | null;
+        formerName: string | null;
+        websiteUrl: string | null;
+        videoUrl: string | null;
+        description: string | null;
+      }
+    | null;
 };
+
+function normalize(v: string | null | undefined): string {
+  const s = typeof v === "string" ? v.trim() : "";
+  return s.length ? s : "—";
+}
+
+function FieldDiff({ label, oldValue, newValue }: { label: string; oldValue: string | null | undefined; newValue: string | null | undefined }) {
+  const oldN = normalize(oldValue);
+  const newN = normalize(newValue);
+  const changed = oldN !== newN;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:items-start">
+      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</div>
+      <div className="text-sm text-gray-600 dark:text-gray-400 break-words">
+        <div className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Alt</div>
+        <div className={changed ? "" : "opacity-70"}>{oldN}</div>
+      </div>
+      <div className="text-sm text-gray-900 dark:text-gray-100 break-words">
+        <div className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Neu</div>
+        <div className={changed ? "font-semibold" : "opacity-70"}>{newN}</div>
+      </div>
+    </div>
+  );
+}
 
 function Badge({ children, className }: { children: ReactNode; className: string }) {
   return (
@@ -99,22 +135,49 @@ export default function AdminDanceStyleSuggestionsManager() {
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words">{x.name}</div>
-                  {x.formerName ? <div className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Früher: {x.formerName}</div> : null}
-                  {x.websiteUrl ? (
-                    <div className="mt-0.5 text-sm">
-                      <a href={x.websiteUrl} target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-300 hover:underline break-all">
-                        {x.websiteUrl}
-                      </a>
+                  {x.style ? (
+                    <div className="mt-3 space-y-3">
+                      <FieldDiff label="Kategorie" oldValue={x.style.category} newValue={x.category} />
+                      <FieldDiff label="Früherer Name" oldValue={x.style.formerName} newValue={x.formerName} />
+                      <FieldDiff label="Webseite" oldValue={x.style.websiteUrl} newValue={x.websiteUrl} />
+                      <FieldDiff label="Video" oldValue={x.style.videoUrl} newValue={x.videoUrl} />
+                      <FieldDiff label="Beschreibung" oldValue={x.style.description} newValue={x.description} />
                     </div>
-                  ) : null}
-                  {x.videoUrl ? (
-                    <div className="mt-0.5 text-sm">
-                      <a href={x.videoUrl} target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-300 hover:underline break-all">
-                        {x.videoUrl}
-                      </a>
-                    </div>
-                  ) : null}
-                  {x.description ? <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{x.description}</div> : null}
+                  ) : (
+                    <>
+                      {x.category ? (
+                        <div className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Kategorie: {x.category}</div>
+                      ) : null}
+                      {x.formerName ? <div className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Früher: {x.formerName}</div> : null}
+                      {x.websiteUrl ? (
+                        <div className="mt-0.5 text-sm">
+                          <a
+                            href={x.websiteUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-indigo-600 dark:text-indigo-300 hover:underline break-all"
+                          >
+                            {x.websiteUrl}
+                          </a>
+                        </div>
+                      ) : null}
+                      {x.videoUrl ? (
+                        <div className="mt-0.5 text-sm">
+                          <a
+                            href={x.videoUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-indigo-600 dark:text-indigo-300 hover:underline break-all"
+                          >
+                            {x.videoUrl}
+                          </a>
+                        </div>
+                      ) : null}
+                      {x.description ? (
+                        <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{x.description}</div>
+                      ) : null}
+                    </>
+                  )}
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {x.status === "PENDING" ? (
