@@ -58,6 +58,12 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Startseite: Standort wird erst nach Klick („Standort aktivieren“) abgefragt (kein automatisches GPS-Popup beim Seitenaufruf)
 
+## [Unreleased] - 2026-02-27
+
+### 💃 Tanzstile
+
+- Einmalige Initialbefüllung: Tanzstil-Infos (Beschreibung/Webseite/Video) für bestehende Einträge werden per Migration gesetzt (danach Pflege über Frontend)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte
