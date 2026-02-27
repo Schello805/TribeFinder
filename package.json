@@ -1,6 +1,6 @@
 {
   "name": "tribe-finder",
-  "version": "0.2.7",
+  "version": "2.7.2",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
