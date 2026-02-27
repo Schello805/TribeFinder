@@ -72,6 +72,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Events: Kalender-Seite (`/events`) wird serverseitig gerendert (bessere Indexierbarkeit, kein Client-only Fetch)
 
+### 🧰 Admin
+
+- Einstellungen: Matomo-Abschnitt zeigt nach „Speichern“ wieder eine Statusmeldung (Feedback)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte

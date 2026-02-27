@@ -558,6 +558,12 @@ export default function AdminSettingsPage() {
                 {isSaving ? 'Speichere...' : 'Speichern'}
               </button>
             </div>
+
+            {message ? (
+              <div className="text-sm text-gray-700 dark:text-gray-300" aria-live="polite">
+                {message}
+              </div>
+            ) : null}
           </form>
         </div>
       </div>
