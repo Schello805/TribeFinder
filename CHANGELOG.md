@@ -64,6 +64,8 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Einmalige Initialbefüllung: Tanzstil-Infos (Beschreibung/Webseite/Video) für bestehende Einträge werden per Migration gesetzt (danach Pflege über Frontend)
 - Einmalige Ergänzung: Fehlende Tanzstile aus der initialen Liste werden angelegt und mit Infos befüllt (danach Pflege über Frontend)
+- Einmalige Zuordnung: Kategorien für Tanzstile werden gesetzt (Oriental/Tribal/Fusion/Folklore/Modern/Sonstiges)
+- Detailseite: Video-Bereich wird nur angezeigt, wenn das verlinkte YouTube-Video verfügbar ist
 
 ## [Unreleased] - 2026-02-20
 

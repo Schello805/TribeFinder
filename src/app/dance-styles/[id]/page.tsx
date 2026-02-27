@@ -18,6 +18,10 @@ function toYoutubeEmbed(url: string): string | null {
       const v = u.searchParams.get("v");
       if (v) return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v)}`;
       const parts = u.pathname.split("/").filter(Boolean);
+      const shortsIdx = parts.indexOf("shorts");
+      if (shortsIdx >= 0 && parts[shortsIdx + 1]) {
+        return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(parts[shortsIdx + 1])}`;
+      }
       const idx = parts.indexOf("embed");
       if (idx >= 0 && parts[idx + 1]) return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(parts[idx + 1])}`;
     }
@@ -30,6 +34,19 @@ function toYoutubeEmbed(url: string): string | null {
     return null;
   } catch {
     return null;
+  }
+}
+
+async function isYoutubeVideoAvailable(url: string): Promise<boolean> {
+  try {
+    const oembed = new URL("https://www.youtube.com/oembed");
+    oembed.searchParams.set("url", url);
+    oembed.searchParams.set("format", "json");
+
+    const res = await fetch(oembed.toString(), { cache: "no-store" });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 
@@ -206,6 +223,10 @@ export default async function DanceStyleDetailPage({ params }: RouteParams) {
   ]);
 
   const youtubeEmbed = style.videoUrl ? toYoutubeEmbed(style.videoUrl) : null;
+  const shouldShowVideo =
+    !!style.videoUrl &&
+    !!youtubeEmbed &&
+    (await isYoutubeVideoAvailable(style.videoUrl).catch(() => false));
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8 px-4 sm:px-0 pb-12">
@@ -263,27 +284,23 @@ export default async function DanceStyleDetailPage({ params }: RouteParams) {
           )}
         </div>
 
-        <div className="space-y-2">
-          <div className="text-sm font-medium text-[var(--foreground)]">Video</div>
-          {style.videoUrl ? (
-            <a href={style.videoUrl} target="_blank" rel="noreferrer" className="text-sm text-[var(--link)] hover:underline break-all">
+        {shouldShowVideo ? (
+          <div className="space-y-2">
+            <div className="text-sm font-medium text-[var(--foreground)]">Video</div>
+            <a href={style.videoUrl!} target="_blank" rel="noreferrer" className="text-sm text-[var(--link)] hover:underline break-all">
               {style.videoUrl}
             </a>
-          ) : (
-            <div className="text-sm text-[var(--muted)]">—</div>
-          )}
-          {style.videoUrl && youtubeEmbed ? (
             <div className="aspect-video w-full overflow-hidden rounded-xl border border-[var(--border)] bg-black">
               <iframe
-                src={youtubeEmbed}
+                src={youtubeEmbed!}
                 className="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 title={`${style.name} Video`}
               />
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
 
         <div className="pt-2">
           <Link
