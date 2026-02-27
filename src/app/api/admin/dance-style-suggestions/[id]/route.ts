@@ -93,11 +93,17 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       });
     }
 
-    const nextCategory = typeof suggestion.category === "string" ? suggestion.category : null;
-    const nextFormerName = typeof suggestion.formerName === "string" ? suggestion.formerName : null;
-    const nextWebsiteUrl = typeof suggestion.websiteUrl === "string" ? suggestion.websiteUrl : null;
-    const nextVideoUrl = typeof suggestion.videoUrl === "string" ? suggestion.videoUrl : null;
-    const nextDescription = typeof suggestion.description === "string" ? suggestion.description : null;
+    const asNullableString = (v: unknown): string | null => {
+      if (typeof v !== "string") return null;
+      const s = v.trim();
+      return s.length ? s : null;
+    };
+
+    const nextCategory = asNullableString(suggestion.category);
+    const nextFormerName = asNullableString(suggestion.formerName);
+    const nextWebsiteUrl = asNullableString(suggestion.websiteUrl);
+    const nextVideoUrl = asNullableString(suggestion.videoUrl);
+    const nextDescription = asNullableString(suggestion.description);
 
     const danceStyleDelegate = (prisma as unknown as { danceStyle?: unknown }).danceStyle as
       | undefined
@@ -120,22 +126,22 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       ? await danceStyleDelegate.update({
           where: { id: suggestion.styleId },
           data: {
-            category: nextCategory || undefined,
-            formerName: nextFormerName || undefined,
-            websiteUrl: nextWebsiteUrl || undefined,
-            videoUrl: nextVideoUrl || undefined,
-            description: nextDescription || undefined,
+            category: nextCategory,
+            formerName: nextFormerName,
+            websiteUrl: nextWebsiteUrl,
+            videoUrl: nextVideoUrl,
+            description: nextDescription,
           },
           select: { id: true, name: true },
         })
       : await danceStyleDelegate.upsert({
           where: { name: suggestion.name },
           update: {
-            category: nextCategory || undefined,
-            formerName: nextFormerName || undefined,
-            websiteUrl: nextWebsiteUrl || undefined,
-            videoUrl: nextVideoUrl || undefined,
-            description: nextDescription || undefined,
+            category: nextCategory,
+            formerName: nextFormerName,
+            websiteUrl: nextWebsiteUrl,
+            videoUrl: nextVideoUrl,
+            description: nextDescription,
           },
           create: {
             name: suggestion.name,

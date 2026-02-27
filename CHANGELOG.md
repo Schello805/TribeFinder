@@ -66,6 +66,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Einmalige Ergänzung: Fehlende Tanzstile aus der initialen Liste werden angelegt und mit Infos befüllt (danach Pflege über Frontend)
 - Einmalige Zuordnung: Kategorien für Tanzstile werden gesetzt (Oriental/Tribal/Fusion/Folklore/Modern/Sonstiges)
 - Detailseite: Video-Bereich wird nur angezeigt, wenn das verlinkte YouTube-Video verfügbar ist
+- Admin: Änderungsvorschläge zeigen Alt/Neu (Vergleich) für bessere Freigabe-Entscheidungen; Freigabe kann Felder auch leeren (setzt NULL)
 
 ## [Unreleased] - 2026-02-20
 
