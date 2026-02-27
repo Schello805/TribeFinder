@@ -63,6 +63,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 ### 💃 Tanzstile
 
 - Einmalige Initialbefüllung: Tanzstil-Infos (Beschreibung/Webseite/Video) für bestehende Einträge werden per Migration gesetzt (danach Pflege über Frontend)
+- Einmalige Ergänzung: Fehlende Tanzstile aus der initialen Liste werden angelegt und mit Infos befüllt (danach Pflege über Frontend)
 
 ## [Unreleased] - 2026-02-20
 
