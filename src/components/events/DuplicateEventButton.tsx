@@ -39,7 +39,7 @@ export default function DuplicateEventButton({ eventId }: { eventId: string }) {
       type="button"
       onClick={() => void onDuplicate()}
       disabled={busy}
-      className="inline-flex items-center rounded-md bg-[var(--surface)] px-3 py-2 text-base font-semibold text-[var(--foreground)] shadow-sm hover:bg-[var(--surface-hover)] disabled:opacity-50 border border-[var(--border)]"
+      className="w-full py-2.5 sm:py-3 px-4 bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] text-center rounded-md font-bold hover:bg-[var(--surface-hover)] transition shadow-sm disabled:opacity-50"
     >
       {busy ? "Dupliziere…" : "Duplizieren"}
     </button>

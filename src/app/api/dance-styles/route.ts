@@ -65,11 +65,26 @@ async function ensureDanceStylesSeeded() {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await ensureDanceStylesSeeded();
+
+    const { searchParams } = new URL(req.url);
+    const usedByRaw = (searchParams.get("usedBy") || "").trim();
+    const usedBy = usedByRaw || "any";
+
+    const where =
+      usedBy === "groups"
+        ? { groupDanceStyles: { some: {} } }
+        : usedBy === "events"
+          ? { eventDanceStyles: { some: {} } }
+          : usedBy === "dancers"
+            ? { userDanceStyles: { some: {} } }
+            : {};
+
     const danceStyleDelegate = (prisma as unknown as { danceStyle: { findMany: (args: unknown) => Promise<unknown> } }).danceStyle;
     const available = (await danceStyleDelegate.findMany({
+      where,
       orderBy: { name: "asc" },
       include: {
         aliases: {

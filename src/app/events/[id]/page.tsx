@@ -341,7 +341,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   </Link>
                   <DuplicateEventButton eventId={event.id} />
                   <div className="flex items-center justify-end pt-1">
-                    <DeleteEventButton eventId={event.id} redirectTo="/events" />
+                    <DeleteEventButton eventId={event.id} redirectTo="/events" iconOnly={true} />
                   </div>
                 </>
               )}

@@ -45,7 +45,7 @@ export default function GroupFilter() {
   useEffect(() => {
     const fetchStyles = async () => {
       try {
-        const res = await fetch('/api/dance-styles', { cache: "no-store" });
+        const res = await fetch('/api/dance-styles?usedBy=groups', { cache: "no-store" });
         if (res.ok) {
           const data = await res.json().catch(() => ({}));
           const available = Array.isArray(data?.available) ? (data.available as unknown[]) : [];
