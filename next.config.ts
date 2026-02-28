@@ -16,7 +16,7 @@ const nextConfig = {
   output: "standalone",
   serverExternalPackages: ["@react-pdf/renderer"],
   experimental: {
-    middlewareClientMaxBodySize: "600mb",
+    proxyClientMaxBodySize: "600mb",
   },
 } as unknown as NextConfig;
 

@@ -152,23 +152,10 @@ export async function PUT(
       },
     };
 
-    let updatedEvent: unknown;
-    try {
-      updatedEvent = await eventDelegate.update({
-        where: { id },
-        data: updateDataWithStyles,
-      });
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      if (msg.includes("Unknown argument `danceStyles`") || msg.includes("Unknown field `danceStyles`")) {
-        updatedEvent = await eventDelegate.update({
-          where: { id },
-          data: updateDataBase,
-        });
-      } else {
-        throw error;
-      }
-    }
+    const updatedEvent = await eventDelegate.update({
+      where: { id },
+      data: updateDataWithStyles,
+    });
 
     return NextResponse.json(updatedEvent);
   } catch (error) {

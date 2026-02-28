@@ -49,41 +49,21 @@ export default async function EditEventPage({
     };
   }).event;
 
-  let event: unknown = null;
-  try {
-    event = await eventDelegate.findUnique({
-      where: { id: eventId },
-      include: {
-        group: {
-          select: {
-            ownerId: true,
-          },
-        },
-        danceStyles: {
-          select: {
-            styleId: true,
-          },
+  const event = await eventDelegate.findUnique({
+    where: { id: eventId },
+    include: {
+      group: {
+        select: {
+          ownerId: true,
         },
       },
-    });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    if (msg.includes("Unknown nested field 'danceStyles'") || msg.includes("Unknown argument `danceStyles`")) {
-      const e = await eventDelegate.findUnique({
-        where: { id: eventId },
-        include: {
-          group: {
-            select: {
-              ownerId: true,
-            },
-          },
+      danceStyles: {
+        select: {
+          styleId: true,
         },
-      });
-      event = e && typeof e === "object" ? ({ ...(e as any), danceStyles: [] } as any) : e;
-    } else {
-      throw error;
-    }
-  }
+      },
+    },
+  });
 
   if (!event) {
     notFound();

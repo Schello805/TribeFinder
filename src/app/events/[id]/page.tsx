@@ -90,85 +90,45 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
     event: { findUnique: (args: unknown) => Promise<unknown> };
   }).event;
 
-  let event: EventLike | null = null;
-  try {
-    event = (await eventDelegate.findUnique({
-      where: { id },
-      include: {
-        group: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            ownerId: true,
-          },
-        },
-        creator: {
-          select: {
-            name: true,
-          },
-        },
-        participations: {
-          include: {
-            group: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-              },
-            },
-          },
-        },
-        danceStyles: {
-          include: {
-            style: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
+  const event = (await eventDelegate.findUnique({
+    where: { id },
+    include: {
+      group: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          ownerId: true,
         },
       },
-    })) as EventLike | null;
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    if (msg.includes("Unknown nested field 'danceStyles'") || msg.includes("Unknown argument `danceStyles`")) {
-      const eventWithoutStyles = (await eventDelegate.findUnique({
-        where: { id },
+      creator: {
+        select: {
+          name: true,
+        },
+      },
+      participations: {
         include: {
           group: {
             select: {
               id: true,
               name: true,
               image: true,
-              ownerId: true,
-            },
-          },
-          creator: {
-            select: {
-              name: true,
-            },
-          },
-          participations: {
-            include: {
-              group: {
-                select: {
-                  id: true,
-                  name: true,
-                  image: true,
-                },
-              },
             },
           },
         },
-      })) as unknown as Omit<EventLike, "danceStyles"> | null;
-
-      event = eventWithoutStyles ? ({ ...eventWithoutStyles, danceStyles: [] } as EventLike) : null;
-    } else {
-      throw error;
-    }
-  }
+      },
+      danceStyles: {
+        include: {
+          style: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  })) as EventLike | null;
 
   if (!event) {
     notFound();

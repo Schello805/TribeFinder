@@ -223,21 +223,9 @@ export async function POST(req: Request) {
         : {}),
     };
 
-    let created: { id: string; title: string };
-    try {
-      created = (await eventDelegate.create({
-        data: createDataWithStyles,
-      })) as unknown as { id: string; title: string };
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      if (msg.includes("Unknown argument `danceStyles`") || msg.includes("Unknown field `danceStyles`")) {
-        created = (await eventDelegate.create({
-          data: createDataBase,
-        })) as unknown as { id: string; title: string };
-      } else {
-        throw error;
-      }
-    }
+    const created = (await eventDelegate.create({
+      data: createDataWithStyles,
+    })) as unknown as { id: string; title: string };
 
     // Notify users about new event in their vicinity
     if (validatedData.lat && validatedData.lng) {
