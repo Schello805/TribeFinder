@@ -113,6 +113,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Tanzstile API: Fallback bei stale Prisma (usedBy-Filter wird ignoriert statt 500)
 - Prisma: Schema-Relation für Tanzstil-Vorschläge korrigiert (migrate/generate laufen wieder)
 - Tanzstile: Safety-Logging für Ladeprobleme (API + Gruppen-Editor)
+- Gruppen bearbeiten: Tanzstil-Dropdown bleibt offen beim Nachladen (kein "Laden"-Flicker)
 
 ### 🧩 Events
 

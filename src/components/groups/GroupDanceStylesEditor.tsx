@@ -134,14 +134,12 @@ export default function GroupDanceStylesEditor({
     onChange(value.filter((x) => x.styleId !== styleId));
   };
 
-  if (isLoading) {
-    return <div className="p-2 text-sm text-[var(--muted)]">Laden...</div>;
-  }
-
   return (
     <div className="space-y-4">
       <div className="bg-[var(--surface-2)] p-4 rounded-md border border-[var(--border)]">
-        <div className="text-sm font-medium text-[var(--muted)] min-h-[1.5rem]">{message}</div>
+        <div className="text-sm font-medium text-[var(--muted)] min-h-[1.5rem]">
+          {message || (isLoading ? "Laden..." : "")}
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2">
@@ -150,10 +148,10 @@ export default function GroupDanceStylesEditor({
               value={newStyleId}
               onChange={(e) => setNewStyleId(e.target.value)}
               onFocus={() => {
-                void load();
+                if (!isLoading) void load();
               }}
               className="mt-1 block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
-              disabled={disabled}
+              disabled={disabled || isLoading}
             >
               <option value="">Bitte auswählen…</option>
               {optionList.map((o) => (
@@ -170,7 +168,7 @@ export default function GroupDanceStylesEditor({
               value={newLevel}
               onChange={(e) => setNewLevel(e.target.value as Level)}
               className="mt-1 block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
-              disabled={disabled}
+              disabled={disabled || isLoading}
             >
               {(Object.keys(LEVEL_LABEL) as Level[]).map((lvl) => (
                 <option key={lvl} value={lvl}>
@@ -189,7 +187,7 @@ export default function GroupDanceStylesEditor({
                 setNewMode(v === "" ? null : (v as Exclude<Mode, null>));
               }}
               className="mt-1 block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
-              disabled={disabled}
+              disabled={disabled || isLoading}
             >
               <option value="">Keine Angabe</option>
               {(Object.keys(MODE_LABEL) as Array<Exclude<Mode, null>>).map((m) => (
@@ -205,7 +203,7 @@ export default function GroupDanceStylesEditor({
           <button
             type="button"
             onClick={add}
-            disabled={disabled || !newStyleId}
+            disabled={disabled || isLoading || !newStyleId}
             className="inline-flex justify-center rounded-md border border-transparent bg-[var(--primary)] py-2 px-4 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50"
           >
             Hinzufügen
