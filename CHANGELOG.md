@@ -110,6 +110,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Dropdowns/Filter laden Tanzstile immer aktuell aus der DB (kein Stale Cache; Refresh beim Öffnen)
 - Gruppen/Tänzerinnen: Tanzstil-Filter sind konsistent und nutzen DanceStyle IDs (Query-Param `danceStyleId`, Legacy-Params bleiben kompatibel)
 - Filter: Dropdowns zeigen nur noch Tanzstile, die tatsächlich verwendet werden (pro Kontext: Gruppen/Events/Tänzerinnen)
+- Tanzstile API: Fallback bei stale Prisma (usedBy-Filter wird ignoriert statt 500)
 
 ### 🧩 Events
 

@@ -82,17 +82,45 @@ export async function GET(req: Request) {
             ? { userDanceStyles: { some: {} } }
             : {};
 
-    const danceStyleDelegate = (prisma as unknown as { danceStyle: { findMany: (args: unknown) => Promise<unknown> } }).danceStyle;
-    const available = (await danceStyleDelegate.findMany({
-      where,
-      orderBy: { name: "asc" },
-      include: {
-        aliases: {
-          select: { name: true },
-          orderBy: { name: "asc" },
+    const danceStyleDelegate = (prisma as unknown as {
+      danceStyle: { findMany: (args: unknown) => Promise<unknown> };
+    }).danceStyle;
+
+    let available: unknown;
+    try {
+      available = (await danceStyleDelegate.findMany({
+        where,
+        orderBy: { name: "asc" },
+        include: {
+          aliases: {
+            select: { name: true },
+            orderBy: { name: "asc" },
+          },
         },
-      },
-    })) as unknown;
+      })) as unknown;
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (
+        msg.includes("Unknown argument `groupDanceStyles`") ||
+        msg.includes("Unknown argument `eventDanceStyles`") ||
+        msg.includes("Unknown argument `userDanceStyles`") ||
+        msg.includes("Unknown field `groupDanceStyles`") ||
+        msg.includes("Unknown field `eventDanceStyles`") ||
+        msg.includes("Unknown field `userDanceStyles`")
+      ) {
+        available = (await danceStyleDelegate.findMany({
+          orderBy: { name: "asc" },
+          include: {
+            aliases: {
+              select: { name: true },
+              orderBy: { name: "asc" },
+            },
+          },
+        })) as unknown;
+      } else {
+        throw error;
+      }
+    }
     const res = NextResponse.json({ available });
     res.headers.set("Cache-Control", "no-store, max-age=0");
     return res;
