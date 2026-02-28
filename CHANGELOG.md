@@ -124,6 +124,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Events: Bearbeiten-Seiten funktionieren auch ohne deployte `danceStyles` Relation (Fallback)
 - Events: Aktion-Buttons vereinheitlicht (Löschen als Icon-Button)
 - Events: Filter zeigt Hinweis, wenn noch keine Tanzstile in Events vorhanden sind
+- Events: Hinweis im Formular und auf der Detailseite, damit bestehende Events leichter um Tanzstile ergänzt werden können
 
 ### 🧭 Navigation
 

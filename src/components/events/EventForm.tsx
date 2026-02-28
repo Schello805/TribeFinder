@@ -1344,6 +1344,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
         </summary>
         <div className="px-4 pb-4">
           <div className="text-xs text-[var(--muted)]">Mehrfachauswahl</div>
+          <div className="mt-1 text-xs text-[var(--muted)]">
+            Hilft beim Filtern und macht dein Event leichter auffindbar.
+          </div>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
             {availableDanceStyles.map((s) => {
               const checked = Array.isArray(formData.danceStyleIds) && formData.danceStyleIds.includes(s.id);

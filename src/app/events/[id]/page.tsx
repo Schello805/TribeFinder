@@ -289,6 +289,18 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               ) : (
                 <div className="pb-1 text-xs text-[var(--muted)]">Tanzstile: nicht angegeben</div>
               )}
+
+              {canEdit && event.danceStyles.length === 0 ? (
+                <div className="mt-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs text-[var(--muted)]">
+                  Tanzstile helfen beim Filtern und machen dein Event leichter auffindbar.{" "}
+                  <Link
+                    href={event.group ? `/groups/${event.group.id}/events/${event.id}/edit` : `/events/${event.id}/edit`}
+                    className="text-[var(--link)] hover:opacity-90 font-medium"
+                  >
+                    Jetzt ergänzen
+                  </Link>
+                </div>
+              ) : null}
               
               <div className="text-[var(--muted)] flex flex-wrap items-center gap-3 sm:gap-4 text-base sm:text-lg">
                 <div className="flex items-center gap-2">
