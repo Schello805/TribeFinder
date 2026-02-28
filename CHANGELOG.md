@@ -89,6 +89,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Nutzer können Änderungen am Tanzstil vorschlagen (Inhalte wie Beschreibung/Links/Kategorie) und verifizierte Nutzer können zusätzlich neue Tanzstil-Aliase vorschlagen; Admin kann diese freigeben/ablehnen
 - Weitere Aliase wurden vor-seeded (u.a. Global Caravan/Gypsy Caravan, ITS/Improvisational Tribal Style, BlackSheep BellyDance/BSBD, Salimpour Format)
 - Defensive Migration: vorhandene Legacy-Tanzstile aus dem Live-System (z.B. Gypsy Caravan, Improvisational Tribal Style (ITS), BlackSheep) werden automatisch auf kanonische Stile gemerged (inkl. Gruppen-/User-Zuordnungen)
+- Admin-Diagnose: neuer Integritätscheck für DanceStyles (Orphans, Duplikate, Legacy-Namen)
 
 ## [Unreleased] - 2026-02-20
 

@@ -230,6 +230,94 @@ export async function GET() {
     })
   );
 
+  checks.push(
+    await runCheck("dance_style_integrity", "DanceStyles: Integrität (Migration)", async () => {
+      const orphanGroupRows = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+        `SELECT COUNT(*)::bigint AS count
+         FROM "GroupDanceStyle" gds
+         LEFT JOIN "DanceStyle" ds ON ds.id = gds."styleId"
+         WHERE ds.id IS NULL;`
+      );
+      const orphanUserRows = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+        `SELECT COUNT(*)::bigint AS count
+         FROM "UserDanceStyle" uds
+         LEFT JOIN "DanceStyle" ds ON ds.id = uds."styleId"
+         WHERE ds.id IS NULL;`
+      );
+
+      const orphanGroup = Number(orphanGroupRows?.[0]?.count ?? 0);
+      const orphanUser = Number(orphanUserRows?.[0]?.count ?? 0);
+
+      const dupRows = await prisma.$queryRawUnsafe<Array<{ lname: string; count: bigint; names: string[] }>>(
+        `SELECT lower(name) AS lname, COUNT(*)::bigint AS count, array_agg(name ORDER BY name) AS names
+         FROM "DanceStyle"
+         GROUP BY lower(name)
+         HAVING COUNT(*) > 1
+         ORDER BY COUNT(*) DESC, lower(name) ASC;`
+      );
+
+      const legacyNames = [
+        "Gypsy Caravan",
+        "Improvisational Tribal Style (ITS)",
+        "Improvisational Tribal Style",
+        "BlackSheep",
+        "BlackSheep Belly Dance",
+        "BSBD",
+        "Suhaila Salimpour Belly Dance Format",
+        "Suhaila Salimpour Format",
+      ];
+
+      const legacyPresentRows = await prisma.$queryRawUnsafe<Array<{ name: string }>>(
+        `SELECT name
+         FROM "DanceStyle"
+         WHERE name = ANY($1::text[])
+         ORDER BY name ASC;`,
+        legacyNames
+      );
+
+      const legacyPresent = (legacyPresentRows ?? []).map((x) => x.name);
+
+      const detailsObj = {
+        orphanGroupDanceStyles: orphanGroup,
+        orphanUserDanceStyles: orphanUser,
+        duplicateNamesCaseInsensitive: (dupRows ?? []).map((r) => ({
+          key: r.lname,
+          count: Number(r.count),
+          names: r.names,
+        })),
+        legacyStylesStillPresent: legacyPresent,
+      };
+
+      const problems: string[] = [];
+      if (orphanGroup > 0) problems.push(`Orphans GroupDanceStyle: ${orphanGroup}`);
+      if (orphanUser > 0) problems.push(`Orphans UserDanceStyle: ${orphanUser}`);
+      if ((dupRows ?? []).length > 0) problems.push(`Duplikate (case-insensitive): ${(dupRows ?? []).length}`);
+      if (legacyPresent.length > 0) problems.push(`Legacy-Styles noch als eigenständige Einträge: ${legacyPresent.length}`);
+
+      if (orphanGroup > 0 || orphanUser > 0) {
+        return {
+          status: "fail",
+          message: problems.join(" | "),
+          details: JSON.stringify(detailsObj, null, 2),
+        };
+      }
+
+      if ((dupRows ?? []).length > 0 || legacyPresent.length > 0) {
+        return {
+          status: "warn",
+          message: problems.join(" | ") || "Hinweise vorhanden",
+          details: JSON.stringify(detailsObj, null, 2),
+        };
+      }
+
+      return {
+        status: "ok",
+        message: "OK (keine Orphans, keine Duplikate, keine Legacy-Einträge)",
+        details: JSON.stringify(detailsObj, null, 2),
+      };
+    })
+  );
+
   if (!dbWritable) {
     checks.push({
       id: "crud_group",
