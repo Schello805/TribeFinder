@@ -124,6 +124,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Events: Filter zeigt Hinweis, wenn noch keine Tanzstile in Events vorhanden sind
 - Events: Hinweis im Formular und auf der Detailseite, damit bestehende Events leichter um Tanzstile ergänzt werden können
 - Events: Filter erweitert um Standort/Umkreis (wie Gruppen) und Monats-Auswahl (nur Monate mit zukünftigen Events)
+- Events: Events-Header/Filter optisch an Gruppen-Seite angepasst (Button-Ausrichtung, Monats-Labels)
 
 ### 🧭 Navigation
 

@@ -33,6 +33,15 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
     Math.max(0, ((radiusValue - radiusMin) / (radiusMax - radiusMin)) * 100)
   );
 
+  const formatMonthLabel = (value: string) => {
+    const m = /^\d{4}-\d{2}$/.exec(value);
+    if (!m) return value;
+    const [y, mo] = value.split("-");
+    const d = new Date(Date.UTC(Number(y), Number(mo) - 1, 1, 0, 0, 0, 0));
+    if (Number.isNaN(d.getTime())) return value;
+    return new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" }).format(d);
+  };
+
   useEffect(() => {
     const loadStyles = async () => {
       try {
@@ -177,9 +186,9 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
   };
 
   return (
-    <div className="bg-[var(--surface)] text-[var(--foreground)] p-4 rounded-lg shadow-sm border border-[var(--border)] mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="relative">
+    <div className="bg-[var(--surface)] text-[var(--foreground)] p-4 rounded-lg shadow-sm border border-[var(--border)] w-full">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+        <div className="relative md:col-span-4">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg className="h-5 w-5 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -194,7 +203,7 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
           />
         </div>
 
-        <div className="relative">
+        <div className="relative md:col-span-2">
           <select
             value={danceStyleId}
             onChange={(e) => setDanceStyleId(e.target.value)}
@@ -224,8 +233,8 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="relative">
+      <div className="mt-3 grid grid-cols-1 md:grid-cols-6 gap-3">
+        <div className="relative md:col-span-2">
           <select
             value={month}
             onChange={(e) => setMonth(e.target.value)}
@@ -234,7 +243,7 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
             <option value="">Alle Monate</option>
             {availableMonths.map((m) => (
               <option key={m} value={m}>
-                {m}
+                {formatMonthLabel(m)}
               </option>
             ))}
           </select>
@@ -249,7 +258,7 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 md:col-span-4">
           <div className="relative flex-grow">
             <input
               type="text"
@@ -278,7 +287,7 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
             type="button"
             onClick={handleUseMyLocation}
             disabled={isLocating}
-            className="px-2 min-h-11 min-w-11 border border-[var(--border)] rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] transition disabled:opacity-50"
+            className="px-3 min-h-11 min-w-11 border border-[var(--border)] rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] transition disabled:opacity-50"
             title="Meinen Standort verwenden"
           >
             {isLocating ? "..." : "📍"}
@@ -287,10 +296,11 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
       </div>
 
       {(lat && lng) ? (
-        <div className="mt-3">
-          <label className="block text-xs font-medium text-[var(--foreground)] mb-1">
-            Umkreis: {radius} km
-          </label>
+        <div className="mt-3 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-xs font-medium text-[var(--foreground)]">Umkreis</div>
+            <div className="text-xs text-[var(--muted)]">{radius} km</div>
+          </div>
           <input
             type="range"
             min={radiusMin}

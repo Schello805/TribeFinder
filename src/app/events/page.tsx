@@ -179,24 +179,21 @@ export default async function EventsPage({
   })) as unknown as Event[];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--foreground)]">📅 Event Kalender</h1>
-          <p className="text-[var(--muted)] mt-2">Entdecke Workshops, Partys und Trainings in deiner Umgebung.</p>
-        </div>
-
-      <EventFilter availableMonths={availableMonths} initialAddress={address} />
-        
-        <div className="flex gap-4">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div>
+        <div className="flex justify-between items-center">
+          <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Event Kalender</h1>
           <Link
             href="/events/create"
-            className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] font-medium rounded-md hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-sm whitespace-nowrap"
+            className="inline-flex items-center rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition"
           >
             + Event eintragen
           </Link>
         </div>
+        <div className="mt-1 text-sm text-[var(--muted)]">{events.length} Events gefunden</div>
       </div>
+
+      <EventFilter availableMonths={availableMonths} initialAddress={address} />
 
       {events.length === 0 ? (
         <div className="text-center py-20 bg-[var(--surface-2)] text-[var(--foreground)] rounded-lg border border-dashed border-[var(--border)]">
