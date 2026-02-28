@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import EventFilter from "@/components/events/EventFilter";
 
 const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
@@ -10,6 +11,7 @@ type Event = {
   eventType: string;
   startDate: Date;
   locationName: string | null;
+  danceStyles: Array<{ style: { id: string; name: string } }>;
   group: {
     id: string;
     name: string;
@@ -18,7 +20,17 @@ type Event = {
 
 export const dynamic = "force-dynamic";
 
-export default async function EventsPage() {
+export default async function EventsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) || {};
+  const qRaw = sp.q;
+  const q = typeof qRaw === "string" ? qRaw.trim() : "";
+  const danceStyleIdRaw = sp.danceStyleId;
+  const danceStyleId = typeof danceStyleIdRaw === "string" ? danceStyleIdRaw.trim() : "";
+
   const formatBerlin = (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions) => {
     if (!value) return "";
     const d = value instanceof Date ? value : new Date(value);
@@ -48,18 +60,52 @@ export default async function EventsPage() {
     }
   };
 
-  const events: Event[] = await prisma.event
+  const whereClause: {
+    startDate: { gte: Date };
+    OR?: Array<{ title?: { contains: string }; locationName?: { contains: string }; address?: { contains: string } }>;
+    danceStyles?: { some: { styleId: string } };
+  } = {
+    startDate: {
+      gte: new Date(),
+    },
+  };
+
+  if (q) {
+    whereClause.OR = [
+      { title: { contains: q } },
+      { locationName: { contains: q } },
+      { address: { contains: q } },
+    ];
+  }
+
+  if (danceStyleId) {
+    whereClause.danceStyles = { some: { styleId: danceStyleId } };
+  }
+
+  const eventDelegate = (prisma as unknown as {
+    event: {
+      findMany: (args: unknown) => Promise<unknown[]>;
+    };
+  }).event;
+
+  const events = (await eventDelegate
     .findMany({
-      where: {
-        startDate: {
-          gte: new Date(),
-        },
-      },
+      where: whereClause,
       include: {
         group: {
           select: {
             id: true,
             name: true,
+          },
+        },
+        danceStyles: {
+          include: {
+            style: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },
@@ -68,7 +114,7 @@ export default async function EventsPage() {
       },
       take: 200,
     })
-    .catch(() => []);
+    .catch(() => [])) as unknown as Event[];
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -77,6 +123,8 @@ export default async function EventsPage() {
           <h1 className="text-3xl font-bold text-[var(--foreground)]">📅 Event Kalender</h1>
           <p className="text-[var(--muted)] mt-2">Entdecke Workshops, Partys und Trainings in deiner Umgebung.</p>
         </div>
+
+      <EventFilter />
         
         <div className="flex gap-4">
           <Link
@@ -139,6 +187,21 @@ export default async function EventsPage() {
                     </span>
                   )}
                 </div>
+
+                {event.danceStyles.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5 pt-2">
+                    {event.danceStyles.map((ds) => (
+                      <span
+                        key={ds.style.id}
+                        className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-xs text-[var(--foreground)]"
+                      >
+                        {ds.style.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="pt-2 text-xs text-[var(--muted)]">Tanzstile: nicht angegeben</div>
+                )}
               </div>
 
               {/* Action */}

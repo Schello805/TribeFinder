@@ -20,10 +20,43 @@ export async function POST(
     return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
   }
 
-  const event = await prisma.event.findUnique({
+  const eventDelegate = (prisma as unknown as {
+    event: {
+      findUnique: (args: unknown) => Promise<
+        {
+            id: string;
+            creatorId: string | null;
+            groupId: string | null;
+            startDate: Date;
+            endDate: Date | null;
+            title: string;
+            description: string;
+            eventType: string;
+            locationName: string | null;
+            address: string | null;
+            lat: number;
+            lng: number;
+            flyer1: string | null;
+            flyer2: string | null;
+            website: string | null;
+            ticketLink: string | null;
+            ticketPrice: string | null;
+            organizer: string | null;
+            maxParticipants: number | null;
+            requiresRegistration: boolean;
+            group: { id: string; ownerId: string } | null;
+            danceStyles: Array<{ styleId: string }>;
+        } | null
+      >;
+      create: (args: unknown) => Promise<{ id: string; groupId: string | null }>;
+    };
+  }).event;
+
+  const event = await eventDelegate.findUnique({
     where: { id },
     include: {
       group: { select: { id: true, ownerId: true } },
+      danceStyles: { select: { styleId: true } },
     },
   });
 
@@ -78,7 +111,7 @@ export async function POST(
 
   const newEnd = new Date(newStart.getTime() + safeDurationMs);
 
-  const created = await prisma.event.create({
+  const created = await eventDelegate.create({
     data: {
       title: event.title,
       description: event.description,
@@ -99,6 +132,16 @@ export async function POST(
       requiresRegistration: event.requiresRegistration,
       creatorId: userId,
       groupId: event.groupId,
+      ...(event.danceStyles.length > 0
+        ? {
+            danceStyles: {
+              createMany: {
+                data: event.danceStyles.map((ds: { styleId: string }) => ({ styleId: ds.styleId })),
+                skipDuplicates: true,
+              },
+            },
+          }
+        : {}),
     },
     select: { id: true, groupId: true },
   });

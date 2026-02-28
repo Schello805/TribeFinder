@@ -110,6 +110,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Dropdowns/Filter laden Tanzstile immer aktuell aus der DB (kein Stale Cache; Refresh beim Öffnen)
 - Gruppen/Tänzerinnen: Tanzstil-Filter sind konsistent und nutzen DanceStyle IDs (Query-Param `danceStyleId`, Legacy-Params bleiben kompatibel)
 
+### 🧩 Events
+
+- Events: Tanzstile können optional ausgewählt werden und sind im Kalender filterbar (Query-Param `danceStyleId`)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte

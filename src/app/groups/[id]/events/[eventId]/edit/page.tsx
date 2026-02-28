@@ -18,14 +18,50 @@ export default async function EditEventPage({
   }
 
   // Fetch event and check ownership
-  const event = await prisma.event.findUnique({
+  const eventDelegate = (prisma as unknown as {
+    event: {
+      findUnique: (args: unknown) => Promise<
+        | {
+            id: string;
+            groupId: string | null;
+            title: string;
+            description: string;
+            eventType: string;
+            startDate: Date;
+            endDate: Date | null;
+            locationName: string | null;
+            address: string | null;
+            lat: number;
+            lng: number;
+            flyer1: string | null;
+            flyer2: string | null;
+            website: string | null;
+            ticketLink: string | null;
+            ticketPrice: string | null;
+            organizer: string | null;
+            maxParticipants: number | null;
+            requiresRegistration: boolean;
+            group: { ownerId: string } | null;
+            danceStyles: Array<{ styleId: string }>;
+          }
+        | null
+      >;
+    };
+  }).event;
+
+  const event = await eventDelegate.findUnique({
     where: { id: eventId },
     include: {
       group: {
         select: {
           ownerId: true
         }
-      }
+      },
+      danceStyles: {
+        select: {
+          styleId: true,
+        },
+      },
     }
   });
 
@@ -69,6 +105,7 @@ export default async function EditEventPage({
     eventType: event.eventType as EventFormData["eventType"],
     startDate: event.startDate.toISOString(),
     endDate: event.endDate ? event.endDate.toISOString() : event.startDate.toISOString(),
+    danceStyleIds: event.danceStyles.map((x: { styleId: string }) => x.styleId),
     locationName: event.locationName ?? "",
     address: event.address ?? "",
     lat: event.lat,

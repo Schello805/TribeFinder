@@ -17,7 +17,13 @@ export default async function EditEventPage({
     redirect("/auth/signin");
   }
 
-  const event = await prisma.event.findUnique({
+  const eventDelegate = (prisma as unknown as {
+    event: {
+      findUnique: (args: unknown) => Promise<unknown>;
+    };
+  }).event;
+
+  const event = (await eventDelegate.findUnique({
     where: { id },
     include: {
       group: {
@@ -26,42 +32,72 @@ export default async function EditEventPage({
           ownerId: true,
         },
       },
+      danceStyles: {
+        select: {
+          styleId: true,
+        },
+      },
     },
-  });
+  })) as unknown;
 
   if (!event) {
     notFound();
   }
 
+  const eventAny = event as {
+    id: string;
+    title: string;
+    description: string;
+    eventType: string;
+    startDate: Date;
+    endDate: Date | null;
+    danceStyles: Array<{ styleId: string }>;
+    locationName: string | null;
+    address: string | null;
+    lat: number;
+    lng: number;
+    flyer1: string | null;
+    flyer2: string | null;
+    website: string | null;
+    ticketLink: string | null;
+    ticketPrice: string | null;
+    organizer: string | null;
+    maxParticipants: number | null;
+    requiresRegistration: boolean;
+    groupId: string | null;
+    creatorId: string | null;
+  };
+
   // If the event belongs to a group, use the group-scoped edit page
-  if (event.groupId) {
-    redirect(`/groups/${event.groupId}/events/${event.id}/edit`);
+  if (eventAny.groupId) {
+    redirect(`/groups/${eventAny.groupId}/events/${eventAny.id}/edit`);
   }
 
   // Independent event: only creator can edit
-  if (event.creatorId !== session.user.id && session.user.role !== "ADMIN") {
+  if (eventAny.creatorId !== session.user.id && session.user.role !== "ADMIN") {
     redirect("/dashboard");
   }
 
   const initialData: Partial<EventFormData> & { id?: string } = {
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    eventType: event.eventType as EventFormData["eventType"],
-    startDate: event.startDate.toISOString(),
-    endDate: event.endDate ? event.endDate.toISOString() : event.startDate.toISOString(),
-    locationName: event.locationName ?? "",
-    address: event.address ?? "",
-    lat: event.lat,
-    lng: event.lng,
-    flyer1: event.flyer1 ?? "",
-    flyer2: event.flyer2 ?? "",
-    website: event.website ?? "",
-    ticketLink: event.ticketLink ?? "",
-    ticketPrice: event.ticketPrice ?? "",
-    organizer: event.organizer ?? "",
-    maxParticipants: event.maxParticipants ?? undefined,
-    requiresRegistration: event.requiresRegistration ?? false,
+    id: eventAny.id,
+    title: eventAny.title,
+    description: eventAny.description,
+    eventType: eventAny.eventType as EventFormData["eventType"],
+    startDate: eventAny.startDate.toISOString(),
+    endDate: eventAny.endDate ? eventAny.endDate.toISOString() : eventAny.startDate.toISOString(),
+    danceStyleIds: eventAny.danceStyles.map((x: { styleId: string }) => x.styleId),
+    locationName: eventAny.locationName ?? "",
+    address: eventAny.address ?? "",
+    lat: eventAny.lat,
+    lng: eventAny.lng,
+    flyer1: eventAny.flyer1 ?? "",
+    flyer2: eventAny.flyer2 ?? "",
+    website: eventAny.website ?? "",
+    ticketLink: eventAny.ticketLink ?? "",
+    ticketPrice: eventAny.ticketPrice ?? "",
+    organizer: eventAny.organizer ?? "",
+    maxParticipants: eventAny.maxParticipants ?? undefined,
+    requiresRegistration: eventAny.requiresRegistration ?? false,
   };
 
   return (

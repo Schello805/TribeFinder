@@ -12,7 +12,13 @@ export async function GET(
 ) {
   const id = (await params).id;
   try {
-    const event = await prisma.event.findUnique({
+    const eventDelegate = (prisma as unknown as {
+      event: {
+        findUnique: (args: unknown) => Promise<unknown>;
+      };
+    }).event;
+
+    const event = await eventDelegate.findUnique({
       where: { id },
       include: {
         group: {
@@ -20,6 +26,16 @@ export async function GET(
             id: true,
             name: true,
             image: true,
+          },
+        },
+        danceStyles: {
+          include: {
+            style: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },
@@ -51,32 +67,45 @@ export async function PUT(
   }
 
   try {
+    const eventDelegate = (prisma as unknown as {
+      event: {
+        findUnique: (args: unknown) => Promise<unknown>;
+        update: (args: unknown) => Promise<unknown>;
+      };
+    }).event;
+
     const body = await req.json();
     const validatedData = eventSchema.parse(body);
 
     const flyer1 = normalizeUploadedImageUrl(validatedData.flyer1) ?? undefined;
     const flyer2 = normalizeUploadedImageUrl(validatedData.flyer2) ?? undefined;
 
-    const event = await prisma.event.findUnique({
+    const event = await eventDelegate.findUnique({
       where: { id },
       include: { group: true },
     });
+
+    const eventAny = event as unknown as {
+      creatorId: string | null;
+      groupId: string | null;
+      group: { ownerId: string } | null;
+    };
 
     if (!event) {
       return NextResponse.json({ message: "Event nicht gefunden" }, { status: 404 });
     }
 
-    if (!event.group) {
-      if (event.creatorId !== session.user.id && session.user.role !== "ADMIN") {
+    if (!eventAny.group) {
+      if (eventAny.creatorId !== session.user.id && session.user.role !== "ADMIN") {
         return NextResponse.json({ message: "Nicht autorisiert" }, { status: 403 });
       }
     } else {
-      if (event.group.ownerId !== session.user.id && session.user.role !== "ADMIN") {
+      if (eventAny.group.ownerId !== session.user.id && session.user.role !== "ADMIN") {
         const membership = await prisma.groupMember.findUnique({
           where: {
             userId_groupId: {
               userId: session.user.id,
-              groupId: event.groupId!,
+              groupId: eventAny.groupId!,
             },
           },
           select: { role: true, status: true },
@@ -88,7 +117,7 @@ export async function PUT(
       }
     }
 
-    const updatedEvent = await prisma.event.update({
+    const updatedEvent = await eventDelegate.update({
       where: { id },
       data: {
         title: validatedData.title,
@@ -108,6 +137,17 @@ export async function PUT(
         organizer: validatedData.organizer,
         maxParticipants: validatedData.maxParticipants ?? null,
         requiresRegistration: validatedData.requiresRegistration ?? false,
+        danceStyles: {
+          deleteMany: {},
+          ...(Array.isArray(validatedData.danceStyleIds) && validatedData.danceStyleIds.length > 0
+            ? {
+                createMany: {
+                  data: validatedData.danceStyleIds.map((styleId) => ({ styleId })),
+                  skipDuplicates: true,
+                },
+              }
+            : {}),
+        },
       },
     });
 

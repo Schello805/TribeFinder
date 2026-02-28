@@ -131,6 +131,20 @@ model Post {
   updatedAt DateTime @updatedAt
 }
 
+model EventDanceStyle {
+  id String @id @default(cuid())
+
+  eventId String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  styleId String
+  style   DanceStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, styleId])
+  @@index([styleId])
+  @@index([eventId])
+}
+
 model PushSubscription {
   id       String @id @default(cuid())
   userId   String
@@ -263,6 +277,8 @@ model Event {
 
   creatorId String?
   creator   User?   @relation("EventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  danceStyles EventDanceStyle[]
 
   participations EventParticipation[]
   registrations  EventRegistration[]
@@ -509,14 +525,12 @@ model DanceStyle {
   description String?
   videoUrl    String?
 
-  users  UserDanceStyle[]
-  groups GroupDanceStyle[]
-
-  aliases DanceStyleAlias[]
-
+  aliases          DanceStyleAlias[]
   aliasSuggestions DanceStyleAliasSuggestion[]
 
-  approvedSuggestions DanceStyleSuggestion[]
+  groupDanceStyles GroupDanceStyle[]
+  userDanceStyles  UserDanceStyle[]
+  eventDanceStyles EventDanceStyle[]
 
   targetedSuggestions DanceStyleSuggestion[] @relation("DanceStyleSuggestionTarget")
 }

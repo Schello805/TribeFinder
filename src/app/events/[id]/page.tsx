@@ -60,6 +60,7 @@ type EventLike = {
   groupId: string | null;
   group: EventGroupLike | null;
   creator: EventCreatorLike | null;
+  danceStyles: Array<{ style: { id: string; name: string } }>;
   participations: EventParticipationLike[];
 };
 
@@ -113,6 +114,16 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             }
           }
         }
+      },
+      danceStyles: {
+        include: {
+          style: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       }
     }
   })) as EventLike | null;
@@ -221,6 +232,21 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 </div>
               ) : null}
               <h1 className="tf-display text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-3 leading-tight break-words">{event.title}</h1>
+
+              {event.danceStyles.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 pb-1">
+                  {event.danceStyles.map((ds) => (
+                    <span
+                      key={ds.style.id}
+                      className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-xs text-[var(--foreground)]"
+                    >
+                      {ds.style.name}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="pb-1 text-xs text-[var(--muted)]">Tanzstile: nicht angegeben</div>
+              )}
               
               <div className="text-[var(--muted)] flex flex-wrap items-center gap-3 sm:gap-4 text-base sm:text-lg">
                 <div className="flex items-center gap-2">

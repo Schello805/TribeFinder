@@ -325,6 +325,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     eventType: initialData?.eventType || "EVENT",
     startDate: isEditing && initialData?.startDate ? toLocalISOString(initialData.startDate) : "",
     endDate: isEditing && initialData?.endDate ? toLocalISOString(initialData.endDate) : "",
+    danceStyleIds: Array.isArray((initialData as { danceStyleIds?: unknown })?.danceStyleIds)
+      ? (((initialData as { danceStyleIds?: unknown }).danceStyleIds as unknown[])?.filter((x) => typeof x === "string") as string[])
+      : [],
     locationName: initialData?.locationName || "",
     address: initialData?.address || "",
     lat: initialData?.lat || 51.1657,
@@ -339,6 +342,41 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     maxParticipants: initialData?.maxParticipants || undefined,
     requiresRegistration: initialData?.requiresRegistration || false,
   });
+
+  useEffect(() => {
+    const loadStyles = async () => {
+      try {
+        const res = await fetch("/api/dance-styles", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json().catch(() => ({}))) as unknown;
+        const available =
+          typeof data === "object" && data !== null && "available" in data && Array.isArray((data as { available?: unknown }).available)
+            ? ((data as { available: unknown[] }).available as unknown[])
+            : [];
+        const mapped = available
+          .map((x) => {
+            if (!x || typeof x !== "object") return null;
+            const id = "id" in x && typeof (x as { id?: unknown }).id === "string" ? (x as { id: string }).id : null;
+            const name = "name" in x && typeof (x as { name?: unknown }).name === "string" ? (x as { name: string }).name : null;
+            if (!id || !name) return null;
+            return { id, name };
+          })
+          .filter(Boolean) as Array<{ id: string; name: string }>;
+        setAvailableDanceStyles(mapped);
+      } catch {
+        return;
+      }
+    };
+    void loadStyles();
+  }, []);
+
+  const toggleDanceStyle = (styleId: string) => {
+    setFormData((prev) => {
+      const current = Array.isArray(prev.danceStyleIds) ? prev.danceStyleIds : [];
+      const next = current.includes(styleId) ? current.filter((x) => x !== styleId) : [...current, styleId];
+      return { ...prev, danceStyleIds: next } as EventFormData;
+    });
+  };
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
@@ -411,6 +449,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const [fieldErrors, setFieldErrors] = useState<{ startDate?: string; endDate?: string }>({});
   const [endShiftHint, setEndShiftHint] = useState<string>("");
   const [browserTimeZone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone || "");
+
+  const [availableDanceStyles, setAvailableDanceStyles] = useState<Array<{ id: string; name: string }>>([]);
 
   useEffect(() => {
     const clearAll = () => {
@@ -898,6 +938,32 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           required
           className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
         />
+      </div>
+
+      <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
+        <div className="flex items-baseline justify-between gap-4">
+          <h3 className="tf-display text-sm font-semibold text-[var(--foreground)]">Tanzstile (optional)</h3>
+          <div className="text-xs text-[var(--muted)]">Mehrfachauswahl</div>
+        </div>
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {availableDanceStyles.map((s) => {
+            const checked = Array.isArray(formData.danceStyleIds) && formData.danceStyleIds.includes(s.id);
+            return (
+              <label key={s.id} className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleDanceStyle(s.id)}
+                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+                {s.name}
+              </label>
+            );
+          })}
+          {availableDanceStyles.length === 0 ? (
+            <div className="text-sm text-[var(--muted)]">Tanzstile konnten nicht geladen werden.</div>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

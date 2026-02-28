@@ -16,6 +16,7 @@ export const eventSchema = z.object({
   endDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Ungültiges Enddatum",
   }),
+  danceStyleIds: z.array(z.string().min(1)).optional(),
   locationName: z.string().optional(),
   address: z.string().trim().min(6, "Adresse ist erforderlich"),
   lat: z.number(),

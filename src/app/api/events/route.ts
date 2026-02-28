@@ -15,9 +15,11 @@ const MAX_PAGE_SIZE = 100;
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
+  const q = (searchParams.get("q") || "").trim();
   const groupId = searchParams.get("groupId");
   const upcomingOnly = searchParams.get("upcoming") === "true";
   const type = searchParams.get("type");
+  const danceStyleId = (searchParams.get("danceStyleId") || "").trim();
 
   // Pagination params
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
@@ -27,7 +29,13 @@ export async function GET(req: Request) {
   );
   const skip = (page - 1) * limit;
 
-  const whereClause: { groupId?: string; eventType?: string; startDate?: { gte: Date } } = {};
+  const whereClause: {
+    groupId?: string;
+    eventType?: string;
+    startDate?: { gte: Date };
+    OR?: Array<{ title?: { contains: string }; locationName?: { contains: string }; address?: { contains: string } }>;
+    danceStyles?: { some: { styleId: string } };
+  } = {};
 
   if (groupId) {
     whereClause.groupId = groupId;
@@ -43,9 +51,28 @@ export async function GET(req: Request) {
     };
   }
 
+  if (q) {
+    whereClause.OR = [
+      { title: { contains: q } },
+      { locationName: { contains: q } },
+      { address: { contains: q } },
+    ];
+  }
+
+  if (danceStyleId) {
+    whereClause.danceStyles = { some: { styleId: danceStyleId } };
+  }
+
   try {
+    const eventDelegate = (prisma as unknown as {
+      event: {
+        findMany: (args: unknown) => Promise<unknown[]>;
+        count: (args: unknown) => Promise<number>;
+      };
+    }).event;
+
     const [events, total] = await Promise.all([
-      prisma.event.findMany({
+      eventDelegate.findMany({
         where: whereClause,
         include: {
           group: {
@@ -55,6 +82,16 @@ export async function GET(req: Request) {
               image: true,
             },
           },
+          danceStyles: {
+            include: {
+              style: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
         orderBy: {
           startDate: "asc",
@@ -62,7 +99,7 @@ export async function GET(req: Request) {
         skip,
         take: limit,
       }),
-      prisma.event.count({ where: whereClause }),
+      eventDelegate.count({ where: whereClause }),
     ]);
 
     return NextResponse.json({
@@ -100,6 +137,12 @@ export async function POST(req: Request) {
   }
 
   try {
+    const eventDelegate = (prisma as unknown as {
+      event: {
+        create: (args: unknown) => Promise<unknown>;
+      };
+    }).event;
+
     const body = await req.json();
     const validatedData = eventSchema.parse(body);
 
@@ -136,7 +179,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const event = await prisma.event.create({
+    const created = (await eventDelegate.create({
       data: {
         title: validatedData.title,
         description: validatedData.description,
@@ -163,21 +206,31 @@ export async function POST(req: Request) {
             connect: { id: validatedData.groupId },
           }
         } : {}),
+        ...(Array.isArray(validatedData.danceStyleIds) && validatedData.danceStyleIds.length > 0
+          ? {
+              danceStyles: {
+                createMany: {
+                  data: validatedData.danceStyleIds.map((styleId) => ({ styleId })),
+                  skipDuplicates: true,
+                },
+              },
+            }
+          : {}),
       },
-    });
+    })) as unknown as { id: string; title: string };
 
     // Notify users about new event in their vicinity
     if (validatedData.lat && validatedData.lng) {
       notifyUsersAboutNewEvent(
-        event.id,
-        event.title,
+        created.id,
+        created.title,
         validatedData.lat,
         validatedData.lng,
         new Date(validatedData.startDate)
       ).catch(err => logger.error({ err }, "New event notification error"));
     }
 
-    return NextResponse.json(event, { status: 201 });
+    return NextResponse.json(created, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
