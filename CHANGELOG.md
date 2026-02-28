@@ -99,6 +99,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Footer: Facebook-Seite verlinkt
 - Footer: Facebook-Icon statt Textlink
+- Footer: GitHub-Icon statt Textlink
 
 ### 🔐 Auth
 

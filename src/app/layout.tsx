@@ -269,8 +269,22 @@ export default async function RootLayout({
                       <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99A10 10 0 0 0 22 12z" />
                     </svg>
                   </a>
-                  <a href="https://github.com/Schello805/TribeFinder" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--footer-fg)] transition-colors flex items-center gap-1">
-                    GitHub
+                  <a
+                    href="https://github.com/Schello805/TribeFinder"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[var(--footer-fg)] transition-colors inline-flex items-center"
+                    aria-label="GitHub"
+                    title="GitHub"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      className="h-4 w-4"
+                      fill="currentColor"
+                    >
+                      <path d="M12 .5C5.73.5.75 5.68.75 12.2c0 5.21 3.44 9.63 8.2 11.2.6.11.82-.27.82-.59 0-.29-.01-1.05-.02-2.06-3.34.75-4.04-1.68-4.04-1.68-.55-1.44-1.34-1.82-1.34-1.82-1.1-.78.08-.77.08-.77 1.21.09 1.85 1.29 1.85 1.29 1.08 1.91 2.84 1.36 3.53 1.04.11-.81.42-1.36.76-1.67-2.66-.31-5.46-1.38-5.46-6.14 0-1.36.46-2.47 1.23-3.34-.12-.31-.53-1.58.12-3.29 0 0 1.01-.33 3.3 1.28a11.05 11.05 0 0 1 3-.42c1.02 0 2.05.14 3 .42 2.28-1.61 3.29-1.28 3.29-1.28.65 1.71.24 2.98.12 3.29.77.87 1.23 1.98 1.23 3.34 0 4.78-2.8 5.82-5.47 6.13.43.39.81 1.16.81 2.34 0 1.69-.02 3.05-.02 3.47 0 .33.22.71.83.59 4.75-1.58 8.18-6 8.18-11.2C23.25 5.68 18.27.5 12 .5z" />
+                    </svg>
                   </a>
                 </div>
 
