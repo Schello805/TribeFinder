@@ -15,7 +15,7 @@ export default function DancerFilter() {
   const [hasGroups, setHasGroups] = useState(searchParams.get("hasGroups") === "1");
   const [teaches, setTeaches] = useState(searchParams.get("teaches") === "1");
   const [workshops, setWorkshops] = useState(searchParams.get("workshops") === "1");
-  const [style, setStyle] = useState(searchParams.get("danceStyleId") || searchParams.get("style") || "");
+  const [style, setStyle] = useState(searchParams.get("danceStyleId") || "");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [availableStyles, setAvailableStyles] = useState<Array<{ id: string; name: string }>>([]);
@@ -51,9 +51,6 @@ export default function DancerFilter() {
 
       if (newWorkshops) params.set("workshops", "1");
       else params.delete("workshops");
-
-      if (newStyle) params.set("style", newStyle);
-      else params.delete("style");
 
       if (newStyle) params.set("danceStyleId", newStyle);
       else params.delete("danceStyleId");
@@ -93,13 +90,19 @@ export default function DancerFilter() {
           })
           .filter(Boolean) as Array<{ id: string; name: string }>;
         setAvailableStyles(mapped);
+
+        const legacyStyle = searchParams.get("style") || "";
+        if (!searchParams.get("danceStyleId") && legacyStyle) {
+          const match = mapped.find((s) => s.name === legacyStyle);
+          if (match) setStyle(match.id);
+        }
       } catch {
         return;
       }
     };
 
     fetchStyles();
-  }, []);
+  }, [searchParams]);
 
   const clearAll = () => {
     setSearchTerm("");
