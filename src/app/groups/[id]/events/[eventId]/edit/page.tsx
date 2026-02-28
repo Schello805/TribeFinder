@@ -49,40 +49,84 @@ export default async function EditEventPage({
     };
   }).event;
 
-  const event = await eventDelegate.findUnique({
-    where: { id: eventId },
-    include: {
-      group: {
-        select: {
-          ownerId: true
-        }
-      },
-      danceStyles: {
-        select: {
-          styleId: true,
+  let event: unknown = null;
+  try {
+    event = await eventDelegate.findUnique({
+      where: { id: eventId },
+      include: {
+        group: {
+          select: {
+            ownerId: true,
+          },
+        },
+        danceStyles: {
+          select: {
+            styleId: true,
+          },
         },
       },
+    });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("Unknown nested field 'danceStyles'") || msg.includes("Unknown argument `danceStyles`")) {
+      const e = await eventDelegate.findUnique({
+        where: { id: eventId },
+        include: {
+          group: {
+            select: {
+              ownerId: true,
+            },
+          },
+        },
+      });
+      event = e && typeof e === "object" ? ({ ...(e as any), danceStyles: [] } as any) : e;
+    } else {
+      throw error;
     }
-  });
+  }
 
   if (!event) {
     notFound();
   }
 
+  const eventAny = event as {
+    id: string;
+    groupId: string | null;
+    title: string;
+    description: string;
+    eventType: string;
+    startDate: Date;
+    endDate: Date | null;
+    locationName: string | null;
+    address: string | null;
+    lat: number;
+    lng: number;
+    flyer1: string | null;
+    flyer2: string | null;
+    website: string | null;
+    ticketLink: string | null;
+    ticketPrice: string | null;
+    organizer: string | null;
+    maxParticipants: number | null;
+    requiresRegistration: boolean;
+    group: { ownerId: string } | null;
+    danceStyles: Array<{ styleId: string }>;
+  };
+
   // Verify that the event belongs to the group in the URL
-  if (event.groupId !== id) {
+  if (eventAny.groupId !== id) {
     notFound();
   }
 
   // Verify ownership
-  if (!event.group) {
+  if (!eventAny.group) {
      // If the event has no group (independent), check if the user is the creator
      // However, this page is under /groups/[id]/events, so it implies a group context.
      // If data is corrupted and groupId is set but group relation is missing:
     notFound();
   }
 
-  if (event.group.ownerId !== session.user.id && session.user.role !== "ADMIN") {
+  if (eventAny.group.ownerId !== session.user.id && session.user.role !== "ADMIN") {
     const membership = await prisma.groupMember.findUnique({
       where: {
         userId_groupId: {
@@ -99,25 +143,25 @@ export default async function EditEventPage({
   }
 
   const initialData: Partial<EventFormData> & { id?: string } = {
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    eventType: event.eventType as EventFormData["eventType"],
-    startDate: event.startDate.toISOString(),
-    endDate: event.endDate ? event.endDate.toISOString() : event.startDate.toISOString(),
-    danceStyleIds: event.danceStyles.map((x: { styleId: string }) => x.styleId),
-    locationName: event.locationName ?? "",
-    address: event.address ?? "",
-    lat: event.lat,
-    lng: event.lng,
-    flyer1: event.flyer1 ?? "",
-    flyer2: event.flyer2 ?? "",
-    website: event.website ?? "",
-    ticketLink: event.ticketLink ?? "",
-    ticketPrice: event.ticketPrice ?? "",
-    organizer: event.organizer ?? "",
-    maxParticipants: event.maxParticipants ?? undefined,
-    requiresRegistration: event.requiresRegistration ?? false,
+    id: eventAny.id,
+    title: eventAny.title,
+    description: eventAny.description,
+    eventType: eventAny.eventType as EventFormData["eventType"],
+    startDate: eventAny.startDate.toISOString(),
+    endDate: eventAny.endDate ? eventAny.endDate.toISOString() : eventAny.startDate.toISOString(),
+    danceStyleIds: eventAny.danceStyles.map((x: { styleId: string }) => x.styleId),
+    locationName: eventAny.locationName ?? "",
+    address: eventAny.address ?? "",
+    lat: eventAny.lat,
+    lng: eventAny.lng,
+    flyer1: eventAny.flyer1 ?? "",
+    flyer2: eventAny.flyer2 ?? "",
+    website: eventAny.website ?? "",
+    ticketLink: eventAny.ticketLink ?? "",
+    ticketPrice: eventAny.ticketPrice ?? "",
+    organizer: eventAny.organizer ?? "",
+    maxParticipants: eventAny.maxParticipants ?? undefined,
+    requiresRegistration: eventAny.requiresRegistration ?? false,
     groupId: id,
   };
 
