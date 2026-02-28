@@ -51,6 +51,7 @@ export default function GroupsPage() {
       try {
         const params = new URLSearchParams();
         const query = searchParams.get('query');
+        const danceStyleId = searchParams.get('danceStyleId');
         const tag = searchParams.get('tag');
         const performances = searchParams.get('performances');
         const seeking = searchParams.get('seeking');
@@ -61,7 +62,8 @@ export default function GroupsPage() {
         const radius = searchParams.get('radius') || '50';
         
         if (query) params.append('query', query);
-        if (tag) params.append('tag', tag);
+        if (danceStyleId) params.append('danceStyleId', danceStyleId);
+        else if (tag) params.append('tag', tag);
         if (performances) params.append('performances', performances);
         if (seeking) params.append('seeking', seeking);
         if (size) params.append('size', size);

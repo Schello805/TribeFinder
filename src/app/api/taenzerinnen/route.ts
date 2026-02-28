@@ -16,6 +16,7 @@ export async function GET(req: Request) {
   const hasGroups = searchParams.get("hasGroups") === "1";
   const teaches = searchParams.get("teaches") === "1";
   const workshops = searchParams.get("workshops") === "1";
+  const danceStyleId = (searchParams.get("danceStyleId") || "").trim();
   const style = (searchParams.get("style") || "").trim();
   const sortRaw = (searchParams.get("sort") || "").trim();
   const sort = sortRaw === "name" ? "name" : "newest";
@@ -65,7 +66,9 @@ export async function GET(req: Request) {
     whereClause.dancerGivesWorkshops = true;
   }
 
-  if (style) {
+  if (danceStyleId) {
+    whereClause.danceStyles = { some: { styleId: danceStyleId } } as unknown as typeof whereClause.danceStyles;
+  } else if (style) {
     whereClause.danceStyles = { some: { style: { name: style } } };
   }
 

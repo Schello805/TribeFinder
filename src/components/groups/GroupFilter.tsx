@@ -16,7 +16,7 @@ export default function GroupFilter() {
   const [lat, setLat] = useState(searchParams.get("lat") || "");
   const [lng, setLng] = useState(searchParams.get("lng") || "");
   const [radius, setRadius] = useState(searchParams.get("radius") || "50");
-  const [selectedTag, setSelectedTag] = useState(searchParams.get("tag") || "");
+  const [selectedTag, setSelectedTag] = useState(searchParams.get("danceStyleId") || searchParams.get("tag") || "");
   const [onlyPerformances, setOnlyPerformances] = useState(searchParams.get("performances") === "1");
   const [onlySeekingMembers, setOnlySeekingMembers] = useState(searchParams.get("seeking") === "1");
   const [groupSize, setGroupSize] = useState(searchParams.get("size") || "");
@@ -83,8 +83,9 @@ export default function GroupFilter() {
       if (newQuery) params.set("query", newQuery);
       else params.delete("query");
 
-      if (newTag) params.set("tag", newTag);
-      else params.delete("tag");
+      if (newTag) params.set("danceStyleId", newTag);
+      else params.delete("danceStyleId");
+      params.delete("tag");
 
       if (newOnlyPerformances) params.set("performances", "1");
       else params.delete("performances");
@@ -257,7 +258,7 @@ export default function GroupFilter() {
           >
             <option value="">Alle Tanzstile</option>
             {availableTags.map((style) => (
-              <option key={style.id} value={style.name}>
+              <option key={style.id} value={style.id}>
                 {style.name}
               </option>
             ))}

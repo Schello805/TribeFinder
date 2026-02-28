@@ -125,7 +125,7 @@ describe("GET /api/taenzerinnen", () => {
     vi.mocked(prismaMock.user.count).mockResolvedValueOnce(0);
     vi.mocked(prismaMock.user.findMany).mockResolvedValueOnce([]);
 
-    const req = new Request("https://example.com/api/taenzerinnen?style=ITS");
+    const req = new Request("https://example.com/api/taenzerinnen?danceStyleId=ds1");
     const res = await GET(req);
 
     expect(res.status).toBe(200);
@@ -134,7 +134,7 @@ describe("GET /api/taenzerinnen", () => {
     expect(countCall.where).toMatchObject({
       isDancerProfileEnabled: true,
       isDancerProfilePrivate: false,
-      danceStyles: { some: { style: { name: "ITS" } } },
+      danceStyles: { some: { styleId: "ds1" } },
     });
   });
 });

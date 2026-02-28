@@ -20,6 +20,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const session = await getServerSession(authOptions).catch(() => null);
   const query = searchParams.get("query");
+  const danceStyleId = (searchParams.get("danceStyleId") || "").trim();
   const tag = searchParams.get("tag");
   const performancesRaw = searchParams.get("performances");
   const seekingRaw = searchParams.get("seeking");
@@ -85,6 +86,11 @@ export async function GET(req: Request) {
   if (tag) {
     whereClause.tags = { some: { name: { equals: tag } } };
     whereClause.danceStyles = { some: { style: { name: { equals: tag } } } };
+  }
+
+  if (danceStyleId) {
+    whereClause.danceStyles = { some: { styleId: danceStyleId } } as unknown as typeof whereClause.danceStyles;
+    whereClause.tags = undefined;
   }
 
   if (onlyPerformances) {

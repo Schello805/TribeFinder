@@ -15,7 +15,7 @@ export default function DancerFilter() {
   const [hasGroups, setHasGroups] = useState(searchParams.get("hasGroups") === "1");
   const [teaches, setTeaches] = useState(searchParams.get("teaches") === "1");
   const [workshops, setWorkshops] = useState(searchParams.get("workshops") === "1");
-  const [style, setStyle] = useState(searchParams.get("style") || "");
+  const [style, setStyle] = useState(searchParams.get("danceStyleId") || searchParams.get("style") || "");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [availableStyles, setAvailableStyles] = useState<Array<{ id: string; name: string }>>([]);
@@ -54,6 +54,10 @@ export default function DancerFilter() {
 
       if (newStyle) params.set("style", newStyle);
       else params.delete("style");
+
+      if (newStyle) params.set("danceStyleId", newStyle);
+      else params.delete("danceStyleId");
+      params.delete("style");
 
       const nextQuery = params.toString();
       const nextUrl = nextQuery ? `/taenzerinnen?${nextQuery}` : "/taenzerinnen";
@@ -211,7 +215,7 @@ export default function DancerFilter() {
                 >
                   <option value="">Alle</option>
                   {availableStyles.map((s) => (
-                    <option key={s.id} value={s.name}>
+                    <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
                   ))}

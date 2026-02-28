@@ -256,9 +256,18 @@ export default async function RootLayout({
                     href="https://www.facebook.com/profile.php?id=61588593045134"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-[var(--footer-fg)] transition-colors"
+                    className="hover:text-[var(--footer-fg)] transition-colors inline-flex items-center"
+                    aria-label="Facebook"
+                    title="Facebook"
                   >
-                    Facebook
+                    <svg
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      className="h-4 w-4"
+                      fill="currentColor"
+                    >
+                      <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99A10 10 0 0 0 22 12z" />
+                    </svg>
                   </a>
                   <a href="https://github.com/Schello805/TribeFinder" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--footer-fg)] transition-colors flex items-center gap-1">
                     GitHub
