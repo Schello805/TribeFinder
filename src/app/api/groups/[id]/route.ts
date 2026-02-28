@@ -189,13 +189,21 @@ export async function PUT(
 
     // Prüfen auf neue Tags für Benachrichtigung
     let newTagsToNotify: string[] = [];
-    if (validatedData.tags && validatedData.tags.length > 0) {
+    const allTagNames = Array.from(
+      new Set([
+        ...(validatedData.tags ?? []),
+        ...(validatedData.dialectTags ?? []),
+        ...(validatedData.propTags ?? []),
+      ])
+    ).filter((x) => typeof x === "string" && x.trim().length > 0);
+
+    if (allTagNames.length > 0) {
       const existingTags = await prisma.tag.findMany({
-        where: { name: { in: validatedData.tags } },
+        where: { name: { in: allTagNames } },
         select: { name: true }
       });
       const existingTagNames = existingTags.map((t: { name: string }) => t.name);
-      newTagsToNotify = validatedData.tags.filter(tag => !existingTagNames.includes(tag));
+      newTagsToNotify = allTagNames.filter(tag => !existingTagNames.includes(tag));
     }
 
     // Delete existing tags relationship (to replace with new ones)
@@ -237,13 +245,26 @@ export async function PUT(
             }
           }
         } : undefined,
-        tags: validatedData.tags ? {
-          set: [], // Disconnect all existing tags
-          connectOrCreate: validatedData.tags.map(tag => ({
-            where: { name: tag },
-            create: { name: tag }
-          }))
-        } : undefined,
+        tags:
+          validatedData.tags || validatedData.dialectTags || validatedData.propTags
+            ? {
+                set: [],
+                connectOrCreate: [
+                  ...(validatedData.tags ?? []).map((tag) => ({
+                    where: { name: tag },
+                    create: { name: tag, type: "GENERAL" as const },
+                  })),
+                  ...(validatedData.dialectTags ?? []).map((tag) => ({
+                    where: { name: tag },
+                    create: { name: tag, type: "DIALECT" as const },
+                  })),
+                  ...(validatedData.propTags ?? []).map((tag) => ({
+                    where: { name: tag },
+                    create: { name: tag, type: "PROP" as const },
+                  })),
+                ],
+              }
+            : undefined,
         danceStyles: danceStylesCreate,
       }
     } as unknown as Parameters<typeof prisma.group.update>[0]);

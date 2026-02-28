@@ -76,6 +76,13 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Einstellungen: Matomo-Abschnitt zeigt nach „Speichern“ wieder eine Statusmeldung (Feedback)
 
+## [Unreleased] - 2026-02-28
+
+### 🏷️ Tags
+
+- Tags unterstützen Typen (GENERAL/DIALECT/PROP) und können über die API gefiltert werden
+- Gruppen: Dialekte/Schulen und Props können separat als Tags gepflegt werden (Mehrfachauswahl)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte

@@ -8,13 +8,17 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('search');
     const approvedOnly = searchParams.get('approvedOnly') === 'true';
+    const type = (searchParams.get('type') || '').trim().toUpperCase();
 
-    const where: { name?: { contains: string }; isApproved?: boolean } = {};
+    const where: { name?: { contains: string }; isApproved?: boolean; type?: "GENERAL" | "DIALECT" | "PROP" } = {};
     if (search) {
       where.name = { contains: search };
     }
     if (approvedOnly) {
       where.isApproved = true;
+    }
+    if (type === "GENERAL" || type === "DIALECT" || type === "PROP") {
+      where.type = type;
     }
 
     const tags = await prisma.tag.findMany({
@@ -41,16 +45,21 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { name, isApproved } = await req.json();
+    const { name, isApproved, type } = await req.json();
     
     if (!name) {
       return NextResponse.json({ error: 'Name ist erforderlich' }, { status: 400 });
     }
 
+    const normalizedType =
+      typeof type === "string" && ["GENERAL", "DIALECT", "PROP"].includes(type.trim().toUpperCase())
+        ? (type.trim().toUpperCase() as "GENERAL" | "DIALECT" | "PROP")
+        : "GENERAL";
+
     const tag = await prisma.tag.upsert({
       where: { name },
-      update: { isApproved: isApproved ?? true },
-      create: { name, isApproved: isApproved ?? true },
+      update: { isApproved: isApproved ?? true, type: normalizedType },
+      create: { name, isApproved: isApproved ?? true, type: normalizedType },
     });
 
     return NextResponse.json(tag);

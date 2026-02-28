@@ -25,6 +25,8 @@ const baseGroupSchema = z.object({
     })
     .optional(),
   tags: z.array(z.string()).optional(),
+  dialectTags: z.array(z.string()).optional(),
+  propTags: z.array(z.string()).optional(),
   danceStyles: z
     .array(
       z.object({

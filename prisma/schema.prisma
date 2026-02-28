@@ -296,7 +296,14 @@ model Tag {
   id         String  @id @default(cuid())
   name       String  @unique
   isApproved Boolean @default(false)
+  type       TagType @default(GENERAL)
   groups     Group[]
+}
+
+enum TagType {
+  GENERAL
+  DIALECT
+  PROP
 }
 
 enum DanceLevel {

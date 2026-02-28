@@ -11,9 +11,11 @@ interface Tag {
 interface TagInputProps {
   selectedTags: string[];
   onChange: (tags: string[]) => void;
+  type?: "GENERAL" | "DIALECT" | "PROP";
+  placeholder?: string;
 }
 
-export default function TagInput({ selectedTags, onChange }: TagInputProps) {
+export default function TagInput({ selectedTags, onChange, type, placeholder }: TagInputProps) {
   const [input, setInput] = useState('');
   const [suggestions, setSuggestions] = useState<Tag[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -59,7 +61,11 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
       
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/tags?search=${encodeURIComponent(searchTerm)}&approvedOnly=true`);
+        const params = new URLSearchParams();
+        params.set('search', searchTerm);
+        params.set('approvedOnly', 'true');
+        if (type) params.set('type', type);
+        const res = await fetch(`/api/tags?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
           // Filter out already selected tags
@@ -75,7 +81,7 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
     // Debounce nur bei Eingabe, bei leerem Input (Fokus) sofort oder wenn sich selectedTags ändert
     const timeoutId = setTimeout(fetchTags, input ? 300 : 0);
     return () => clearTimeout(timeoutId);
-  }, [input, selectedTags]);
+  }, [input, selectedTags, type]);
 
   const handleFocus = () => {
     setIsOpen(true);
@@ -150,7 +156,7 @@ export default function TagInput({ selectedTags, onChange }: TagInputProps) {
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            placeholder={selectedTags.length === 0 ? "Tanzstile suchen oder hinzufügen..." : ""}
+            placeholder={selectedTags.length === 0 ? (placeholder || "Suchen oder hinzufügen...") : ""}
             className="w-full border-none focus:ring-0 p-0 text-sm text-[var(--foreground)] bg-transparent placeholder-[var(--muted)] h-7"
           />
           

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { GroupFormData } from "@/lib/validations/group";
 import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
+import TagInput from "@/components/ui/TagInput";
 import { MAX_FILE_SIZE } from "@/types";
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
@@ -17,7 +18,7 @@ interface GroupFormProps {
   initialData?: (Partial<GroupFormData> & {
     id?: string;
     location?: { lat: number; lng: number; address?: string | null } | null;
-    tags?: Array<{ name: string } | string>;
+    tags?: Array<{ name: string; type?: "GENERAL" | "DIALECT" | "PROP" } | string>;
     danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | "BOTH" | null }>;
   });
   isEditing?: boolean;
@@ -37,8 +38,23 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
 
   const groupId = initialData?.id;
 
-  const initialTags: Array<string | { name: string }> = initialData?.tags ?? [];
+  const initialTags: Array<string | { name: string; type?: "GENERAL" | "DIALECT" | "PROP" }> = initialData?.tags ?? [];
   const initialDanceStyles = initialData?.danceStyles ?? [];
+
+  const initialGeneralTags = initialTags
+    .filter((t) => {
+      if (typeof t === "string") return true;
+      return (t.type || "GENERAL") === "GENERAL";
+    })
+    .map((t) => (typeof t === "string" ? t : t.name));
+
+  const initialDialectTags = initialTags
+    .filter((t) => typeof t !== "string" && (t.type || "GENERAL") === "DIALECT")
+    .map((t) => (typeof t === "string" ? t : t.name));
+
+  const initialPropTags = initialTags
+    .filter((t) => typeof t !== "string" && (t.type || "GENERAL") === "PROP")
+    .map((t) => (typeof t === "string" ? t : t.name));
   
   const [formData, setFormData] = useState<GroupFormData>({
     name: initialData?.name || "",
@@ -64,7 +80,9 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
       lng: initialData.location.lng,
       address: initialData.location.address || "",
     } : undefined,
-    tags: initialTags.map((t) => (typeof t === 'string' ? t : t.name)), 
+    tags: initialGeneralTags,
+    dialectTags: initialDialectTags,
+    propTags: initialPropTags,
     danceStyles: initialDanceStyles,
   });
 
@@ -560,6 +578,34 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
           placeholder="z.B. Schleier, Fächer, Isis Wings..."
         />
         <p className="mt-1 text-xs text-[var(--muted)]">Optional: Was verwendet ihr häufig in Choreos?</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Dialekte / Schulen (optional)</label>
+          <div className="mt-1">
+            <TagInput
+              selectedTags={formData.dialectTags ?? []}
+              onChange={(tags) => setFormData((prev) => ({ ...prev, dialectTags: tags }))}
+              type="DIALECT"
+              placeholder="z.B. Wildcard, Tamarind, Tribal Witch..."
+            />
+          </div>
+          <p className="mt-1 text-xs text-[var(--muted)]">Mehrfachauswahl möglich. Diese Tags helfen bei der Suche und Einordnung.</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Props / Accessoires (optional)</label>
+          <div className="mt-1">
+            <TagInput
+              selectedTags={formData.propTags ?? []}
+              onChange={(tags) => setFormData((prev) => ({ ...prev, propTags: tags }))}
+              type="PROP"
+              placeholder="z.B. Säbel, Fächer, Manton, Tambourin..."
+            />
+          </div>
+          <p className="mt-1 text-xs text-[var(--muted)]">Mehrfachauswahl möglich.</p>
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 bg-[var(--surface-2)] p-4 rounded-md border border-[var(--border)]">
