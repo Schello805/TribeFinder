@@ -87,6 +87,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Aliase/Synonyme für Tanzstile (z.B. ATS/American Tribal Style) werden in der Auswahl angezeigt, aber als kanonischer Stil gespeichert (z.B. FCBD Style)
 - Nutzer können Änderungen am Tanzstil vorschlagen (Inhalte wie Beschreibung/Links/Kategorie) und verifizierte Nutzer können zusätzlich neue Tanzstil-Aliase vorschlagen; Admin kann diese freigeben/ablehnen
+- Weitere Aliase wurden vor-seeded (u.a. Global Caravan/Gypsy Caravan, ITS/Improvisational Tribal Style, BlackSheep BellyDance/BSBD, Salimpour Format)
 
 ## [Unreleased] - 2026-02-20
 
