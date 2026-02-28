@@ -70,7 +70,7 @@ export default function EventFilter() {
           <input
             type="text"
             placeholder="Events suchen (Titel, Ort, Gruppe)..."
-            className="block w-full pl-10 pr-3 py-2 border border-[var(--border)] rounded-md leading-5 bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:placeholder:text-[var(--muted)] focus:ring-1 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
+            className="block w-full pl-10 pr-3 py-2 min-h-11 border border-[var(--border)] rounded-md leading-5 bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:placeholder:text-[var(--muted)] focus:ring-1 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -80,7 +80,7 @@ export default function EventFilter() {
           <select
             value={danceStyleId}
             onChange={(e) => setDanceStyleId(e.target.value)}
-            className="block w-full px-3 py-2 pr-9 border border-[var(--border)] rounded-md leading-5 bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm appearance-none"
+            className="block w-full px-3 py-2 pr-9 min-h-11 border border-[var(--border)] rounded-md leading-5 bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm appearance-none"
           >
             <option value="">Alle Tanzstile</option>
             {availableStyles.map((s) => (

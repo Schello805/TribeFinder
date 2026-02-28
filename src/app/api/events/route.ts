@@ -179,45 +179,65 @@ export async function POST(req: Request) {
       }
     }
 
-    const created = (await eventDelegate.create({
-      data: {
-        title: validatedData.title,
-        description: validatedData.description,
-        eventType: validatedData.eventType,
-        startDate: new Date(validatedData.startDate),
-        endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
-        locationName: validatedData.locationName,
-        address: validatedData.address,
-        lat: validatedData.lat,
-        lng: validatedData.lng,
-        flyer1,
-        flyer2,
-        website: validatedData.website,
-        ticketLink: validatedData.ticketLink,
-        ticketPrice: validatedData.ticketPrice,
-        organizer: validatedData.organizer,
-        maxParticipants: validatedData.maxParticipants || null,
-        requiresRegistration: validatedData.requiresRegistration || false,
-        creator: {
-          connect: { id: session.user.id }
-        },
-        ...(validatedData.groupId ? {
-          group: {
-            connect: { id: validatedData.groupId },
-          }
-        } : {}),
-        ...(Array.isArray(validatedData.danceStyleIds) && validatedData.danceStyleIds.length > 0
-          ? {
-              danceStyles: {
-                createMany: {
-                  data: validatedData.danceStyleIds.map((styleId) => ({ styleId })),
-                  skipDuplicates: true,
-                },
-              },
-            }
-          : {}),
+    const createDataBase = {
+      title: validatedData.title,
+      description: validatedData.description,
+      eventType: validatedData.eventType,
+      startDate: new Date(validatedData.startDate),
+      endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
+      locationName: validatedData.locationName,
+      address: validatedData.address,
+      lat: validatedData.lat,
+      lng: validatedData.lng,
+      flyer1,
+      flyer2,
+      website: validatedData.website,
+      ticketLink: validatedData.ticketLink,
+      ticketPrice: validatedData.ticketPrice,
+      organizer: validatedData.organizer,
+      maxParticipants: validatedData.maxParticipants || null,
+      requiresRegistration: validatedData.requiresRegistration || false,
+      creator: {
+        connect: { id: session.user.id },
       },
-    })) as unknown as { id: string; title: string };
+      ...(validatedData.groupId
+        ? {
+            group: {
+              connect: { id: validatedData.groupId },
+            },
+          }
+        : {}),
+    };
+
+    const createDataWithStyles = {
+      ...createDataBase,
+      ...(Array.isArray(validatedData.danceStyleIds) && validatedData.danceStyleIds.length > 0
+        ? {
+            danceStyles: {
+              createMany: {
+                data: validatedData.danceStyleIds.map((styleId) => ({ styleId })),
+                skipDuplicates: true,
+              },
+            },
+          }
+        : {}),
+    };
+
+    let created: { id: string; title: string };
+    try {
+      created = (await eventDelegate.create({
+        data: createDataWithStyles,
+      })) as unknown as { id: string; title: string };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes("Unknown argument `danceStyles`") || msg.includes("Unknown field `danceStyles`")) {
+        created = (await eventDelegate.create({
+          data: createDataBase,
+        })) as unknown as { id: string; title: string };
+      } else {
+        throw error;
+      }
+    }
 
     // Notify users about new event in their vicinity
     if (validatedData.lat && validatedData.lng) {

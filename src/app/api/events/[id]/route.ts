@@ -117,39 +117,58 @@ export async function PUT(
       }
     }
 
-    const updatedEvent = await eventDelegate.update({
-      where: { id },
-      data: {
-        title: validatedData.title,
-        description: validatedData.description,
-        eventType: validatedData.eventType,
-        startDate: new Date(validatedData.startDate),
-        endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
-        locationName: validatedData.locationName,
-        address: validatedData.address,
-        lat: validatedData.lat,
-        lng: validatedData.lng,
-        flyer1,
-        flyer2,
-        website: validatedData.website,
-        ticketLink: validatedData.ticketLink,
-        ticketPrice: validatedData.ticketPrice,
-        organizer: validatedData.organizer,
-        maxParticipants: validatedData.maxParticipants ?? null,
-        requiresRegistration: validatedData.requiresRegistration ?? false,
-        danceStyles: {
-          deleteMany: {},
-          ...(Array.isArray(validatedData.danceStyleIds) && validatedData.danceStyleIds.length > 0
-            ? {
-                createMany: {
-                  data: validatedData.danceStyleIds.map((styleId) => ({ styleId })),
-                  skipDuplicates: true,
-                },
-              }
-            : {}),
-        },
+    const updateDataBase = {
+      title: validatedData.title,
+      description: validatedData.description,
+      eventType: validatedData.eventType,
+      startDate: new Date(validatedData.startDate),
+      endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
+      locationName: validatedData.locationName,
+      address: validatedData.address,
+      lat: validatedData.lat,
+      lng: validatedData.lng,
+      flyer1,
+      flyer2,
+      website: validatedData.website,
+      ticketLink: validatedData.ticketLink,
+      ticketPrice: validatedData.ticketPrice,
+      organizer: validatedData.organizer,
+      maxParticipants: validatedData.maxParticipants ?? null,
+      requiresRegistration: validatedData.requiresRegistration ?? false,
+    };
+
+    const updateDataWithStyles = {
+      ...updateDataBase,
+      danceStyles: {
+        deleteMany: {},
+        ...(Array.isArray(validatedData.danceStyleIds) && validatedData.danceStyleIds.length > 0
+          ? {
+              createMany: {
+                data: validatedData.danceStyleIds.map((styleId) => ({ styleId })),
+                skipDuplicates: true,
+              },
+            }
+          : {}),
       },
-    });
+    };
+
+    let updatedEvent: unknown;
+    try {
+      updatedEvent = await eventDelegate.update({
+        where: { id },
+        data: updateDataWithStyles,
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes("Unknown argument `danceStyles`") || msg.includes("Unknown field `danceStyles`")) {
+        updatedEvent = await eventDelegate.update({
+          where: { id },
+          data: updateDataBase,
+        });
+      } else {
+        throw error;
+      }
+    }
 
     return NextResponse.json(updatedEvent);
   } catch (error) {

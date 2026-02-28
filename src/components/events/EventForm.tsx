@@ -951,32 +951,6 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
         />
       </div>
 
-      <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
-        <div className="flex items-baseline justify-between gap-4">
-          <h3 className="tf-display text-sm font-semibold text-[var(--foreground)]">Tanzstile (optional)</h3>
-          <div className="text-xs text-[var(--muted)]">Mehrfachauswahl</div>
-        </div>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {availableDanceStyles.map((s) => {
-            const checked = Array.isArray(formData.danceStyleIds) && formData.danceStyleIds.includes(s.id);
-            return (
-              <label key={s.id} className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggleDanceStyle(s.id)}
-                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
-                />
-                {s.name}
-              </label>
-            );
-          })}
-          {availableDanceStyles.length === 0 ? (
-            <div className="text-sm text-[var(--muted)]">Tanzstile konnten nicht geladen werden.</div>
-          ) : null}
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div ref={startFieldRef}>
           <label className="block text-sm font-medium text-[var(--foreground)]">Start-Zeitpunkt</label>
@@ -1289,6 +1263,34 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           Die Adresse wird automatisch auf der Karte verortet.
         </p>
       </div>
+
+      <details className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)]">
+        <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold text-[var(--foreground)]">
+          Tanzstile (optional)
+        </summary>
+        <div className="px-4 pb-4">
+          <div className="text-xs text-[var(--muted)]">Mehrfachauswahl</div>
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {availableDanceStyles.map((s) => {
+              const checked = Array.isArray(formData.danceStyleIds) && formData.danceStyleIds.includes(s.id);
+              return (
+                <label key={s.id} className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleDanceStyle(s.id)}
+                    className="h-4 w-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                  />
+                  {s.name}
+                </label>
+              );
+            })}
+            {availableDanceStyles.length === 0 ? (
+              <div className="text-sm text-[var(--muted)]">Tanzstile konnten nicht geladen werden.</div>
+            ) : null}
+          </div>
+        </div>
+      </details>
 
       <div className="flex justify-end">
         <button
