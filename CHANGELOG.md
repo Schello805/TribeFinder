@@ -99,6 +99,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Footer: Facebook-Seite verlinkt
 
+### 🔐 Auth
+
+- Registrierung/Login: Hinweise zur E-Mail-Verifizierung nach der Registrierung klarer formuliert
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte

@@ -61,7 +61,7 @@ export default function RegisterPage() {
         throw new Error(data.message || "Registrierung fehlgeschlagen");
       }
 
-      showToast("Registrierung erfolgreich! Du kannst dich jetzt anmelden.", "success");
+      showToast("Registrierung erfolgreich! Bitte bestätige zuerst deine E-Mail-Adresse (Link in der E-Mail), dann kannst du dich anmelden.", "success");
       router.push("/auth/signin?registered=true");
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Ein unerwarteter Fehler ist aufgetreten";

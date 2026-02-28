@@ -18,6 +18,14 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    const registered = searchParams.get("registered");
+    if (registered === "true") {
+      const msg = "Fast geschafft: Bitte bestätige zuerst deine E-Mail-Adresse (Link in der E-Mail). Danach kannst du dich anmelden.";
+      setSuccess(msg);
+      showToast(msg, "success");
+      return;
+    }
+
     const verified = searchParams.get("verified");
     if (verified === "true") {
       const msg = "E-Mail-Adresse bestätigt. Du kannst dich jetzt anmelden.";
