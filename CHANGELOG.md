@@ -119,6 +119,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Events: Fallback beim Laden, falls Server-Prisma noch ohne `danceStyles` deployed ist (verhindert Crash)
 - Events: Bearbeiten-Seiten funktionieren auch ohne deployte `danceStyles` Relation (Fallback)
 - Events: Aktion-Buttons vereinheitlicht (Löschen als Icon-Button)
+- Events: Filter zeigt Hinweis, wenn noch keine Tanzstile in Events vorhanden sind
 
 ## [Unreleased] - 2026-02-20
 

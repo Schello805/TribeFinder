@@ -83,6 +83,11 @@ export default function EventFilter() {
             className="block w-full px-3 py-2 pr-9 min-h-11 border border-[var(--border)] rounded-md leading-5 bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm appearance-none"
           >
             <option value="">Alle Tanzstile</option>
+            {availableStyles.length === 0 ? (
+              <option value="" disabled>
+                Noch keine Tanzstile in Events vorhanden
+              </option>
+            ) : null}
             {availableStyles.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
