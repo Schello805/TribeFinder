@@ -15,6 +15,7 @@ function getStore(): PresenceStore {
 }
 
 export const ONLINE_WINDOW_MS = 5 * 60 * 1000;
+export const LAST_SEEN_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
 export function recordVisitorSeen(visitorId: string, now = Date.now()) {
   if (!visitorId) return;
@@ -31,13 +32,14 @@ export function recordUserSeen(userId: string, now = Date.now()) {
 export function cleanupOldPresence(now = Date.now()) {
   const store = getStore();
   const cutoff = now - ONLINE_WINDOW_MS;
+  const lastSeenCutoff = now - LAST_SEEN_RETENTION_MS;
 
   for (const [id, ts] of store.visitors.entries()) {
     if (ts < cutoff) store.visitors.delete(id);
   }
 
   for (const [id, ts] of store.users.entries()) {
-    if (ts < cutoff) store.users.delete(id);
+    if (ts < lastSeenCutoff) store.users.delete(id);
   }
 }
 

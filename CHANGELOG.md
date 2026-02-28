@@ -91,6 +91,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Defensive Migration: vorhandene Legacy-Tanzstile aus dem Live-System (z.B. Gypsy Caravan, Improvisational Tribal Style (ITS), BlackSheep) werden automatisch auf kanonische Stile gemerged (inkl. Gruppen-/User-Zuordnungen)
 - Admin-Diagnose: neuer Integritätscheck für DanceStyles (Orphans, Duplikate, Legacy-Namen)
 
+### 🧭 Presence
+
+- „Zuletzt online“ wird nicht mehr nach 5 Minuten zu „unbekannt“ (Last-Seen Retention: 30 Tage statt Online-Fenster)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte
