@@ -114,6 +114,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Events: Tanzstile können optional ausgewählt werden und sind im Kalender filterbar (Query-Param `danceStyleId`)
 - Events: Nach dem Erstellen wird direkt zur Event-Detailseite weitergeleitet
+- Event-Formular: Adresseingabe verbessert (PLZ/Ort zuerst, geführte Suche)
 
 ## [Unreleased] - 2026-02-20
 

@@ -343,6 +343,37 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     requiresRegistration: initialData?.requiresRegistration || false,
   });
 
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
+  const [street, setStreet] = useState("");
+
+  useEffect(() => {
+    const parsed = parseGermanAddress(initialData?.address || "");
+    if (!parsed) return;
+    setPostalCode(parsed.postalcode);
+    setCity(parsed.city);
+    setStreet(parsed.street);
+  }, [initialData?.address, parseGermanAddress]);
+
+  const composedAddress = (() => {
+    const pc = postalCode.trim();
+    const c = city.trim();
+    const s = street.trim();
+    if (!pc && !c && !s) return "";
+    const parts: string[] = [];
+    if (s) parts.push(s);
+    const cityPart = [pc, c].filter(Boolean).join(" ").trim();
+    if (cityPart) parts.push(cityPart);
+    return parts.join(", ").trim();
+  })();
+
+  useEffect(() => {
+    setFormData((prev) => {
+      if ((prev.address || "") === composedAddress) return prev;
+      return { ...prev, address: composedAddress } as EventFormData;
+    });
+  }, [composedAddress]);
+
   useEffect(() => {
     const loadStyles = async () => {
       try {
@@ -751,12 +782,10 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     }));
   };
 
-  const handleAddressBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { value } = e.target;
+  const handleStreetBlur = () => {
     if (geocodeResults.length > 0) return;
-    if (value.trim()) {
-      geocodeAddress(value);
-    }
+    if (!postalCode.trim() || !city.trim() || !street.trim()) return;
+    geocodeAddress(composedAddress);
   };
 
   const handleGeocode = async () => {
@@ -1222,43 +1251,88 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             Abgelaufene (wiederkehrende) Events kannst du später in der Event-Ansicht duplizieren und nur Datum/Uhrzeit anpassen.
           </div>
         </div>
-        <div className="flex gap-2 items-start">
-          <div className="flex-1">
+
+        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-[var(--foreground)]">PLZ</label>
             <input
               type="text"
-              name="address"
-              value={formData.address || ""}
-              onChange={handleChange}
-              onBlur={handleAddressBlur}
-              placeholder="Straße, Hausnummer, PLZ, Ort"
-              required
+              inputMode="numeric"
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value)}
+              placeholder="z.B. 91572"
               className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
             />
-            {isGeocoding && (
-              <p className="mt-1 text-sm text-[var(--link)]">🔍 Suche Adresse...</p>
-            )}
-            {geocodeError && (
-              <p className="mt-1 text-sm text-red-600">⚠️ {geocodeError}</p>
-            )}
-            {!isGeocoding && geocodeResults.length > 0 && (
-              <div className="mt-2 rounded-md border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
-                {geocodeResults.slice(0, 5).map((r, idx) => (
-                  <button
-                    key={`${r.lat}-${r.lon}-${idx}`}
-                    type="button"
-                    onClick={() => applyGeocodeSelection(r)}
-                    className="block w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
-                  >
-                    {r.display_name || `${r.lat}, ${r.lon}`}
-                  </button>
-                ))}
-              </div>
-            )}
-            {!isGeocoding && !geocodeError && formData.lat !== 51.1657 && (
-              <p className="mt-1 text-sm text-[var(--muted)]">✓ Standort gefunden</p>
-            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-[var(--foreground)]">Ort</label>
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="z.B. Bechhofen"
+              className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
+            />
           </div>
         </div>
+
+        <div className="mt-3">
+          <label className="block text-xs font-medium text-[var(--foreground)]">Straße &amp; Hausnummer</label>
+          <div className="flex gap-2 items-start">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                onBlur={handleStreetBlur}
+                placeholder="z.B. Ziegeleistraße 32"
+                disabled={!postalCode.trim() || !city.trim()}
+                required
+                className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] disabled:opacity-60"
+              />
+
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => geocodeAddress(composedAddress)}
+                  disabled={!postalCode.trim() || !city.trim() || !street.trim()}
+                  className="inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-60"
+                >
+                  Adresse suchen
+                </button>
+                {composedAddress ? (
+                  <div className="text-xs text-[var(--muted)] break-words">{composedAddress}</div>
+                ) : null}
+              </div>
+
+              {isGeocoding && (
+                <p className="mt-1 text-sm text-[var(--link)]">🔍 Suche Adresse...</p>
+              )}
+              {geocodeError && (
+                <p className="mt-1 text-sm text-red-600">⚠️ {geocodeError}</p>
+              )}
+              {!isGeocoding && geocodeResults.length > 0 && (
+                <div className="mt-2 rounded-md border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+                  {geocodeResults.slice(0, 5).map((r, idx) => (
+                    <button
+                      key={`${r.lat}-${r.lon}-${idx}`}
+                      type="button"
+                      onClick={() => applyGeocodeSelection(r)}
+                      className="block w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+                    >
+                      {r.display_name || `${r.lat}, ${r.lon}`}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {!isGeocoding && !geocodeError && formData.lat !== 51.1657 && (
+                <p className="mt-1 text-sm text-[var(--muted)]">✓ Standort gefunden</p>
+              )}
+            </div>
+          </div>
+        </div>
+
         <p className="mt-1 text-xs text-[var(--muted)]">
           Die Adresse wird automatisch auf der Karte verortet.
         </p>
