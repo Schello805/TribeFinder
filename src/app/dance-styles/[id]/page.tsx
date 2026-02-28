@@ -305,7 +305,7 @@ export default async function DanceStyleDetailPage({ params }: RouteParams) {
 
         <div className="pt-2">
           <Link
-            href={`/groups?tag=${encodeURIComponent(style.name)}`}
+            href={`/groups?danceStyleId=${encodeURIComponent(style.id)}`}
             className="text-sm text-[var(--link)] hover:underline"
           >
             Gruppen mit diesem Tanzstil ansehen

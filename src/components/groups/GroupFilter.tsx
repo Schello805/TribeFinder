@@ -16,7 +16,7 @@ export default function GroupFilter() {
   const [lat, setLat] = useState(searchParams.get("lat") || "");
   const [lng, setLng] = useState(searchParams.get("lng") || "");
   const [radius, setRadius] = useState(searchParams.get("radius") || "50");
-  const [selectedTag, setSelectedTag] = useState(searchParams.get("danceStyleId") || searchParams.get("tag") || "");
+  const [selectedTag, setSelectedTag] = useState(searchParams.get("danceStyleId") || "");
   const [onlyPerformances, setOnlyPerformances] = useState(searchParams.get("performances") === "1");
   const [onlySeekingMembers, setOnlySeekingMembers] = useState(searchParams.get("seeking") === "1");
   const [groupSize, setGroupSize] = useState(searchParams.get("size") || "");
@@ -25,6 +25,10 @@ export default function GroupFilter() {
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string }[]>([]);
   const [isLocating, setIsLocating] = useState(false);
   const geocodeSeq = useRef(0);
+
+  const selectedStyleName = selectedTag
+    ? availableTags.find((s) => s.id === selectedTag)?.name || selectedTag
+    : "";
 
   const radiusMin = 5;
   const radiusMax = 200;
@@ -56,13 +60,19 @@ export default function GroupFilter() {
             })
             .filter(Boolean) as { id: string; name: string }[];
           setAvailableTags(mapped);
+
+          const legacyTag = searchParams.get("tag") || "";
+          if (!searchParams.get("danceStyleId") && legacyTag) {
+            const match = mapped.find((s) => s.name === legacyTag);
+            if (match) setSelectedTag(match.id);
+          }
         }
       } catch {
         console.error("Failed to load dance styles");
       }
     };
     fetchStyles();
-  }, []);
+  }, [searchParams]);
 
   // Update URL function
   const updateUrl = useCallback(
@@ -490,7 +500,7 @@ export default function GroupFilter() {
               onClick={() => setSelectedTag("")}
               className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-[11px] text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition"
             >
-              Tanzstil: {selectedTag}
+              Tanzstil: {selectedStyleName}
               <span className="text-[var(--muted)]">×</span>
             </button>
           ) : null}
