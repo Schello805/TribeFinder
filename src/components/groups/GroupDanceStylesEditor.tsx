@@ -53,7 +53,7 @@ export default function GroupDanceStylesEditor({
   const load = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/dance-styles");
+      const res = await fetch("/api/dance-styles", { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setMessage(data?.message || "Fehler beim Laden der Tanzstile");
@@ -137,6 +137,9 @@ export default function GroupDanceStylesEditor({
             <select
               value={newStyleId}
               onChange={(e) => setNewStyleId(e.target.value)}
+              onFocus={() => {
+                void load();
+              }}
               className="mt-1 block w-full rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] sm:text-sm px-3 py-2 appearance-none"
               disabled={disabled}
             >

@@ -103,6 +103,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Registrierung/Login: Hinweise zur E-Mail-Verifizierung nach der Registrierung klarer formuliert
 
+### 💃 Tanzstile
+
+- Dropdowns/Filter laden Tanzstile immer aktuell aus der DB (kein Stale Cache; Refresh beim Öffnen)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte

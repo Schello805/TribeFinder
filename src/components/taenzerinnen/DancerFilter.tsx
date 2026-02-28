@@ -72,7 +72,7 @@ export default function DancerFilter() {
   useEffect(() => {
     const fetchStyles = async () => {
       try {
-        const res = await fetch("/api/dance-styles");
+        const res = await fetch("/api/dance-styles", { cache: "no-store" });
         if (!res.ok) return;
         const data = (await res.json().catch(() => ({}))) as unknown;
         const available =

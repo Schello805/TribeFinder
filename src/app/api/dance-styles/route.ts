@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 async function ensureDanceStylesSeeded() {
   try {
     const existing = await prisma.danceStyle.count();
@@ -66,7 +68,8 @@ async function ensureDanceStylesSeeded() {
 export async function GET() {
   try {
     await ensureDanceStylesSeeded();
-    const available = await prisma.danceStyle.findMany({
+    const danceStyleDelegate = (prisma as unknown as { danceStyle: { findMany: (args: unknown) => Promise<unknown> } }).danceStyle;
+    const available = (await danceStyleDelegate.findMany({
       orderBy: { name: "asc" },
       include: {
         aliases: {
@@ -74,12 +77,16 @@ export async function GET() {
           orderBy: { name: "asc" },
         },
       },
-    });
-    return NextResponse.json({ available });
+    })) as unknown;
+    const res = NextResponse.json({ available });
+    res.headers.set("Cache-Control", "no-store, max-age=0");
+    return res;
   } catch (error) {
     const err = error as { code?: string };
     if (err?.code === "P2021" || err?.code === "P2022") {
-      return NextResponse.json({ available: [] }, { status: 200 });
+      const res = NextResponse.json({ available: [] }, { status: 200 });
+      res.headers.set("Cache-Control", "no-store, max-age=0");
+      return res;
     }
     return NextResponse.json({ message: "Fehler beim Laden der Tanzstile" }, { status: 500 });
   }
