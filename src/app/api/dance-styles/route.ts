@@ -15,19 +15,17 @@ async function ensureDanceStylesSeeded() {
     const names = tags.length
       ? tags.map((t) => t.name)
       : [
-          "ATS (FCBDStyle)",
+          "FCBD Style",
+          "FCBDStyle Partnering",
           "ATS Partnering",
-          "American Tribal Style (ATS)",
           "Baladi",
           "Bauchtanz",
           "Dabke",
           "Dark Fusion",
           "Drum Solo",
-          "FCBDStyle",
-          "FCBDStyle Partnering",
           "Fan Veils",
           "Gothic Tribal Fusion",
-          "Improvisational Tribal Style (ITS)",
+          "ITS",
           "Khaliji",
           "Libanesischer Stil",
           "Neo-Tribal",
@@ -68,7 +66,15 @@ async function ensureDanceStylesSeeded() {
 export async function GET() {
   try {
     await ensureDanceStylesSeeded();
-    const available = await prisma.danceStyle.findMany({ orderBy: { name: "asc" } });
+    const available = await prisma.danceStyle.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        aliases: {
+          select: { name: true },
+          orderBy: { name: "asc" },
+        },
+      },
+    });
     return NextResponse.json({ available });
   } catch (error) {
     const err = error as { code?: string };

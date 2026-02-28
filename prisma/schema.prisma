@@ -503,9 +503,24 @@ model DanceStyle {
   users  UserDanceStyle[]
   groups GroupDanceStyle[]
 
+  aliases DanceStyleAlias[]
+
   approvedSuggestions DanceStyleSuggestion[]
 
   targetedSuggestions DanceStyleSuggestion[] @relation("DanceStyleSuggestionTarget")
+}
+
+model DanceStyleAlias {
+  id String @id @default(cuid())
+
+  name    String @unique
+  styleId String
+  style   DanceStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([styleId])
 }
 
 // User's Dance Styles with Level

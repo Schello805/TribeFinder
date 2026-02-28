@@ -83,6 +83,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Tags unterstützen Typen (GENERAL/DIALECT/PROP) und können über die API gefiltert werden
 - Gruppen: Dialekte/Schulen und Props können separat als Tags gepflegt werden (Mehrfachauswahl)
 
+### 💃 Tanzstile
+
+- Aliase/Synonyme für Tanzstile (z.B. ATS/American Tribal Style) werden in der Auswahl angezeigt, aber als kanonischer Stil gespeichert (z.B. FCBD Style)
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte

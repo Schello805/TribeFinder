@@ -8,6 +8,7 @@ type DanceStyle = {
   id: string;
   name: string;
   category: string | null;
+  aliases?: Array<{ name: string }>;
 };
 
 type UserDanceStyle = {
@@ -132,6 +133,19 @@ export default function DanceStylesEditor() {
     [available, selectedIds]
   );
 
+  const optionList = useMemo(() => {
+    const out: Array<{ key: string; value: string; label: string }> = [];
+    for (const s of filteredAvailable) {
+      out.push({ key: `style:${s.id}`, value: s.id, label: s.name });
+      for (const a of s.aliases ?? []) {
+        const alias = (a?.name || "").trim();
+        if (!alias) continue;
+        out.push({ key: `alias:${s.id}:${alias}`, value: s.id, label: `${alias} (Alias von ${s.name})` });
+      }
+    }
+    return out;
+  }, [filteredAvailable]);
+
   if (isLoading) {
     return <div className="p-6 text-center text-[var(--foreground)]">Laden...</div>;
   }
@@ -151,9 +165,9 @@ export default function DanceStylesEditor() {
               disabled={isSaving}
             >
               <option value="">Bitte auswählen…</option>
-              {filteredAvailable.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
+              {optionList.map((o) => (
+                <option key={o.key} value={o.value}>
+                  {o.label}
                 </option>
               ))}
             </select>

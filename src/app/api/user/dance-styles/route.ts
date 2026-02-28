@@ -74,10 +74,13 @@ export async function GET() {
     await ensureDanceStylesSeeded();
 
     const [available, selected] = await Promise.all([
-      prisma.danceStyle.findMany({ orderBy: { name: "asc" } }),
+      prisma.danceStyle.findMany({
+        orderBy: { name: "asc" },
+        include: { aliases: { select: { name: true }, orderBy: { name: "asc" } } },
+      }),
       prisma.userDanceStyle.findMany({
         where: { userId: session.user.id },
-        include: { style: true },
+        include: { style: { include: { aliases: { select: { name: true }, orderBy: { name: "asc" } } } } },
         orderBy: { style: { name: "asc" } },
       }),
     ]);

@@ -9,6 +9,7 @@ type DanceStyle = {
   id: string;
   name: string;
   category: string | null;
+  aliases?: Array<{ name: string }>;
 };
 
 type GroupDanceStyleValue = {
@@ -74,6 +75,19 @@ export default function GroupDanceStylesEditor({
     [available, selectedIds]
   );
 
+  const optionList = useMemo(() => {
+    const out: Array<{ key: string; value: string; label: string }> = [];
+    for (const s of availableFiltered) {
+      out.push({ key: `style:${s.id}`, value: s.id, label: s.name });
+      for (const a of s.aliases ?? []) {
+        const alias = (a?.name || "").trim();
+        if (!alias) continue;
+        out.push({ key: `alias:${s.id}:${alias}`, value: s.id, label: `${alias} (Alias von ${s.name})` });
+      }
+    }
+    return out;
+  }, [availableFiltered]);
+
   const nameById = useMemo(() => {
     const map = new Map<string, string>();
     for (const s of available) map.set(s.id, s.name);
@@ -127,9 +141,9 @@ export default function GroupDanceStylesEditor({
               disabled={disabled}
             >
               <option value="">Bitte auswählen…</option>
-              {availableFiltered.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
+              {optionList.map((o) => (
+                <option key={o.key} value={o.value}>
+                  {o.label}
                 </option>
               ))}
             </select>
