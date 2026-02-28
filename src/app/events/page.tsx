@@ -30,6 +30,16 @@ export default async function EventsPage({
   const q = typeof qRaw === "string" ? qRaw.trim() : "";
   const danceStyleIdRaw = sp.danceStyleId;
   const danceStyleId = typeof danceStyleIdRaw === "string" ? danceStyleIdRaw.trim() : "";
+  const monthRaw = sp.month;
+  const month = typeof monthRaw === "string" ? monthRaw.trim() : "";
+  const addressRaw = sp.address;
+  const address = typeof addressRaw === "string" ? addressRaw.trim() : "";
+  const latRaw = sp.lat;
+  const lngRaw = sp.lng;
+  const radiusRaw = sp.radius;
+  const lat = typeof latRaw === "string" ? Number(latRaw) : NaN;
+  const lng = typeof lngRaw === "string" ? Number(lngRaw) : NaN;
+  const radiusKm = typeof radiusRaw === "string" ? Number(radiusRaw) : NaN;
 
   const formatBerlin = (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions) => {
     if (!value) return "";
@@ -60,18 +70,33 @@ export default async function EventsPage({
     }
   };
 
-  const whereClause: {
+  const parseMonthRange = (value: string) => {
+    const m = /^\d{4}-\d{2}$/.exec(value);
+    if (!m) return null;
+    const [yStr, moStr] = value.split("-");
+    const y = Number(yStr);
+    const mo = Number(moStr);
+    if (!Number.isFinite(y) || !Number.isFinite(mo) || mo < 1 || mo > 12) return null;
+    const start = new Date(Date.UTC(y, mo - 1, 1, 0, 0, 0, 0));
+    const end = new Date(Date.UTC(y, mo, 1, 0, 0, 0, 0));
+    return { start, end };
+  };
+
+  const now = new Date();
+  const baseWhereClause: {
     startDate: { gte: Date };
     OR?: Array<{ title?: { contains: string }; locationName?: { contains: string }; address?: { contains: string } }>;
     danceStyles?: { some: { styleId: string } };
+    lat?: { gte: number; lte: number };
+    lng?: { gte: number; lte: number };
   } = {
     startDate: {
-      gte: new Date(),
+      gte: now,
     },
   };
 
   if (q) {
-    whereClause.OR = [
+    baseWhereClause.OR = [
       { title: { contains: q } },
       { locationName: { contains: q } },
       { address: { contains: q } },
@@ -79,14 +104,53 @@ export default async function EventsPage({
   }
 
   if (danceStyleId) {
-    whereClause.danceStyles = { some: { styleId: danceStyleId } };
+    baseWhereClause.danceStyles = { some: { styleId: danceStyleId } };
   }
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    const r = Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : 50;
+    const latDelta = r / 111;
+    const lngDelta = r / (111 * Math.cos((lat * Math.PI) / 180) || 1);
+    baseWhereClause.lat = { gte: lat - latDelta, lte: lat + latDelta };
+    baseWhereClause.lng = { gte: lng - lngDelta, lte: lng + lngDelta };
+  }
+
+  const monthRange = month ? parseMonthRange(month) : null;
+  const whereClause = monthRange
+    ? {
+        ...baseWhereClause,
+        startDate: {
+          gte: monthRange.start > now ? monthRange.start : now,
+          lt: monthRange.end,
+        },
+      }
+    : baseWhereClause;
 
   const eventDelegate = (prisma as unknown as {
     event: {
       findMany: (args: unknown) => Promise<unknown[]>;
     };
   }).event;
+
+  const monthRows = (await eventDelegate.findMany({
+    where: baseWhereClause,
+    select: { startDate: true },
+    orderBy: { startDate: "asc" },
+    take: 2000,
+  })) as unknown as Array<{ startDate: Date }>;
+
+  const availableMonths = Array.from(
+    new Set(
+      monthRows
+        .map((r) => {
+          const d = r.startDate;
+          const y = d.getUTCFullYear();
+          const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+          return `${y}-${m}`;
+        })
+        .filter(Boolean) as string[]
+    )
+  );
 
   const events = (await eventDelegate.findMany({
     where: whereClause,
@@ -122,7 +186,7 @@ export default async function EventsPage({
           <p className="text-[var(--muted)] mt-2">Entdecke Workshops, Partys und Trainings in deiner Umgebung.</p>
         </div>
 
-      <EventFilter />
+      <EventFilter availableMonths={availableMonths} initialAddress={address} />
         
         <div className="flex gap-4">
           <Link

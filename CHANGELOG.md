@@ -123,6 +123,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Events: Aktion-Buttons vereinheitlicht (Löschen als Icon-Button)
 - Events: Filter zeigt Hinweis, wenn noch keine Tanzstile in Events vorhanden sind
 - Events: Hinweis im Formular und auf der Detailseite, damit bestehende Events leichter um Tanzstile ergänzt werden können
+- Events: Filter erweitert um Standort/Umkreis (wie Gruppen) und Monats-Auswahl (nur Monate mit zukünftigen Events)
 
 ### 🧭 Navigation
 
