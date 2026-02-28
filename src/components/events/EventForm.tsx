@@ -906,7 +906,18 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       }
 
       showToast(isEditing ? "Event erfolgreich aktualisiert!" : "Event erfolgreich erstellt!", "success");
-      router.push(groupId ? `/groups/${groupId}/events` : "/events");
+
+      const created = (await response.json().catch(() => null)) as unknown;
+      const createdId =
+        created && typeof created === "object" && "id" in created && typeof (created as { id?: unknown }).id === "string"
+          ? (created as { id: string }).id
+          : "";
+
+      if (!isEditing && createdId) {
+        router.push(`/events/${createdId}`);
+      } else {
+        router.push(groupId ? `/groups/${groupId}/events` : "/events");
+      }
       router.refresh();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Ein Fehler ist aufgetreten";
