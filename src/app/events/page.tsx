@@ -88,8 +88,9 @@ export default async function EventsPage({
     };
   }).event;
 
-  const events = (await eventDelegate
-    .findMany({
+  let events: Event[] = [];
+  try {
+    events = (await eventDelegate.findMany({
       where: whereClause,
       include: {
         group: {
@@ -113,8 +114,32 @@ export default async function EventsPage({
         startDate: "asc",
       },
       take: 200,
-    })
-    .catch(() => [])) as unknown as Event[];
+    })) as unknown as Event[];
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("Unknown nested field 'danceStyles'") || msg.includes("Unknown argument `danceStyles`")) {
+      const { danceStyles: _ignored, ...whereWithoutStyles } = whereClause;
+      const eventsWithoutStyles = (await eventDelegate.findMany({
+        where: whereWithoutStyles,
+        include: {
+          group: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          startDate: "asc",
+        },
+        take: 200,
+      })) as unknown as Array<Omit<Event, "danceStyles">>;
+
+      events = eventsWithoutStyles.map((e) => ({ ...e, danceStyles: [] } as Event));
+    } else {
+      events = [];
+    }
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">

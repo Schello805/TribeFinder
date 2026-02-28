@@ -86,47 +86,89 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const { id } = await params;
   const session = await getServerSession(authOptions);
 
-  const event = (await (prisma as unknown as {
+  const eventDelegate = (prisma as unknown as {
     event: { findUnique: (args: unknown) => Promise<unknown> };
-  }).event.findUnique({
-    where: { id },
-    include: {
-      group: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          ownerId: true,
-        }
-      },
-      creator: {
-        select: {
-          name: true,
+  }).event;
+
+  let event: EventLike | null = null;
+  try {
+    event = (await eventDelegate.findUnique({
+      where: { id },
+      include: {
+        group: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            ownerId: true,
+          },
+        },
+        creator: {
+          select: {
+            name: true,
+          },
+        },
+        participations: {
+          include: {
+            group: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+        danceStyles: {
+          include: {
+            style: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
         },
       },
-      participations: {
+    })) as EventLike | null;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("Unknown nested field 'danceStyles'") || msg.includes("Unknown argument `danceStyles`")) {
+      const eventWithoutStyles = (await eventDelegate.findUnique({
+        where: { id },
         include: {
           group: {
             select: {
               id: true,
               name: true,
               image: true,
-            }
-          }
-        }
-      },
-      danceStyles: {
-        include: {
-          style: {
+              ownerId: true,
+            },
+          },
+          creator: {
             select: {
-              id: true,
               name: true,
             },
           },
+          participations: {
+            include: {
+              group: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          },
         },
-      }
+      })) as unknown as Omit<EventLike, "danceStyles"> | null;
+
+      event = eventWithoutStyles ? ({ ...eventWithoutStyles, danceStyles: [] } as EventLike) : null;
+    } else {
+      throw error;
     }
-  })) as EventLike | null;
+  }
 
   if (!event) {
     notFound();
