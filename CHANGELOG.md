@@ -86,7 +86,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 ### 💃 Tanzstile
 
 - Aliase/Synonyme für Tanzstile (z.B. ATS/American Tribal Style) werden in der Auswahl angezeigt, aber als kanonischer Stil gespeichert (z.B. FCBD Style)
-- Verifizierte Nutzer können neue Tanzstil-Aliase vorschlagen; Admin kann diese freigeben/ablehnen
+- Nutzer können Änderungen am Tanzstil vorschlagen (Inhalte wie Beschreibung/Links/Kategorie) und verifizierte Nutzer können zusätzlich neue Tanzstil-Aliase vorschlagen; Admin kann diese freigeben/ablehnen
 
 ## [Unreleased] - 2026-02-20
 

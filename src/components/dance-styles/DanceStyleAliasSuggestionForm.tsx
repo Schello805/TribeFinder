@@ -46,8 +46,12 @@ export default function DanceStyleAliasSuggestionForm({ styleId, styleName }: { 
 
   return (
     <div className="space-y-3">
-      <div className="text-sm text-[var(--muted)]">
-        Du kannst alternative Namen (Synonyme) für diesen Tanzstil vorschlagen. Ein Admin prüft den Vorschlag.
+      <div className="text-sm text-[var(--muted)] space-y-2">
+        <div>Du kannst alternative Namen (Synonyme) für diesen Tanzstil vorschlagen. Ein Admin prüft den Vorschlag.</div>
+        <div>
+          Unterschied: Bei <span className="font-medium">„Änderung vorschlagen“</span> änderst du die Inhalte dieses Tanzstils (Beschreibung/Links/Kategorie).
+          Bei <span className="font-medium">„Alias vorschlagen“</span> fügst du nur einen zusätzlichen Such-/Auswahl-Namen hinzu, der auf diesen Tanzstil zeigt.
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3">
