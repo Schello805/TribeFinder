@@ -111,6 +111,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen/Tänzerinnen: Tanzstil-Filter sind konsistent und nutzen DanceStyle IDs (Query-Param `danceStyleId`, Legacy-Params bleiben kompatibel)
 - Filter: Dropdowns zeigen nur noch Tanzstile, die tatsächlich verwendet werden (pro Kontext: Gruppen/Events/Tänzerinnen)
 - Tanzstile API: Fallback bei stale Prisma (usedBy-Filter wird ignoriert statt 500)
+- Prisma: Schema-Relation für Tanzstil-Vorschläge korrigiert (migrate/generate laufen wieder)
 
 ### 🧩 Events
 
@@ -121,6 +122,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Events: Bearbeiten-Seiten funktionieren auch ohne deployte `danceStyles` Relation (Fallback)
 - Events: Aktion-Buttons vereinheitlicht (Löschen als Icon-Button)
 - Events: Filter zeigt Hinweis, wenn noch keine Tanzstile in Events vorhanden sind
+
+### 🧭 Navigation
+
+- Navbar: API-Requests nutzen aktuelle Origin (kein CORS mehr bei Zugriff über lokale IP)
 
 ## [Unreleased] - 2026-02-20
 

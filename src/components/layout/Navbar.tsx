@@ -25,6 +25,11 @@ export default function Navbar() {
   const [userAvatarUrl, setUserAvatarUrl] = useState<string>("");
   const userImageUrl = userAvatarUrl || (session?.user?.image ? (normalizeUploadedImageUrl(String(session.user.image)) ?? "") : "");
 
+  const apiUrl = (path: string) => {
+    if (typeof window === "undefined") return path;
+    return new URL(path, window.location.origin).toString();
+  };
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
@@ -32,7 +37,7 @@ export default function Navbar() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/branding")
+    fetch(apiUrl("/api/branding"))
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return;
@@ -56,7 +61,7 @@ export default function Navbar() {
       };
     }
 
-    fetch("/api/user/profile")
+    fetch(apiUrl("/api/user/profile"))
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return;
@@ -80,7 +85,7 @@ export default function Navbar() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetch("/api/direct-messages/unread-count", { cache: "no-store" });
+        const res = await fetch(apiUrl("/api/direct-messages/unread-count"), { cache: "no-store" });
         if (!res.ok) return;
         const data = (await res.json().catch(() => null)) as { unreadCount?: number } | null;
         if (cancelled) return;
@@ -125,7 +130,7 @@ export default function Navbar() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetch("/api/groups/pending-requests", { cache: "no-store" });
+        const res = await fetch(apiUrl("/api/groups/pending-requests"), { cache: "no-store" });
         if (!res.ok) return;
         const data = (await res.json().catch(() => null)) as { pendingCount?: number } | null;
         if (cancelled) return;

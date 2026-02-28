@@ -532,6 +532,8 @@ model DanceStyle {
   userDanceStyles  UserDanceStyle[]
   eventDanceStyles EventDanceStyle[]
 
+  approvedInSuggestions DanceStyleSuggestion[] @relation("DanceStyleSuggestionApproved")
+
   targetedSuggestions DanceStyleSuggestion[] @relation("DanceStyleSuggestionTarget")
 }
 
@@ -631,7 +633,7 @@ model DanceStyleSuggestion {
   decidedByAdmin   User? @relation("DanceStyleSuggestionDecidedBy", fields: [decidedByAdminId], references: [id], onDelete: SetNull)
 
   approvedStyleId String?
-  approvedStyle   DanceStyle? @relation(fields: [approvedStyleId], references: [id], onDelete: SetNull)
+  approvedStyle   DanceStyle? @relation("DanceStyleSuggestionApproved", fields: [approvedStyleId], references: [id], onDelete: SetNull)
 
   decidedAt DateTime?
   createdAt DateTime @default(now())
