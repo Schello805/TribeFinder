@@ -129,6 +129,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Navbar: API-Requests nutzen aktuelle Origin (kein CORS mehr bei Zugriff über lokale IP)
 - Next.js: Deprecated `middlewareClientMaxBodySize` durch `proxyClientMaxBodySize` ersetzt
 
+### 🧰 Maintenance
+
+- npm audit: `npm audit fix` (ohne `--force`) ausgeführt und Lockfile aktualisiert; verbleibende Findings erfordern Major-Updates
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte
