@@ -252,6 +252,14 @@ export default async function RootLayout({
                   <Link href="/datenschutz" className="hover:text-[var(--footer-fg)] transition-colors">Datenschutz</Link>
                   <Link href="/marketing" className="hover:text-[var(--footer-fg)] transition-colors">Marketing</Link>
                   <Link href="/hilfe" className="hover:text-[var(--footer-fg)] transition-colors">Hilfe</Link>
+                  <a
+                    href="https://www.facebook.com/profile.php?id=61588593045134"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[var(--footer-fg)] transition-colors"
+                  >
+                    Facebook
+                  </a>
                   <a href="https://github.com/Schello805/TribeFinder" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--footer-fg)] transition-colors flex items-center gap-1">
                     GitHub
                   </a>

@@ -95,6 +95,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - „Zuletzt online“ wird nicht mehr nach 5 Minuten zu „unbekannt“ (Last-Seen Retention: 30 Tage statt Online-Fenster)
 
+### 🧭 Navigation
+
+- Footer: Facebook-Seite verlinkt
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte
