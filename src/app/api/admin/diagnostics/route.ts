@@ -121,6 +121,28 @@ export async function GET() {
     })
   );
 
+  checks.push(
+    await runCheck("prisma_event_dance_styles", "Prisma: Event.danceStyles Relation", async () => {
+      const eventDelegate = (prisma as unknown as {
+        event: { findMany: (args: unknown) => Promise<unknown> };
+      }).event;
+
+      await eventDelegate.findMany({
+        take: 1,
+        include: {
+          danceStyles: {
+            select: {
+              styleId: true,
+            },
+            take: 1,
+          },
+        },
+      });
+
+      return { status: "ok", message: "OK" };
+    })
+  );
+
   const dbWriteCheck = await runCheck("db_write", "Datenbank schreibbar", async () => {
     const stamp = Date.now();
     await prisma.$executeRawUnsafe(`CREATE TEMP TABLE __diag_write_${stamp} (id INTEGER);`);

@@ -132,6 +132,8 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 ### 🧰 Maintenance
 
 - npm audit: `npm audit fix` (ohne `--force`) ausgeführt und Lockfile aktualisiert; verbleibende Findings erfordern Major-Updates
+- Tests: Regressionstest für `POST /api/events` (inkl. `danceStyleIds`), damit kaputte Event-Erstellung sofort auffällt
+- Admin: Diagnostics prüft Prisma-Relation `Event.danceStyles` explizit
 
 ## [Unreleased] - 2026-02-20
 

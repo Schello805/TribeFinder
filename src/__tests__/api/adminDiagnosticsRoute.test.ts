@@ -10,7 +10,7 @@ vi.mock("@/lib/prisma", () => {
   return {
     default: {
       user: { count: vi.fn() },
-      event: { count: vi.fn() },
+      event: { count: vi.fn(), findMany: vi.fn() },
       $queryRawUnsafe: vi.fn(),
       danceStyle: { count: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
       tag: { create: vi.fn(), delete: vi.fn() },
@@ -47,7 +47,7 @@ type PrismaMock = {
     findUnique: (args?: unknown) => unknown;
     delete: (args?: unknown) => unknown;
   };
-  event: { count: (args?: unknown) => unknown };
+  event: { count: (args?: unknown) => unknown; findMany: (args?: unknown) => unknown };
   $queryRawUnsafe: (query: unknown) => unknown;
   danceStyle: {
     count: (args?: unknown) => unknown;
@@ -79,6 +79,7 @@ describe("GET /api/admin/diagnostics", () => {
     vi.mocked(prismaMock.user.count).mockResolvedValueOnce(1);
     vi.mocked(prismaMock.group.count).mockResolvedValueOnce(1);
     vi.mocked(prismaMock.event.count).mockResolvedValueOnce(1);
+    vi.mocked(prismaMock.event.findMany).mockResolvedValueOnce([]);
     vi.mocked(prismaMock.$queryRawUnsafe).mockResolvedValueOnce([{ count: 1 }]);
     vi.mocked(prismaMock.danceStyle.count).mockResolvedValueOnce(1);
     vi.mocked(prismaMock.errorLog.count).mockResolvedValueOnce(2);
