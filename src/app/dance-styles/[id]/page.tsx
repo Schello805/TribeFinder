@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import DanceStyleEditSuggestionForm from "@/components/dance-styles/DanceStyleEditSuggestionForm";
+import DanceStyleAliasSuggestionForm from "@/components/dance-styles/DanceStyleAliasSuggestionForm";
 
 export const dynamic = "force-dynamic";
 
@@ -327,6 +328,17 @@ export default async function DanceStyleDetailPage({ params }: RouteParams) {
         ) : (
           <div className="text-sm text-[var(--muted)]">
             Bitte <Link href="/auth/signin" className="text-[var(--link)] hover:underline">einloggen</Link>, um Änderungen vorzuschlagen.
+          </div>
+        )}
+      </div>
+
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 space-y-3">
+        <h2 className="tf-display text-lg font-bold text-[var(--foreground)]">Alias vorschlagen</h2>
+        {session?.user?.id ? (
+          <DanceStyleAliasSuggestionForm styleId={style.id} styleName={style.name} />
+        ) : (
+          <div className="text-sm text-[var(--muted)]">
+            Bitte <Link href="/auth/signin" className="text-[var(--link)] hover:underline">einloggen</Link>, um Aliase vorzuschlagen.
           </div>
         )}
       </div>

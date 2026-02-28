@@ -113,6 +113,9 @@ model User {
   danceStyleSuggestionsCreated DanceStyleSuggestion[] @relation("DanceStyleSuggestionCreatedBy")
   danceStyleSuggestionsDecided DanceStyleSuggestion[] @relation("DanceStyleSuggestionDecidedBy")
 
+  danceStyleAliasSuggestionsCreated DanceStyleAliasSuggestion[] @relation("DanceStyleAliasSuggestionCreatedBy")
+  danceStyleAliasSuggestionsDecided DanceStyleAliasSuggestion[] @relation("DanceStyleAliasSuggestionDecidedBy")
+
   marketplaceListings MarketplaceListing[]
 }
 
@@ -489,6 +492,12 @@ enum DanceStyleSuggestionStatus {
   REJECTED
 }
 
+enum DanceStyleAliasSuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // Dance Styles (predefined list)
 model DanceStyle {
   id       String  @id @default(cuid())
@@ -504,6 +513,8 @@ model DanceStyle {
   groups GroupDanceStyle[]
 
   aliases DanceStyleAlias[]
+
+  aliasSuggestions DanceStyleAliasSuggestion[]
 
   approvedSuggestions DanceStyleSuggestion[]
 
@@ -521,6 +532,36 @@ model DanceStyleAlias {
   updatedAt DateTime @updatedAt
 
   @@index([styleId])
+}
+
+model DanceStyleAliasSuggestion {
+  id String @id @default(cuid())
+
+  aliasName String
+
+  styleId String
+  style   DanceStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
+
+  sourceUrl String?
+  comment   String?
+
+  status DanceStyleAliasSuggestionStatus @default(PENDING)
+
+  createdById String
+  createdBy   User @relation("DanceStyleAliasSuggestionCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  decidedByAdminId String?
+  decidedByAdmin   User? @relation("DanceStyleAliasSuggestionDecidedBy", fields: [decidedByAdminId], references: [id], onDelete: SetNull)
+
+  decidedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([aliasName, styleId])
+  @@index([status])
+  @@index([createdById])
+  @@index([styleId])
+  @@index([decidedByAdminId])
 }
 
 // User's Dance Styles with Level
