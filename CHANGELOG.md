@@ -112,6 +112,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Filter: Dropdowns zeigen nur noch Tanzstile, die tatsächlich verwendet werden (pro Kontext: Gruppen/Events/Tänzerinnen)
 - Tanzstile API: Fallback bei stale Prisma (usedBy-Filter wird ignoriert statt 500)
 - Prisma: Schema-Relation für Tanzstil-Vorschläge korrigiert (migrate/generate laufen wieder)
+- Tanzstile: Safety-Logging für Ladeprobleme (API + Gruppen-Editor)
 
 ### 🧩 Events
 

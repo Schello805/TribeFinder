@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import logger from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,8 @@ export async function GET(req: Request) {
     const usedByRaw = (searchParams.get("usedBy") || "").trim();
     const usedBy = usedByRaw || "any";
 
+    logger.debug({ usedBy }, "[dance-styles] GET");
+
     const where =
       usedBy === "groups"
         ? { groupDanceStyles: { some: {} } }
@@ -108,6 +111,7 @@ export async function GET(req: Request) {
         msg.includes("Unknown field `eventDanceStyles`") ||
         msg.includes("Unknown field `userDanceStyles`")
       ) {
+        logger.warn({ usedBy, msg }, "[dance-styles] usedBy filter not supported by Prisma client; falling back to all");
         available = (await danceStyleDelegate.findMany({
           orderBy: { name: "asc" },
           include: {
@@ -118,8 +122,13 @@ export async function GET(req: Request) {
           },
         })) as unknown;
       } else {
+        logger.error({ usedBy, msg }, "[dance-styles] findMany failed");
         throw error;
       }
+    }
+
+    if (Array.isArray(available)) {
+      logger.debug({ usedBy, count: available.length }, "[dance-styles] returning styles");
     }
     const res = NextResponse.json({ available });
     res.headers.set("Cache-Control", "no-store, max-age=0");
@@ -131,6 +140,10 @@ export async function GET(req: Request) {
       res.headers.set("Cache-Control", "no-store, max-age=0");
       return res;
     }
+    logger.error(
+      { msg: error instanceof Error ? error.message : String(error) },
+      "[dance-styles] GET failed"
+    );
     return NextResponse.json({ message: "Fehler beim Laden der Tanzstile" }, { status: 500 });
   }
 }

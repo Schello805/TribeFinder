@@ -56,11 +56,23 @@ export default function GroupDanceStylesEditor({
       const res = await fetch("/api/dance-styles", { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setMessage(data?.message || "Fehler beim Laden der Tanzstile");
+        const msg = (data as { message?: string } | null)?.message || `Fehler beim Laden der Tanzstile (HTTP ${res.status})`;
+        setMessage(msg);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("[GroupDanceStylesEditor] /api/dance-styles not ok", { status: res.status, data });
+        }
         setAvailable([]);
         return;
       }
       setAvailable(data.available || []);
+      setMessage("");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Fehler beim Laden der Tanzstile";
+      setMessage(msg);
+      setAvailable([]);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[GroupDanceStylesEditor] /api/dance-styles fetch failed", err);
+      }
     } finally {
       setIsLoading(false);
     }
