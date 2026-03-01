@@ -24,6 +24,7 @@ function itemClass(active: boolean) {
     isActivePrefix("/admin/dance-style-suggestions") ||
     isActivePrefix("/admin/dance-style-alias-suggestions");
   const isMarketing = isActivePrefix("/admin/marketing");
+  const isAnnouncements = isActivePrefix("/admin/announcements");
   const isUsers = isActivePrefix("/admin/users");
   const isOps =
     isActivePrefix("/admin/ops") ||
@@ -47,6 +48,9 @@ function itemClass(active: boolean) {
       </Link>
       <Link href="/admin/marketing" className={itemClass(isMarketing)}>
         Marketing
+      </Link>
+      <Link href="/admin/announcements" className={itemClass(isAnnouncements)}>
+        Ankündigungen
       </Link>
       <Link href="/admin/users" className={itemClass(isUsers)}>
         Benutzer

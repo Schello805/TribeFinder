@@ -20,6 +20,7 @@ import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import path from "path";
 import fs from "node:fs";
 import { readFile } from "fs/promises";
+import WhatsNewModal from "@/components/announcements/WhatsNewModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -228,6 +229,7 @@ export default async function RootLayout({
                 ) : null}
                 <div className={effectiveBannerEnabled && effectiveBannerText ? "pt-6" : undefined}>
                   <Navbar />
+                  <WhatsNewModal />
                   <main className="flex-grow container mx-auto px-4 py-8">
                     {children}
                   </main>

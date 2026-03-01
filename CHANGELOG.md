@@ -30,6 +30,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Admin: Benutzer-Detailseite zeigt jetzt Tänzerinnenprofil-Status (aktiv/privat)
 - Admin: Benutzerliste zeigt Online/Offline Status
 - Admin: Benutzer-Detailseite zeigt Online-Status + zusätzliche Debug-Felder (User ID, zuletzt aktualisiert)
+- Admin: Ankündigungen/„What's new“-Modal verwaltbar unter `/admin/announcements` (mit Zeitraum + Warnung bei mehreren aktiven)
 
 ## [Unreleased] - 2026-02-25
 
