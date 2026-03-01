@@ -69,6 +69,33 @@ export default async function MarketingPage() {
         </p>
       </div>
 
+      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 space-y-3">
+        <div className="tf-display text-xl font-bold text-[var(--foreground)]">Corporate Identity</div>
+        <div className="text-sm text-[var(--muted)]">
+          <div className="font-medium text-[var(--foreground)]">Schriftart</div>
+          <div>Marcellus (für Copper)</div>
+        </div>
+        <div className="text-sm text-[var(--muted)]">
+          <div className="font-medium text-[var(--foreground)]">Logo-Farben</div>
+          <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3">
+              <div>
+                <div className="text-xs text-[var(--muted)]">Dunkel</div>
+                <div className="font-mono text-sm text-[var(--foreground)]">#C7643C</div>
+              </div>
+              <div className="h-8 w-10 rounded border border-[var(--border)]" style={{ backgroundColor: "#C7643C" }} />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3">
+              <div>
+                <div className="text-xs text-[var(--muted)]">Hell</div>
+                <div className="font-mono text-sm text-[var(--foreground)]">#e7bf73</div>
+              </div>
+              <div className="h-8 w-10 rounded border border-[var(--border)]" style={{ backgroundColor: "#e7bf73" }} />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {sections.map((sec) => {
         const list = grouped[sec.key] || [];
         return (

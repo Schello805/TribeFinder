@@ -136,6 +136,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Navbar: API-Requests nutzen aktuelle Origin (kein CORS mehr bei Zugriff über lokale IP)
 - Next.js: Deprecated `middlewareClientMaxBodySize` durch `proxyClientMaxBodySize` ersetzt
 
+### 📣 Marketing
+
+- Marketing: Corporate Identity ergänzt (Schriftart Marcellus für Copper, Logo-Farben #C7643C / #e7bf73)
+
 ### 🧰 Maintenance
 
 - npm audit: `npm audit fix` (ohne `--force`) ausgeführt und Lockfile aktualisiert; verbleibende Findings erfordern Major-Updates
