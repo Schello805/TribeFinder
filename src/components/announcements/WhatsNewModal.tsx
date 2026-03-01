@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 type Item = {
   id: string;
@@ -18,6 +20,7 @@ export default function WhatsNewModal() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dismissing, setDismissing] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,6 +41,22 @@ export default function WhatsNewModal() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/branding", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        const url = data?.logoUrl ? (normalizeUploadedImageUrl(String(data.logoUrl)) ?? "") : "";
+        setLogoUrl(url);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const dismiss = useCallback(async () => {
     if (!item?.id) {
@@ -74,6 +93,7 @@ export default function WhatsNewModal() {
   if (!open || !item) return null;
 
   const bulletLines = bulletsAsStringArray(item.bullets);
+  const effectiveLogoUrl = logoUrl || "/icons/icon-192.png";
 
   return (
     <div className="fixed inset-0 z-[1100]">
@@ -86,24 +106,38 @@ export default function WhatsNewModal() {
       />
 
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg rounded-2xl bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow-2xl">
-          <div className="px-5 pt-5 pb-3 border-b border-[var(--border)] flex items-start gap-4">
-            <div className="min-w-0">
-              <div className="text-xs uppercase tracking-wide text-[var(--muted)]">Neu</div>
-              <div className="tf-display text-xl font-bold leading-tight">{item.title}</div>
+        <div className="w-full max-w-lg rounded-2xl text-[var(--foreground)] border border-[var(--border)] shadow-2xl overflow-hidden">
+          <div className="bg-[var(--surface)] [background-image:linear-gradient(135deg,rgba(199,100,60,0.18),rgba(231,191,115,0.10))]">
+            <div className="px-5 pt-5 pb-4 border-b border-[var(--border)] flex items-start gap-4">
+              <div className="shrink-0 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-2">
+                <Image
+                  src={effectiveLogoUrl}
+                  alt="TribeFinder"
+                  width={28}
+                  height={28}
+                  className="h-7 w-7 rounded"
+                  unoptimized
+                />
+              </div>
+
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-wide text-[var(--muted)]">What&apos;s new</div>
+                <div className="tf-display text-2xl font-bold leading-tight">{item.title}</div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => void dismiss()}
+                disabled={dismissing}
+                className="ml-auto shrink-0 inline-flex items-center justify-center h-9 w-9 rounded-full border border-[var(--border)] bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
+                aria-label="Schließen"
+              >
+                ✕
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => void dismiss()}
-              disabled={dismissing}
-              className="ml-auto shrink-0 inline-flex items-center justify-center h-9 w-9 rounded-full border border-[var(--border)] bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
-              aria-label="Schließen"
-            >
-              ✕
-            </button>
           </div>
 
-          <div className="px-5 py-4">
+          <div className="px-5 py-4 bg-[var(--surface)]">
             {bulletLines.length > 0 ? (
               <ul className="list-disc pl-5 space-y-2 text-sm text-[var(--foreground)]">
                 {bulletLines.map((b, idx) => (
@@ -117,7 +151,7 @@ export default function WhatsNewModal() {
                 type="button"
                 onClick={() => void dismiss()}
                 disabled={dismissing}
-                className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-[var(--on-primary)] bg-[var(--primary)] hover:opacity-90 disabled:opacity-50"
               >
                 {dismissing ? "Bitte warten…" : "OK"}
               </button>
