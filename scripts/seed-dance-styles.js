@@ -85,6 +85,31 @@ const DEFAULT_DANCE_STYLES = [
 async function main() {
   console.log("🎭 Seeding dance styles...");
 
+  const seededFlag = await prisma.systemSetting
+    .findUnique({ where: { key: "danceStylesSeeded" }, select: { value: true } })
+    .catch(() => null);
+
+  if (seededFlag?.value === "true") {
+    const count = await prisma.danceStyle.count().catch(() => null);
+    if (typeof count === "number") {
+      console.log(`✅ Seed übersprungen (bereits initialisiert). Aktuell ${count} Tanzstile in der Datenbank.`);
+    } else {
+      console.log("✅ Seed übersprungen (bereits initialisiert). ");
+    }
+    return;
+  }
+
+  const existingCount = await prisma.danceStyle.count().catch(() => 0);
+  if (existingCount > 0) {
+    await prisma.systemSetting.upsert({
+      where: { key: "danceStylesSeeded" },
+      update: { value: "true" },
+      create: { key: "danceStylesSeeded", value: "true" },
+    });
+    console.log(`✅ Seed übersprungen (Tanzstile existieren bereits: ${existingCount}). Flag gesetzt.`);
+    return;
+  }
+
   let created = 0;
   let skipped = 0;
 
@@ -103,6 +128,12 @@ async function main() {
   const count = await prisma.danceStyle.count();
   console.log(`\n✅ ${created} neu erstellt, ${skipped} übersprungen`);
   console.log(`📊 Insgesamt ${count} Tanzstile in der Datenbank`);
+
+  await prisma.systemSetting.upsert({
+    where: { key: "danceStylesSeeded" },
+    update: { value: "true" },
+    create: { key: "danceStylesSeeded", value: "true" },
+  });
 }
 
 main()

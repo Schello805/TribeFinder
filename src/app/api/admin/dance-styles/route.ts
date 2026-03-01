@@ -6,8 +6,20 @@ import { z } from "zod";
 
 async function ensureDanceStylesSeeded() {
   try {
+    const seededFlag = await prisma.systemSetting
+      .findUnique({ where: { key: "danceStylesSeeded" }, select: { value: true } })
+      .catch(() => null);
+    if (seededFlag?.value === "true") return;
+
     const existing = await prisma.danceStyle.count();
-    if (existing > 0) return;
+    if (existing > 0) {
+      await prisma.systemSetting.upsert({
+        where: { key: "danceStylesSeeded" },
+        update: { value: "true" },
+        create: { key: "danceStylesSeeded", value: "true" },
+      });
+      return;
+    }
 
     const names = [
       "Orientalischer Tanz",
@@ -33,6 +45,12 @@ async function ensureDanceStylesSeeded() {
         })
       )
     );
+
+    await prisma.systemSetting.upsert({
+      where: { key: "danceStylesSeeded" },
+      update: { value: "true" },
+      create: { key: "danceStylesSeeded", value: "true" },
+    });
   } catch {
     return;
   }

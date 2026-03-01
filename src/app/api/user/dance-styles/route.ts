@@ -28,8 +28,20 @@ async function requireUser() {
 
 async function ensureDanceStylesSeeded() {
   try {
+    const seededFlag = await prisma.systemSetting
+      .findUnique({ where: { key: "danceStylesSeeded" }, select: { value: true } })
+      .catch(() => null);
+    if (seededFlag?.value === "true") return;
+
     const existing = await prisma.danceStyle.count();
-    if (existing > 0) return;
+    if (existing > 0) {
+      await prisma.systemSetting.upsert({
+        where: { key: "danceStylesSeeded" },
+        update: { value: "true" },
+        create: { key: "danceStylesSeeded", value: "true" },
+      });
+      return;
+    }
 
     const tags = await prisma.tag.findMany({
       where: { isApproved: true },
@@ -61,6 +73,12 @@ async function ensureDanceStylesSeeded() {
         })
       )
     );
+
+    await prisma.systemSetting.upsert({
+      where: { key: "danceStylesSeeded" },
+      update: { value: "true" },
+      create: { key: "danceStylesSeeded", value: "true" },
+    });
   } catch {
     // best-effort only (z.B. wenn Tabellen/Migrationen noch fehlen)
   }
@@ -73,16 +91,24 @@ export async function GET() {
   try {
     await ensureDanceStylesSeeded();
 
+    const danceStyleDelegate = (prisma as unknown as {
+      danceStyle: { findMany: (args: unknown) => Promise<unknown> };
+    }).danceStyle;
+
+    const userDanceStyleDelegate = (prisma as unknown as {
+      userDanceStyle: { findMany: (args: unknown) => Promise<unknown> };
+    }).userDanceStyle;
+
     const [available, selected] = await Promise.all([
-      prisma.danceStyle.findMany({
+      danceStyleDelegate.findMany({
         orderBy: { name: "asc" },
         include: { aliases: { select: { name: true }, orderBy: { name: "asc" } } },
-      }),
-      prisma.userDanceStyle.findMany({
+      }) as Promise<unknown>,
+      userDanceStyleDelegate.findMany({
         where: { userId: session.user.id },
         include: { style: { include: { aliases: { select: { name: true }, orderBy: { name: "asc" } } } } },
         orderBy: { style: { name: "asc" } },
-      }),
+      }) as Promise<unknown>,
     ]);
 
     return NextResponse.json({ available, selected });

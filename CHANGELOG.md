@@ -159,6 +159,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Copper-Design: Header mit Branding-Farben, Button nutzt `--primary`, kleines Logo im Header (Branding-Logo mit Fallback)
 - Robustheit: Textumbruch/Scroll bei viel Inhalt, damit nichts aus dem Modal herausläuft
 
+### 💃 Tanzstile
+
+- Seed: Tanzstile werden nur einmal initial angelegt (Flag in `SystemSetting`) und nicht automatisch erneut erzeugt, wenn Admins Einträge löschen
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte
