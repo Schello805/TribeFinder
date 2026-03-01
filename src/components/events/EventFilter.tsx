@@ -133,14 +133,6 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
     }
   }, [debouncedLocation, lat, lng]);
 
-  useEffect(() => {
-    if (lat && lng) {
-      const next = String(radiusValue || "");
-      if (!next) return;
-      if (radius !== next) setRadius(next);
-    }
-  }, [lat, lng, radius, radiusValue]);
-
   const clearLocation = () => {
     setLocation("");
     setLat("");
@@ -167,10 +159,16 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1&accept-language=de`
           );
           if (res.ok) {
-            const data = (await res.json().catch(() => null)) as any;
-            const city = data?.address?.city || data?.address?.town || data?.address?.village;
-            if (typeof city === "string" && city.trim()) {
-              setLocation(city.trim());
+            const data = (await res.json().catch(() => null)) as unknown;
+            if (typeof data === "object" && data !== null) {
+              const address = "address" in data ? (data as { address?: unknown }).address : undefined;
+              if (typeof address === "object" && address !== null) {
+                const a = address as { city?: unknown; town?: unknown; village?: unknown };
+                const cityCandidate = a.city ?? a.town ?? a.village;
+                if (typeof cityCandidate === "string" && cityCandidate.trim()) {
+                  setLocation(cityCandidate.trim());
+                }
+              }
             }
           }
         } catch {

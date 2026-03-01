@@ -125,6 +125,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Events: Hinweis im Formular und auf der Detailseite, damit bestehende Events leichter um Tanzstile ergänzt werden können
 - Events: Filter erweitert um Standort/Umkreis (wie Gruppen) und Monats-Auswahl (nur Monate mit zukünftigen Events)
 - Events: Events-Header/Filter optisch an Gruppen-Seite angepasst (Button-Ausrichtung, Monats-Labels)
+- Events: Lint-Fixes im Event-Filter (kein setState im Effect, keine `any`-Typen)
 
 ### 👥 Gruppen
 
