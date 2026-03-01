@@ -67,7 +67,7 @@ export async function GET() {
               websiteUrl: string | null;
               videoUrl: string | null;
               description: string | null;
-              _count: { groups: number; users: number };
+              _count: { groupDanceStyles: number; userDanceStyles: number };
             }>
           >;
         };
@@ -94,14 +94,22 @@ export async function GET() {
         description: true,
         _count: {
           select: {
-            groups: true,
-            users: true,
+            groupDanceStyles: true,
+            userDanceStyles: true,
           },
         },
       },
     });
 
-    return NextResponse.json(styles);
+    return NextResponse.json(
+      styles.map((s) => ({
+        ...s,
+        _count: {
+          groups: s._count.groupDanceStyles,
+          users: s._count.userDanceStyles,
+        },
+      }))
+    );
   } catch (error) {
     console.error("/api/admin/dance-styles GET failed", error);
 
