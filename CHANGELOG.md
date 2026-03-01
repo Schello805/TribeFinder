@@ -147,6 +147,18 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Tests: Regressionstest für `POST /api/events` (inkl. `danceStyleIds`), damit kaputte Event-Erstellung sofort auffällt
 - Admin: Diagnostics prüft Prisma-Relation `Event.danceStyles` explizit
 
+## [Unreleased] - 2026-03-01
+
+### 🧰 Admin
+
+- Admin: Ankündigungen/„What's new“-Modal: Vorschau-Button im Editor (ohne Speichern)
+
+### 📣 What's new (Modal)
+
+- Neues globales „What's new“-Modal für eingeloggte Nutzer (zeigt neueste aktive Ankündigung einmal pro User, inkl. Dismissal)
+- Copper-Design: Header mit Branding-Farben, Button nutzt `--primary`, kleines Logo im Header (Branding-Logo mit Fallback)
+- Robustheit: Textumbruch/Scroll bei viel Inhalt, damit nichts aus dem Modal herausläuft
+
 ## [Unreleased] - 2026-02-20
 
 ### 🗺️ Karte
