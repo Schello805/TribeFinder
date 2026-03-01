@@ -126,6 +126,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Events: Filter erweitert um Standort/Umkreis (wie Gruppen) und Monats-Auswahl (nur Monate mit zukünftigen Events)
 - Events: Events-Header/Filter optisch an Gruppen-Seite angepasst (Button-Ausrichtung, Monats-Labels)
 
+### 👥 Gruppen
+
+- Gruppen: Tanzstile-Auswahl in der Gruppenerstellung auf Mobile (iOS/Android) repariert (Select-Overlay wurde durch Reload beim Fokus geschlossen)
+
 ### 🧭 Navigation
 
 - Navbar: API-Requests nutzen aktuelle Origin (kein CORS mehr bei Zugriff über lokale IP)
