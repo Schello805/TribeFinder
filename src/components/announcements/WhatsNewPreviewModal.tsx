@@ -63,7 +63,7 @@ export default function WhatsNewPreviewModal({ open, title, bullets, onClose }: 
 
               <div className="min-w-0">
                 <div className="text-xs uppercase tracking-wide text-[var(--muted)]">Vorschau</div>
-                <div className="tf-display text-2xl font-bold leading-tight">{title || "(ohne Titel)"}</div>
+                <div className="tf-display text-2xl font-bold leading-tight break-words">{title || "(ohne Titel)"}</div>
               </div>
               <button
                 type="button"
@@ -76,11 +76,13 @@ export default function WhatsNewPreviewModal({ open, title, bullets, onClose }: 
             </div>
           </div>
 
-          <div className="px-5 py-4 bg-[var(--surface)]">
+          <div className="px-5 py-4 bg-[var(--surface)] max-h-[70vh] overflow-auto">
             {bullets.length > 0 ? (
               <ul className="list-disc pl-5 space-y-2 text-sm text-[var(--foreground)]">
                 {bullets.map((b, idx) => (
-                  <li key={idx}>{b}</li>
+                  <li key={idx} className="whitespace-pre-wrap break-words">
+                    {b}
+                  </li>
                 ))}
               </ul>
             ) : (

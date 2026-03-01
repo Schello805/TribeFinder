@@ -122,7 +122,7 @@ export default function WhatsNewModal() {
 
               <div className="min-w-0">
                 <div className="text-xs uppercase tracking-wide text-[var(--muted)]">What&apos;s new</div>
-                <div className="tf-display text-2xl font-bold leading-tight">{item.title}</div>
+                <div className="tf-display text-2xl font-bold leading-tight break-words">{item.title}</div>
               </div>
 
               <button
@@ -137,11 +137,13 @@ export default function WhatsNewModal() {
             </div>
           </div>
 
-          <div className="px-5 py-4 bg-[var(--surface)]">
+          <div className="px-5 py-4 bg-[var(--surface)] max-h-[70vh] overflow-auto">
             {bulletLines.length > 0 ? (
               <ul className="list-disc pl-5 space-y-2 text-sm text-[var(--foreground)]">
                 {bulletLines.map((b, idx) => (
-                  <li key={idx}>{b}</li>
+                  <li key={idx} className="whitespace-pre-wrap break-words">
+                    {b}
+                  </li>
                 ))}
               </ul>
             ) : null}
