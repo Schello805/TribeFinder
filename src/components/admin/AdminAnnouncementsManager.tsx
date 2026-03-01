@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
+import WhatsNewPreviewModal from "@/components/announcements/WhatsNewPreviewModal";
 
 type Item = {
   id: string;
@@ -63,6 +64,8 @@ export default function AdminAnnouncementsManager() {
     return toIsoInputValue(d);
   });
   const [isActive, setIsActive] = useState<boolean>(true);
+
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -177,6 +180,15 @@ export default function AdminAnnouncementsManager() {
     }
   }, [bullets, editingId, isActive, load, resetForm, showFrom, showToast, showUntil, showUntilEnabled, title]);
 
+  const previewBullets = useMemo(
+    () =>
+      bullets
+        .split("\n")
+        .map((x) => x.trim())
+        .filter((x) => x.length > 0),
+    [bullets]
+  );
+
   const remove = useCallback(
     async (id: string) => {
       if (!confirm("Wirklich löschen?")) return;
@@ -199,6 +211,13 @@ export default function AdminAnnouncementsManager() {
 
   return (
     <div className="space-y-6">
+      <WhatsNewPreviewModal
+        open={previewOpen}
+        title={title.trim()}
+        bullets={previewBullets}
+        onClose={() => setPreviewOpen(false)}
+      />
+
       {activeNowCount > 1 ? (
         <div className="rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-900 px-4 py-3 text-sm">
           Achtung: Es sind aktuell mehrere aktive Ankündigungen gleichzeitig im Zeitfenster. Benutzer sehen nur die neueste.
@@ -296,6 +315,14 @@ export default function AdminAnnouncementsManager() {
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
             >
               {saving ? "Bitte warten…" : "Speichern"}
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => setPreviewOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+            >
+              Vorschau
             </button>
             <button
               type="button"
