@@ -23,6 +23,7 @@ export default function DashboardNotificationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [scrollToLocation, setScrollToLocation] = useState(false);
   const [prefs, setPrefs] = useState<Prefs>({
     emailNotifications: true,
     notifyDirectMessages: true,
@@ -48,6 +49,15 @@ export default function DashboardNotificationsPage() {
         .finally(() => setIsLoading(false));
     }
   }, [status, router]);
+
+  useEffect(() => {
+    if (!scrollToLocation) return;
+    setScrollToLocation(false);
+    setTimeout(() => {
+      const el = document.getElementById("tf-notify-location");
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }, [scrollToLocation]);
 
   const save = async () => {
     setIsSaving(true);
@@ -80,9 +90,38 @@ export default function DashboardNotificationsPage() {
 
   if (!session?.user) return null;
 
+  const missingNotifyLocation = prefs.notifyNewGroups && (!prefs.notifyLat || !prefs.notifyLng);
+
   return (
     <div className="space-y-4">
       <h2 className="tf-display text-2xl font-bold text-[var(--foreground)]">Benachrichtigungen</h2>
+      {missingNotifyLocation && (
+        <div className="bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] shadow sm:rounded-lg p-4">
+          <div className="tf-display text-sm font-medium text-[var(--foreground)]">Benachrichtigungen aktiv – Standort fehlt</div>
+          <div className="mt-1 text-sm text-[var(--muted)]">
+            Du bekommst standardmäßig Infos zu neuen Gruppen im Umkreis von {prefs.notifyRadius} km. Dafür brauchen wir deinen Standort.
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setScrollToLocation(true)}
+              className="tf-gothic-btn inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]"
+            >
+              Standort jetzt setzen
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                setPrefs((p) => ({ ...p, notifyNewGroups: false }));
+                await save();
+              }}
+              className="tf-gothic-btn inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border transition bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]"
+            >
+              Neue Gruppen deaktivieren
+            </button>
+          </div>
+        </div>
+      )}
       <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow sm:rounded-lg p-6 space-y-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
@@ -171,6 +210,7 @@ export default function DashboardNotificationsPage() {
           </div>
 
           <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-lg p-4 space-y-3">
+            <div id="tf-notify-location" />
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
                 <div className="text-sm font-medium text-[var(--foreground)]">Umkreis</div>
