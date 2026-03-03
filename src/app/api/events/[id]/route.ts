@@ -49,7 +49,12 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching event:", error);
     return NextResponse.json(
-      { message: "Fehler beim Laden des Events", details: error instanceof Error ? error.message : String(error) },
+      {
+        message: "Fehler beim Laden des Events",
+        ...(process.env.NODE_ENV !== "production"
+          ? { details: error instanceof Error ? error.message : String(error) }
+          : {}),
+      },
       { status: 500 }
     );
   }

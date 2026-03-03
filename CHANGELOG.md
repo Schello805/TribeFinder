@@ -32,6 +32,11 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Admin: Benutzer-Detailseite zeigt Online-Status + zusätzliche Debug-Felder (User ID, zuletzt aktualisiert)
 - Admin: Ankündigungen/„What's new“-Modal verwaltbar unter `/admin/announcements` (mit Zeitraum + Warnung bei mehreren aktiven)
 
+### 🗺️ Roadmap
+
+- Auth/Security: konsistente Rate-Limits + Schutz für Write-Endpoints (inkl. Abuse-Schutz und klare Auth-Matrix Tests)
+- Performance: Caching/ISR für öffentliche Listen (Gruppen/Events/Tänzerinnen/Marketplace) + Query-Optimierungen/Pagination
+
 ## [Unreleased] - 2026-02-25
 
 ### 💃 Tanzstile
