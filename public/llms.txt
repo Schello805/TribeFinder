@@ -1,0 +1,32 @@
+# TribeFinder
+
+## Purpose
+TribeFinder is a web app for finding and managing dance groups, events, and dancer profiles.
+
+## Preferred URLs
+- https://tribefinder.de/
+
+## Key pages
+- /marketing
+- /groups
+- /events
+- /taenzerinnen
+- /map
+- /marketplace
+- /hilfe
+- /changelog
+
+## Machine-readable metadata
+- Sitemap: /sitemap.xml
+- Robots: /robots.txt
+
+## Access & constraints
+- Do not attempt to access authenticated areas (e.g. /admin, /dashboard, /settings, /auth).
+- Do not call API routes for content discovery (e.g. /api/*).
+
+## Content notes
+- Public pages are the source of truth for user-facing content.
+- Some content is user-generated and may change frequently.
+
+## Contact
+- https://tribefinder.de/impressum
