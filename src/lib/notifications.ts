@@ -324,11 +324,13 @@ export async function notifyUsersAboutNewGroup(groupId: string, groupName: strin
 
     const subject = `Neue Tanzgruppe in deiner Nähe: ${groupName}`;
     const url = buildEmailUrl(`/groups/${groupId}`);
+    const settingsUrl = buildEmailUrl(`/dashboard/notifications`);
     const content = `
       ${emailHeading('Neue Tanzgruppe entdeckt! 💃')}
       ${emailText('Eine neue Tanzgruppe wurde in deiner Nähe erstellt:')}
       <h3 style="color: #6366f1; margin: 16px 0; font-size: 20px;">${groupName}</h3>
       ${url ? emailButton('Gruppe ansehen', url) : ''}
+      ${settingsUrl ? emailButton('Benachrichtigungen anpassen/deaktivieren', settingsUrl) : ''}
       ${emailText('<small style="color: #9ca3af;">Du erhältst diese E-Mail, weil du Benachrichtigungen für neue Gruppen aktiviert hast.</small>')}
     `;
 

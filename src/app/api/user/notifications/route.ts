@@ -9,9 +9,9 @@ const DEFAULT_PREFS = {
   emailNotifications: true,
   notifyDirectMessages: true,
   notifyInboxMessages: true,
-  notifyNewGroups: false,
+  notifyNewGroups: true,
   notifyNewEvents: false,
-  notifyRadius: 50,
+  notifyRadius: 100,
   notifyLat: null as number | null,
   notifyLng: null as number | null,
 };

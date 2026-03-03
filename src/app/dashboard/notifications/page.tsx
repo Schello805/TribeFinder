@@ -27,9 +27,9 @@ export default function DashboardNotificationsPage() {
     emailNotifications: true,
     notifyDirectMessages: true,
     notifyInboxMessages: false,
-    notifyNewGroups: false,
+    notifyNewGroups: true,
     notifyNewEvents: false,
-    notifyRadius: 50,
+    notifyRadius: 100,
     notifyLat: null,
     notifyLng: null,
   });

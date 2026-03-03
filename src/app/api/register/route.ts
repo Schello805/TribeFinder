@@ -63,6 +63,8 @@ export async function POST(req: Request) {
         dancerName: name, // Use name as default dancer name
         role,
         notifyInboxMessages: true,
+        notifyNewGroups: true,
+        notifyRadius: 100,
         emailVerified: autoVerify ? new Date() : null,
         verificationToken: verificationTokenHash,
         verificationTokenExpiry,
