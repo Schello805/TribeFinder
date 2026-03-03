@@ -10,11 +10,14 @@ export async function GET(req: Request) {
     const approvedOnly = searchParams.get('approvedOnly') === 'true';
     const type = (searchParams.get('type') || '').trim().toUpperCase();
 
+    const session = await getServerSession(authOptions).catch(() => null);
+    const isAdmin = session?.user?.role === "ADMIN";
+
     const where: { name?: { contains: string }; isApproved?: boolean; type?: "GENERAL" | "DIALECT" | "PROP" } = {};
     if (search) {
       where.name = { contains: search };
     }
-    if (approvedOnly) {
+    if (!isAdmin || approvedOnly) {
       where.isApproved = true;
     }
     if (type === "GENERAL" || type === "DIALECT" || type === "PROP") {
