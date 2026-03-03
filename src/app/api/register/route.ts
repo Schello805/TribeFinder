@@ -85,16 +85,22 @@ export async function POST(req: Request) {
       await sendEmail(email, 'E-Mail bestätigen - TribeFinder', html);
     }
 
-    // Entferne das Passwort aus der Antwort
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _password, ...userWithoutPassword } = user;
+    const safeUser = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+      role: user.role,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+    };
 
     return NextResponse.json(
       {
         message: autoVerify
           ? "Registrierung erfolgreich. Admin-Account ist bereits verifiziert."
           : "Registrierung erfolgreich. Bitte bestätige deine E-Mail-Adresse (Link 24h gültig), bevor du dich anmelden kannst.",
-        user: userWithoutPassword,
+        user: safeUser,
       },
       { status: 201 }
     );

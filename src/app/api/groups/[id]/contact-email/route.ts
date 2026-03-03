@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse } from "@/lib/rateLimit";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;
+
+  const session = await getServerSession(authOptions).catch(() => null);
+  if (!session?.user?.id) {
+    return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
+  }
 
   const clientId = getClientIdentifier(req);
   const rateCheck = checkRateLimit(`groups:contact-email:${clientId}:${id}`, { limit: 5, windowSeconds: 60 });
