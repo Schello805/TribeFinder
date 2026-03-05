@@ -341,37 +341,91 @@ export default function Map({ groups, events = [], availableTags = [], links = [
       ? groups.filter((g) => g.tags?.some((t) => t.name === selectedTag))
       : groups;
 
+    const isLinkVisible = (link: MapLink) => {
+      const categoryName = (link.category || "").trim();
+      if (!categoryName) return showUncategorizedLinks;
+      return selectedLinkCategoryNames.has(categoryName);
+    };
+
+    const visibleLinks = (links || []).filter((link) => {
+      const lat = typeof link.lat === "number" ? link.lat : null;
+      const lng = typeof link.lng === "number" ? link.lng : null;
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+      return isLinkVisible(link);
+    });
+
+    const visibleGroups = (filteredGroups || []).filter((group) => {
+      const lat = group.location?.lat;
+      const lng = group.location?.lng;
+      return typeof lat === "number" && Number.isFinite(lat) && typeof lng === "number" && Number.isFinite(lng);
+    });
+
+    const visibleEvents = (events || []).filter((event) => {
+      const lat = typeof event.lat === "number" ? event.lat : null;
+      const lng = typeof event.lng === "number" ? event.lng : null;
+      return Number.isFinite(lat) && Number.isFinite(lng);
+    });
+
+    // Build deterministic jitter map for points shared between groups and links,
+    // so markers from different types don't overlap.
+    const pointMarkerKeys = new globalThis.Map<string, string[]>();
+    const addPointKey = (lat: number, lng: number, markerKey: string) => {
+      const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+      const arr = pointMarkerKeys.get(key) || [];
+      arr.push(markerKey);
+      pointMarkerKeys.set(key, arr);
+    };
+
+    for (const group of visibleGroups) {
+      addPointKey(group.location!.lat, group.location!.lng, `G:${group.id}`);
+    }
+    for (const link of visibleLinks) {
+      addPointKey(link.lat as number, link.lng as number, `L:${link.id}`);
+    }
+    for (const event of visibleEvents) {
+      addPointKey(event.lat as number, event.lng as number, `E:${event.id}`);
+    }
+
+    for (const [k, arr] of pointMarkerKeys.entries()) {
+      arr.sort();
+      pointMarkerKeys.set(k, arr);
+    }
+
     // Add markers for groups
     if (showGroups) {
       filteredGroups.forEach((group) => {
         if (group.location) {
-          // Logo Logic
-        const logoHtml = group.image 
-          ? `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] overflow-hidden shadow-lg flex items-center justify-center z-10">
-               <img src="${group.image}" alt="${group.name}" class="w-full h-full object-contain p-1" />
-             </div>`
-          : `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] flex items-center justify-center shadow-lg z-10">
-               <span class="tf-display text-2xl font-bold text-[var(--link)]">${group.name.charAt(0)}</span>
-             </div>`;
-        
-        // Website Logic
-        const websiteHtml = group.website
-          ? `<a href="${group.website}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-[var(--link)] hover:opacity-90 text-xs font-medium truncate transition-colors bg-[var(--surface-2)] px-2 py-1 rounded-full border border-[var(--border)]">
-               <svg class="w-3 h-3 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
-               ${group.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-             </a>`
-          : '';
+          const pointKey = `${group.location.lat.toFixed(6)},${group.location.lng.toFixed(6)}`;
+          const keys = pointMarkerKeys.get(pointKey) || [];
+          const index = keys.findIndex((x) => x === `G:${group.id}`);
+          const j = jitterLatLng(group.location.lat, group.location.lng, pointKey, Math.max(0, index), keys.length);
 
-        const marker = L.marker([group.location.lat, group.location.lng], { icon: groupIcon })
-          .bindPopup(`
-            <div class="min-w-[260px] font-sans -m-1">
-              <!-- Card Header -->
-              <div class="relative h-24 bg-[var(--primary)] rounded-t-lg shadow-inner">
-                 <!-- Decorative pattern/overlay could go here -->
-                 <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                 ${logoHtml}
-              </div>
-              
+          // Logo Logic
+          const logoHtml = group.image 
+            ? `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] overflow-hidden shadow-lg flex items-center justify-center z-10">
+                 <img src="${group.image}" alt="${group.name}" class="w-full h-full object-contain p-1" />
+               </div>`
+            : `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] flex items-center justify-center shadow-lg z-10">
+                 <span class="tf-display text-2xl font-bold text-[var(--link)]">${group.name.charAt(0)}</span>
+               </div>`;
+        
+          // Website Logic
+          const websiteHtml = group.website
+            ? `<a href="${group.website}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-[var(--link)] hover:opacity-90 text-xs font-medium truncate transition-colors bg-[var(--surface-2)] px-2 py-1 rounded-full border border-[var(--border)]">
+                 <svg class="w-3 h-3 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                 ${group.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+               </a>`
+            : '';
+
+          const marker = L.marker([j.lat, j.lng], { icon: groupIcon })
+            .bindPopup(`
+              <div class="min-w-[260px] font-sans -m-1">
+                <!-- Card Header -->
+                <div class="p-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-lg border border-[var(--border)]">
+                   <!-- Decorative pattern/overlay could go here -->
+                   <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                   ${logoHtml}
+                </div>
               <!-- Card Body -->
               <div class="pt-12 pb-5 px-5 text-center bg-[var(--surface)] rounded-b-lg shadow-xl border-x border-b border-[var(--border)]">
                 <h3 class="tf-display font-extrabold text-xl text-[var(--foreground)] leading-tight mb-1">${group.name}</h3>
@@ -436,7 +490,12 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         const organizerName = ((event.organizer || '').trim() || (event.group?.name || '').trim());
         const flyerUrl = normalizeUploadedImageUrl((event.flyer1 || event.flyer2 || '').trim()) || '';
         
-        const marker = L.marker([lat!, lng!], { icon: eventIcon })
+        const pointKey = `${lat!.toFixed(6)},${lng!.toFixed(6)}`;
+        const keys = pointMarkerKeys.get(pointKey) || [];
+        const index = keys.findIndex((x) => x === `E:${event.id}`);
+        const j = jitterLatLng(lat!, lng!, pointKey, Math.max(0, index), keys.length);
+
+        const marker = L.marker([j.lat, j.lng], { icon: eventIcon })
           .bindPopup(`
             <div class="min-w-[260px] font-sans -m-1">
               <div class="p-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-lg border border-[var(--border)]">
@@ -475,41 +534,14 @@ export default function Map({ groups, events = [], availableTags = [], links = [
 
     // Add markers for external links
     if (showUncategorizedLinks || selectedLinkCategoryNames.size > 0) {
-      const byPoint = new globalThis.Map<string, MapLink[]>();
-      for (const link of links || []) {
-        const lat = typeof link.lat === "number" ? link.lat : null;
-        const lng = typeof link.lng === "number" ? link.lng : null;
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+      for (const link of visibleLinks) {
+        const lat = link.lat as number;
+        const lng = link.lng as number;
 
-        const categoryName = (link.category || "").trim();
-        if (!categoryName) {
-          if (!showUncategorizedLinks) continue;
-        } else {
-          if (!selectedLinkCategoryNames.has(categoryName)) continue;
-        }
-
-        const key = `${lat!.toFixed(6)},${lng!.toFixed(6)}`;
-        const arr = byPoint.get(key) || [];
-        arr.push(link);
-        byPoint.set(key, arr);
-      }
-
-      for (const link of links || []) {
-        const lat = typeof link.lat === "number" ? link.lat : null;
-        const lng = typeof link.lng === "number" ? link.lng : null;
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-
-        const categoryName = (link.category || "").trim();
-        if (!categoryName) {
-          if (!showUncategorizedLinks) continue;
-        } else {
-          if (!selectedLinkCategoryNames.has(categoryName)) continue;
-        }
-
-        const pointKey = `${lat!.toFixed(6)},${lng!.toFixed(6)}`;
-        const siblings = byPoint.get(pointKey) || [];
-        const index = siblings.findIndex((x) => x.id === link.id);
-        const j = jitterLatLng(lat!, lng!, pointKey, Math.max(0, index), siblings.length);
+        const pointKey = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+        const keys = pointMarkerKeys.get(pointKey) || [];
+        const index = keys.findIndex((x) => x === `L:${link.id}`);
+        const j = jitterLatLng(lat, lng, pointKey, Math.max(0, index), keys.length);
 
         const locationText = [link.postalCode, link.city].filter(Boolean).join(" ");
         const categoryText = (link.category || "").trim();
