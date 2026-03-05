@@ -96,7 +96,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Admin: Einmaliger Backfill-Endpoint zum Nachziehen von Link-Kategorien aus bestehenden Link-Daten (für laufende Systeme)
 - Admin: Link-Kategorien können umbenannt/gelöscht werden (bei Verwendung wird Löschen verhindert)
 - Karte: Link-Filter zeigt Kategorien einzeln (statt pauschal "Links"); Admin kann pro Kategorie steuern, ob sie auf der Karte angezeigt wird ("In Karte anzeigen")
-- Startseite: Links-Kennzahl zeigt Gesamtzahl der freigegebenen Link-Einträge; Klick zeigt Aufschlüsselung nach Kategorie
+- Startseite: Links-Kennzahlen zeigen Gesamtzahl der freigegebenen Link-Einträge sowie eine Kachel pro Kategorie (mit Anzahl)
 
 ### 🧰 Admin
 

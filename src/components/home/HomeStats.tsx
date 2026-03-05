@@ -22,13 +22,11 @@ type Props = {
   globalGroups: number;
   globalEvents: number;
   globalMembers: number;
-  globalLinkCount: number;
   globalLinkCountsByCategory: Array<{ category: string; count: number }>;
 };
 
 type ActiveSheet =
   | { scope: "global" | "nearby"; type: "groups" | "events" | "members" }
-  | { scope: "global"; type: "links" }
   | null;
 
 type EventItem = {
@@ -104,7 +102,7 @@ function weekendRangeBerlin(anchor: Date, which: "this" | "next") {
   return { start, end };
 }
 
-export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, globalMembers, globalLinkCount, globalLinkCountsByCategory }: Props) {
+export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, globalMembers, globalLinkCountsByCategory }: Props) {
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [nearbyDenied, setNearbyDenied] = useState(false);
   const [nearbyStats, setNearbyStats] = useState<NearbyStatsResponse | null>(null);
@@ -177,7 +175,6 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
     const scopeLabel = sheet.scope === "nearby" ? `In deiner Nähe (${radiusKm}km)` : "Gesamt";
     if (sheet.type === "groups") return `${scopeLabel}: Gruppen`;
     if (sheet.type === "events") return `${scopeLabel}: Events`;
-    if (sheet.type === "links") return `${scopeLabel}: Links`;
     return `${scopeLabel}: Mitglieder`;
   }, [radiusKm, sheet]);
 
@@ -187,11 +184,6 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
     setSheetLoading(true);
     try {
       if (sheet.type === "members") {
-        setItems([]);
-        return;
-      }
-
-      if (sheet.type === "links") {
         setItems([]);
         return;
       }
@@ -310,16 +302,30 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
           <div className="mt-1 text-sm text-[var(--muted)]">in der Community</div>
         </button>
 
-        <button
-          type="button"
-          onClick={() => openSheet({ scope: "global", type: "links" })}
-          className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition"
-        >
+        <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center">
           <div className="text-sm text-[var(--muted)]">Links</div>
-          <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{globalLinkCount}</div>
+          <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">
+            {globalLinkCountsByCategory.reduce((sum, x) => sum + x.count, 0)}
+          </div>
           <div className="mt-1 text-sm text-[var(--muted)]">Einträge</div>
-        </button>
+        </div>
       </div>
+
+      {globalLinkCountsByCategory.length > 0 ? (
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {globalLinkCountsByCategory.map((x) => (
+            <Link
+              key={x.category}
+              href="/links"
+              className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition"
+            >
+              <div className="text-sm text-[var(--muted)] truncate">{x.category}</div>
+              <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{x.count}</div>
+              <div className="mt-1 text-sm text-[var(--muted)]">Einträge</div>
+            </Link>
+          ))}
+        </div>
+      ) : null}
 
       <div className="mt-10 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-6">
         <div className="text-center">
@@ -382,33 +388,7 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
       </div>
 
       <BottomSheet open={Boolean(sheet)} title={sheetTitle} onClose={closeSheet}>
-        {sheet?.type === "links" ? (
-          <div className="space-y-4">
-            {globalLinkCountsByCategory.length === 0 ? (
-              <div className="text-sm text-[var(--muted)]">Keine Links vorhanden.</div>
-            ) : (
-              <div className="space-y-2">
-                {globalLinkCountsByCategory.map((x) => (
-                  <div
-                    key={x.category}
-                    className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3"
-                  >
-                    <div className="min-w-0">
-                      <div className="tf-display text-sm font-bold text-[var(--foreground)] truncate">{x.category}</div>
-                    </div>
-                    <div className="ml-4 text-sm font-semibold text-[var(--foreground)]">{x.count}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="pt-1">
-              <Link href="/links" className="text-sm font-semibold text-[var(--link)] hover:opacity-90 transition">
-                Alle Links ansehen
-              </Link>
-            </div>
-          </div>
-        ) : sheet?.type === "members" ? (
+        {sheet?.type === "members" ? (
           <div className="space-y-3 text-sm text-[var(--muted)]">
             <div>
               Diese Kennzahl zählt Gruppen-Mitgliedschaften im Umkreis. Eine direkte Mitglieder-Liste zeigen wir hier nicht.

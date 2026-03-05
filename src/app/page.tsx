@@ -17,7 +17,6 @@ export default async function Home() {
   let groupCount = 0;
   let eventCount = 0;
   let userCount = 0;
-  let linkCount = 0;
   let linkCountsByCategory: Array<{ category: string; count: number }> = [];
   let brandingLogoUrl = "";
   let upcomingEvents: Array<{
@@ -48,7 +47,6 @@ export default async function Home() {
 
     normalizedLinkCounts.sort((a, b) => b.count - a.count || a.category.localeCompare(b.category));
     linkCountsByCategory = normalizedLinkCounts;
-    linkCount = normalizedLinkCounts.reduce((sum, x) => sum + x.count, 0);
 
     const [g, e, u, settings, events] = await Promise.all([
       prisma.group.count(),
@@ -176,7 +174,6 @@ export default async function Home() {
             globalGroups={groupCount}
             globalEvents={eventCount}
             globalMembers={userCount}
-            globalLinkCount={linkCount}
             globalLinkCountsByCategory={linkCountsByCategory}
           />
         </div>
