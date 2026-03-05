@@ -8,6 +8,9 @@ type ExternalLinkAdminRow = {
   id: string;
   url: string;
   title: string;
+  category: string | null;
+  postalCode: string | null;
+  city: string | null;
   status: string;
   submittedBy: { id: string; email: string; name: string | null };
   approvedBy: { id: string; email: string; name: string | null } | null;
@@ -53,6 +56,9 @@ export async function GET(req: Request) {
       id: true,
       url: true,
       title: true,
+      category: true,
+      postalCode: true,
+      city: true,
       status: true,
       submittedBy: { select: { id: true, email: true, name: true } },
       approvedBy: { select: { id: true, email: true, name: true } },

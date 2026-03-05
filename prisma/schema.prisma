@@ -129,6 +129,10 @@ model ExternalLink {
   url   String @unique
   title String
 
+  category   String?
+  postalCode String?
+  city       String?
+
   status String @default("PENDING") // PENDING, APPROVED, REJECTED, OFFLINE
 
   submittedById String

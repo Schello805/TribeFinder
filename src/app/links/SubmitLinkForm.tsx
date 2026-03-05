@@ -10,6 +10,9 @@ export default function SubmitLinkForm() {
 
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   const canSubmit = status === "authenticated" && url.trim().length > 0 && title.trim().length > 0;
@@ -21,7 +24,13 @@ export default function SubmitLinkForm() {
       const res = await fetch("/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, title }),
+        body: JSON.stringify({
+          url,
+          title,
+          category: category.trim() || undefined,
+          postalCode: postalCode.trim() || undefined,
+          city: city.trim() || undefined,
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as { message?: string };
       if (!res.ok) {
@@ -30,6 +39,9 @@ export default function SubmitLinkForm() {
       }
       setUrl("");
       setTitle("");
+      setCategory("");
+      setPostalCode("");
+      setCity("");
       showToast("Danke! Dein Link wurde zur Prüfung eingereicht.", "success");
     } finally {
       setIsSaving(false);
@@ -61,6 +73,37 @@ export default function SubmitLinkForm() {
             placeholder="Name der Website"
             className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)]"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Kategorie (optional)</label>
+          <input
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="z.B. Tanzschule"
+            className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)]"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground)]">PLZ (optional)</label>
+            <input
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
+              placeholder="12345"
+              className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)]"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground)]">Ort (optional)</label>
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value.replace(/[^\p{L}\s\-.'’]/gu, "").slice(0, 80))}
+              placeholder="Berlin"
+              className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)]"
+            />
+          </div>
         </div>
       </div>
 

@@ -8,12 +8,18 @@ import logger from "@/lib/logger";
 const createSchema = z.object({
   url: z.string().url().max(500),
   title: z.string().min(2).max(120),
+  category: z.string().min(2).max(40).optional(),
+  postalCode: z.string().regex(/^\d{5}$/).optional(),
+  city: z.string().min(2).max(80).optional(),
 });
 
 type ExternalLinkRow = {
   id: string;
   url: string;
   title: string;
+  category: string | null;
+  postalCode: string | null;
+  city: string | null;
   status: string;
   lastCheckedAt: Date | null;
   lastStatusCode: number | null;
@@ -61,6 +67,9 @@ export async function GET(req: Request) {
       id: true,
       url: true,
       title: true,
+      category: true,
+      postalCode: true,
+      city: true,
       status: true,
       lastCheckedAt: true,
       lastStatusCode: true,
@@ -105,6 +114,9 @@ export async function POST(req: Request) {
       data: {
         url: parsed.data.url.trim(),
         title: parsed.data.title.trim(),
+        category: parsed.data.category ? parsed.data.category.trim() : null,
+        postalCode: parsed.data.postalCode ? parsed.data.postalCode.trim() : null,
+        city: parsed.data.city ? parsed.data.city.trim() : null,
         status: "PENDING",
         submittedById: session.user.id,
       },

@@ -12,6 +12,9 @@ type ExternalLinkPublicRow = {
   id: string;
   url: string;
   title: string;
+  category: string | null;
+  postalCode: string | null;
+  city: string | null;
   status: string;
   lastCheckedAt: Date | null;
   lastStatusCode: number | null;
@@ -46,6 +49,9 @@ export default async function LinksPage() {
       id: true,
       url: true,
       title: true,
+      category: true,
+      postalCode: true,
+      city: true,
       status: true,
       lastCheckedAt: true,
       lastStatusCode: true,
@@ -83,6 +89,16 @@ export default async function LinksPage() {
                 className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 hover:bg-[var(--surface-hover)] transition"
               >
                 <div className="font-semibold text-[var(--foreground)] line-clamp-2">{x.title}</div>
+                <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-[var(--muted)]">
+                  {x.category ? (
+                    <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">{x.category}</span>
+                  ) : null}
+                  {x.postalCode || x.city ? (
+                    <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">
+                      {[x.postalCode, x.city].filter(Boolean).join(" ")}
+                    </span>
+                  ) : null}
+                </div>
                 <div className="mt-1 text-xs text-[var(--muted)] break-all">{x.url}</div>
                 <div className="mt-2 text-[10px] text-[var(--muted)]">
                   {x.lastCheckedAt ? (
@@ -109,6 +125,16 @@ export default async function LinksPage() {
             {archived.map((x: ExternalLinkPublicRow) => (
               <div key={x.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4">
                 <div className="font-semibold text-[var(--foreground)] line-clamp-2">{x.title}</div>
+                <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-[var(--muted)]">
+                  {x.category ? (
+                    <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">{x.category}</span>
+                  ) : null}
+                  {x.postalCode || x.city ? (
+                    <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">
+                      {[x.postalCode, x.city].filter(Boolean).join(" ")}
+                    </span>
+                  ) : null}
+                </div>
                 <div className="mt-1 text-xs text-[var(--muted)] break-all">{x.url}</div>
                 <div className="mt-2 text-[10px] text-[var(--muted)]">
                   offline (HTTP {x.lastStatusCode ?? "?"})

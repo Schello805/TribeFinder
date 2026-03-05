@@ -7,6 +7,9 @@ type LinkRow = {
   id: string;
   url: string;
   title: string;
+  category: string | null;
+  postalCode: string | null;
+  city: string | null;
   status: string;
   submittedBy: { id: string; email: string; name: string | null };
   approvedBy: { id: string; email: string; name: string | null } | null;
@@ -80,6 +83,7 @@ export default function AdminLinksManager() {
   const renderRow = (x: LinkRow) => {
     const checked = x.lastCheckedAt ? new Date(x.lastCheckedAt).toLocaleDateString("de-DE") : "-";
     const created = x.createdAt ? new Date(x.createdAt).toLocaleDateString("de-DE") : "-";
+    const locationText = [x.postalCode, x.city].filter(Boolean).join(" ");
 
     return (
       <div key={x.id} className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -87,6 +91,18 @@ export default function AdminLinksManager() {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{x.title}</div>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {x.category ? (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                    {x.category}
+                  </span>
+                ) : null}
+                {locationText ? (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
+                    {locationText}
+                  </span>
+                ) : null}
+              </div>
               <a href={x.url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:underline break-all">
                 {x.url}
               </a>
