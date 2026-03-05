@@ -183,7 +183,9 @@ export default async function RootLayout({
   const themePreset = themePresetNormalized === "copper" || themePresetNormalized === "nocturne" ? themePresetNormalized : "default";
 
   const appCommit = (process.env.NEXT_PUBLIC_APP_COMMIT || "").trim();
-  const appVersion = ((process.env.NEXT_PUBLIC_APP_VERSION || "").trim() || (await readAppVersionFallback()));
+  const versionFromPackageJson = await readAppVersionFallback();
+  const versionFromEnv = (process.env.NEXT_PUBLIC_APP_VERSION || "").trim();
+  const appVersion = (versionFromPackageJson || versionFromEnv).trim();
 
   const maintenanceModeEnabled = (() => {
     const v = String(process.env.MAINTENANCE_MODE || "").trim().toLowerCase();
