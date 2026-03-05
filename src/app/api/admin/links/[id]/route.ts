@@ -25,6 +25,14 @@ function getExternalLinkDelegate(p: typeof prisma) {
       };
 }
 
+function getCategoryDelegate(p: typeof prisma) {
+  return (p as unknown as { externalLinkCategory?: unknown }).externalLinkCategory as
+    | undefined
+    | {
+        findUnique: (args: unknown) => Promise<{ id: string; name: string } | null>;
+      };
+}
+
 const updateSchema = z.object({
   url: z.string().trim().url().max(500).optional(),
   title: z.string().trim().min(2).max(120).optional(),
@@ -42,6 +50,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
   const { id } = await params;
 
   const delegate = getExternalLinkDelegate(prisma);
+  const categoryDelegate = getCategoryDelegate(prisma);
   if (!delegate) {
     return NextResponse.json(
       { message: "Server ist nicht aktuell (Prisma Client). Bitte `npm run db:generate` ausführen und den Server neu starten." },
@@ -53,6 +62,20 @@ export async function PUT(req: Request, { params }: RouteParams) {
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ message: "Validierungsfehler", errors: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const categoryName = typeof parsed.data.category === "string" ? parsed.data.category.trim() : "";
+  if (categoryName) {
+    if (!categoryDelegate) {
+      return NextResponse.json(
+        { message: "Server ist nicht aktuell (Prisma Client). Bitte `npm run db:generate` ausführen und den Server neu starten." },
+        { status: 500 }
+      );
+    }
+    const cat = await categoryDelegate.findUnique({ where: { name: categoryName }, select: { id: true, name: true } });
+    if (!cat) {
+      return NextResponse.json({ message: "Unbekannte Kategorie. Bitte zuerst anlegen." }, { status: 400 });
+    }
   }
 
   const existing = await delegate.findUnique({
@@ -101,7 +124,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
     data: {
       url: typeof parsed.data.url === "string" ? parsed.data.url : undefined,
       title: typeof parsed.data.title === "string" ? parsed.data.title : undefined,
-      category: typeof parsed.data.category !== "undefined" ? parsed.data.category : undefined,
+      category: typeof parsed.data.category !== "undefined" ? categoryName || null : undefined,
       postalCode: typeof parsed.data.postalCode !== "undefined" ? parsed.data.postalCode : undefined,
       city: typeof parsed.data.city !== "undefined" ? parsed.data.city : undefined,
       lat,

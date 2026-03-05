@@ -168,6 +168,16 @@ model ExternalLink {
   @@index([submittedById])
 }
 
+model ExternalLinkCategory {
+  id   String @id @default(cuid())
+  name String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
 enum ExternalLinkSuggestionStatus {
   PENDING
   APPROVED

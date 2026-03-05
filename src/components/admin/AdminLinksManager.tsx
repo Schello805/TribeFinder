@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
 import AdminLinkSuggestionsManager from "@/components/admin/AdminLinkSuggestionsManager";
 
+type CategoryItem = { id: string; name: string };
+
 type LinkRow = {
   id: string;
   url: string;
@@ -38,6 +40,9 @@ export default function AdminLinksManager() {
   const { showToast } = useToast();
 
   const [tab, setTab] = useState<"LINKS" | "SUGGESTIONS">("LINKS");
+
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
   const [items, setItems] = useState<LinkRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,6 +81,54 @@ export default function AdminLinksManager() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
+
+  const loadCategories = async () => {
+    setIsLoadingCategories(true);
+    try {
+      const res = await fetch("/api/admin/link-categories", { cache: "no-store" });
+      const data = (await res.json().catch(() => [])) as unknown;
+      if (!res.ok || !Array.isArray(data)) {
+        setCategories([]);
+        return;
+      }
+      setCategories(data as CategoryItem[]);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadCategories();
+  }, []);
+
+  const addCategory = async () => {
+    const nameRaw = prompt("Neue Kategorie (z.B. Tanzschule)");
+    const name = (nameRaw || "").trim();
+    if (!name) return;
+
+    try {
+      const res = await fetch("/api/admin/link-categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { message?: string; name?: string };
+      if (!res.ok) {
+        showToast(data.message || "Konnte nicht gespeichert werden", "error");
+        return;
+      }
+      await loadCategories();
+      showToast("OK", "success");
+      if (typeof data?.name === "string") {
+        setCreateCategory(data.name);
+        if (editDraft) {
+          setEditDraft({ ...editDraft, category: data.name });
+        }
+      }
+    } catch {
+      showToast("Konnte nicht gespeichert werden", "error");
+    }
+  };
 
   const create = async () => {
     const url = createUrl.trim();
@@ -230,12 +283,28 @@ export default function AdminLinksManager() {
                     className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
                   />
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <input
-                      value={editDraft.category}
-                      onChange={(e) => setEditDraft({ ...editDraft, category: e.target.value })}
-                      placeholder="Kategorie"
-                      className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
-                    />
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={editDraft.category}
+                        onChange={(e) => setEditDraft({ ...editDraft, category: e.target.value })}
+                        className="flex-1 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm appearance-none"
+                        disabled={isLoadingCategories}
+                      >
+                        <option value="">Keine Kategorie</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => void addCategory()}
+                        className="px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900"
+                      >
+                        +
+                      </button>
+                    </div>
                     <input
                       value={editDraft.postalCode}
                       onChange={(e) => setEditDraft({ ...editDraft, postalCode: e.target.value.replace(/\D/g, "").slice(0, 5) })}
@@ -444,12 +513,28 @@ export default function AdminLinksManager() {
                   placeholder="https://..."
                   className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
                 />
-                <input
-                  value={createCategory}
-                  onChange={(e) => setCreateCategory(e.target.value)}
-                  placeholder="Kategorie"
-                  className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
-                />
+                <div className="flex items-center gap-2">
+                  <select
+                    value={createCategory}
+                    onChange={(e) => setCreateCategory(e.target.value)}
+                    className="flex-1 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm appearance-none"
+                    disabled={isLoadingCategories}
+                  >
+                    <option value="">Keine Kategorie</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => void addCategory()}
+                    className="px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900"
+                  >
+                    +
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     value={createPostalCode}

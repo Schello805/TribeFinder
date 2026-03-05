@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ui/Toast";
+
+type CategoryItem = { id: string; name: string };
 
 export default function SubmitLinkForm() {
   const { data: session, status } = useSession();
   const { showToast } = useToast();
+
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
@@ -15,7 +20,39 @@ export default function SubmitLinkForm() {
   const [city, setCity] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const canSubmit = status === "authenticated" && url.trim().length > 0 && title.trim().length > 0;
+  useEffect(() => {
+    let alive = true;
+    const loadCategories = async () => {
+      setIsLoadingCategories(true);
+      try {
+        const res = await fetch("/api/link-categories", { cache: "no-store" });
+        const data = (await res.json().catch(() => [])) as unknown;
+        if (!alive) return;
+        if (Array.isArray(data)) {
+          setCategories(data as CategoryItem[]);
+        } else {
+          setCategories([]);
+        }
+      } catch {
+        if (!alive) return;
+        setCategories([]);
+        showToast("Kategorien konnten nicht geladen werden", "error");
+      } finally {
+        if (!alive) return;
+        setIsLoadingCategories(false);
+      }
+    };
+
+    void loadCategories();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const canSubmit = useMemo(() => {
+    return status === "authenticated" && url.trim().length > 0 && title.trim().length > 0;
+  }, [status, title, url]);
 
   const submit = async () => {
     if (!session?.user) return;
@@ -77,12 +114,19 @@ export default function SubmitLinkForm() {
 
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)]">Kategorie (optional)</label>
-          <input
+          <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            placeholder="z.B. Tanzschule"
-            className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)]"
-          />
+            className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)] appearance-none"
+            disabled={isLoadingCategories}
+          >
+            <option value="">Keine Kategorie</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

@@ -29,6 +29,14 @@ function getLinkDelegate(p: typeof prisma) {
       };
 }
 
+function getCategoryDelegate(p: typeof prisma) {
+  return (p as unknown as { externalLinkCategory?: unknown }).externalLinkCategory as
+    | undefined
+    | {
+        findUnique: (args: unknown) => Promise<{ id: string; name: string } | null>;
+      };
+}
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -44,6 +52,7 @@ export async function POST(req: Request) {
 
   const suggestionDelegate = getSuggestionDelegate(prisma);
   const linkDelegate = getLinkDelegate(prisma);
+  const categoryDelegate = getCategoryDelegate(prisma);
 
   if (!suggestionDelegate || !linkDelegate) {
     return NextResponse.json(
@@ -61,6 +70,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Validierungsfehler", errors: parsed.error.flatten() }, { status: 400 });
   }
 
+  const categoryName = typeof parsed.data.category === "string" ? parsed.data.category.trim() : "";
+  if (categoryName) {
+    if (!categoryDelegate) {
+      return NextResponse.json(
+        {
+          message:
+            "Server ist nicht aktuell (Prisma Client). Bitte `npm run db:generate` ausführen und den Server neu starten.",
+        },
+        { status: 500 }
+      );
+    }
+    const cat = await categoryDelegate.findUnique({ where: { name: categoryName }, select: { id: true, name: true } });
+    if (!cat) {
+      return NextResponse.json({ message: "Unbekannte Kategorie. Bitte wähle eine Kategorie aus der Liste." }, { status: 400 });
+    }
+  }
+
   const link = await linkDelegate.findUnique({ where: { id: parsed.data.linkId }, select: { id: true, status: true } });
   if (!link) return NextResponse.json({ message: "Link nicht gefunden" }, { status: 404 });
   if (link.status !== "APPROVED") {
@@ -72,7 +98,7 @@ export async function POST(req: Request) {
       linkId: parsed.data.linkId,
       url: parsed.data.url,
       title: parsed.data.title,
-      category: parsed.data.category ?? null,
+      category: categoryName || null,
       postalCode: parsed.data.postalCode ?? null,
       city: parsed.data.city ?? null,
       createdById: session.user.id,

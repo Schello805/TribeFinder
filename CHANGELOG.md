@@ -90,6 +90,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Links unterstützen Kategorien (z.B. Tanzschule) sowie PLZ/Ort als Grundlage für zukünftige Karten-Integration
 - Standort wird best-effort geocoded (PLZ/Ort → `lat/lng`) für spätere Karten-Integration
 - Karte (`/map`): Links werden als Marker angezeigt (inkl. Kategorie im Popup; Toggle im Filter)
+- Kategorien für Links sind nun als verwaltete Dropdown-Liste umgesetzt (User/Admin/Suggestions); Admin kann Kategorien einsehen und neue anlegen
 
 ### 🧰 Admin
 

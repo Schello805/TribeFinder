@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ui/Toast";
+
+type CategoryItem = { id: string; name: string };
 
 type Props = {
   link: {
@@ -19,6 +21,9 @@ export default function SuggestLinkEditForm({ link }: Props) {
   const { data: session, status } = useSession();
   const { showToast } = useToast();
 
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -27,6 +32,30 @@ export default function SuggestLinkEditForm({ link }: Props) {
   const [category, setCategory] = useState(link.category || "");
   const [postalCode, setPostalCode] = useState(link.postalCode || "");
   const [city, setCity] = useState(link.city || "");
+
+  useEffect(() => {
+    let alive = true;
+    const loadCategories = async () => {
+      setIsLoadingCategories(true);
+      try {
+        const res = await fetch("/api/link-categories", { cache: "no-store" });
+        const data = (await res.json().catch(() => [])) as unknown;
+        if (!alive) return;
+        setCategories(Array.isArray(data) ? (data as CategoryItem[]) : []);
+      } catch {
+        if (!alive) return;
+        setCategories([]);
+      } finally {
+        if (!alive) return;
+        setIsLoadingCategories(false);
+      }
+    };
+
+    void loadCategories();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const canSubmit = useMemo(() => {
     return status === "authenticated" && url.trim().length > 0 && title.trim().length > 0;
@@ -93,12 +122,19 @@ export default function SuggestLinkEditForm({ link }: Props) {
               className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
             />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <input
+              <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="Kategorie"
-                className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
-              />
+                className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] appearance-none"
+                disabled={isLoadingCategories}
+              >
+                <option value="">Keine Kategorie</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
               <input
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 5))}

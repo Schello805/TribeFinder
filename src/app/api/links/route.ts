@@ -37,6 +37,14 @@ function getExternalLinkDelegate(p: typeof prisma) {
       };
 }
 
+function getCategoryDelegate(p: typeof prisma) {
+  return (p as unknown as { externalLinkCategory?: unknown }).externalLinkCategory as
+    | undefined
+    | {
+        findUnique: (args: unknown) => Promise<{ id: string; name: string } | null>;
+      };
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const includeArchived = searchParams.get("includeArchived") === "1";
@@ -97,6 +105,7 @@ export async function POST(req: Request) {
     if (!session?.user?.id) return NextResponse.json({ message: "Nicht autorisiert" }, { status: 401 });
 
     const delegate = getExternalLinkDelegate(prisma);
+    const categoryDelegate = getCategoryDelegate(prisma);
     if (!delegate) {
       return NextResponse.json(
         { message: "Server ist nicht aktuell (Prisma Client). Bitte `npm run db:generate` ausführen und den Server neu starten." },
@@ -110,11 +119,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Validierungsfehler", errors: parsed.error.flatten() }, { status: 400 });
     }
 
+    const categoryName = parsed.data.category ? parsed.data.category.trim() : "";
+    if (categoryName) {
+      if (!categoryDelegate) {
+        return NextResponse.json(
+          { message: "Server ist nicht aktuell (Prisma Client). Bitte `npm run db:generate` ausführen und den Server neu starten." },
+          { status: 500 }
+        );
+      }
+      const cat = await categoryDelegate.findUnique({ where: { name: categoryName }, select: { id: true, name: true } });
+      if (!cat) {
+        return NextResponse.json({ message: "Unbekannte Kategorie. Bitte wähle eine Kategorie aus der Liste." }, { status: 400 });
+      }
+    }
+
     const created = await delegate.create({
       data: {
         url: parsed.data.url.trim(),
         title: parsed.data.title.trim(),
-        category: parsed.data.category ? parsed.data.category.trim() : null,
+        category: categoryName || null,
         postalCode: parsed.data.postalCode ? parsed.data.postalCode.trim() : null,
         city: parsed.data.city ? parsed.data.city.trim() : null,
         status: "PENDING",
