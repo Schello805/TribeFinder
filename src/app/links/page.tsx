@@ -1,6 +1,7 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import SubmitLinkForm from "@/app/links/SubmitLinkForm";
+import SuggestLinkEditForm from "@/app/links/SuggestLinkEditForm";
 
 export const dynamic = "force-dynamic";
 
@@ -81,36 +82,43 @@ export default async function LinksPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {active.map((x: ExternalLinkPublicRow) => (
-              <a
-                key={x.id}
-                href={x.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 hover:bg-[var(--surface-hover)] transition"
-              >
-                <div className="font-semibold text-[var(--foreground)] line-clamp-2">{x.title}</div>
-                <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-[var(--muted)]">
-                  {x.category ? (
-                    <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">{x.category}</span>
-                  ) : null}
-                  {x.postalCode || x.city ? (
-                    <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">
-                      {[x.postalCode, x.city].filter(Boolean).join(" ")}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="mt-1 text-xs text-[var(--muted)] break-all">{x.url}</div>
-                <div className="mt-2 text-[10px] text-[var(--muted)]">
-                  {x.lastCheckedAt ? (
-                    <span>
-                      zuletzt geprüft: {new Date(x.lastCheckedAt).toLocaleDateString("de-DE")}
-                      {typeof x.lastStatusCode === "number" ? ` (HTTP ${x.lastStatusCode})` : ""}
-                    </span>
-                  ) : (
-                    <span>noch nicht geprüft</span>
-                  )}
-                </div>
-              </a>
+              <div key={x.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 hover:bg-[var(--surface-hover)] transition">
+                <a href={x.url} target="_blank" rel="noopener noreferrer" className="block">
+                  <div className="font-semibold text-[var(--foreground)] line-clamp-2">{x.title}</div>
+                  <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-[var(--muted)]">
+                    {x.category ? (
+                      <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">{x.category}</span>
+                    ) : null}
+                    {x.postalCode || x.city ? (
+                      <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">
+                        {[x.postalCode, x.city].filter(Boolean).join(" ")}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="mt-1 text-xs text-[var(--muted)] break-all">{x.url}</div>
+                  <div className="mt-2 text-[10px] text-[var(--muted)]">
+                    {x.lastCheckedAt ? (
+                      <span>
+                        zuletzt geprüft: {new Date(x.lastCheckedAt).toLocaleDateString("de-DE")}
+                        {typeof x.lastStatusCode === "number" ? ` (HTTP ${x.lastStatusCode})` : ""}
+                      </span>
+                    ) : (
+                      <span>noch nicht geprüft</span>
+                    )}
+                  </div>
+                </a>
+
+                <SuggestLinkEditForm
+                  link={{
+                    id: x.id,
+                    url: x.url,
+                    title: x.title,
+                    category: x.category,
+                    postalCode: x.postalCode,
+                    city: x.city,
+                  }}
+                />
+              </div>
             ))}
           </div>
         )}

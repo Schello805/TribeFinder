@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { jsonUnauthorized } from "@/lib/apiResponse";
 import { z } from "zod";
+import { geocodeGermany } from "@/lib/geocode";
 
 type ExternalLinkAdminRow = {
   id: string;
@@ -11,6 +12,9 @@ type ExternalLinkAdminRow = {
   category: string | null;
   postalCode: string | null;
   city: string | null;
+  lat: number | null;
+  lng: number | null;
+  locationSource: string | null;
   status: string;
   submittedBy: { id: string; email: string; name: string | null };
   approvedBy: { id: string; email: string; name: string | null } | null;
@@ -29,6 +33,87 @@ function getExternalLinkDelegate(p: typeof prisma) {
         findMany: (args: unknown) => Promise<ExternalLinkAdminRow[]>;
         update: (args: unknown) => Promise<unknown>;
       };
+}
+
+const createSchema = z.object({
+  url: z.string().trim().url().max(500),
+  title: z.string().trim().min(2).max(120),
+  category: z.string().trim().min(2).max(40).nullable().optional(),
+  postalCode: z.string().trim().regex(/^\d{5}$/).nullable().optional(),
+  city: z.string().trim().min(2).max(80).nullable().optional(),
+  status: z.enum(["PENDING", "APPROVED", "REJECTED", "OFFLINE"]).optional(),
+});
+
+export async function POST(req: Request) {
+  const session = await requireAdminSession();
+  if (!session) return jsonUnauthorized();
+
+  const delegate = getExternalLinkDelegate(prisma);
+  if (!delegate) {
+    return NextResponse.json(
+      { message: "Server ist nicht aktuell (Prisma Client). Bitte `npm run db:generate` ausführen und den Server neu starten." },
+      { status: 500 }
+    );
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const parsed = createSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ message: "Validierungsfehler", errors: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const postalCode = parsed.data.postalCode ?? null;
+  const city = parsed.data.city ?? null;
+
+  let lat: number | null = null;
+  let lng: number | null = null;
+  let locationSource: "GEOCODE" | null = null;
+
+  if (postalCode || city) {
+    try {
+      const r = await geocodeGermany(`${postalCode ?? ""} ${city ?? ""}`.trim());
+      if (r) {
+        lat = r.lat;
+        lng = r.lng;
+        locationSource = "GEOCODE";
+      }
+    } catch {
+      // ignore (best-effort)
+    }
+  }
+
+  try {
+    const createDelegate = delegate as unknown as {
+      create: (args: unknown) => Promise<{ id: string }>;
+    };
+
+    const created = await createDelegate.create({
+      data: {
+        url: parsed.data.url,
+        title: parsed.data.title,
+        category: parsed.data.category ?? null,
+        postalCode,
+        city,
+        lat,
+        lng,
+        locationSource,
+        status: parsed.data.status || "APPROVED",
+        submittedById: session.user.id,
+        approvedById: session.user.id,
+        archivedAt: null,
+        consecutiveFailures: 0,
+      },
+      select: { id: true },
+    });
+
+    return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
+  } catch (error) {
+    const err = error as { code?: string };
+    if (err?.code === "P2002") {
+      return NextResponse.json({ message: "Dieser Link existiert bereits." }, { status: 409 });
+    }
+    return NextResponse.json({ message: "Konnte nicht gespeichert werden" }, { status: 500 });
+  }
 }
 
 export async function GET(req: Request) {
@@ -59,6 +144,9 @@ export async function GET(req: Request) {
       category: true,
       postalCode: true,
       city: true,
+      lat: true,
+      lng: true,
+      locationSource: true,
       status: true,
       submittedBy: { select: { id: true, email: true, name: true } },
       approvedBy: { select: { id: true, email: true, name: true } },
