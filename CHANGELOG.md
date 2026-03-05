@@ -85,6 +85,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Neue öffentliche Linkseite (`/links`) mit aktiven Links + Archiv (offline)
 - Eingeloggte Nutzer können Links vorschlagen (PENDING), Admins können freigeben/ablehnen (`/admin/links`)
 - Nutzer können Änderungen an bestehenden Links vorschlagen; Admins können Vorschläge prüfen (Diff) und freigeben/ablehnen
+- Admin: E-Mail-Benachrichtigung an alle Admins bei neuen Link-Änderungsvorschlägen
 - Admin: Links können vollständig angelegt/bearbeitet/gelöscht werden (CRUD)
 - Automatische tägliche Prüfung der Erreichbarkeit (Healthcheck): HTTP >= 400 zählt als offline; nach 3 Fehlschlägen Archivierung; automatische Reaktivierung bei Erfolg
 - Links unterstützen Kategorien (z.B. Tanzschule) sowie PLZ/Ort als Grundlage für zukünftige Karten-Integration
@@ -95,6 +96,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Admin: Einmaliger Backfill-Endpoint zum Nachziehen von Link-Kategorien aus bestehenden Link-Daten (für laufende Systeme)
 - Admin: Link-Kategorien können umbenannt/gelöscht werden (bei Verwendung wird Löschen verhindert)
 - Karte: Link-Filter zeigt Kategorien einzeln (statt pauschal "Links"); Admin kann pro Kategorie steuern, ob sie auf der Karte angezeigt wird ("In Karte anzeigen")
+- Startseite: Links-Kennzahl zeigt Gesamtzahl der freigegebenen Link-Einträge; Klick zeigt Aufschlüsselung nach Kategorie
 
 ### 🧰 Admin
 

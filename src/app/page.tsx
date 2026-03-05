@@ -4,11 +4,11 @@ import Image from "next/image";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import HomeStats from "@/components/home/HomeStats";
 
-function getExternalLinkCategoryDelegate(p: typeof prisma) {
-  return (p as unknown as { externalLinkCategory?: unknown }).externalLinkCategory as
+function getExternalLinkDelegate(p: typeof prisma) {
+  return (p as unknown as { externalLink?: unknown }).externalLink as
     | undefined
     | {
-        count: (args?: unknown) => Promise<number>;
+        groupBy: (args: unknown) => Promise<Array<{ category: string | null; _count: { _all: number } }>>;
       };
 }
 
@@ -17,7 +17,8 @@ export default async function Home() {
   let groupCount = 0;
   let eventCount = 0;
   let userCount = 0;
-  let linkCategoryCount = 0;
+  let linkCount = 0;
+  let linkCountsByCategory: Array<{ category: string; count: number }> = [];
   let brandingLogoUrl = "";
   let upcomingEvents: Array<{
     id: string;
@@ -28,13 +29,31 @@ export default async function Home() {
     groupName: string | null;
   }> = [];
   try {
-    const categoryDelegate = getExternalLinkCategoryDelegate(prisma);
+    const linkDelegate = getExternalLinkDelegate(prisma);
 
-    const [g, e, u, lc, settings, events] = await Promise.all([
+    const linkCounts = linkDelegate
+      ? await linkDelegate.groupBy({
+          by: ["category"],
+          where: { status: "APPROVED", archivedAt: null },
+          _count: { _all: true },
+        })
+      : [];
+
+    const normalizedLinkCounts = (linkCounts || [])
+      .map((r) => ({
+        category: (r.category || "Ohne Kategorie").trim() || "Ohne Kategorie",
+        count: r._count?._all ?? 0,
+      }))
+      .filter((x) => x.count > 0);
+
+    normalizedLinkCounts.sort((a, b) => b.count - a.count || a.category.localeCompare(b.category));
+    linkCountsByCategory = normalizedLinkCounts;
+    linkCount = normalizedLinkCounts.reduce((sum, x) => sum + x.count, 0);
+
+    const [g, e, u, settings, events] = await Promise.all([
       prisma.group.count(),
       prisma.event.count({ where: { startDate: { gte: new Date() } } }),
       prisma.user.count(),
-      categoryDelegate ? categoryDelegate.count() : Promise.resolve(0),
       prisma.systemSetting.findMany({
         where: { key: { in: ["BRANDING_LOGO_URL"] } },
       }),
@@ -64,7 +83,6 @@ export default async function Home() {
     groupCount = g;
     eventCount = e;
     userCount = u;
-    linkCategoryCount = lc;
 
     upcomingEvents = events.map((ev: { id: string; title: string; startDate: Date; locationName: string | null; groupId: string | null; group: { name: string } | null }) => ({
       id: ev.id,
@@ -158,7 +176,8 @@ export default async function Home() {
             globalGroups={groupCount}
             globalEvents={eventCount}
             globalMembers={userCount}
-            globalLinkCategories={linkCategoryCount}
+            globalLinkCount={linkCount}
+            globalLinkCountsByCategory={linkCountsByCategory}
           />
         </div>
       </section>
