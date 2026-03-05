@@ -33,6 +33,7 @@ function getExternalLinkDelegate(p: typeof prisma) {
     | undefined
     | {
         findMany: (args: unknown) => Promise<ExternalLinkRow[]>;
+        count: (args: unknown) => Promise<number>;
         create: (args: unknown) => Promise<{ id: string }>;
       };
 }
@@ -133,13 +134,30 @@ export async function POST(req: Request) {
       }
     }
 
+    const postalCode = parsed.data.postalCode ? parsed.data.postalCode.trim() : null;
+    const city = parsed.data.city ? parsed.data.city.trim() : null;
+
+    // If no location is provided, avoid creating duplicate entries for the same website.
+    if (!postalCode && !city) {
+      const existingNoLocation = await delegate.count({ where: { url: parsed.data.url.trim(), postalCode: null, city: null } });
+      if (existingNoLocation > 0) {
+        return NextResponse.json(
+          {
+            message:
+              "Dieser Link existiert bereits (ohne Standort). Bitte gib PLZ/Ort an, wenn du einen weiteren Standort hinzufügen möchtest.",
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const created = await delegate.create({
       data: {
         url: parsed.data.url.trim(),
         title: parsed.data.title.trim(),
         category: categoryName || null,
-        postalCode: parsed.data.postalCode ? parsed.data.postalCode.trim() : null,
-        city: parsed.data.city ? parsed.data.city.trim() : null,
+        postalCode,
+        city,
         status: "PENDING",
         submittedById: session.user.id,
       },
@@ -150,7 +168,13 @@ export async function POST(req: Request) {
   } catch (error) {
     const err = error as { code?: string; message?: string };
     if (err?.code === "P2002") {
-      return NextResponse.json({ message: "Dieser Link existiert bereits." }, { status: 409 });
+      return NextResponse.json(
+        {
+          message:
+            "Dieser Link existiert für diesen Standort bereits. Du kannst dieselbe Website für andere Orte/PLZ erneut anlegen.",
+        },
+        { status: 409 }
+      );
     }
     logger.error({ error }, "POST /api/links failed");
     return NextResponse.json({ message: "Konnte nicht gespeichert werden" }, { status: 500 });

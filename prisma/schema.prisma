@@ -134,7 +134,7 @@ enum ExternalLinkLocationSource {
 
 model ExternalLink {
   id    String @id @default(cuid())
-  url   String @unique
+  url   String
   title String
 
   category   String?
@@ -166,6 +166,8 @@ model ExternalLink {
   @@index([status])
   @@index([archivedAt])
   @@index([submittedById])
+  @@index([url])
+  @@unique([url, postalCode, city])
 }
 
 model ExternalLinkCategory {

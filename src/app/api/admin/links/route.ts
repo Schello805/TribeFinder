@@ -31,6 +31,7 @@ function getExternalLinkDelegate(p: typeof prisma) {
     | undefined
     | {
         findMany: (args: unknown) => Promise<ExternalLinkAdminRow[]>;
+        count: (args: unknown) => Promise<number>;
         update: (args: unknown) => Promise<unknown>;
       };
 }
@@ -88,6 +89,20 @@ export async function POST(req: Request) {
   const postalCode = parsed.data.postalCode ?? null;
   const city = parsed.data.city ?? null;
 
+  // If no location is provided, avoid creating duplicate entries for the same website.
+  if (!postalCode && !city) {
+    const existingNoLocation = await delegate.count({ where: { url: parsed.data.url, postalCode: null, city: null } });
+    if (existingNoLocation > 0) {
+      return NextResponse.json(
+        {
+          message:
+            "Dieser Link existiert bereits (ohne Standort). Bitte gib PLZ/Ort an, wenn du einen weiteren Standort hinzufügen möchtest.",
+        },
+        { status: 409 }
+      );
+    }
+  }
+
   let lat: number | null = null;
   let lng: number | null = null;
   let locationSource: "GEOCODE" | null = null;
@@ -133,7 +148,13 @@ export async function POST(req: Request) {
   } catch (error) {
     const err = error as { code?: string };
     if (err?.code === "P2002") {
-      return NextResponse.json({ message: "Dieser Link existiert bereits." }, { status: 409 });
+      return NextResponse.json(
+        {
+          message:
+            "Dieser Link existiert für diesen Standort bereits. Du kannst dieselbe Website für andere Orte/PLZ erneut anlegen.",
+        },
+        { status: 409 }
+      );
     }
     return NextResponse.json({ message: "Konnte nicht gespeichert werden" }, { status: 500 });
   }

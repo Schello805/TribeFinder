@@ -119,24 +119,38 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
   const now = new Date();
 
-  await delegate.update({
-    where: { id },
-    data: {
-      url: typeof parsed.data.url === "string" ? parsed.data.url : undefined,
-      title: typeof parsed.data.title === "string" ? parsed.data.title : undefined,
-      category: typeof parsed.data.category !== "undefined" ? categoryName || null : undefined,
-      postalCode: typeof parsed.data.postalCode !== "undefined" ? parsed.data.postalCode : undefined,
-      city: typeof parsed.data.city !== "undefined" ? parsed.data.city : undefined,
-      lat,
-      lng,
-      locationSource,
-      status: parsed.data.status,
-      archivedAt: parsed.data.archivedAt === "SET" ? now : parsed.data.archivedAt === "CLEAR" ? null : undefined,
-      approvedById: existing.approvedById || session.user.id,
-    },
-  });
+  try {
+    await delegate.update({
+      where: { id },
+      data: {
+        url: typeof parsed.data.url === "string" ? parsed.data.url : undefined,
+        title: typeof parsed.data.title === "string" ? parsed.data.title : undefined,
+        category: typeof parsed.data.category !== "undefined" ? categoryName || null : undefined,
+        postalCode: typeof parsed.data.postalCode !== "undefined" ? parsed.data.postalCode : undefined,
+        city: typeof parsed.data.city !== "undefined" ? parsed.data.city : undefined,
+        lat,
+        lng,
+        locationSource,
+        status: parsed.data.status,
+        archivedAt: parsed.data.archivedAt === "SET" ? now : parsed.data.archivedAt === "CLEAR" ? null : undefined,
+        approvedById: existing.approvedById || session.user.id,
+      },
+    });
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const err = error as { code?: string };
+    if (err?.code === "P2002") {
+      return NextResponse.json(
+        {
+          message:
+            "Dieser Link existiert für diesen Standort bereits. Du kannst dieselbe Website für andere Orte/PLZ erneut anlegen.",
+        },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ message: "Konnte nicht gespeichert werden" }, { status: 500 });
+  }
 }
 
 export async function DELETE(_req: Request, { params }: RouteParams) {

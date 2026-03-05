@@ -59,6 +59,16 @@ export default function AdminLinksManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
 
+  const copyToCreate = (x: LinkRow) => {
+    setCreateUrl(x.url || "");
+    setCreateTitle(x.title || "");
+    setCreateCategory(x.category || "");
+    setCreatePostalCode(x.postalCode || "");
+    setCreateCity(x.city || "");
+    showToast("In 'Neuen Link anlegen' kopiert", "success");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const load = async () => {
     setIsLoading(true);
     try {
@@ -465,6 +475,14 @@ export default function AdminLinksManager() {
                   className="inline-flex items-center px-3 py-2 text-xs font-medium rounded-md shadow-sm text-gray-800 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
                 >
                   Bearbeiten
+                </button>
+                <button
+                  type="button"
+                  disabled={isActing === x.id}
+                  onClick={() => copyToCreate(x)}
+                  className="inline-flex items-center px-3 py-2 text-xs font-medium rounded-md shadow-sm text-gray-800 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                >
+                  Kopieren
                 </button>
                 <button
                   type="button"
