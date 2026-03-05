@@ -119,6 +119,35 @@ model User {
   marketplaceListings MarketplaceListing[]
 
   announcementDismissals AnnouncementDismissal[]
+
+  externalLinksSubmitted ExternalLink[] @relation("ExternalLinkSubmittedBy")
+  externalLinksApproved  ExternalLink[] @relation("ExternalLinkApprovedBy")
+}
+
+model ExternalLink {
+  id    String @id @default(cuid())
+  url   String @unique
+  title String
+
+  status String @default("PENDING") // PENDING, APPROVED, REJECTED, OFFLINE
+
+  submittedById String
+  submittedBy   User @relation("ExternalLinkSubmittedBy", fields: [submittedById], references: [id], onDelete: Cascade)
+
+  approvedById String?
+  approvedBy   User? @relation("ExternalLinkApprovedBy", fields: [approvedById], references: [id])
+
+  lastCheckedAt        DateTime?
+  lastStatusCode       Int?
+  consecutiveFailures  Int      @default(0)
+  archivedAt           DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([archivedAt])
+  @@index([submittedById])
 }
 
 model Post {
