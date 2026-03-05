@@ -62,6 +62,34 @@ interface MapLink {
   lng: number | null;
 }
 
+function hashToUnit(v: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < v.length; i++) {
+    h ^= v.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  // 0..1
+  return ((h >>> 0) % 10_000) / 10_000;
+}
+
+function jitterLatLng(baseLat: number, baseLng: number, key: string, index: number, totalAtPoint: number) {
+  if (totalAtPoint <= 1) return { lat: baseLat, lng: baseLng };
+
+  // Deterministic "random" angle + small radius in meters.
+  // Keep it small so it still represents PLZ/Ort.
+  const u = hashToUnit(key);
+  const angle = 2 * Math.PI * (u + index / Math.max(1, totalAtPoint));
+  const radiusM = 30 + 50 * hashToUnit(`${key}:${index}`); // 30..80m
+
+  const latFactor = 1 / 111_320;
+  const lngFactor = 1 / (111_320 * Math.cos((baseLat * Math.PI) / 180));
+
+  const dLat = Math.sin(angle) * radiusM * latFactor;
+  const dLng = Math.cos(angle) * radiusM * lngFactor;
+
+  return { lat: baseLat + dLat, lng: baseLng + dLng };
+}
+
 const createPinIcon = (color: string) =>
   L.divIcon({
     className: "",
@@ -396,16 +424,32 @@ export default function Map({ groups, events = [], availableTags = [], links = [
 
     // Add markers for external links
     if (showLinks) {
+      const byPoint = new globalThis.Map<string, MapLink[]>();
+      for (const link of links || []) {
+        const lat = typeof link.lat === "number" ? link.lat : null;
+        const lng = typeof link.lng === "number" ? link.lng : null;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+        const key = `${lat!.toFixed(6)},${lng!.toFixed(6)}`;
+        const arr = byPoint.get(key) || [];
+        arr.push(link);
+        byPoint.set(key, arr);
+      }
+
       for (const link of links || []) {
         const lat = typeof link.lat === "number" ? link.lat : null;
         const lng = typeof link.lng === "number" ? link.lng : null;
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
 
+        const pointKey = `${lat!.toFixed(6)},${lng!.toFixed(6)}`;
+        const siblings = byPoint.get(pointKey) || [];
+        const index = siblings.findIndex((x) => x.id === link.id);
+        const j = jitterLatLng(lat!, lng!, pointKey, Math.max(0, index), siblings.length);
+
         const locationText = [link.postalCode, link.city].filter(Boolean).join(" ");
         const categoryText = (link.category || "").trim();
         const safeUrl = (link.url || "").trim();
 
-        const marker = L.marker([lat!, lng!], { icon: linkIcon }).bindPopup(
+        const marker = L.marker([j.lat, j.lng], { icon: linkIcon }).bindPopup(
           `
             <div class="min-w-[260px] font-sans -m-1">
               <div class="p-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-lg border border-[var(--border)]">

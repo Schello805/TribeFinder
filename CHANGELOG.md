@@ -91,6 +91,8 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Standort wird best-effort geocoded (PLZ/Ort → `lat/lng`) für spätere Karten-Integration
 - Karte (`/map`): Links werden als Marker angezeigt (inkl. Kategorie im Popup; Toggle im Filter)
 - Kategorien für Links sind nun als verwaltete Dropdown-Liste umgesetzt (User/Admin/Suggestions); Admin kann Kategorien einsehen und neue anlegen
+- Karte: Links mit identischer PLZ/Ort werden auf der Karte leicht auseinandergezogen (Jitter), damit Marker einzeln anklickbar bleiben
+- Admin: Einmaliger Backfill-Endpoint zum Nachziehen von Link-Kategorien aus bestehenden Link-Daten (für laufende Systeme)
 
 ### 🧰 Admin
 
