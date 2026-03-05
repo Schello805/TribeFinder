@@ -89,6 +89,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Automatische tägliche Prüfung der Erreichbarkeit (Healthcheck): HTTP >= 400 zählt als offline; nach 3 Fehlschlägen Archivierung; automatische Reaktivierung bei Erfolg
 - Links unterstützen Kategorien (z.B. Tanzschule) sowie PLZ/Ort als Grundlage für zukünftige Karten-Integration
 - Standort wird best-effort geocoded (PLZ/Ort → `lat/lng`) für spätere Karten-Integration
+- Karte (`/map`): Links werden als Marker angezeigt (inkl. Kategorie im Popup; Toggle im Filter)
 
 ### 🧰 Admin
 

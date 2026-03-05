@@ -51,6 +51,17 @@ interface MapEvent {
   flyer2?: string | null;
 }
 
+interface MapLink {
+  id: string;
+  url: string;
+  title: string;
+  category: string | null;
+  postalCode: string | null;
+  city: string | null;
+  lat: number | null;
+  lng: number | null;
+}
+
 const createPinIcon = (color: string) =>
   L.divIcon({
     className: "",
@@ -68,26 +79,30 @@ const createPinIcon = (color: string) =>
 
 const groupIcon = createPinIcon("#2563eb");
 const eventIcon = createPinIcon("#dc2626");
+const linkIcon = createPinIcon("#059669");
 
 interface MapProps {
   groups: MapGroup[];
   events?: MapEvent[];
   availableTags?: { id: string; name: string }[];
+  links?: MapLink[];
 }
 
-export default function Map({ groups, events = [], availableTags = [] }: MapProps) {
+export default function Map({ groups, events = [], availableTags = [], links = [] }: MapProps) {
   const { showToast } = useToast();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const groupClusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const eventClusterRef = useRef<L.MarkerClusterGroup | null>(null);
+  const linkClusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const eventLocationOkCache = useRef<globalThis.Map<string, boolean>>(new globalThis.Map());
   const [mapReady, setMapReady] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [showGroups, setShowGroups] = useState(true);
   const [showEvents, setShowEvents] = useState(true);
+  const [showLinks, setShowLinks] = useState(true);
 
   const extractPostcode = useCallback((address: string) => {
     const m = (address || "").match(/\b(\d{5})\b/);
@@ -195,9 +210,15 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
           spiderfyOnMaxZoom: true,
           maxClusterRadius: 46,
         });
+        linkClusterRef.current = L.markerClusterGroup({
+          showCoverageOnHover: false,
+          spiderfyOnMaxZoom: true,
+          maxClusterRadius: 46,
+        });
 
         groupClusterRef.current.addTo(mapRef.current);
         eventClusterRef.current.addTo(mapRef.current);
+        linkClusterRef.current.addTo(mapRef.current);
 
         setMapReady(true);
       }
@@ -213,6 +234,10 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         if (eventClusterRef.current) {
           eventClusterRef.current.clearLayers();
           eventClusterRef.current = null;
+        }
+        if (linkClusterRef.current) {
+          linkClusterRef.current.clearLayers();
+          linkClusterRef.current = null;
         }
         mapRef.current.remove();
         mapRef.current = null;
@@ -230,6 +255,7 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
 
     groupClusterRef.current?.clearLayers();
     eventClusterRef.current?.clearLayers();
+    linkClusterRef.current?.clearLayers();
 
     // Filter groups by selected tag
     const filteredGroups = selectedTag
@@ -367,7 +393,43 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
         }
       })();
     }
-  }, [groups, events, selectedTag, showGroups, showEvents, mapReady, isEventLocationReliable]);
+
+    // Add markers for external links
+    if (showLinks) {
+      for (const link of links || []) {
+        const lat = typeof link.lat === "number" ? link.lat : null;
+        const lng = typeof link.lng === "number" ? link.lng : null;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+
+        const locationText = [link.postalCode, link.city].filter(Boolean).join(" ");
+        const categoryText = (link.category || "").trim();
+        const safeUrl = (link.url || "").trim();
+
+        const marker = L.marker([lat!, lng!], { icon: linkIcon }).bindPopup(
+          `
+            <div class="min-w-[260px] font-sans -m-1">
+              <div class="p-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-lg border border-[var(--border)]">
+                <div class="flex items-center justify-between gap-3 mb-2">
+                  <span class="text-[11px] font-bold bg-[var(--surface-2)] text-[var(--foreground)] px-2 py-0.5 rounded-full border border-[var(--border)]">LINK</span>
+                  ${categoryText ? `<span class="text-[11px] font-medium bg-[var(--surface-2)] text-[var(--foreground)] px-2 py-0.5 rounded-full border border-[var(--border)]">${categoryText}</span>` : ""}
+                </div>
+
+                <h3 class="tf-display font-extrabold text-lg leading-snug text-[var(--foreground)] mb-1">${link.title}</h3>
+                ${locationText ? `<p class="text-sm text-[var(--muted)] mb-2">${locationText}</p>` : ""}
+
+                <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-[var(--link)] hover:opacity-90 text-xs font-medium break-all transition-colors bg-[var(--surface-2)] px-2 py-1 rounded-full border border-[var(--border)] no-underline">
+                  ${safeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                </a>
+              </div>
+            </div>
+          `.trim()
+        );
+
+        linkClusterRef.current?.addLayer(marker);
+        markersRef.current.push(marker);
+      }
+    }
+  }, [groups, events, links, selectedTag, showGroups, showEvents, showLinks, mapReady, isEventLocationReliable]);
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full z-0">
@@ -418,6 +480,18 @@ export default function Map({ groups, events = [], availableTags = [] }: MapProp
             <span className="flex items-center gap-1">
               <span className="w-3 h-3 bg-red-600 rounded-full"></span>
               Events
+            </span>
+          </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showLinks}
+              onChange={(e) => setShowLinks(e.target.checked)}
+              className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+            />
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 bg-emerald-600 rounded-full"></span>
+              Links
             </span>
           </label>
         </div>
