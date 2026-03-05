@@ -94,6 +94,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Karte: Links mit identischer PLZ/Ort werden auf der Karte leicht auseinandergezogen (Jitter), damit Marker einzeln anklickbar bleiben
 - Admin: Einmaliger Backfill-Endpoint zum Nachziehen von Link-Kategorien aus bestehenden Link-Daten (für laufende Systeme)
 - Admin: Link-Kategorien können umbenannt/gelöscht werden (bei Verwendung wird Löschen verhindert)
+- Karte: Link-Filter zeigt Kategorien einzeln (statt pauschal "Links"); Admin kann pro Kategorie steuern, ob sie auf der Karte angezeigt wird ("In Karte anzeigen")
 
 ### 🧰 Admin
 

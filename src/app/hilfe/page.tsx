@@ -21,8 +21,8 @@ export default function HelpPage() {
         <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
           <h2 className="tf-display text-xl font-bold mb-2">🗺️ Karte</h2>
           <p className="text-[var(--muted)]">
-            Auf der Karte siehst du Gruppen und (wenn aktiviert) Events in deiner Nähe. Nutze die Filter, um nur bestimmte Tanzstile
-            oder nur Gruppen/Events anzuzeigen.
+            Auf der Karte siehst du Gruppen und (wenn aktiviert) Events in deiner Nähe. Zusätzlich können Links angezeigt werden.
+            Nutze die Filter, um nach Tanzstil zu filtern oder um Gruppen/Events sowie Link-Kategorien ein- und auszublenden.
           </p>
         </section>
 
