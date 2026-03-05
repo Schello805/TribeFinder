@@ -41,7 +41,7 @@ export default function AdminLinksManager() {
 
   const [items, setItems] = useState<LinkRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>("PENDING");
+  const [statusFilter, setStatusFilter] = useState<string>("APPROVED");
   const [isActing, setIsActing] = useState<string>("");
 
   const [createUrl, setCreateUrl] = useState("");
