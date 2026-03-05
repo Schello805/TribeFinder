@@ -78,6 +78,15 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Events: Kalender-Seite (`/events`) wird serverseitig gerendert (bessere Indexierbarkeit, kein Client-only Fetch)
 
+## [Unreleased] - 2026-03-05
+
+### 🔗 Links
+
+- Neue öffentliche Linkseite (`/links`) mit aktiven Links + Archiv (offline)
+- Eingeloggte Nutzer können Links vorschlagen (PENDING), Admins können freigeben/ablehnen (`/admin/links`)
+- Automatische tägliche Prüfung der Erreichbarkeit (Healthcheck): HTTP >= 400 zählt als offline; nach 3 Fehlschlägen Archivierung; automatische Reaktivierung bei Erfolg
+- Links unterstützen Kategorien (z.B. Tanzschule) sowie PLZ/Ort als Grundlage für zukünftige Karten-Integration
+
 ### 🧰 Admin
 
 - Einstellungen: Matomo-Abschnitt zeigt nach „Speichern“ wieder eine Statusmeldung (Feedback)
