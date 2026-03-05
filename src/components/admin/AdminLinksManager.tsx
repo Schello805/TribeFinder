@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
 import AdminLinkSuggestionsManager from "@/components/admin/AdminLinkSuggestionsManager";
 
-type CategoryItem = { id: string; name: string };
+type CategoryItem = { id: string; name: string; showOnMap: boolean };
 
 type LinkRow = {
   id: string;
@@ -74,6 +74,73 @@ export default function AdminLinksManager() {
       setItems(data as LinkRow[]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const setCategoryShowOnMap = async (c: CategoryItem, showOnMap: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/link-categories/${encodeURIComponent(c.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "SET_SHOW_ON_MAP", showOnMap }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { message?: string };
+      if (!res.ok) {
+        showToast(data.message || "Konnte nicht gespeichert werden", "error");
+        return;
+      }
+      await loadCategories();
+      showToast("OK", "success");
+    } catch {
+      showToast("Konnte nicht gespeichert werden", "error");
+    }
+  };
+
+  const renameCategory = async (c: CategoryItem) => {
+    const nameRaw = prompt("Kategorie umbenennen", c.name);
+    const name = (nameRaw || "").trim();
+    if (!name || name === c.name) return;
+
+    try {
+      const res = await fetch(`/api/admin/link-categories/${encodeURIComponent(c.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "RENAME", name }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { message?: string; name?: string };
+      if (!res.ok) {
+        showToast(data.message || "Konnte nicht gespeichert werden", "error");
+        return;
+      }
+      await loadCategories();
+      await load();
+      showToast("OK", "success");
+      if (typeof data?.name === "string") {
+        if (createCategory === c.name) setCreateCategory(data.name);
+        if (editDraft && editDraft.category === c.name) setEditDraft({ ...editDraft, category: data.name });
+      }
+    } catch {
+      showToast("Konnte nicht gespeichert werden", "error");
+    }
+  };
+
+  const deleteCategory = async (c: CategoryItem) => {
+    if (!confirm(`Kategorie wirklich löschen? ${c.name}`)) return;
+    try {
+      const res = await fetch(`/api/admin/link-categories/${encodeURIComponent(c.id)}`, {
+        method: "DELETE",
+      });
+      const data = (await res.json().catch(() => ({}))) as { message?: string };
+      if (!res.ok) {
+        showToast(data.message || "Löschen fehlgeschlagen", "error");
+        return;
+      }
+      await loadCategories();
+      showToast("OK", "success");
+      if (createCategory === c.name) setCreateCategory("");
+      if (editDraft && editDraft.category === c.name) setEditDraft({ ...editDraft, category: "" });
+    } catch {
+      showToast("Löschen fehlgeschlagen", "error");
     }
   };
 
@@ -558,6 +625,72 @@ export default function AdminLinksManager() {
               >
                 {isCreating ? "Speichern..." : "Anlegen"}
               </button>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            <div className="px-4 py-4 sm:px-6 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">Kategorien</div>
+                <button
+                  type="button"
+                  onClick={() => void loadCategories()}
+                  disabled={isLoadingCategories}
+                  className="px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 disabled:opacity-50"
+                >
+                  Aktualisieren
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-xs text-gray-500 dark:text-gray-400">Vorhandene Kategorien (Dropdown)</div>
+                <button
+                  type="button"
+                  onClick={() => void addCategory()}
+                  className="px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900"
+                >
+                  + Neu
+                </button>
+              </div>
+
+              {categories.length === 0 ? (
+                <div className="text-sm text-gray-500 dark:text-gray-400">Keine Kategorien vorhanden.</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {categories.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between gap-2 rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2">
+                      <div className="min-w-0">
+                        <div className="text-sm text-gray-900 dark:text-gray-100 truncate">{c.name}</div>
+                        <label className="mt-1 flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(c.showOnMap)}
+                            onChange={(e) => void setCategoryShowOnMap(c, e.target.checked)}
+                            className="rounded border-gray-300 dark:border-gray-700"
+                          />
+                          In Karte anzeigen
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void renameCategory(c)}
+                          className="px-2 py-1 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900"
+                        >
+                          Umbenennen
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void deleteCategory(c)}
+                          className="px-2 py-1 text-xs font-medium rounded-md border border-rose-300 dark:border-rose-800 bg-rose-600 text-white hover:bg-rose-700"
+                        >
+                          Löschen
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { useToast } from "@/components/ui/Toast";
 import "leaflet/dist/leaflet.css";
@@ -61,6 +61,8 @@ interface MapLink {
   lat: number | null;
   lng: number | null;
 }
+
+type MapLinkCategory = { id: string; name: string; showOnMap: boolean };
 
 function hashToUnit(v: string): number {
   let h = 2166136261;
@@ -130,7 +132,56 @@ export default function Map({ groups, events = [], availableTags = [], links = [
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [showGroups, setShowGroups] = useState(true);
   const [showEvents, setShowEvents] = useState(true);
-  const [showLinks, setShowLinks] = useState(true);
+
+  const [linkCategories, setLinkCategories] = useState<MapLinkCategory[]>([]);
+  const [selectedLinkCategoryIds, setSelectedLinkCategoryIds] = useState<Record<string, boolean>>({});
+  const [showUncategorizedLinks, setShowUncategorizedLinks] = useState(true);
+
+  const selectedLinkCategoryNames = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of linkCategories) {
+      if (selectedLinkCategoryIds[c.id]) set.add(c.name);
+    }
+    return set;
+  }, [linkCategories, selectedLinkCategoryIds]);
+
+  useEffect(() => {
+    let alive = true;
+    const loadLinkCategoriesForMap = async () => {
+      try {
+        const res = await fetch("/api/link-categories?onlyOnMap=1", { cache: "no-store" });
+        const data = (await res.json().catch(() => [])) as unknown;
+        if (!alive) return;
+        if (!Array.isArray(data)) {
+          setLinkCategories([]);
+          setSelectedLinkCategoryIds({});
+          return;
+        }
+
+        const items = data as MapLinkCategory[];
+        setLinkCategories(items);
+        setSelectedLinkCategoryIds((prev) => {
+          const next: Record<string, boolean> = { ...prev };
+          for (const c of items) {
+            if (typeof next[c.id] !== "boolean") next[c.id] = true;
+          }
+          for (const id of Object.keys(next)) {
+            if (!items.some((c) => c.id === id)) delete next[id];
+          }
+          return next;
+        });
+      } catch {
+        if (!alive) return;
+        setLinkCategories([]);
+        setSelectedLinkCategoryIds({});
+      }
+    };
+
+    void loadLinkCategoriesForMap();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const extractPostcode = useCallback((address: string) => {
     const m = (address || "").match(/\b(\d{5})\b/);
@@ -423,12 +474,20 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     }
 
     // Add markers for external links
-    if (showLinks) {
+    if (showUncategorizedLinks || selectedLinkCategoryNames.size > 0) {
       const byPoint = new globalThis.Map<string, MapLink[]>();
       for (const link of links || []) {
         const lat = typeof link.lat === "number" ? link.lat : null;
         const lng = typeof link.lng === "number" ? link.lng : null;
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+
+        const categoryName = (link.category || "").trim();
+        if (!categoryName) {
+          if (!showUncategorizedLinks) continue;
+        } else {
+          if (!selectedLinkCategoryNames.has(categoryName)) continue;
+        }
+
         const key = `${lat!.toFixed(6)},${lng!.toFixed(6)}`;
         const arr = byPoint.get(key) || [];
         arr.push(link);
@@ -439,6 +498,13 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         const lat = typeof link.lat === "number" ? link.lat : null;
         const lng = typeof link.lng === "number" ? link.lng : null;
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+
+        const categoryName = (link.category || "").trim();
+        if (!categoryName) {
+          if (!showUncategorizedLinks) continue;
+        } else {
+          if (!selectedLinkCategoryNames.has(categoryName)) continue;
+        }
 
         const pointKey = `${lat!.toFixed(6)},${lng!.toFixed(6)}`;
         const siblings = byPoint.get(pointKey) || [];
@@ -473,7 +539,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         markersRef.current.push(marker);
       }
     }
-  }, [groups, events, links, selectedTag, showGroups, showEvents, showLinks, mapReady, isEventLocationReliable]);
+  }, [groups, events, links, selectedTag, showGroups, showEvents, selectedLinkCategoryNames, showUncategorizedLinks, mapReady, isEventLocationReliable]);
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full z-0">
@@ -526,18 +592,39 @@ export default function Map({ groups, events = [], availableTags = [], links = [
               Events
             </span>
           </label>
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showLinks}
-              onChange={(e) => setShowLinks(e.target.checked)}
-              className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
-            />
-            <span className="flex items-center gap-1">
-              <span className="w-3 h-3 bg-emerald-600 rounded-full"></span>
-              Links
-            </span>
-          </label>
+          {linkCategories.length > 0 ? (
+            <div className="pt-2 border-t border-[var(--border)]">
+              <div className="text-xs font-medium text-[var(--muted)] mb-2">Links</div>
+              <div className="space-y-1">
+                {linkCategories.map((c) => (
+                  <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedLinkCategoryIds[c.id])}
+                      onChange={(e) => setSelectedLinkCategoryIds((prev) => ({ ...prev, [c.id]: e.target.checked }))}
+                      className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                    />
+                    <span className="flex items-center gap-1 min-w-0">
+                      <span className="w-3 h-3 bg-emerald-600 rounded-full"></span>
+                      <span className="truncate">{c.name}</span>
+                    </span>
+                  </label>
+                ))}
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showUncategorizedLinks}
+                    onChange={(e) => setShowUncategorizedLinks(e.target.checked)}
+                    className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                  />
+                  <span className="flex items-center gap-1 min-w-0">
+                    <span className="w-3 h-3 bg-emerald-600 rounded-full opacity-60"></span>
+                    <span className="truncate">Ohne Kategorie</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
       

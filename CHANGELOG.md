@@ -93,6 +93,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Kategorien für Links sind nun als verwaltete Dropdown-Liste umgesetzt (User/Admin/Suggestions); Admin kann Kategorien einsehen und neue anlegen
 - Karte: Links mit identischer PLZ/Ort werden auf der Karte leicht auseinandergezogen (Jitter), damit Marker einzeln anklickbar bleiben
 - Admin: Einmaliger Backfill-Endpoint zum Nachziehen von Link-Kategorien aus bestehenden Link-Daten (für laufende Systeme)
+- Admin: Link-Kategorien können umbenannt/gelöscht werden (bei Verwendung wird Löschen verhindert)
 
 ### 🧰 Admin
 

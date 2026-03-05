@@ -4,7 +4,7 @@ import { requireAdminSession } from "@/lib/requireAdmin";
 import { jsonBadRequest, jsonUnauthorized } from "@/lib/apiResponse";
 import { z } from "zod";
 
-type CategoryRow = { id: string; name: string };
+type CategoryRow = { id: string; name: string; showOnMap: boolean };
 
 function getCategoryDelegate(p: typeof prisma) {
   return (p as unknown as { externalLinkCategory?: unknown }).externalLinkCategory as
@@ -33,7 +33,7 @@ export async function GET() {
 
   const items = await delegate.findMany({
     orderBy: { name: "asc" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, showOnMap: true },
     take: 500,
   });
 
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       where: { name: parsed.data.name },
       update: {},
       create: { name: parsed.data.name },
-      select: { id: true, name: true },
+      select: { id: true, name: true, showOnMap: true },
     });
 
     return NextResponse.json(created, { status: 201 });
