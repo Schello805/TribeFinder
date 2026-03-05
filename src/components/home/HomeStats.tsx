@@ -22,6 +22,7 @@ type Props = {
   globalGroups: number;
   globalEvents: number;
   globalMembers: number;
+  globalLinkCategories: number;
 };
 
 type ActiveSheet =
@@ -101,7 +102,7 @@ function weekendRangeBerlin(anchor: Date, which: "this" | "next") {
   return { start, end };
 }
 
-export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, globalMembers }: Props) {
+export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, globalMembers, globalLinkCategories }: Props) {
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [nearbyDenied, setNearbyDenied] = useState(false);
   const [nearbyStats, setNearbyStats] = useState<NearbyStatsResponse | null>(null);
@@ -270,7 +271,7 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
 
   return (
     <div>
-      <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mt-10 grid grid-cols-1 md:grid-cols-4 gap-4">
         <button
           type="button"
           onClick={() => openSheet({ scope: "global", type: "groups" })}
@@ -300,6 +301,15 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
           <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{globalMembers}</div>
           <div className="mt-1 text-sm text-[var(--muted)]">in der Community</div>
         </button>
+
+        <Link
+          href="/links"
+          className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition"
+        >
+          <div className="text-sm text-[var(--muted)]">Links</div>
+          <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{globalLinkCategories}</div>
+          <div className="mt-1 text-sm text-[var(--muted)]">Kategorien</div>
+        </Link>
       </div>
 
       <div className="mt-10 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-6">

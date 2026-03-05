@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
+import { notifyAdminsAboutNewLinkSuggestion } from "@/lib/notifications";
 
 const schema = z.object({
   linkId: z.string().trim().min(1).max(200),
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
   }
 
   const user = await prisma.user
-    .findUnique({ where: { id: session.user.id }, select: { emailVerified: true } })
+    .findUnique({ where: { id: session.user.id }, select: { emailVerified: true, name: true, email: true } })
     .catch(() => null);
   if (!user?.emailVerified) {
     return NextResponse.json({ message: "Bitte bestätige zuerst deine E-Mail-Adresse." }, { status: 403 });
@@ -105,6 +106,13 @@ export async function POST(req: Request) {
       status: "PENDING",
     },
     select: { id: true, status: true, createdAt: true },
+  });
+
+  const creatorName = (user?.name || user?.email || "Ein Benutzer").trim();
+  await notifyAdminsAboutNewLinkSuggestion({
+    linkId: parsed.data.linkId,
+    linkTitle: parsed.data.title,
+    creatorName,
   });
 
   return NextResponse.json(

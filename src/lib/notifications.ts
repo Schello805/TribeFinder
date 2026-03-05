@@ -8,6 +8,46 @@ function getEmailBaseUrl() {
   return raw.endsWith("/") ? raw.slice(0, -1) : raw;
 }
 
+export async function notifyAdminsAboutNewLinkSuggestion(params: {
+  linkId: string;
+  linkTitle: string;
+  creatorName: string;
+}) {
+  if (!params.linkId) return;
+
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { email: true },
+    });
+
+    if (admins.length === 0) return;
+
+    const subject = `Neuer Link-Änderungsvorschlag: ${params.linkTitle}`;
+    const url = buildEmailUrl("/admin/links");
+    const content = `
+      ${emailHeading("Neuer Link-Änderungsvorschlag")}
+      ${emailText(`Der Benutzer <strong>${params.creatorName}</strong> hat einen Änderungsvorschlag für einen Link eingereicht:`)}
+      <p style="margin: 16px 0; color: #111827; font-size: 16px;"><strong>${params.linkTitle}</strong></p>
+      ${emailText("Du kannst den Vorschlag im Admin-Bereich prüfen und freigeben/ablehnen.")}
+      ${url ? emailButton("Links verwalten", url) : ""}
+    `;
+
+    const promises = admins.map((admin: { email: string | null }) => {
+      if (admin.email) {
+        return emailTemplate(content, `Link-Vorschlag: ${params.linkTitle}`).then((html) =>
+          sendEmail(admin.email as string, subject, html)
+        );
+      }
+      return Promise.resolve();
+    });
+
+    await Promise.all(promises);
+  } catch (error) {
+    logger.error({ error }, "Error sending link suggestion notification");
+  }
+}
+
 export async function notifyAdminsAboutNewDanceStyleSuggestion(styleName: string, creatorName: string) {
   if (!styleName) return;
 

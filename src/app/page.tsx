@@ -4,11 +4,20 @@ import Image from "next/image";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import HomeStats from "@/components/home/HomeStats";
 
+function getExternalLinkCategoryDelegate(p: typeof prisma) {
+  return (p as unknown as { externalLinkCategory?: unknown }).externalLinkCategory as
+    | undefined
+    | {
+        count: (args?: unknown) => Promise<number>;
+      };
+}
+
 export default async function Home() {
   // Fetch stats
   let groupCount = 0;
   let eventCount = 0;
   let userCount = 0;
+  let linkCategoryCount = 0;
   let brandingLogoUrl = "";
   let upcomingEvents: Array<{
     id: string;
@@ -19,10 +28,13 @@ export default async function Home() {
     groupName: string | null;
   }> = [];
   try {
-    const [g, e, u, settings, events] = await Promise.all([
+    const categoryDelegate = getExternalLinkCategoryDelegate(prisma);
+
+    const [g, e, u, lc, settings, events] = await Promise.all([
       prisma.group.count(),
       prisma.event.count({ where: { startDate: { gte: new Date() } } }),
       prisma.user.count(),
+      categoryDelegate ? categoryDelegate.count() : Promise.resolve(0),
       prisma.systemSetting.findMany({
         where: { key: { in: ["BRANDING_LOGO_URL"] } },
       }),
@@ -38,13 +50,23 @@ export default async function Home() {
           groupId: true,
           group: { select: { name: true } },
         },
-      }),
+      }) as Promise<
+        Array<{
+          id: string;
+          title: string;
+          startDate: Date;
+          locationName: string | null;
+          groupId: string | null;
+          group: { name: string } | null;
+        }>
+      >,
     ]);
     groupCount = g;
     eventCount = e;
     userCount = u;
+    linkCategoryCount = lc;
 
-    upcomingEvents = events.map((ev) => ({
+    upcomingEvents = events.map((ev: { id: string; title: string; startDate: Date; locationName: string | null; groupId: string | null; group: { name: string } | null }) => ({
       id: ev.id,
       title: ev.title,
       startDate: ev.startDate,
@@ -53,7 +75,7 @@ export default async function Home() {
       groupName: ev.group?.name ?? null,
     }));
 
-    const map = settings.reduce((acc: Record<string, string>, s) => {
+    const map = (settings as Array<{ key: string; value: string }>).reduce((acc: Record<string, string>, s) => {
       acc[s.key] = s.value;
       return acc;
     }, {});
@@ -136,6 +158,7 @@ export default async function Home() {
             globalGroups={groupCount}
             globalEvents={eventCount}
             globalMembers={userCount}
+            globalLinkCategories={linkCategoryCount}
           />
         </div>
       </section>
