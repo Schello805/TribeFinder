@@ -99,6 +99,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Startseite: Links-Kennzahlen zeigen Gesamtzahl der freigegebenen Link-Einträge sowie eine Kachel pro Kategorie (mit Anzahl)
 - Startseite: Kategorie-Kacheln verlinken direkt auf gefilterte Linkliste (`/links?category=...`)
 - SEO: Gefilterte Linklisten werden per `robots: noindex` vor Duplicate Content geschützt
+- Links-Seite: Kategorie-Chips als Schnellfilter + Canonical-URL (`/links`) für saubere Indexierung
 
 ### 🧰 Admin
 

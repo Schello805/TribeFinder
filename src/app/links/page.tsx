@@ -18,6 +18,9 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     title: "Links | TribeFinder",
     description: "Externe Websites rund um Tanzgruppen, Vereine, Kostüme und mehr.",
     robots: isFiltered ? { index: false, follow: true } : { index: true, follow: true },
+    alternates: {
+      canonical: "/links",
+    },
   };
 }
 
@@ -93,6 +96,21 @@ export default async function LinksPage({ searchParams }: PageProps) {
   const active = activeAll.filter(matchesCategory);
   const archived = archivedAll.filter(matchesCategory);
 
+  const categories = Array.from(
+    new Set(
+      items
+        .map((x) => (x.category || "").trim())
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b))
+    )
+  );
+  const hasUncategorized = items.some((x) => !(x.category || "").trim());
+
+  const chipBase =
+    "inline-flex items-center rounded-full border px-3 py-1 text-xs transition whitespace-nowrap";
+  const chipActive = "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]";
+  const chipInactive = "border-[var(--border)] bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]";
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="space-y-2">
@@ -109,6 +127,39 @@ export default async function LinksPage({ searchParams }: PageProps) {
             <Link href="/links" className="underline underline-offset-2 hover:opacity-90 text-[var(--muted)]">
               Filter zurücksetzen
             </Link>
+          </div>
+        ) : null}
+
+        {categories.length > 0 || hasUncategorized ? (
+          <div className="pt-3">
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/links"
+                className={`${chipBase} ${!filterActive ? chipActive : chipInactive}`}
+                aria-current={!filterActive ? "page" : undefined}
+              >
+                Alle
+              </Link>
+              {categories.map((c) => (
+                <Link
+                  key={c}
+                  href={{ pathname: "/links", query: { category: c } }}
+                  className={`${chipBase} ${rawCategory === c ? chipActive : chipInactive}`}
+                  aria-current={rawCategory === c ? "page" : undefined}
+                >
+                  {c}
+                </Link>
+              ))}
+              {hasUncategorized ? (
+                <Link
+                  href={{ pathname: "/links", query: { category: "__uncategorized" } }}
+                  className={`${chipBase} ${rawCategory === "__uncategorized" ? chipActive : chipInactive}`}
+                  aria-current={rawCategory === "__uncategorized" ? "page" : undefined}
+                >
+                  Ohne Kategorie
+                </Link>
+              ) : null}
+            </div>
           </div>
         ) : null}
       </div>

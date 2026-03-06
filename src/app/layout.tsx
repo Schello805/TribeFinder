@@ -123,6 +123,15 @@ export default async function RootLayout({
 }) {
   const session = await getServerSession(authOptions);
 
+  const publicBaseUrl = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+  const toAbsoluteUrl = (maybeUrl: string) => {
+    const v = (maybeUrl || "").trim();
+    if (!v) return "";
+    if (/^https?:\/\//i.test(v)) return v;
+    if (v.startsWith("/")) return `${publicBaseUrl}${v}`;
+    return `${publicBaseUrl}/${v}`;
+  };
+
   const resolveProjectRoot = () => {
     let dir = process.cwd();
     for (let i = 0; i < 10; i++) {
@@ -202,6 +211,22 @@ export default async function RootLayout({
     ? (siteBannerText || "Wartungsmodus aktiv – Änderungen/Uploads sind vorübergehend deaktiviert.")
     : siteBannerText;
 
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "TribeFinder",
+      url: publicBaseUrl,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "TribeFinder",
+      url: publicBaseUrl,
+      ...(brandingLogoUrl ? { logo: toAbsoluteUrl(brandingLogoUrl) } : {}),
+    },
+  ];
+
   return (
     <html lang="de" suppressHydrationWarning data-tf-theme={themePreset} className={`${copperDisplay.variable} ${nocturneDisplay.variable}`}>
       <body className={`${inter.className} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col transition-colors duration-300`}>
@@ -212,6 +237,12 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <ForceThemeStyles />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData),
+            }}
+          />
           <AuthProvider>
             <ToastProvider>
               <ErrorBoundary>
