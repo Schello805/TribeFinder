@@ -138,13 +138,28 @@ export default function Map({ groups, events = [], availableTags = [], links = [
   const [selectedLinkCategoryIds, setSelectedLinkCategoryIds] = useState<Record<string, boolean>>({});
   const [showUncategorizedLinks, setShowUncategorizedLinks] = useState(true);
 
+  const derivedLinkCategories = useMemo(() => {
+    const byName = new globalThis.Map<string, MapLinkCategory>();
+    for (const link of links || []) {
+      const raw = typeof link.category === "string" ? link.category.trim() : "";
+      if (!raw) continue;
+      const key = raw.toLowerCase();
+      if (!byName.has(key)) {
+        byName.set(key, { id: `name:${key}`, name: raw, showOnMap: true });
+      }
+    }
+    return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [links]);
+
+  const effectiveLinkCategories = linkCategories.length > 0 ? linkCategories : derivedLinkCategories;
+
   const selectedLinkCategoryNames = useMemo(() => {
     const set = new Set<string>();
-    for (const c of linkCategories) {
-      if (selectedLinkCategoryIds[c.id]) set.add(c.name);
+    for (const c of effectiveLinkCategories) {
+      if (selectedLinkCategoryIds[c.id]) set.add(c.name.trim().toLowerCase());
     }
     return set;
-  }, [linkCategories, selectedLinkCategoryIds]);
+  }, [effectiveLinkCategories, selectedLinkCategoryIds]);
 
   useEffect(() => {
     let alive = true;
@@ -155,26 +170,14 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         if (!alive) return;
         if (!Array.isArray(data)) {
           setLinkCategories([]);
-          setSelectedLinkCategoryIds({});
           return;
         }
 
         const items = data as MapLinkCategory[];
         setLinkCategories(items);
-        setSelectedLinkCategoryIds((prev) => {
-          const next: Record<string, boolean> = { ...prev };
-          for (const c of items) {
-            if (typeof next[c.id] !== "boolean") next[c.id] = true;
-          }
-          for (const id of Object.keys(next)) {
-            if (!items.some((c) => c.id === id)) delete next[id];
-          }
-          return next;
-        });
       } catch {
         if (!alive) return;
         setLinkCategories([]);
-        setSelectedLinkCategoryIds({});
       }
     };
 
@@ -183,6 +186,19 @@ export default function Map({ groups, events = [], availableTags = [], links = [
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    setSelectedLinkCategoryIds((prev) => {
+      const next: Record<string, boolean> = { ...prev };
+      for (const c of effectiveLinkCategories) {
+        if (typeof next[c.id] !== "boolean") next[c.id] = true;
+      }
+      for (const id of Object.keys(next)) {
+        if (!effectiveLinkCategories.some((c) => c.id === id)) delete next[id];
+      }
+      return next;
+    });
+  }, [effectiveLinkCategories]);
 
   useEffect(() => {
     setIsFilterOpen(window.matchMedia("(min-width: 768px)").matches);
@@ -349,7 +365,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     const isLinkVisible = (link: MapLink) => {
       const categoryName = (link.category || "").trim();
       if (!categoryName) return showUncategorizedLinks;
-      return selectedLinkCategoryNames.has(categoryName);
+      return selectedLinkCategoryNames.has(categoryName.toLowerCase());
     };
 
     const visibleLinks = (links || []).filter((link) => {
@@ -662,11 +678,11 @@ export default function Map({ groups, events = [], availableTags = [], links = [
           <div className="pt-2 border-t border-[var(--border)]">
             <div className="text-xs font-medium text-[var(--muted)] mb-2">Links</div>
             <div className="space-y-1">
-              {linkCategories.length === 0 ? (
+              {effectiveLinkCategories.length === 0 ? (
                 <div className="text-xs text-[var(--muted)]">Keine Kategorien</div>
               ) : null}
 
-              {linkCategories.map((c) => (
+              {effectiveLinkCategories.map((c) => (
                 <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
                   <input
                     type="checkbox"
