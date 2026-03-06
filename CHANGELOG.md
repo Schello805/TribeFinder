@@ -108,6 +108,8 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 ### 🧭 Navigation
 
 - Footer: Links im Footer sind nun in Sektionen unterteilt (Rechtliches/Mehr/Community) für bessere Übersicht
+- Hilfe: Icons für Tänzerinnen/Gruppen korrigiert; Links-Seite in Hilfe ergänzt
+- Startseite: "Was bietet TribeFinder?" ergänzt um Links
 
 ## [Unreleased] - 2026-02-28
 

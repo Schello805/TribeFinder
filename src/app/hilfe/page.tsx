@@ -27,7 +27,7 @@ export default function HelpPage() {
         </section>
 
         <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
-          <h2 className="tf-display text-xl font-bold mb-2">� Tänzerinnen</h2>
+          <h2 className="tf-display text-xl font-bold mb-2">💃 Tänzerinnen</h2>
           <p className="text-[var(--muted)]">
             In der Tänzerinnen-Übersicht kannst du Profile finden und nach Kriterien filtern (z.B. Unterricht/Workshops).
             Wenn du selbst sichtbar sein möchtest, kannst du das in deinem Profil aktivieren.
@@ -35,10 +35,18 @@ export default function HelpPage() {
         </section>
 
         <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
-          <h2 className="tf-display text-xl font-bold mb-2">� Gruppen</h2>
+          <h2 className="tf-display text-xl font-bold mb-2">👯‍♀️ Gruppen</h2>
           <p className="text-[var(--muted)]">
             Du kannst Gruppen entdecken, Favoriten speichern und Profile ansehen. Wenn du selbst eine Gruppe betreibst, kannst du einen
             Steckbrief erstellen, Bilder hochladen und Mitglieder verwalten.
+          </p>
+        </section>
+
+        <section className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-6">
+          <h2 className="tf-display text-xl font-bold mb-2">🔗 Links</h2>
+          <p className="text-[var(--muted)]">
+            Auf der Links-Seite findest du externe Websites (z.B. Tanzschulen, Shops oder Communities). Du kannst nach Kategorien filtern
+            und neue Links vorschlagen.
           </p>
         </section>
 

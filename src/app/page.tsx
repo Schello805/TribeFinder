@@ -248,7 +248,7 @@ export default async function Home() {
         <div className="container mx-auto px-4 max-w-6xl">
           <h2 className="tf-display text-3xl font-bold text-center mb-16 text-[var(--foreground)]">Was bietet TribeFinder?</h2>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-8">
             <Link
               href="/map"
               className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
@@ -307,6 +307,18 @@ export default async function Home() {
                 Second-Hand für Kostüme, Schmuck & mehr – mit Bildern, Standort und direktem 1:1 Kontakt.
               </p>
               <div className="mt-4 text-sm text-[var(--link)] font-medium">Zu Second-Hand</div>
+            </Link>
+
+            <Link
+              href="/links"
+              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+            >
+              <div className="text-4xl mb-4">🔗</div>
+              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Links</h3>
+              <p className="text-[var(--muted)]">
+                Entdecke externe Websites (z.B. Tanzschulen, Shops, Communities) – mit Kategorien und Vorschlagsfunktion.
+              </p>
+              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zu den Links</div>
             </Link>
           </div>
         </div>
