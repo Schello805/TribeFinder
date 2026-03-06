@@ -494,6 +494,17 @@ export default function Navbar() {
                 </Link>
 
                 <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    window.dispatchEvent(new Event("tribefinder:open-feedback"));
+                  }}
+                  className="w-full text-left block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md"
+                >
+                  Feedback
+                </button>
+
+                <button
                   onClick={() => signOut({ callbackUrl: "/" })}
                   className="w-full text-left block px-3 py-2 text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md"
                 >

@@ -402,11 +402,11 @@ export default function Map({ groups, events = [], availableTags = [], links = [
 
           // Logo Logic
           const logoHtml = group.image 
-            ? `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] overflow-hidden shadow-lg flex items-center justify-center z-10">
-                 <img src="${group.image}" alt="${group.name}" class="w-full h-full object-contain p-1" />
+            ? `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] overflow-hidden shadow-lg flex items-center justify-center z-10 pointer-events-none">
+                 <img src="${group.image}" alt="${group.name}" class="w-full h-full object-contain p-1 pointer-events-none" />
                </div>`
-            : `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] flex items-center justify-center shadow-lg z-10">
-                 <span class="tf-display text-2xl font-bold text-[var(--link)]">${group.name.charAt(0)}</span>
+            : `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] flex items-center justify-center shadow-lg z-10 pointer-events-none">
+                 <span class="tf-display text-2xl font-bold text-[var(--link)] pointer-events-none">${group.name.charAt(0)}</span>
                </div>`;
         
           // Website Logic
@@ -421,9 +421,9 @@ export default function Map({ groups, events = [], availableTags = [], links = [
             .bindPopup(`
               <div class="min-w-[260px] font-sans -m-1">
                 <!-- Card Header -->
-                <div class="p-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-lg border border-[var(--border)]">
+                <div class="relative p-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-lg border border-[var(--border)]">
                    <!-- Decorative pattern/overlay could go here -->
-                   <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                   <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
                    ${logoHtml}
                 </div>
               <!-- Card Body -->
@@ -452,7 +452,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
                   ${group.tags.length > 3 ? `<span class="text-[10px] text-[var(--muted)] px-1 self-center font-medium">+${group.tags.length - 3}</span>` : ''}
                 </div>
                 
-                <a href="/groups/${group.id}" class="block w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] text-sm font-bold py-2.5 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
+                <a href="/groups/${group.id}" class="relative z-20 block w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] text-sm font-bold py-2.5 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
                   Profil ansehen
                 </a>
               </div>
