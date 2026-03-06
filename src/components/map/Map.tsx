@@ -659,43 +659,41 @@ export default function Map({ groups, events = [], availableTags = [], links = [
               Events
             </span>
           </label>
-          {linkCategories.length > 0 || links.length > 0 ? (
-            <div className="pt-2 border-t border-[var(--border)]">
-              <div className="text-xs font-medium text-[var(--muted)] mb-2">Links</div>
-              <div className="space-y-1">
-                {linkCategories.length === 0 ? (
-                  <div className="text-xs text-[var(--muted)]">Keine Kategorien</div>
-                ) : null}
+          <div className="pt-2 border-t border-[var(--border)]">
+            <div className="text-xs font-medium text-[var(--muted)] mb-2">Links</div>
+            <div className="space-y-1">
+              {linkCategories.length === 0 ? (
+                <div className="text-xs text-[var(--muted)]">Keine Kategorien</div>
+              ) : null}
 
-                {linkCategories.map((c) => (
-                  <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedLinkCategoryIds[c.id])}
-                      onChange={(e) => setSelectedLinkCategoryIds((prev) => ({ ...prev, [c.id]: e.target.checked }))}
-                      className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
-                    />
-                    <span className="flex items-center gap-1 min-w-0">
-                      <span className="w-3 h-3 bg-emerald-600 rounded-full"></span>
-                      <span className="truncate">{c.name}</span>
-                    </span>
-                  </label>
-                ))}
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
+              {linkCategories.map((c) => (
+                <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={showUncategorizedLinks}
-                    onChange={(e) => setShowUncategorizedLinks(e.target.checked)}
+                    checked={Boolean(selectedLinkCategoryIds[c.id])}
+                    onChange={(e) => setSelectedLinkCategoryIds((prev) => ({ ...prev, [c.id]: e.target.checked }))}
                     className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
                   />
                   <span className="flex items-center gap-1 min-w-0">
-                    <span className="w-3 h-3 bg-emerald-600 rounded-full opacity-60"></span>
-                    <span className="truncate">Ohne Kategorie</span>
+                    <span className="w-3 h-3 bg-emerald-600 rounded-full"></span>
+                    <span className="truncate">{c.name}</span>
                   </span>
                 </label>
-              </div>
+              ))}
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showUncategorizedLinks}
+                  onChange={(e) => setShowUncategorizedLinks(e.target.checked)}
+                  className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+                <span className="flex items-center gap-1 min-w-0">
+                  <span className="w-3 h-3 bg-emerald-600 rounded-full opacity-60"></span>
+                  <span className="truncate">Ohne Kategorie</span>
+                </span>
+              </label>
             </div>
-          ) : null}
+          </div>
         </div>
         </div>
       </div>
