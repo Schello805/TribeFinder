@@ -129,6 +129,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
   const eventLocationOkCache = useRef<globalThis.Map<string, boolean>>(new globalThis.Map());
   const [mapReady, setMapReady] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [showGroups, setShowGroups] = useState(true);
   const [showEvents, setShowEvents] = useState(true);
@@ -181,6 +182,10 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     return () => {
       alive = false;
     };
+  }, []);
+
+  useEffect(() => {
+    setIsFilterOpen(window.matchMedia("(min-width: 768px)").matches);
   }, []);
 
   const extractPostcode = useCallback((address: string) => {
@@ -400,10 +405,12 @@ export default function Map({ groups, events = [], availableTags = [], links = [
           const index = keys.findIndex((x) => x === `G:${group.id}`);
           const j = jitterLatLng(group.location.lat, group.location.lng, pointKey, Math.max(0, index), keys.length);
 
+          const normalizedGroupImage = normalizeUploadedImageUrl((group.image || "").trim());
+
           // Logo Logic
-          const logoHtml = group.image 
+          const logoHtml = normalizedGroupImage 
             ? `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] overflow-hidden shadow-lg flex items-center justify-center z-10 pointer-events-none">
-                 <img src="${group.image}" alt="${group.name}" class="w-full h-full object-contain p-1 pointer-events-none" />
+                 <img src="${normalizedGroupImage}" alt="${group.name}" class="w-full h-full object-contain p-1 pointer-events-none" />
                </div>`
             : `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] flex items-center justify-center shadow-lg z-10 pointer-events-none">
                  <span class="tf-display text-2xl font-bold text-[var(--link)] pointer-events-none">${group.name.charAt(0)}</span>
@@ -459,7 +466,10 @@ export default function Map({ groups, events = [], availableTags = [], links = [
             </div>
           `, {
             className: 'custom-popup-style',
-            closeButton: false
+            closeButton: false,
+            autoClose: false,
+            closeOnClick: false,
+            keepInView: true,
           });
           groupClusterRef.current?.addLayer(marker);
           markersRef.current.push(marker);
@@ -525,7 +535,11 @@ export default function Map({ groups, events = [], availableTags = [], links = [
                 </div>
               </div>
             </div>
-          `);
+          `, {
+            autoClose: false,
+            closeOnClick: false,
+            keepInView: true,
+          });
           eventClusterRef.current?.addLayer(marker);
           markersRef.current.push(marker);
         }
@@ -564,7 +578,12 @@ export default function Map({ groups, events = [], availableTags = [], links = [
                 </a>
               </div>
             </div>
-          `.trim()
+          `.trim(),
+          {
+            autoClose: false,
+            closeOnClick: false,
+            keepInView: true,
+          }
         );
 
         linkClusterRef.current?.addLayer(marker);
@@ -578,8 +597,23 @@ export default function Map({ groups, events = [], availableTags = [], links = [
       <div ref={mapContainerRef} className="h-full w-full" />
       
       {/* Filter Panel */}
-      <div className="absolute top-4 left-4 z-[400] bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-lg border border-[var(--border)] p-4 max-w-xs">
-        <h3 className="tf-display font-semibold text-[var(--foreground)] mb-3 text-sm">Filter</h3>
+      <div
+        className="absolute top-2 left-2 md:top-4 md:left-4 z-[400] bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-lg border border-[var(--border)] p-3 md:p-4 max-w-[calc(100vw-1rem)] md:max-w-xs"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="tf-display font-semibold text-[var(--foreground)] text-sm">Filter</h3>
+          <button
+            type="button"
+            onClick={() => setIsFilterOpen((v) => !v)}
+            className="md:hidden text-xs font-semibold text-[var(--link)] hover:opacity-90"
+            aria-expanded={isFilterOpen}
+          >
+            {isFilterOpen ? "Weniger" : "Mehr"}
+          </button>
+        </div>
+
+        <div className={`${isFilterOpen ? "mt-3" : "hidden md:block md:mt-3"} max-h-[55vh] overflow-auto pr-1`}>
         
         {/* Tag/Style Filter */}
         {availableTags.length > 0 && (
@@ -658,13 +692,17 @@ export default function Map({ groups, events = [], availableTags = [], links = [
             </div>
           ) : null}
         </div>
+        </div>
       </div>
       
       {/* Control Buttons - Bottom Right */}
       <div className="absolute bottom-6 right-4 z-[400] flex flex-col gap-2">
         {/* Zoom In */}
         <button
-          onClick={() => mapRef.current?.zoomIn()}
+          onClick={(e) => {
+            e.stopPropagation();
+            mapRef.current?.zoomIn();
+          }}
           className="bg-[var(--surface)] p-2 rounded-md shadow-md border border-[var(--border)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] focus:outline-none"
           title="Vergrößern"
         >
@@ -675,7 +713,10 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         
         {/* Zoom Out */}
         <button
-          onClick={() => mapRef.current?.zoomOut()}
+          onClick={(e) => {
+            e.stopPropagation();
+            mapRef.current?.zoomOut();
+          }}
           className="bg-[var(--surface)] p-2 rounded-md shadow-md border border-[var(--border)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] focus:outline-none"
           title="Verkleinern"
         >
@@ -686,7 +727,10 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         
         {/* Locate Me */}
         <button
-          onClick={handleLocateMe}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleLocateMe();
+          }}
           disabled={isLocating}
           className="bg-[var(--surface)] p-2 rounded-md shadow-md border border-[var(--border)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] focus:outline-none disabled:opacity-50"
           title="Meinen Standort anzeigen"

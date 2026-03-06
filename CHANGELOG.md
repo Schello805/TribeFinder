@@ -118,6 +118,8 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Build: Next.js TypeScript-Typen für `/links` korrigiert (searchParams Promise-Kompatibilität)
 - Karte: Gruppen-Popup – Logo/Overlay blockiert nicht mehr den Klick auf "Profil ansehen"
 - Mobile: Feedback-Link wieder im Konto-Menü verfügbar
+- Karte: Filter-Panel auf Mobile kompakter und aufklappbar
+- Karte: Popups schließen weniger aggressiv bei Klick/Tap (Landscape-freundlicher)
 
 ## [Unreleased] - 2026-02-28
 
