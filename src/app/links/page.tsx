@@ -107,7 +107,7 @@ export default async function LinksPage({ searchParams }: PageProps) {
   const hasUncategorized = items.some((x) => !(x.category || "").trim());
 
   const chipBase =
-    "inline-flex items-center rounded-full border px-3 py-1 text-xs transition whitespace-nowrap";
+    "inline-flex items-center rounded-full border px-3 py-1 text-xs transition";
   const chipActive = "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]";
   const chipInactive = "border-[var(--border)] bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]";
 

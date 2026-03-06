@@ -294,7 +294,7 @@ export default async function RootLayout({
                     </p>
 
                     {appVersion || appCommit ? (
-                      <div className="mt-3 text-xs text-[var(--footer-muted)]">
+                      <div className="mt-3 text-xs text-[var(--footer-muted)] break-all">
                         Version:{" "}
                         <Link
                           href="/changelog"

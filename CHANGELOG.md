@@ -111,6 +111,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Hilfe: Icons für Tänzerinnen/Gruppen korrigiert; Links-Seite in Hilfe ergänzt
 - Startseite: "Was bietet TribeFinder?" ergänzt um Links
 - Startseite: "Was bietet TribeFinder?" Kacheln optisch vereinheitlicht (Icon-Badges, gleiche Höhen, klare CTA)
+- Responsiveness: Horizontales Overflow reduziert (Link-Chips umbrechbar; Footer-Version bricht lange Hashes)
 
 ## [Unreleased] - 2026-02-28
 
