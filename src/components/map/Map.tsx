@@ -658,10 +658,14 @@ export default function Map({ groups, events = [], availableTags = [], links = [
               Events
             </span>
           </label>
-          {linkCategories.length > 0 ? (
+          {linkCategories.length > 0 || links.length > 0 ? (
             <div className="pt-2 border-t border-[var(--border)]">
               <div className="text-xs font-medium text-[var(--muted)] mb-2">Links</div>
               <div className="space-y-1">
+                {linkCategories.length === 0 ? (
+                  <div className="text-xs text-[var(--muted)]">Keine Kategorien</div>
+                ) : null}
+
                 {linkCategories.map((c) => (
                   <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
                     <input
