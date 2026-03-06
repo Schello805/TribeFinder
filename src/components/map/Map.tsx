@@ -467,7 +467,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
             {
               className: "custom-popup-style",
               closeButton: false,
-              autoClose: false,
+              autoClose: true,
               closeOnClick: false,
               keepInView: true,
             }
@@ -537,7 +537,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
               </div>
             </div>
           `, {
-            autoClose: false,
+            autoClose: true,
             closeOnClick: false,
             keepInView: true,
           });
@@ -581,7 +581,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
             </div>
           `.trim(),
           {
-            autoClose: false,
+            autoClose: true,
             closeOnClick: false,
             keepInView: true,
           }
