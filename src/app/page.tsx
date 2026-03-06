@@ -248,7 +248,7 @@ export default async function Home() {
         <div className="container mx-auto px-4 max-w-6xl">
           <h2 className="tf-display text-3xl font-bold text-center mb-16 text-[var(--foreground)]">Was bietet TribeFinder?</h2>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-8">
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
             <Link
               href="/map"
               className="group bg-[var(--surface)] p-7 rounded-2xl shadow-sm hover:shadow-md transition border border-[var(--border)] block hover:-translate-y-0.5"
