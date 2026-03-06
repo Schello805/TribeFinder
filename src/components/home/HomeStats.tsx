@@ -316,7 +316,12 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
           {globalLinkCountsByCategory.map((x) => (
             <Link
               key={x.category}
-              href="/links"
+              href={{
+                pathname: "/links",
+                query: {
+                  category: x.category === "Ohne Kategorie" ? "__uncategorized" : x.category,
+                },
+              }}
               className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition"
             >
               <div className="text-sm text-[var(--muted)] truncate">{x.category}</div>

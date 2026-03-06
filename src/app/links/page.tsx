@@ -2,8 +2,24 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import SubmitLinkForm from "@/app/links/SubmitLinkForm";
 import SuggestLinkEditForm from "@/app/links/SuggestLinkEditForm";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+type PageProps = {
+  searchParams?: {
+    category?: string;
+  };
+};
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const isFiltered = Boolean(searchParams?.category);
+  return {
+    title: "Links | TribeFinder",
+    description: "Externe Websites rund um Tanzgruppen, Vereine, Kostüme und mehr.",
+    robots: isFiltered ? { index: false, follow: true } : { index: true, follow: true },
+  };
+}
 
 function isOfflineArchived(x: { archivedAt: Date | null; status: string }) {
   return x.status === "OFFLINE" || x.archivedAt;
@@ -30,7 +46,7 @@ function getExternalLinkDelegate(p: typeof prisma) {
       };
 }
 
-export default async function LinksPage() {
+export default async function LinksPage({ searchParams }: PageProps) {
   const delegate = getExternalLinkDelegate(prisma);
   if (!delegate) {
     return (
@@ -61,8 +77,21 @@ export default async function LinksPage() {
     take: 500,
   });
 
-  const active = items.filter((x: ExternalLinkPublicRow) => !isOfflineArchived({ archivedAt: x.archivedAt, status: x.status }));
-  const archived = items.filter((x: ExternalLinkPublicRow) => isOfflineArchived({ archivedAt: x.archivedAt, status: x.status }));
+  const activeAll = items.filter((x: ExternalLinkPublicRow) => !isOfflineArchived({ archivedAt: x.archivedAt, status: x.status }));
+  const archivedAll = items.filter((x: ExternalLinkPublicRow) => isOfflineArchived({ archivedAt: x.archivedAt, status: x.status }));
+
+  const rawCategory = typeof searchParams?.category === "string" ? searchParams.category.trim() : "";
+  const normalizedCategory = rawCategory === "__uncategorized" ? "" : rawCategory;
+  const filterActive = rawCategory.length > 0;
+
+  const matchesCategory = (x: ExternalLinkPublicRow) => {
+    if (!filterActive) return true;
+    if (rawCategory === "__uncategorized") return !x.category;
+    return (x.category || "").trim() === normalizedCategory;
+  };
+
+  const active = activeAll.filter(matchesCategory);
+  const archived = archivedAll.filter(matchesCategory);
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -71,6 +100,17 @@ export default async function LinksPage() {
         <div className="text-sm text-[var(--muted)]">
           Externe Websites rund um Tanzgruppen, Vereine, Kostüme und mehr.
         </div>
+
+        {filterActive ? (
+          <div className="pt-1 flex items-center gap-2 text-xs">
+            <span className="px-2 py-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] text-[var(--foreground)]">
+              Kategorie: {rawCategory === "__uncategorized" ? "Ohne Kategorie" : normalizedCategory}
+            </span>
+            <Link href="/links" className="underline underline-offset-2 hover:opacity-90 text-[var(--muted)]">
+              Filter zurücksetzen
+            </Link>
+          </div>
+        ) : null}
       </div>
 
       <SubmitLinkForm />
