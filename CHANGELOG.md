@@ -120,6 +120,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Mobile: Feedback-Link wieder im Konto-Menü verfügbar
 - Karte: Filter-Panel auf Mobile kompakter und aufklappbar
 - Karte: Popups schließen weniger aggressiv bei Klick/Tap (Landscape-freundlicher)
+- Security: Dependencies aktualisiert (Next.js Patch-Update; DOMPurify/jsPDF Fixes; Overrides für transitive Vulnerabilities)
 
 ## [Unreleased] - 2026-02-28
 
