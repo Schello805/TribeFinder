@@ -102,6 +102,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Einstellungen: Matomo-Abschnitt zeigt nach „Speichern“ wieder eine Statusmeldung (Feedback)
 
+### 🧭 Navigation
+
+- Footer: Links im Footer sind nun in Sektionen unterteilt (Rechtliches/Mehr/Community) für bessere Übersicht
+
 ## [Unreleased] - 2026-02-28
 
 ### 🏷️ Tags
