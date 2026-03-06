@@ -7,13 +7,18 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  searchParams?: {
-    category?: string;
-  };
+  searchParams?:
+    | {
+        category?: string;
+      }
+    | Promise<{
+        category?: string;
+      }>;
 };
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
-  const isFiltered = Boolean(searchParams?.category);
+  const resolvedSearchParams = await searchParams;
+  const isFiltered = Boolean(resolvedSearchParams?.category);
   return {
     title: "Links | TribeFinder",
     description: "Externe Websites rund um Tanzgruppen, Vereine, Kostüme und mehr.",
@@ -50,6 +55,7 @@ function getExternalLinkDelegate(p: typeof prisma) {
 }
 
 export default async function LinksPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await searchParams;
   const delegate = getExternalLinkDelegate(prisma);
   if (!delegate) {
     return (
@@ -83,7 +89,7 @@ export default async function LinksPage({ searchParams }: PageProps) {
   const activeAll = items.filter((x: ExternalLinkPublicRow) => !isOfflineArchived({ archivedAt: x.archivedAt, status: x.status }));
   const archivedAll = items.filter((x: ExternalLinkPublicRow) => isOfflineArchived({ archivedAt: x.archivedAt, status: x.status }));
 
-  const rawCategory = typeof searchParams?.category === "string" ? searchParams.category.trim() : "";
+  const rawCategory = typeof resolvedSearchParams?.category === "string" ? resolvedSearchParams.category.trim() : "";
   const normalizedCategory = rawCategory === "__uncategorized" ? "" : rawCategory;
   const filterActive = rawCategory.length > 0;
 

@@ -115,6 +115,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - SEO: JSON-LD Structured Data robuster (WebSite/Organization via `@graph`) – verhindert Runtime-Fehler
 - Startseite: Feature-Kachel-Titel auf max. 2 Zeilen geklemmt für bessere Lesbarkeit
 - Startseite: Feature-Kacheln weniger gequetscht (max. 3 Spalten, bessere Abstände)
+- Build: Next.js TypeScript-Typen für `/links` korrigiert (searchParams Promise-Kompatibilität)
 
 ## [Unreleased] - 2026-02-28
 
