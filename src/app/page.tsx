@@ -257,7 +257,9 @@ export default async function Home() {
                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
                   🗺️
                 </div>
-                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Interaktive Karte</h3>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)] line-clamp-2 break-words min-h-[3.25rem]">
+                  Interaktive Karte
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
                   Entdecke Tanzgruppen direkt auf der Karte. Finde schnell heraus, wer in deiner Umgebung tanzt und trainiert.
                 </p>
@@ -275,7 +277,9 @@ export default async function Home() {
                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
                   📅
                 </div>
-                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Events & Kalender</h3>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)] line-clamp-2 break-words min-h-[3.25rem]">
+                  Events & Kalender
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
                   Finde Workshops, Partys, offene Trainings und Shows – und trage eigene Events ein.
                 </p>
@@ -293,7 +297,9 @@ export default async function Home() {
                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
                   👯‍♀️
                 </div>
-                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Gruppen-Profile</h3>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)] line-clamp-2 break-words min-h-[3.25rem]">
+                  Gruppen-Profile
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
                   Erstelle einen detaillierten Steckbrief für deine Gruppe mit Beschreibung, Fotos, Tags und Kontaktmöglichkeiten.
                 </p>
@@ -311,7 +317,9 @@ export default async function Home() {
                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
                   💃
                 </div>
-                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Tänzerinnenprofil</h3>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)] line-clamp-2 break-words min-h-[3.25rem]">
+                  Tänzerinnenprofil
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
                   Zeige dich mit Bio, Links, Unterricht/Workshops und Buchbarkeit – für Training und Auftritte.
                 </p>
@@ -329,7 +337,9 @@ export default async function Home() {
                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
                   🛍️
                 </div>
-                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Second-Hand</h3>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)] line-clamp-2 break-words min-h-[3.25rem]">
+                  Second-Hand
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
                   Second-Hand für Kostüme, Schmuck & mehr – mit Bildern, Standort und direktem 1:1 Kontakt.
                 </p>
@@ -347,7 +357,9 @@ export default async function Home() {
                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
                   🔗
                 </div>
-                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Links</h3>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)] line-clamp-2 break-words min-h-[3.25rem]">
+                  Links
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
                   Entdecke externe Websites (z.B. Tanzschulen, Shops, Communities) – mit Kategorien und Vorschlagsfunktion.
                 </p>
