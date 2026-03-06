@@ -409,10 +409,10 @@ export default function Map({ groups, events = [], availableTags = [], links = [
 
           // Logo Logic
           const logoHtml = normalizedGroupImage 
-            ? `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] overflow-hidden shadow-lg flex items-center justify-center z-10 pointer-events-none">
+            ? `<div class="absolute -top-8 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] overflow-hidden shadow-lg flex items-center justify-center z-10 pointer-events-none">
                  <img src="${normalizedGroupImage}" alt="${group.name}" class="w-full h-full object-contain p-1 pointer-events-none" />
                </div>`
-            : `<div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] flex items-center justify-center shadow-lg z-10 pointer-events-none">
+            : `<div class="absolute -top-8 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full border-4 border-[var(--surface)] bg-[var(--surface)] flex items-center justify-center shadow-lg z-10 pointer-events-none">
                  <span class="tf-display text-2xl font-bold text-[var(--link)] pointer-events-none">${group.name.charAt(0)}</span>
                </div>`;
         
@@ -426,17 +426,16 @@ export default function Map({ groups, events = [], availableTags = [], links = [
 
           const marker = L.marker([j.lat, j.lng], { icon: groupIcon }).bindPopup(
             `
-              <div class="min-w-[260px] font-sans -m-1">
+              <div class="min-w-[240px] font-sans -m-1">
                 <div class="relative bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-xl border border-[var(--border)]">
                   ${logoHtml}
-
-                  <div class="pt-12 pb-5 px-5 text-center">
-                    <h3 class="tf-display font-extrabold text-xl text-[var(--foreground)] leading-tight mb-1">${group.name}</h3>
+                  <div class="pt-10 pb-4 px-4 text-center">
+                    <h3 class="tf-display font-extrabold text-lg text-[var(--foreground)] leading-tight mb-0.5">${group.name}</h3>
                     <p class="text-[11px] text-[var(--muted)] font-bold uppercase tracking-widest mb-4">
                       ${group.size === 'SOLO' ? 'Solo Artist' : group.size === 'SMALL' ? 'Kleine Gruppe' : 'Große Gruppe'}
                     </p>
-
-                    <div class="flex flex-col gap-2 mb-4">
+                    
+                    <div class="flex flex-col gap-2 mb-3">
                       <p class="text-sm text-[var(--muted)] flex items-center justify-center gap-1.5">
                         <span class="bg-[var(--surface-2)] p-1 rounded-full text-[var(--muted)] border border-[var(--border)]">
                           <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -447,7 +446,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
                       ${websiteHtml ? `<div class="flex justify-center">${websiteHtml}</div>` : ''}
                     </div>
 
-                    <div class="flex flex-wrap justify-center gap-1.5 mb-5">
+                    <div class="flex flex-wrap justify-center gap-1.5 mb-4">
                       ${group.tags
                         .slice(0, 3)
                         .map(
@@ -458,7 +457,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
                       ${group.tags.length > 3 ? `<span class="text-[10px] text-[var(--muted)] px-1 self-center font-medium">+${group.tags.length - 3}</span>` : ''}
                     </div>
 
-                    <a href="/groups/${group.id}" class="relative z-20 block w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] text-sm font-bold py-2.5 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
+                    <a href="/groups/${group.id}" class="relative z-20 block w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] text-sm font-bold py-2 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
                       Profil ansehen
                     </a>
                   </div>
