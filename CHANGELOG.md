@@ -110,6 +110,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Footer: Links im Footer sind nun in Sektionen unterteilt (Rechtliches/Mehr/Community) für bessere Übersicht
 - Hilfe: Icons für Tänzerinnen/Gruppen korrigiert; Links-Seite in Hilfe ergänzt
 - Startseite: "Was bietet TribeFinder?" ergänzt um Links
+- Startseite: "Was bietet TribeFinder?" Kacheln optisch vereinheitlicht (Icon-Badges, gleiche Höhen, klare CTA)
 
 ## [Unreleased] - 2026-02-28
 

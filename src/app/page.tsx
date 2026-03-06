@@ -251,74 +251,110 @@ export default async function Home() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-8">
             <Link
               href="/map"
-              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+              className="group bg-[var(--surface)] p-7 rounded-2xl shadow-sm hover:shadow-md transition border border-[var(--border)] block hover:-translate-y-0.5"
             >
-              <div className="text-4xl mb-4">🗺️</div>
-              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Interaktive Karte</h3>
-              <p className="text-[var(--muted)]">
-                Entdecke Tanzgruppen direkt auf der Karte. Finde schnell heraus, wer in deiner Umgebung tanzt und trainiert.
-              </p>
-              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zur Karte</div>
+              <div className="h-full flex flex-col">
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
+                  🗺️
+                </div>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Interaktive Karte</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+                  Entdecke Tanzgruppen direkt auf der Karte. Finde schnell heraus, wer in deiner Umgebung tanzt und trainiert.
+                </p>
+                <div className="mt-auto pt-4 text-sm font-semibold text-[var(--link)] group-hover:opacity-90 transition">
+                  Zur Karte
+                </div>
+              </div>
             </Link>
 
             <Link
               href="/events"
-              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+              className="group bg-[var(--surface)] p-7 rounded-2xl shadow-sm hover:shadow-md transition border border-[var(--border)] block hover:-translate-y-0.5"
             >
-              <div className="text-4xl mb-4">📅</div>
-              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Events & Kalender</h3>
-              <p className="text-[var(--muted)]">
-                Finde Workshops, Partys, offene Trainings und Shows – und trage eigene Events ein.
-              </p>
-              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zu den Events</div>
+              <div className="h-full flex flex-col">
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
+                  📅
+                </div>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Events & Kalender</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+                  Finde Workshops, Partys, offene Trainings und Shows – und trage eigene Events ein.
+                </p>
+                <div className="mt-auto pt-4 text-sm font-semibold text-[var(--link)] group-hover:opacity-90 transition">
+                  Zu den Events
+                </div>
+              </div>
             </Link>
 
             <Link
               href="/groups"
-              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+              className="group bg-[var(--surface)] p-7 rounded-2xl shadow-sm hover:shadow-md transition border border-[var(--border)] block hover:-translate-y-0.5"
             >
-              <div className="text-4xl mb-4">👯‍♀️</div>
-              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Gruppen-Profile</h3>
-              <p className="text-[var(--muted)]">
-                Erstelle einen detaillierten Steckbrief für deine Gruppe mit Beschreibung, Fotos, Tags und Kontaktmöglichkeiten.
-              </p>
-              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zu den Gruppen</div>
+              <div className="h-full flex flex-col">
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
+                  👯‍♀️
+                </div>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Gruppen-Profile</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+                  Erstelle einen detaillierten Steckbrief für deine Gruppe mit Beschreibung, Fotos, Tags und Kontaktmöglichkeiten.
+                </p>
+                <div className="mt-auto pt-4 text-sm font-semibold text-[var(--link)] group-hover:opacity-90 transition">
+                  Zu den Gruppen
+                </div>
+              </div>
             </Link>
 
             <Link
               href="/taenzerinnen"
-              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+              className="group bg-[var(--surface)] p-7 rounded-2xl shadow-sm hover:shadow-md transition border border-[var(--border)] block hover:-translate-y-0.5"
             >
-              <div className="text-4xl mb-4">💃</div>
-              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Tänzerinnenprofil</h3>
-              <p className="text-[var(--muted)]">
-                Zeige dich mit Bio, Links, Unterricht/Workshops und Buchbarkeit – für Training und Auftritte.
-              </p>
-              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zu den Tänzerinnen</div>
+              <div className="h-full flex flex-col">
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
+                  💃
+                </div>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Tänzerinnenprofil</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+                  Zeige dich mit Bio, Links, Unterricht/Workshops und Buchbarkeit – für Training und Auftritte.
+                </p>
+                <div className="mt-auto pt-4 text-sm font-semibold text-[var(--link)] group-hover:opacity-90 transition">
+                  Zu den Tänzerinnen
+                </div>
+              </div>
             </Link>
 
             <Link
               href="/marketplace"
-              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+              className="group bg-[var(--surface)] p-7 rounded-2xl shadow-sm hover:shadow-md transition border border-[var(--border)] block hover:-translate-y-0.5"
             >
-              <div className="text-4xl mb-4">🛍️</div>
-              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Second-Hand</h3>
-              <p className="text-[var(--muted)]">
-                Second-Hand für Kostüme, Schmuck & mehr – mit Bildern, Standort und direktem 1:1 Kontakt.
-              </p>
-              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zu Second-Hand</div>
+              <div className="h-full flex flex-col">
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
+                  🛍️
+                </div>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Second-Hand</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+                  Second-Hand für Kostüme, Schmuck & mehr – mit Bildern, Standort und direktem 1:1 Kontakt.
+                </p>
+                <div className="mt-auto pt-4 text-sm font-semibold text-[var(--link)] group-hover:opacity-90 transition">
+                  Zu Second-Hand
+                </div>
+              </div>
             </Link>
 
             <Link
               href="/links"
-              className="bg-[var(--surface)] p-8 rounded-xl shadow-sm hover:shadow-md transition border border-[var(--border)] block"
+              className="group bg-[var(--surface)] p-7 rounded-2xl shadow-sm hover:shadow-md transition border border-[var(--border)] block hover:-translate-y-0.5"
             >
-              <div className="text-4xl mb-4">🔗</div>
-              <h3 className="tf-display text-xl font-bold mb-3 text-[var(--foreground)]">Links</h3>
-              <p className="text-[var(--muted)]">
-                Entdecke externe Websites (z.B. Tanzschulen, Shops, Communities) – mit Kategorien und Vorschlagsfunktion.
-              </p>
-              <div className="mt-4 text-sm text-[var(--link)] font-medium">Zu den Links</div>
+              <div className="h-full flex flex-col">
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-2xl">
+                  🔗
+                </div>
+                <h3 className="mt-4 tf-display text-lg font-bold text-[var(--foreground)]">Links</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+                  Entdecke externe Websites (z.B. Tanzschulen, Shops, Communities) – mit Kategorien und Vorschlagsfunktion.
+                </p>
+                <div className="mt-auto pt-4 text-sm font-semibold text-[var(--link)] group-hover:opacity-90 transition">
+                  Zu den Links
+                </div>
+              </div>
             </Link>
           </div>
         </div>
