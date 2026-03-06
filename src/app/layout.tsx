@@ -211,21 +211,22 @@ export default async function RootLayout({
     ? (siteBannerText || "Wartungsmodus aktiv – Änderungen/Uploads sind vorübergehend deaktiviert.")
     : siteBannerText;
 
-  const structuredData = [
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "TribeFinder",
-      url: publicBaseUrl,
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: "TribeFinder",
-      url: publicBaseUrl,
-      ...(brandingLogoUrl ? { logo: toAbsoluteUrl(brandingLogoUrl) } : {}),
-    },
-  ];
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        name: "TribeFinder",
+        url: publicBaseUrl,
+      },
+      {
+        "@type": "Organization",
+        name: "TribeFinder",
+        url: publicBaseUrl,
+        ...(brandingLogoUrl ? { logo: toAbsoluteUrl(brandingLogoUrl) } : {}),
+      },
+    ],
+  };
 
   return (
     <html lang="de" suppressHydrationWarning data-tf-theme={themePreset} className={`${copperDisplay.variable} ${nocturneDisplay.variable}`}>

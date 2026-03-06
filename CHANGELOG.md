@@ -112,6 +112,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Startseite: "Was bietet TribeFinder?" ergänzt um Links
 - Startseite: "Was bietet TribeFinder?" Kacheln optisch vereinheitlicht (Icon-Badges, gleiche Höhen, klare CTA)
 - Responsiveness: Horizontales Overflow reduziert (Link-Chips umbrechbar; Footer-Version bricht lange Hashes)
+- SEO: JSON-LD Structured Data robuster (WebSite/Organization via `@graph`) – verhindert Runtime-Fehler
 
 ## [Unreleased] - 2026-02-28
 
