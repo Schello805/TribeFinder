@@ -446,15 +446,15 @@ export default function Map({ groups, events = [], availableTags = [], links = [
                       ${websiteHtml ? `<div class="flex justify-center">${websiteHtml}</div>` : ''}
                     </div>
 
-                    <div class="flex flex-wrap justify-center gap-1.5 mb-4">
+                    <div class="flex flex-wrap justify-center gap-1 mb-3">
                       ${group.tags
                         .slice(0, 3)
                         .map(
                           (t) =>
-                            `<span class="text-[10px] font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] px-2.5 py-1 rounded-full">${t.name}</span>`
+                            `<span class="text-[9px] font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] px-2 py-0.5 rounded-full">${t.name}</span>`
                         )
                         .join('')}
-                      ${group.tags.length > 3 ? `<span class="text-[10px] text-[var(--muted)] px-1 self-center font-medium">+${group.tags.length - 3}</span>` : ''}
+                      ${group.tags.length > 3 ? `<span class="text-[9px] text-[var(--muted)] px-1 self-center font-medium">+${group.tags.length - 3}</span>` : ''}
                     </div>
 
                     <a href="/groups/${group.id}" class="relative z-20 block w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] text-sm font-bold py-2 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
