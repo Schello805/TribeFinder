@@ -424,53 +424,55 @@ export default function Map({ groups, events = [], availableTags = [], links = [
                </a>`
             : '';
 
-          const marker = L.marker([j.lat, j.lng], { icon: groupIcon })
-            .bindPopup(`
+          const marker = L.marker([j.lat, j.lng], { icon: groupIcon }).bindPopup(
+            `
               <div class="min-w-[260px] font-sans -m-1">
-                <!-- Card Header -->
-                <div class="relative p-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-lg border border-[var(--border)]">
-                   <!-- Decorative pattern/overlay could go here -->
-                   <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
-                   ${logoHtml}
+                <div class="relative bg-[var(--surface)] text-[var(--foreground)] rounded-xl shadow-xl border border-[var(--border)]">
+                  ${logoHtml}
+
+                  <div class="pt-12 pb-5 px-5 text-center">
+                    <h3 class="tf-display font-extrabold text-xl text-[var(--foreground)] leading-tight mb-1">${group.name}</h3>
+                    <p class="text-[11px] text-[var(--muted)] font-bold uppercase tracking-widest mb-4">
+                      ${group.size === 'SOLO' ? 'Solo Artist' : group.size === 'SMALL' ? 'Kleine Gruppe' : 'Große Gruppe'}
+                    </p>
+
+                    <div class="flex flex-col gap-2 mb-4">
+                      <p class="text-sm text-[var(--muted)] flex items-center justify-center gap-1.5">
+                        <span class="bg-[var(--surface-2)] p-1 rounded-full text-[var(--muted)] border border-[var(--border)]">
+                          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        </span>
+                        <span class="truncate max-w-[180px]">${group.location.address || 'Keine Adresse'}</span>
+                      </p>
+
+                      ${websiteHtml ? `<div class="flex justify-center">${websiteHtml}</div>` : ''}
+                    </div>
+
+                    <div class="flex flex-wrap justify-center gap-1.5 mb-5">
+                      ${group.tags
+                        .slice(0, 3)
+                        .map(
+                          (t) =>
+                            `<span class="text-[10px] font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] px-2.5 py-1 rounded-full">${t.name}</span>`
+                        )
+                        .join('')}
+                      ${group.tags.length > 3 ? `<span class="text-[10px] text-[var(--muted)] px-1 self-center font-medium">+${group.tags.length - 3}</span>` : ''}
+                    </div>
+
+                    <a href="/groups/${group.id}" class="relative z-20 block w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] text-sm font-bold py-2.5 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
+                      Profil ansehen
+                    </a>
+                  </div>
                 </div>
-              <!-- Card Body -->
-              <div class="pt-12 pb-5 px-5 text-center bg-[var(--surface)] rounded-b-lg shadow-xl border-x border-b border-[var(--border)]">
-                <h3 class="tf-display font-extrabold text-xl text-[var(--foreground)] leading-tight mb-1">${group.name}</h3>
-                <p class="text-[11px] text-[var(--muted)] font-bold uppercase tracking-widest mb-4">
-                  ${group.size === 'SOLO' ? 'Solo Artist' : (group.size === 'SMALL' ? 'Kleine Gruppe' : 'Große Gruppe')}
-                </p>
-                
-                <div class="flex flex-col gap-2 mb-4">
-                  <p class="text-sm text-[var(--muted)] flex items-center justify-center gap-1.5">
-                    <span class="bg-[var(--surface-2)] p-1 rounded-full text-[var(--muted)] border border-[var(--border)]">
-                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    </span>
-                    <span class="truncate max-w-[180px]">${group.location.address || 'Keine Adresse'}</span>
-                  </p>
-                  
-                  ${websiteHtml ? `
-                  <div class="flex justify-center">
-                    ${websiteHtml}
-                  </div>` : ''}
-                </div>
-                
-                <div class="flex flex-wrap justify-center gap-1.5 mb-5">
-                  ${group.tags.slice(0, 3).map((t) => `<span class="text-[10px] font-medium bg-[var(--surface-2)] text-[var(--foreground)] border border-[var(--border)] px-2.5 py-1 rounded-full">${t.name}</span>`).join('')}
-                  ${group.tags.length > 3 ? `<span class="text-[10px] text-[var(--muted)] px-1 self-center font-medium">+${group.tags.length - 3}</span>` : ''}
-                </div>
-                
-                <a href="/groups/${group.id}" class="relative z-20 block w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-[var(--primary-foreground)] text-sm font-bold py-2.5 rounded-lg transition-all transform hover:scale-[1.02] shadow-md no-underline">
-                  Profil ansehen
-                </a>
               </div>
-            </div>
-          `, {
-            className: 'custom-popup-style',
-            closeButton: false,
-            autoClose: false,
-            closeOnClick: false,
-            keepInView: true,
-          });
+            `,
+            {
+              className: "custom-popup-style",
+              closeButton: false,
+              autoClose: false,
+              closeOnClick: false,
+              keepInView: true,
+            }
+          );
           groupClusterRef.current?.addLayer(marker);
           markersRef.current.push(marker);
         }
