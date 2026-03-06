@@ -7,13 +7,9 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  searchParams?:
-    | {
-        category?: string;
-      }
-    | Promise<{
-        category?: string;
-      }>;
+  searchParams?: Promise<{
+    category?: string;
+  }>;
 };
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
