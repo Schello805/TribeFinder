@@ -46,10 +46,13 @@ export function cleanupOldPresence(now = Date.now()) {
 export function getOnlineSnapshot(now = Date.now()) {
   cleanupOldPresence(now);
   const store = getStore();
+  const cutoff = now - ONLINE_WINDOW_MS;
 
   return {
     onlineVisitors: store.visitors.size,
-    onlineUserIds: Array.from(store.users.keys()),
+    onlineUserIds: Array.from(store.users.entries())
+      .filter(([, ts]) => ts >= cutoff)
+      .map(([id]) => id),
   };
 }
 

@@ -105,6 +105,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 ### 🧰 Admin
 
 - Einstellungen: Matomo-Abschnitt zeigt nach „Speichern“ wieder eine Statusmeldung (Feedback)
+- Admin: Online-Zähler "Eingeloggt online" nutzt jetzt korrekt das 5-Minuten-Fenster (statt historischer Last-Seen Werte)
 
 ### 🧭 Navigation
 
