@@ -52,9 +52,9 @@ export default function AdminOnlineCard() {
 
   return (
     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-5">
-      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Online (letzte {windowMinutes} Minuten)</dt>
+      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Besucher online (letzte {windowMinutes} Minuten)</dt>
       <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{onlineVisitors}</dd>
-      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">Eingeloggt online: {onlineUsers}</div>
+      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">Eingeloggt online (letzte {windowMinutes} Minuten): {onlineUsers}</div>
     </div>
   );
 }
