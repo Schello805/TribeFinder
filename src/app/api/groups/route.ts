@@ -9,8 +9,22 @@ import logger from "@/lib/logger";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 import { revalidatePath } from "next/cache";
 
-function getGroupLikeDelegate() {
-  return (prisma as unknown as { groupLike?: typeof prisma.favoriteGroup }).groupLike;
+function getLikeDelegates() {
+  const p = prisma as unknown as {
+    groupLike?: {
+      groupBy: (args: unknown) => Promise<unknown>;
+      findMany: (args: unknown) => Promise<unknown>;
+    };
+    favoriteGroup?: {
+      groupBy: (args: unknown) => Promise<unknown>;
+      findMany: (args: unknown) => Promise<unknown>;
+    };
+  };
+
+  return {
+    groupLike: p.groupLike ?? null,
+    favoriteGroup: p.favoriteGroup ?? null,
+  };
 }
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -211,8 +225,8 @@ export async function GET(req: Request) {
 
     const groupIds = groups.map((g) => g.id);
 
-    const groupLike = getGroupLikeDelegate();
-    if (!groupLike) {
+    const { groupLike, favoriteGroup } = getLikeDelegates();
+    if (!groupLike && !favoriteGroup) {
       return NextResponse.json({
         data: groups.map((g) => ({ ...g, likeCount: 0, likedByMe: false })),
         pagination: {
@@ -225,32 +239,46 @@ export async function GET(req: Request) {
       });
     }
 
-    const likeCounts = groupIds.length
-      ? await groupLike.groupBy({
-          by: ["groupId"],
-          where: { groupId: { in: groupIds } },
-          _count: { _all: true },
-        })
-      : [];
-    const likeCountByGroupId = new Map<string, number>(
-      likeCounts.map((x: { groupId: string; _count: { _all: number } }) => [x.groupId, x._count._all])
-    );
+    const [groupLikePairsRaw, favoritePairsRaw] = await Promise.all([
+      groupLike && groupIds.length
+        ? groupLike.groupBy({
+            by: ["groupId", "userId"],
+            where: { groupId: { in: groupIds } },
+          })
+        : Promise.resolve([]),
+      favoriteGroup && groupIds.length
+        ? favoriteGroup.groupBy({
+            by: ["groupId", "userId"],
+            where: { groupId: { in: groupIds } },
+          })
+        : Promise.resolve([]),
+    ]);
 
-    const likedSet = session?.user?.id
-      ? new Set(
-          (
-            await groupLike.findMany({
-              where: { userId: session.user.id, groupId: { in: groupIds } },
-              select: { groupId: true },
-            })
-          ).map((x: { groupId: string }) => x.groupId)
-        )
-      : new Set<string>();
+    const groupLikePairs = Array.isArray(groupLikePairsRaw) ? (groupLikePairsRaw as Array<{ groupId: string; userId: string }>) : [];
+    const favoritePairs = Array.isArray(favoritePairsRaw) ? (favoritePairsRaw as Array<{ groupId: string; userId: string }>) : [];
+
+    const usersByGroupId = new Map<string, Set<string>>();
+    for (const { groupId, userId } of [...groupLikePairs, ...favoritePairs]) {
+      let set = usersByGroupId.get(groupId);
+      if (!set) {
+        set = new Set<string>();
+        usersByGroupId.set(groupId, set);
+      }
+      set.add(userId);
+    }
+
+    const myLikedByGroupId = session?.user?.id ? new Set<string>() : null;
+    if (session?.user?.id) {
+      const uid = session.user.id;
+      for (const { groupId, userId } of [...groupLikePairs, ...favoritePairs]) {
+        if (userId === uid) myLikedByGroupId?.add(groupId);
+      }
+    }
 
     const enriched = groups.map((g) => ({
       ...g,
-      likeCount: likeCountByGroupId.get(g.id) ?? 0,
-      likedByMe: likedSet.has(g.id),
+      likeCount: usersByGroupId.get(g.id)?.size ?? 0,
+      likedByMe: Boolean(myLikedByGroupId?.has(g.id)),
     }));
 
     return NextResponse.json({

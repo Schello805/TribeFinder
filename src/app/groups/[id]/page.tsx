@@ -13,8 +13,58 @@ import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import LikeButton from "@/components/groups/LikeButton";
 
-function getGroupLikeDelegate() {
-  return (prisma as unknown as { groupLike?: typeof prisma.favoriteGroup }).groupLike;
+function getLikeDelegates() {
+  const p = prisma as unknown as {
+    groupLike?: {
+      count: (args: unknown) => Promise<number>;
+      findUnique: (args: unknown) => Promise<unknown>;
+      groupBy: (args: unknown) => Promise<unknown>;
+    };
+    favoriteGroup?: {
+      findUnique: (args: unknown) => Promise<unknown>;
+      groupBy: (args: unknown) => Promise<unknown>;
+    };
+  };
+
+  return {
+    groupLike: p.groupLike ?? null,
+    favoriteGroup: p.favoriteGroup ?? null,
+  };
+}
+
+async function getLikeSnapshot(groupId: string, userId: string | null) {
+  const { groupLike, favoriteGroup } = getLikeDelegates();
+
+  if (!groupLike && !favoriteGroup) {
+    return { count: 0, likedByMe: false };
+  }
+
+  const [groupLikePairsRaw, favoritePairsRaw] = await Promise.all([
+    groupLike
+      ? groupLike.groupBy({
+          by: ["userId"],
+          where: { groupId },
+        })
+      : Promise.resolve([]),
+    favoriteGroup
+      ? favoriteGroup.groupBy({
+          by: ["userId"],
+          where: { groupId },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const groupLikePairs = Array.isArray(groupLikePairsRaw) ? (groupLikePairsRaw as Array<{ userId: string }>) : [];
+  const favoritePairs = Array.isArray(favoritePairsRaw) ? (favoritePairsRaw as Array<{ userId: string }>) : [];
+
+  const users = new Set<string>();
+  for (const x of groupLikePairs) users.add(x.userId);
+  for (const x of favoritePairs) users.add(x.userId);
+
+  return {
+    count: users.size,
+    likedByMe: userId ? users.has(userId) : false,
+  };
 }
 
 export default async function GroupDetailPage({
@@ -274,25 +324,9 @@ export default async function GroupDetailPage({
       role: m.role,
     }));
 
-  const groupLike = getGroupLikeDelegate();
-  const [likeCount, likedByMe] = groupLike
-    ? await Promise.all([
-        groupLike.count({ where: { groupId: id } }),
-        session?.user?.id
-          ? groupLike
-              .findUnique({
-                where: {
-                  userId_groupId: {
-                    userId: session.user.id,
-                    groupId: id,
-                  },
-                },
-                select: { id: true },
-              })
-              .then((x: { id: string } | null) => Boolean(x))
-          : Promise.resolve(false),
-      ])
-    : [0, false];
+  const likeSnap = await getLikeSnapshot(id, session?.user?.id ?? null);
+  const likeCount = likeSnap.count;
+  const likedByMe = likeSnap.likedByMe;
 
   return (
     <GroupDetailAnimations>
