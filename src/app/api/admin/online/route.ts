@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/requireAdmin";
-import { getOnlineSnapshot } from "@/lib/presence";
+import { getOnlineSnapshot, getUserLastSeen } from "@/lib/presence";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
@@ -16,12 +16,25 @@ export async function GET() {
   });
 
   const userById = new Map(users.map((u) => [u.id, u]));
+  const now = Date.now();
+
+  const onlineUsers = snap.onlineUserIds
+    .map((id) => {
+      const u = userById.get(id);
+      if (!u) return null;
+      const lastSeen = getUserLastSeen(id, now);
+      const minutesAgo = typeof lastSeen === "number" ? Math.max(0, Math.round((now - lastSeen) / 60_000)) : null;
+      return {
+        ...u,
+        lastSeen,
+        minutesAgo,
+      };
+    })
+    .filter(Boolean);
 
   return NextResponse.json({
     onlineVisitors: snap.onlineVisitors,
-    onlineUsers: snap.onlineUserIds
-      .map((id) => userById.get(id))
-      .filter(Boolean),
+    onlineUsers,
     windowMinutes: 5,
   });
 }
