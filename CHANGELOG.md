@@ -98,6 +98,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Karte: Link-Filter zeigt Kategorien einzeln (statt pauschal "Links"); Admin kann pro Kategorie steuern, ob sie auf der Karte angezeigt wird ("In Karte anzeigen")
 - Startseite: Links-Kennzahlen zeigen Gesamtzahl der freigegebenen Link-Einträge sowie eine Kachel pro Kategorie (mit Anzahl)
 - Startseite: Kategorie-Kacheln verlinken direkt auf gefilterte Linkliste (`/links?category=...`)
+- Startseite: Links-Kennzahlen optisch vereinheitlicht (Kachel "Links" entfernt; gleiche Höhen; Kategorie-Kacheln 4 Spalten auf Desktop)
 - SEO: Gefilterte Linklisten werden per `robots: noindex` vor Duplicate Content geschützt
 - Links-Seite: Kategorie-Chips als Schnellfilter + Canonical-URL (`/links`) für saubere Indexierung
 

@@ -271,11 +271,11 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
 
   return (
     <div>
-      <div className="mt-10 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
         <button
           type="button"
           onClick={() => openSheet({ scope: "global", type: "groups" })}
-          className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition"
+          className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition flex flex-col items-center justify-center min-h-[120px] h-full"
         >
           <div className="text-sm text-[var(--muted)]">Schon dabei</div>
           <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{globalGroups}</div>
@@ -285,7 +285,7 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
         <button
           type="button"
           onClick={() => openSheet({ scope: "global", type: "events" })}
-          className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition"
+          className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition flex flex-col items-center justify-center min-h-[120px] h-full"
         >
           <div className="text-sm text-[var(--muted)]">Aktuell geplant</div>
           <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{globalEvents}</div>
@@ -295,24 +295,16 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
         <button
           type="button"
           onClick={() => openSheet({ scope: "global", type: "members" })}
-          className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition"
+          className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition flex flex-col items-center justify-center min-h-[120px] h-full"
         >
           <div className="text-sm text-[var(--muted)]">Mitglieder</div>
           <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{globalMembers}</div>
           <div className="mt-1 text-sm text-[var(--muted)]">in der Community</div>
         </button>
-
-        <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center">
-          <div className="text-sm text-[var(--muted)]">Links</div>
-          <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">
-            {globalLinkCountsByCategory.reduce((sum, x) => sum + x.count, 0)}
-          </div>
-          <div className="mt-1 text-sm text-[var(--muted)]">Einträge</div>
-        </div>
       </div>
 
       {globalLinkCountsByCategory.length > 0 ? (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-stretch">
           {globalLinkCountsByCategory.map((x) => (
             <Link
               key={x.category}
@@ -322,7 +314,7 @@ export default function HomeStats({ radiusKm = 25, globalGroups, globalEvents, g
                   category: x.category === "Ohne Kategorie" ? "__uncategorized" : x.category,
                 },
               }}
-              className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition"
+              className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-5 text-center hover:bg-[var(--surface-hover)] transition flex flex-col items-center justify-center min-h-[120px] h-full"
             >
               <div className="text-sm text-[var(--muted)] truncate">{x.category}</div>
               <div className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{x.count}</div>
