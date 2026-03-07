@@ -22,6 +22,8 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Gruppen: Steckbrief zeigt Gruppen-Logo; Safari-Druckvorschau fix (nur Steckbrief sichtbar via Print-CSS)
 - Gruppen: Steckbrief ist jetzt immer hell (lesbar auch im Darkmode)
 - Gruppen: Steckbrief zeigt optionalen Video-QR-Code, wenn ein Video verlinkt ist
+- Gruppen: Gruppen-Übersicht (`/groups`) zeigt nun kompakt die Top 3 beliebtesten Gruppen (mit Like-Aufforderung)
+- Gruppen: Sortierung "Beliebtheit" nutzt den gleichen Like-Zähler wie die Anzeige (Union aus `GroupLike` + legacy `FavoriteGroup`)
 - Gruppen: Gruppenleitung/Mitglieder verlinken nur noch auf Tänzerinnen-Profile, wenn diese aktiviert sind (kein 404 beim Klick)
 
 ### 🧰 Admin

@@ -131,6 +131,118 @@ export async function GET(req: Request) {
   }
 
   try {
+    const popularLikeDelegates = getLikeDelegates();
+    const popularGroupLike = popularLikeDelegates.groupLike;
+    const popularFavoriteGroup = popularLikeDelegates.favoriteGroup;
+
+    if (sort === "popular" && (popularGroupLike || popularFavoriteGroup)) {
+      const total = await prisma.group.count({ where: whereClause });
+      const allIds = await prisma.group.findMany({
+        where: whereClause,
+        select: { id: true, createdAt: true },
+        // Stable fallback ordering for ties.
+        orderBy: { createdAt: "desc" },
+        take: 10_000,
+      });
+
+      const groupIdsAll = allIds.map((x) => x.id);
+
+      const [groupLikePairsRaw, favoritePairsRaw] = await Promise.all([
+        popularGroupLike && groupIdsAll.length
+          ? popularGroupLike.groupBy({
+              by: ["groupId", "userId"],
+              where: { groupId: { in: groupIdsAll } },
+            })
+          : Promise.resolve([]),
+        popularFavoriteGroup && groupIdsAll.length
+          ? popularFavoriteGroup.groupBy({
+              by: ["groupId", "userId"],
+              where: { groupId: { in: groupIdsAll } },
+            })
+          : Promise.resolve([]),
+      ]);
+
+      const groupLikePairs = Array.isArray(groupLikePairsRaw)
+        ? (groupLikePairsRaw as Array<{ groupId: string; userId: string }> )
+        : [];
+      const favoritePairs = Array.isArray(favoritePairsRaw)
+        ? (favoritePairsRaw as Array<{ groupId: string; userId: string }> )
+        : [];
+
+      const usersByGroupId = new Map<string, Set<string>>();
+      for (const { groupId, userId } of [...groupLikePairs, ...favoritePairs]) {
+        let set = usersByGroupId.get(groupId);
+        if (!set) {
+          set = new Set<string>();
+          usersByGroupId.set(groupId, set);
+        }
+        set.add(userId);
+      }
+
+      const createdAtById = new Map<string, number>(
+        allIds.map((x) => [x.id, x.createdAt instanceof Date ? x.createdAt.getTime() : new Date(x.createdAt).getTime()])
+      );
+
+      const sortedIds = groupIdsAll
+        .slice()
+        .sort((a, b) => {
+          const ca = usersByGroupId.get(a)?.size ?? 0;
+          const cb = usersByGroupId.get(b)?.size ?? 0;
+          if (cb !== ca) return cb - ca;
+          const ta = createdAtById.get(a) ?? 0;
+          const tb = createdAtById.get(b) ?? 0;
+          return tb - ta;
+        });
+
+      const pageIds = sortedIds.slice(skip, skip + limit);
+      const groups = pageIds.length
+        ? await prisma.group.findMany({
+            where: { id: { in: pageIds } },
+            include: {
+              location: true,
+              tags: true,
+              danceStyles: { include: { style: true } },
+              owner: {
+                select: {
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          })
+        : [];
+
+      const groupById = new Map(groups.map((g) => [g.id, g]));
+      const groupsOrdered = pageIds
+        .map((id) => groupById.get(id))
+        .filter((g): g is NonNullable<typeof g> => Boolean(g));
+
+      const myLikedByGroupId = session?.user?.id ? new Set<string>() : null;
+      if (session?.user?.id) {
+        const uid = session.user.id;
+        for (const { groupId, userId } of [...groupLikePairs, ...favoritePairs]) {
+          if (userId === uid) myLikedByGroupId?.add(groupId);
+        }
+      }
+
+      const enriched = groupsOrdered.map((g) => ({
+        ...g,
+        likeCount: usersByGroupId.get(g.id)?.size ?? 0,
+        likedByMe: Boolean(myLikedByGroupId?.has(g.id)),
+      }));
+
+      return NextResponse.json({
+        data: enriched,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasMore: skip + enriched.length < total,
+        },
+      });
+    }
+
     const [total, groups] = await Promise.all([
       prisma.group.count({ where: whereClause }),
       (async () => {
@@ -225,7 +337,9 @@ export async function GET(req: Request) {
 
     const groupIds = groups.map((g) => g.id);
 
-    const { groupLike, favoriteGroup } = getLikeDelegates();
+    const likeDelegates = getLikeDelegates();
+    const groupLike = likeDelegates.groupLike;
+    const favoriteGroup = likeDelegates.favoriteGroup;
     if (!groupLike && !favoriteGroup) {
       return NextResponse.json({
         data: groups.map((g) => ({ ...g, likeCount: 0, likedByMe: false })),

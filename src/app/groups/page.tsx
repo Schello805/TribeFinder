@@ -6,6 +6,8 @@ import GroupFilter from "@/components/groups/GroupFilter";
 import GroupListAnimated from "@/components/groups/GroupListAnimated";
 import { GroupListSkeleton } from "@/components/ui/SkeletonLoader";
 import Link from "next/link";
+import LikeButton from "@/components/groups/LikeButton";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 type GroupTag = { id: string; name: string };
 type GroupListItem = {
@@ -34,8 +36,34 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 export default function GroupsPage() {
   const searchParams = useSearchParams();
   const [groups, setGroups] = useState<GroupListItem[]>([]);
+  const [topGroups, setTopGroups] = useState<GroupListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState<number>(0);
+
+  useEffect(() => {
+    const loadTop = async () => {
+      try {
+        const params = new URLSearchParams();
+        params.append("sort", "popular");
+        params.append("limit", "3");
+        const res = await fetch(`/api/groups?${params.toString()}`);
+        if (!res.ok) {
+          setTopGroups([]);
+          return;
+        }
+        const json: unknown = await res.json().catch(() => null);
+        const arr = Array.isArray(json)
+          ? json
+          : (isRecord(json) && Array.isArray(json.data) ? json.data : []);
+        setTopGroups((arr as unknown[]).filter(isGroupListItem).slice(0, 3));
+      } catch {
+        setTopGroups([]);
+      }
+    };
+
+    void loadTop();
+  }, []);
+
   useEffect(() => {
     const fetchGroups = async () => {
       const address = searchParams.get('address');
@@ -119,6 +147,55 @@ export default function GroupsPage() {
           {isLoading ? "Lade…" : `${total} Gruppen gefunden`}
         </div>
       </div>
+
+      {topGroups.length > 0 ? (
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+            <div>
+              <div className="tf-display text-lg font-bold text-[var(--foreground)]">Beliebteste Gruppen</div>
+              <div className="mt-1 text-sm text-[var(--muted)]">
+                Klick auf das Herz, um deine Lieblingsgruppen zu liken und die Community-Rangliste zu verbessern.
+              </div>
+            </div>
+            <Link href="/groups?sort=popular" className="text-sm font-semibold text-[var(--link)] hover:opacity-90 transition">
+              Nach Beliebtheit sortieren
+            </Link>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            {topGroups.map((g) => (
+              <Link
+                key={g.id}
+                href={`/groups/${g.id}`}
+                className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 hover:bg-[var(--surface-hover)] transition"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-md border border-[var(--border)] bg-[var(--surface)] overflow-hidden flex items-center justify-center flex-shrink-0">
+                    {g.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={normalizeUploadedImageUrl(g.image) ?? ""} alt="" className="h-full w-full object-contain" />
+                    ) : (
+                      <div className="text-[var(--muted)] font-bold">{g.name.charAt(0)}</div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="tf-display text-sm font-bold text-[var(--foreground)] truncate">{g.name}</div>
+                    <div className="mt-0.5 text-xs text-[var(--muted)] line-clamp-1">{g.description}</div>
+                  </div>
+
+                  <LikeButton
+                    groupId={g.id}
+                    initialCount={typeof g.likeCount === "number" ? g.likeCount : 0}
+                    initialLikedByMe={Boolean(g.likedByMe)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
+                  />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <GroupFilter />
 
