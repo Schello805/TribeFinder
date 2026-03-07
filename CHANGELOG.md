@@ -112,6 +112,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Hilfe: Icons für Tänzerinnen/Gruppen korrigiert; Links-Seite in Hilfe ergänzt
 - Startseite: "Was bietet TribeFinder?" ergänzt um Links
 - Startseite: "Was bietet TribeFinder?" Kacheln optisch vereinheitlicht (Icon-Badges, gleiche Höhen, klare CTA)
+- Favicon: Standard-Favicon (`/favicon.ico`) explizit in Metadata-Icons hinterlegt (bessere Browser-Kompatibilität)
 - Responsiveness: Horizontales Overflow reduziert (Link-Chips umbrechbar; Footer-Version bricht lange Hashes)
 - SEO: JSON-LD Structured Data robuster (WebSite/Organization via `@graph`) – verhindert Runtime-Fehler
 - Startseite: Feature-Kachel-Titel auf max. 2 Zeilen geklemmt für bessere Lesbarkeit
