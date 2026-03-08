@@ -135,6 +135,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Consent: Matomo-Tracking und YouTube-Embeds werden erst nach Zustimmung geladen; Footer-Link "Cookie-Einstellungen" zum späteren Ändern
 - Rechtstexte: Datenschutzerklärung/Impressum sowie Cookie-Hinweise sprachlich auf Einzelperson angepasst ("ich" statt "wir")
 
+### 🛠️ Admin
+
+- Admin: Online-Card bekommt einen manuellen "Jetzt prüfen"-Button + Detailansicht zur Verifikation der Online-Besucherzählung
+
 ## [Unreleased] - 2026-02-28
 
 ### 🏷️ Tags
