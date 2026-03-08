@@ -140,13 +140,13 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
     if (canShowIOSInstructions) return false;
     if (canShowAndroidInstructions) return false;
     if (canShowMobileFallback) return false;
+    if (canShowDesktopInstructions) return false;
     return true;
-  }, [mounted, isInstalled, dismissUntil, installable, canShowIOSInstructions, canShowAndroidInstructions, canShowMobileFallback, variant]);
+  }, [mounted, isInstalled, dismissUntil, installable, canShowIOSInstructions, canShowAndroidInstructions, canShowMobileFallback, canShowDesktopInstructions, variant]);
 
   const openModal = useCallback(() => {
     setOpen(true);
-    onAction?.();
-  }, [onAction]);
+  }, []);
 
   const closeModal = useCallback(() => {
     setOpen(false);
