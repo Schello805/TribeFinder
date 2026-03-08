@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -117,6 +119,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installable, setInstallable] = useState(false);
   const [dismissUntil, setDismissUntil] = useState(0);
+  const [logoUrl, setLogoUrl] = useState<string>(" ");
 
   useEffect(() => {
     Promise.resolve().then(() => {
@@ -124,6 +127,24 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
       setDismissUntil(readDismissUntil());
     });
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    let cancelled = false;
+    fetch("/api/branding", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        const url = data?.logoUrl ? (normalizeUploadedImageUrl(String(data.logoUrl)) ?? "") : "";
+        setLogoUrl(url);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mounted]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -208,6 +229,8 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
 
   if (shouldHide) return null;
 
+  const effectiveLogoUrl = (logoUrl || "").trim() || "/icons/icon-192.png";
+
   if (variant === "menu") {
     return (
       <>
@@ -223,6 +246,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
         </button>
         {open ? (
           <InstallModal
+            effectiveLogoUrl={effectiveLogoUrl}
             canInstall={Boolean(deferredPrompt)}
             canShowIOSInstructions={canShowIOSInstructions}
             canShowAndroidInstructions={canShowAndroidInstructions}
@@ -239,25 +263,37 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
 
   return (
     <>
-      <div className={className ?? "bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg p-6"}>
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="tf-display text-lg font-medium text-[var(--foreground)]">TribeFinder als App</div>
-            <div className="mt-1 text-sm text-[var(--muted)]">
-              Installiere TribeFinder auf deinem Startbildschirm – schneller Zugriff und (wenn unterstützt) Badge für Nachrichten.
+      <div className={className ?? "bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg"}>
+        <div className="px-6 pt-6 pb-5 [background-image:linear-gradient(135deg,rgba(199,100,60,0.18),rgba(231,191,115,0.10))]">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4 min-w-0">
+              <div className="relative shrink-0">
+                <div className="absolute -inset-1 rounded-2xl bg-[var(--primary)]/20 blur-md animate-[pulse_2.2s_ease-in-out_infinite]" />
+                <div className="relative h-12 w-12 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm overflow-hidden">
+                  <Image src={effectiveLogoUrl} alt="TribeFinder" width={48} height={48} className="h-full w-full object-contain p-1.5" unoptimized />
+                </div>
+              </div>
+
+              <div className="min-w-0">
+                <div className="tf-display text-lg font-medium text-[var(--foreground)]">TribeFinder als App</div>
+                <div className="mt-1 text-sm text-[var(--muted)]">
+                  Installiere TribeFinder auf deinem Startbildschirm – schneller Zugriff und (wenn unterstützt) Badge für Nachrichten.
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="shrink-0 flex gap-2">
-            <span className="inline-flex items-center justify-center text-[var(--muted)]" title="Android">
-              <AndroidIcon className="h-5 w-5" />
-            </span>
-            <span className="inline-flex items-center justify-center text-[var(--muted)]" title="iOS">
-              <AppleIcon className="h-5 w-5" />
-            </span>
+
+            <div className="shrink-0 flex gap-2">
+              <span className="inline-flex items-center justify-center text-[var(--muted)]" title="Android">
+                <AndroidIcon className="h-5 w-5" />
+              </span>
+              <span className="inline-flex items-center justify-center text-[var(--muted)]" title="iOS">
+                <AppleIcon className="h-5 w-5" />
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:items-center">
+        <div className="px-6 pb-6 flex flex-col sm:flex-row gap-2 sm:items-center">
           <button
             type="button"
             onClick={openModal}
@@ -277,6 +313,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
 
       {open ? (
         <InstallModal
+          effectiveLogoUrl={effectiveLogoUrl}
           canInstall={Boolean(deferredPrompt)}
           canShowIOSInstructions={canShowIOSInstructions}
           canShowAndroidInstructions={canShowAndroidInstructions}
@@ -292,6 +329,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
 }
 
 function InstallModal({
+  effectiveLogoUrl,
   canInstall,
   canShowIOSInstructions,
   canShowAndroidInstructions,
@@ -301,6 +339,7 @@ function InstallModal({
   onLater,
   onNever,
 }: {
+  effectiveLogoUrl: string;
   canInstall: boolean;
   canShowIOSInstructions: boolean;
   canShowAndroidInstructions: boolean;
@@ -321,6 +360,16 @@ function InstallModal({
       <div className="absolute inset-0 flex items-center justify-center p-4">
         <div className="w-full max-w-lg rounded-2xl text-[var(--foreground)] border border-[var(--border)] shadow-2xl overflow-hidden bg-[var(--surface)]">
           <div className="px-5 pt-5 pb-4 border-b border-[var(--border)] flex items-start gap-4">
+            <div className="shrink-0 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-2">
+              <Image
+                src={effectiveLogoUrl}
+                alt="TribeFinder"
+                width={28}
+                height={28}
+                className="h-7 w-7 rounded"
+                unoptimized
+              />
+            </div>
             <div className="min-w-0">
               <div className="tf-display text-xl font-bold leading-tight break-words">TribeFinder installieren</div>
               <div className="mt-1 text-xs text-[var(--muted)]">Android + iOS</div>

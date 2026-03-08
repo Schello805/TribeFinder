@@ -18,6 +18,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - PWA: Install-Promo zeigt auf Mobile auch ohne Install-Prompt eine manuelle Anleitung (Android/iOS), z.B. wenn PWA im Dev deaktiviert ist; im Konto-Menü ist die Install-Anleitung zusätzlich auch am Desktop erreichbar
 - PWA: Fix – "App installieren" im Konto-Menü öffnet jetzt zuverlässig den Dialog (Menü schließt erst nach einer Aktion)
 - PWA: Install-Promo nutzt echte Android/iOS Icons statt Platzhalter-Emojis
+- PWA: Install-Promo zeigt App-Logo (Branding/Fallback) und wirkt optisch stärker (dezente Animation)
 
 ## [Unreleased] - 2026-02-22
 
