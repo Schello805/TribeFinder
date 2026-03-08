@@ -15,6 +15,37 @@ type Props = {
   className?: string;
 };
 
+function AndroidIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className ?? "h-5 w-5"}
+      fill="currentColor"
+    >
+      <path d="M9.02 3.4a.75.75 0 0 1 1.02.27l.44.78a7.16 7.16 0 0 1 3.04 0l.44-.78a.75.75 0 1 1 1.3.75l-.47.82A6.76 6.76 0 0 1 18.7 10H5.3a6.76 6.76 0 0 1 3.87-4.76l-.47-.82A.75.75 0 0 1 9.02 3.4Z" />
+      <path d="M5 11.25c0-.41.34-.75.75-.75h12.5c.41 0 .75.34.75.75V17a2.5 2.5 0 0 1-2.5 2.5H7.5A2.5 2.5 0 0 1 5 17v-5.75Z" />
+      <path d="M3.25 11.5c.41 0 .75.34.75.75v4.25a1 1 0 0 1-2 0v-4.25c0-.41.34-.75.75-.75Zm17.5 0c.41 0 .75.34.75.75v4.25a1 1 0 0 1-2 0v-4.25c0-.41.34-.75.75-.75Z" />
+      <path d="M8.25 19.5c.41 0 .75.34.75.75V22a1 1 0 0 1-2 0v-1.75c0-.41.34-.75.75-.75Zm7.5 0c.41 0 .75.34.75.75V22a1 1 0 0 1-2 0v-1.75c0-.41.34-.75.75-.75Z" />
+      <path d="M9 8.25a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm6 0a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z" />
+    </svg>
+  );
+}
+
+function AppleIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className ?? "h-5 w-5"}
+      fill="currentColor"
+    >
+      <path d="M16.36 1.5c.06 1.02-.35 2.04-1.03 2.79-.72.8-1.88 1.41-2.93 1.32-.11-1 .32-2.04 1.06-2.83.71-.76 1.96-1.37 2.9-1.28Z" />
+      <path d="M20.74 17.03c-.57 1.33-1.24 2.55-2.15 3.73-.85 1.1-1.56 2.24-2.95 2.26-1.35.02-1.79-.8-3.33-.8-1.54 0-2.03.78-3.31.82-1.34.05-2.36-1.28-3.21-2.37C3.43 18.83 1.6 13.3 3.5 10.02c.95-1.64 2.65-2.68 4.5-2.71 1.33-.02 2.59.9 3.31.9.72 0 2.27-1.11 3.83-.95.65.03 2.46.26 3.63 1.96-2.92 1.6-2.45 5.8.97 6.81-.22.68-.49 1.32-1 2Z" />
+    </svg>
+  );
+}
+
 const DISMISS_UNTIL_KEY = "tf_pwa_promo_dismissed_until_v1";
 
 function nowMs() {
@@ -217,11 +248,11 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
             </div>
           </div>
           <div className="shrink-0 flex gap-2">
-            <span className="text-xl" title="Android">
-              🤖
+            <span className="inline-flex items-center justify-center text-[var(--muted)]" title="Android">
+              <AndroidIcon className="h-5 w-5" />
             </span>
-            <span className="text-xl" title="iOS">
-              🍎
+            <span className="inline-flex items-center justify-center text-[var(--muted)]" title="iOS">
+              <AppleIcon className="h-5 w-5" />
             </span>
           </div>
         </div>
