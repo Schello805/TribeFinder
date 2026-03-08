@@ -20,6 +20,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - PWA: Install-Promo nutzt echte Android/iOS Icons statt Platzhalter-Emojis
 - PWA: Install-Promo zeigt App-Logo (Branding/Fallback) und wirkt optisch stärker (dezente Animation)
 - PWA: Install-Promo Layout: mehr Abstand zwischen Text und Buttons
+- Release: Version auf 2.8.1 erhöht
 
 ## [Unreleased] - 2026-02-22
 
