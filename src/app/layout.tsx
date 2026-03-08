@@ -10,7 +10,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import MatomoTracker from "@/components/analytics/MatomoTracker";
+import MatomoGate from "@/components/analytics/MatomoGate";
 import ForceThemeStyles from "@/components/layout/ForceThemeStyles";
 import Image from "next/image";
 import FeedbackWidget from "@/components/feedback/FeedbackWidget";
@@ -21,6 +21,8 @@ import path from "path";
 import fs from "node:fs";
 import { readFile } from "fs/promises";
 import WhatsNewModal from "@/components/announcements/WhatsNewModal";
+import CookieConsentBanner from "@/components/privacy/CookieConsentBanner";
+import CookieSettingsLink from "@/components/privacy/CookieSettingsLink";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -249,11 +251,12 @@ export default async function RootLayout({
             <ToastProvider>
               <ErrorBoundary>
                 <PresencePinger />
-                <MatomoTracker
+                <MatomoGate
                   url={config.MATOMO_URL}
                   siteId={config.MATOMO_SITE_ID}
                   trackingCode={config.MATOMO_TRACKING_CODE}
                 />
+                <CookieConsentBanner />
                 {effectiveBannerEnabled && effectiveBannerText ? (
                   <div
                     className="fixed top-0 left-0 w-full text-xs leading-none px-3 h-6 flex items-center justify-center z-50"
@@ -318,6 +321,7 @@ export default async function RootLayout({
                       <Link href="/datenschutz" className="hover:text-[var(--footer-fg)] transition-colors">
                         Datenschutz
                       </Link>
+                      <CookieSettingsLink className="text-left hover:text-[var(--footer-fg)] transition-colors" />
                     </div>
                   </div>
 

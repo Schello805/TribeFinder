@@ -129,6 +129,11 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Security: Dependencies aktualisiert (Next.js Patch-Update; DOMPurify/jsPDF Fixes; Overrides für transitive Vulnerabilities)
 - Gruppen: Like-Zähler konsistent gemacht (zählt auch legacy Favoriten/`FavoriteGroup` in Listen, Detailseite und Like-Endpoint)
 
+### 🍪 Datenschutz
+
+- Consent: Dezenter Cookie-/Consent-Banner unten + Einstellungs-Dialog (Notwendig/Matomo/YouTube)
+- Consent: Matomo-Tracking und YouTube-Embeds werden erst nach Zustimmung geladen; Footer-Link "Cookie-Einstellungen" zum späteren Ändern
+
 ## [Unreleased] - 2026-02-28
 
 ### 🏷️ Tags

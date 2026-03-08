@@ -12,6 +12,7 @@ import GalleryManager from "@/components/groups/GalleryManager";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import LikeButton from "@/components/groups/LikeButton";
+import YouTubeEmbedWithConsent from "@/components/privacy/YouTubeEmbedWithConsent";
 
 function getLikeDelegates() {
   const p = prisma as unknown as {
@@ -262,7 +263,7 @@ export default async function GroupDetailPage({
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
-    return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+    return (match && match[2].length === 11) ? `https://www.youtube-nocookie.com/embed/${match[2]}` : null;
   };
 
   const videoEmbedUrl = group.videoUrl ? getYoutubeEmbedUrl(group.videoUrl) : null;
@@ -495,14 +496,7 @@ export default async function GroupDetailPage({
                     <div>
                       <dt className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">Vorstellungsvideo</dt>
                       <div className="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden shadow-sm border border-[var(--border)] bg-black">
-                        <iframe 
-                          src={videoEmbedUrl} 
-                          title="YouTube video player" 
-                          frameBorder="0" 
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowFullScreen
-                          className="w-full h-full min-h-[400px]"
-                        ></iframe>
+                        <YouTubeEmbedWithConsent embedUrl={videoEmbedUrl} />
                       </div>
                     </div>
                   )}
