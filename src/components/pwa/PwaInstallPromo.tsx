@@ -293,7 +293,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
           </div>
         </div>
 
-        <div className="px-6 pb-6 flex flex-col sm:flex-row gap-2 sm:items-center">
+        <div className="px-6 pt-4 pb-6 flex flex-col sm:flex-row gap-2 sm:items-center">
           <button
             type="button"
             onClick={openModal}

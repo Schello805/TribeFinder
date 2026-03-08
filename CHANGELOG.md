@@ -19,6 +19,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - PWA: Fix – "App installieren" im Konto-Menü öffnet jetzt zuverlässig den Dialog (Menü schließt erst nach einer Aktion)
 - PWA: Install-Promo nutzt echte Android/iOS Icons statt Platzhalter-Emojis
 - PWA: Install-Promo zeigt App-Logo (Branding/Fallback) und wirkt optisch stärker (dezente Animation)
+- PWA: Install-Promo Layout: mehr Abstand zwischen Text und Buttons
 
 ## [Unreleased] - 2026-02-22
 
