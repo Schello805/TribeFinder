@@ -139,6 +139,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Admin: Online-Card bekommt einen manuellen "Jetzt prüfen"-Button + Detailansicht zur Verifikation der Online-Besucherzählung
 
+### 📱 Mobile
+
+- PWA: Ungelesene Nachrichten können (wenn unterstützt) als Badge-Zahl am App-Icon angezeigt werden; Navbar nutzt dafür den bestehenden Unread-Count Endpoint
+
 ## [Unreleased] - 2026-02-28
 
 ### 🏷️ Tags

@@ -85,7 +85,7 @@ export default function Navbar() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetch(apiUrl("/api/direct-messages/unread-count"), { cache: "no-store" });
+        const res = await fetch(apiUrl("/api/messages/unread-count"), { cache: "no-store" });
         if (!res.ok) return;
         const data = (await res.json().catch(() => null)) as { unreadCount?: number } | null;
         if (cancelled) return;
@@ -119,6 +119,33 @@ export default function Navbar() {
       window.removeEventListener("tribefinder:messages-read", onFocus as EventListener);
     };
   }, [session?.user, pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const nav = navigator as unknown as {
+      setAppBadge?: (count: number) => Promise<void> | void;
+      clearAppBadge?: () => Promise<void> | void;
+    };
+
+    if (!session?.user) {
+      if (typeof nav.clearAppBadge === "function") {
+        Promise.resolve(nav.clearAppBadge()).catch(() => undefined);
+      }
+      return;
+    }
+
+    if (unreadCount > 0) {
+      if (typeof nav.setAppBadge === "function") {
+        Promise.resolve(nav.setAppBadge(unreadCount)).catch(() => undefined);
+      }
+      return;
+    }
+
+    if (typeof nav.clearAppBadge === "function") {
+      Promise.resolve(nav.clearAppBadge()).catch(() => undefined);
+    }
+  }, [session?.user, unreadCount]);
 
   useEffect(() => {
     if (!session?.user) {
