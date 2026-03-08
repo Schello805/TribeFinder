@@ -98,7 +98,7 @@ export default function CookieConsentBanner() {
                 <div className="min-w-0">
                   <div className="tf-display text-sm font-bold text-[var(--foreground)]">Cookies & Datenschutz</div>
                   <div className="mt-1 text-xs text-[var(--muted)] leading-relaxed">
-                    Wir verwenden notwendige Cookies für Login und Sicherheit. Mit deiner Zustimmung nutzen wir Matomo-Statistiken und laden externe Inhalte (YouTube).
+                    Ich verwende notwendige Cookies für Login und Sicherheit. Mit deiner Zustimmung nutze ich Matomo-Statistiken und lade externe Inhalte (YouTube).
                     <span className="ml-1">
                       <Link href="/datenschutz" className="underline underline-offset-2 hover:opacity-90">
                         Zur Datenschutzerklärung
@@ -176,7 +176,7 @@ export default function CookieConsentBanner() {
                 <label className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 flex items-start justify-between gap-4 cursor-pointer">
                   <div>
                     <div className="text-sm font-semibold">Statistik (Matomo)</div>
-                    <div className="mt-1 text-xs text-[var(--muted)]">Hilft uns zu verstehen, welche Seiten genutzt werden</div>
+                    <div className="mt-1 text-xs text-[var(--muted)]">Hilft mir zu verstehen, welche Seiten genutzt werden</div>
                   </div>
                   <input
                     type="checkbox"

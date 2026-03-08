@@ -133,6 +133,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - Consent: Dezenter Cookie-/Consent-Banner unten + Einstellungs-Dialog (Notwendig/Matomo/YouTube)
 - Consent: Matomo-Tracking und YouTube-Embeds werden erst nach Zustimmung geladen; Footer-Link "Cookie-Einstellungen" zum späteren Ändern
+- Rechtstexte: Datenschutzerklärung/Impressum sowie Cookie-Hinweise sprachlich auf Einzelperson angepasst ("ich" statt "wir")
 
 ## [Unreleased] - 2026-02-28
 
