@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import Image from "next/image";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import HomeStats from "@/components/home/HomeStats";
+import PwaInstallPromo from "@/components/pwa/PwaInstallPromo";
 
 function getExternalLinkDelegate(p: typeof prisma) {
   return (p as unknown as { externalLink?: unknown }).externalLink as
@@ -379,6 +380,11 @@ export default async function Home() {
           <p className="text-xl text-[var(--muted)] mb-10">
             Registriere dich kostenlos und trage dein Profil, deine Gruppe oder dein Event ein.
           </p>
+
+          <div className="mb-8 text-left">
+            <PwaInstallPromo variant="card" />
+          </div>
+
           <Link
             href="/auth/register"
             className="bg-[var(--primary)] text-[var(--primary-foreground)] px-10 py-4 rounded-full font-bold text-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition shadow-xl"

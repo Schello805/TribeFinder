@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import { useTheme } from "next-themes";
+import PwaInstallPromo from "@/components/pwa/PwaInstallPromo";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -320,6 +321,11 @@ export default function Navbar() {
                           </span>
                         ) : null}
                       </Link>
+
+                      <PwaInstallPromo
+                        variant="menu"
+                        onAction={() => setIsUserMenuOpen(false)}
+                      />
 
                       <button
                         type="button"

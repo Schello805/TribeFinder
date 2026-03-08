@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
+import PwaInstallPromo from "@/components/pwa/PwaInstallPromo";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -119,6 +120,8 @@ export default async function DashboardPage() {
             </Link>
          </div>
       </div>
+
+      <PwaInstallPromo variant="card" />
 
       {pendingGroups.length > 0 && (
         <div className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] shadow overflow-hidden sm:rounded-lg">

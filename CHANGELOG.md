@@ -153,6 +153,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 ### 📱 Mobile
 
 - PWA: Ungelesene Nachrichten können (wenn unterstützt) als Badge-Zahl am App-Icon angezeigt werden; Navbar nutzt dafür den bestehenden Unread-Count Endpoint
+- PWA: Dezente Install-Promo (ohne Sticky-Banner) im Profilbereich, im Konto-Menü sowie unten auf der Startseite inkl. Anleitung für Android/iOS
 
 ## [Unreleased] - 2026-02-28
 
