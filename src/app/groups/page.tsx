@@ -85,6 +85,7 @@ export default function GroupsPage() {
         const seeking = searchParams.get('seeking');
         const size = searchParams.get('size');
         const sort = searchParams.get('sort');
+        const page = searchParams.get('page') || '1';
         const lat = searchParams.get('lat');
         const lng = searchParams.get('lng');
         const radius = searchParams.get('radius') || '50';
@@ -111,7 +112,21 @@ export default function GroupsPage() {
         const arr = Array.isArray(json)
           ? json
           : (isRecord(json) && Array.isArray(json.data) ? json.data : []);
-        setGroups((arr as unknown[]).filter(isGroupListItem));
+
+        const fetched = (arr as unknown[]).filter(isGroupListItem);
+        const shouldMergeTop = page === '1' && sort !== 'popular' && topGroups.length > 0;
+        if (shouldMergeTop) {
+          const seen = new Set<string>();
+          const merged: GroupListItem[] = [];
+          for (const g of [...topGroups, ...fetched]) {
+            if (seen.has(g.id)) continue;
+            seen.add(g.id);
+            merged.push(g);
+          }
+          setGroups(merged);
+        } else {
+          setGroups(fetched);
+        }
 
         if (isRecord(json) && isRecord(json.pagination) && typeof json.pagination.total === "number") {
           setTotal(json.pagination.total);
@@ -128,7 +143,7 @@ export default function GroupsPage() {
     };
     
     fetchGroups();
-  }, [searchParams]);
+  }, [searchParams, topGroups]);
 
 
   return (
@@ -157,9 +172,6 @@ export default function GroupsPage() {
                 Klick auf das Herz, um deine Lieblingsgruppen zu liken und die Community-Rangliste zu verbessern.
               </div>
             </div>
-            <Link href="/groups?sort=popular" className="text-sm font-semibold text-[var(--link)] hover:opacity-90 transition">
-              Nach Beliebtheit sortieren
-            </Link>
           </div>
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
