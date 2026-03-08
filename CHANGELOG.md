@@ -15,7 +15,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ### 📱 Mobile
 
-- PWA: Install-Promo zeigt auf Mobile auch ohne Install-Prompt eine manuelle Anleitung (Android/iOS), z.B. wenn PWA im Dev deaktiviert ist
+- PWA: Install-Promo zeigt auf Mobile auch ohne Install-Prompt eine manuelle Anleitung (Android/iOS), z.B. wenn PWA im Dev deaktiviert ist; im Konto-Menü ist die Install-Anleitung zusätzlich auch am Desktop erreichbar
 
 ## [Unreleased] - 2026-02-22
 

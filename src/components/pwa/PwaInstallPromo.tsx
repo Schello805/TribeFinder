@@ -67,6 +67,11 @@ function isMobile(): boolean {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
 }
 
+function isDesktop(): boolean {
+  if (typeof window === "undefined") return false;
+  return !isMobile();
+}
+
 function isSafariOnIOS(): boolean {
   if (typeof window === "undefined") return false;
   const ua = window.navigator.userAgent || "";
@@ -120,17 +125,23 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
   const canShowIOSInstructions = mounted ? isSafariOnIOS() && !isInstalled : false;
   const canShowAndroidInstructions = mounted ? isAndroid() && !isInstalled : false;
   const canShowMobileFallback = mounted ? isMobile() && !isInstalled : false;
+  const canShowDesktopInstructions = mounted ? isDesktop() && !isInstalled : false;
 
   const shouldHide = useMemo(() => {
     if (!mounted) return true;
     if (isInstalled) return true;
     if (dismissUntil > nowMs()) return true;
+
+    if (variant === "menu") {
+      return false;
+    }
+
     if (installable) return false;
     if (canShowIOSInstructions) return false;
     if (canShowAndroidInstructions) return false;
     if (canShowMobileFallback) return false;
     return true;
-  }, [mounted, isInstalled, dismissUntil, installable, canShowIOSInstructions, canShowAndroidInstructions, canShowMobileFallback]);
+  }, [mounted, isInstalled, dismissUntil, installable, canShowIOSInstructions, canShowAndroidInstructions, canShowMobileFallback, variant]);
 
   const openModal = useCallback(() => {
     setOpen(true);
@@ -184,6 +195,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
             canInstall={Boolean(deferredPrompt)}
             canShowIOSInstructions={canShowIOSInstructions}
             canShowAndroidInstructions={canShowAndroidInstructions}
+            canShowDesktopInstructions={canShowDesktopInstructions}
             onClose={closeModal}
             onInstall={triggerInstall}
             onLater={() => dismissForDays(14)}
@@ -237,6 +249,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
           canInstall={Boolean(deferredPrompt)}
           canShowIOSInstructions={canShowIOSInstructions}
           canShowAndroidInstructions={canShowAndroidInstructions}
+          canShowDesktopInstructions={canShowDesktopInstructions}
           onClose={closeModal}
           onInstall={triggerInstall}
           onLater={() => dismissForDays(14)}
@@ -251,6 +264,7 @@ function InstallModal({
   canInstall,
   canShowIOSInstructions,
   canShowAndroidInstructions,
+  canShowDesktopInstructions,
   onClose,
   onInstall,
   onLater,
@@ -259,6 +273,7 @@ function InstallModal({
   canInstall: boolean;
   canShowIOSInstructions: boolean;
   canShowAndroidInstructions: boolean;
+  canShowDesktopInstructions: boolean;
   onClose: () => void;
   onInstall: () => void;
   onLater: () => void;
@@ -336,7 +351,18 @@ function InstallModal({
               </div>
             ) : null}
 
-            {!canInstall && !canShowIOSInstructions && !canShowAndroidInstructions ? (
+            {canShowDesktopInstructions && !canInstall ? (
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                <div className="text-sm font-semibold">Desktop (Chrome/Edge)</div>
+                <div className="mt-1 text-xs text-[var(--muted)]">So installierst du TribeFinder als App:</div>
+                <ol className="mt-3 list-decimal pl-5 space-y-1 text-sm">
+                  <li>In der Adressleiste nach einem Install-Icon (&quot;+&quot;) suchen und anklicken</li>
+                  <li>Oder: Browser-Menü öffnen → „Installieren“ / „App installieren“</li>
+                </ol>
+              </div>
+            ) : null}
+
+            {!canInstall && !canShowIOSInstructions && !canShowAndroidInstructions && !canShowDesktopInstructions ? (
               <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
                 <div className="text-sm font-semibold">Installation</div>
                 <div className="mt-1 text-xs text-[var(--muted)]">
