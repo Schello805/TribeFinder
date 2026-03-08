@@ -55,6 +55,18 @@ function isIOS(): boolean {
   return /iPhone|iPad|iPod/i.test(ua);
 }
 
+function isAndroid(): boolean {
+  if (typeof window === "undefined") return false;
+  const ua = window.navigator.userAgent || "";
+  return /Android/i.test(ua);
+}
+
+function isMobile(): boolean {
+  if (typeof window === "undefined") return false;
+  const ua = window.navigator.userAgent || "";
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
+}
+
 function isSafariOnIOS(): boolean {
   if (typeof window === "undefined") return false;
   const ua = window.navigator.userAgent || "";
@@ -106,6 +118,8 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
 
   const isInstalled = mounted ? isStandalone() : false;
   const canShowIOSInstructions = mounted ? isSafariOnIOS() && !isInstalled : false;
+  const canShowAndroidInstructions = mounted ? isAndroid() && !isInstalled : false;
+  const canShowMobileFallback = mounted ? isMobile() && !isInstalled : false;
 
   const shouldHide = useMemo(() => {
     if (!mounted) return true;
@@ -113,8 +127,10 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
     if (dismissUntil > nowMs()) return true;
     if (installable) return false;
     if (canShowIOSInstructions) return false;
+    if (canShowAndroidInstructions) return false;
+    if (canShowMobileFallback) return false;
     return true;
-  }, [mounted, isInstalled, dismissUntil, installable, canShowIOSInstructions]);
+  }, [mounted, isInstalled, dismissUntil, installable, canShowIOSInstructions, canShowAndroidInstructions, canShowMobileFallback]);
 
   const openModal = useCallback(() => {
     setOpen(true);
@@ -167,6 +183,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
           <InstallModal
             canInstall={Boolean(deferredPrompt)}
             canShowIOSInstructions={canShowIOSInstructions}
+            canShowAndroidInstructions={canShowAndroidInstructions}
             onClose={closeModal}
             onInstall={triggerInstall}
             onLater={() => dismissForDays(14)}
@@ -219,6 +236,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
         <InstallModal
           canInstall={Boolean(deferredPrompt)}
           canShowIOSInstructions={canShowIOSInstructions}
+          canShowAndroidInstructions={canShowAndroidInstructions}
           onClose={closeModal}
           onInstall={triggerInstall}
           onLater={() => dismissForDays(14)}
@@ -232,6 +250,7 @@ export default function PwaInstallPromo({ variant, onAction, className }: Props)
 function InstallModal({
   canInstall,
   canShowIOSInstructions,
+  canShowAndroidInstructions,
   onClose,
   onInstall,
   onLater,
@@ -239,6 +258,7 @@ function InstallModal({
 }: {
   canInstall: boolean;
   canShowIOSInstructions: boolean;
+  canShowAndroidInstructions: boolean;
   onClose: () => void;
   onInstall: () => void;
   onLater: () => void;
@@ -302,7 +322,21 @@ function InstallModal({
               </div>
             ) : null}
 
-            {!canInstall && !canShowIOSInstructions ? (
+            {canShowAndroidInstructions && !canInstall ? (
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                <div className="text-sm font-semibold">Android (Chrome/Edge)</div>
+                <div className="mt-1 text-xs text-[var(--muted)]">
+                  Wenn kein Install-Button angezeigt wird, kannst du TribeFinder trotzdem zum Startbildschirm hinzufügen:
+                </div>
+                <ol className="mt-3 list-decimal pl-5 space-y-1 text-sm">
+                  <li>Oben rechts auf „⋮“ tippen</li>
+                  <li>„Zum Startbildschirm hinzufügen“ oder „App installieren“ wählen</li>
+                  <li>Bestätigen</li>
+                </ol>
+              </div>
+            ) : null}
+
+            {!canInstall && !canShowIOSInstructions && !canShowAndroidInstructions ? (
               <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
                 <div className="text-sm font-semibold">Installation</div>
                 <div className="mt-1 text-xs text-[var(--muted)]">

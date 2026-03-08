@@ -13,6 +13,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Navbar: Nachrichten-Link zeigt auf `/messages` (Desktop-Menü + Mobile-Menü)
 - Navbar: Ungelesene Nachrichten werden als Badge im Konto-Bereich angezeigt
 
+### 📱 Mobile
+
+- PWA: Install-Promo zeigt auf Mobile auch ohne Install-Prompt eine manuelle Anleitung (Android/iOS), z.B. wenn PWA im Dev deaktiviert ist
+
 ## [Unreleased] - 2026-02-22
 
 ### 🧩 Gruppen
