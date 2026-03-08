@@ -10,34 +10,37 @@ type SettingsDraft = {
 };
 
 export default function CookieConsentBanner() {
-  const [consent, setConsent] = useState<CookieConsent | null>(null);
+  const [consent, setConsent] = useState<CookieConsent | null>(() => {
+    if (typeof window === "undefined") return null;
+    return getStoredConsent();
+  });
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<SettingsDraft>({ analytics: false, externalMedia: false });
+  const [draft, setDraft] = useState<SettingsDraft>(() => {
+    if (typeof window === "undefined") return { analytics: false, externalMedia: false };
+    const c = getStoredConsent();
+    return { analytics: Boolean(c?.analytics), externalMedia: Boolean(c?.externalMedia) };
+  });
 
   const hasConsent = Boolean(consent);
 
-  const syncFromStorage = useCallback(() => {
-    const next = getStoredConsent();
-    setConsent(next);
-    if (next) {
-      setDraft({ analytics: next.analytics, externalMedia: next.externalMedia });
-    }
-  }, []);
-
   useEffect(() => {
-    syncFromStorage();
-
     const onChanged = (e: Event) => {
       const detail = (e as CustomEvent).detail as unknown;
       if (detail && typeof detail === "object") {
-        setConsent(detail as CookieConsent);
+        const next = detail as CookieConsent;
+        setConsent(next);
+        setDraft({ analytics: next.analytics, externalMedia: next.externalMedia });
       } else {
-        syncFromStorage();
+        const next = getStoredConsent();
+        setConsent(next);
+        if (next) setDraft({ analytics: next.analytics, externalMedia: next.externalMedia });
       }
     };
 
     const onOpen = () => {
-      syncFromStorage();
+      const next = getStoredConsent();
+      setConsent(next);
+      if (next) setDraft({ analytics: next.analytics, externalMedia: next.externalMedia });
       setOpen(true);
     };
 
@@ -47,17 +50,19 @@ export default function CookieConsentBanner() {
       window.removeEventListener("tf-cookie-consent-changed", onChanged as EventListener);
       window.removeEventListener("tf-open-cookie-settings", onOpen);
     };
-  }, [syncFromStorage]);
+  }, []);
 
   const acceptAll = useCallback(() => {
     const next = storeConsent({ version: 1, necessary: true, analytics: true, externalMedia: true });
     setConsent(next);
+    setDraft({ analytics: next.analytics, externalMedia: next.externalMedia });
     setOpen(false);
   }, []);
 
   const acceptNecessary = useCallback(() => {
     const next = storeConsent({ version: 1, necessary: true, analytics: false, externalMedia: false });
     setConsent(next);
+    setDraft({ analytics: next.analytics, externalMedia: next.externalMedia });
     setOpen(false);
   }, []);
 
@@ -69,6 +74,7 @@ export default function CookieConsentBanner() {
       externalMedia: Boolean(draft.externalMedia),
     });
     setConsent(next);
+    setDraft({ analytics: next.analytics, externalMedia: next.externalMedia });
     setOpen(false);
   }, [draft.analytics, draft.externalMedia]);
 
@@ -95,7 +101,7 @@ export default function CookieConsentBanner() {
                     Wir verwenden notwendige Cookies für Login und Sicherheit. Mit deiner Zustimmung nutzen wir Matomo-Statistiken und laden externe Inhalte (YouTube).
                     <span className="ml-1">
                       <Link href="/datenschutz" className="underline underline-offset-2 hover:opacity-90">
-                        Details
+                        Zur Datenschutzerklärung
                       </Link>
                     </span>
                   </div>
