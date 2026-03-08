@@ -10,20 +10,21 @@ type SettingsDraft = {
 };
 
 export default function CookieConsentBanner() {
-  const [consent, setConsent] = useState<CookieConsent | null>(() => {
-    if (typeof window === "undefined") return null;
-    return getStoredConsent();
-  });
+  const [mounted, setMounted] = useState(false);
+  const [consent, setConsent] = useState<CookieConsent | null>(null);
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<SettingsDraft>(() => {
-    if (typeof window === "undefined") return { analytics: false, externalMedia: false };
-    const c = getStoredConsent();
-    return { analytics: Boolean(c?.analytics), externalMedia: Boolean(c?.externalMedia) };
-  });
+  const [draft, setDraft] = useState<SettingsDraft>({ analytics: false, externalMedia: false });
 
   const hasConsent = Boolean(consent);
 
   useEffect(() => {
+    Promise.resolve().then(() => {
+      setMounted(true);
+      const initial = getStoredConsent();
+      setConsent(initial);
+      if (initial) setDraft({ analytics: initial.analytics, externalMedia: initial.externalMedia });
+    });
+
     const onChanged = (e: Event) => {
       const detail = (e as CustomEvent).detail as unknown;
       if (detail && typeof detail === "object") {
@@ -87,6 +88,8 @@ export default function CookieConsentBanner() {
     if (consent.externalMedia) parts.push("YouTube");
     return parts.length ? parts.join(" + ") : "nur notwendig";
   }, [consent]);
+
+  if (!mounted) return null;
 
   return (
     <>

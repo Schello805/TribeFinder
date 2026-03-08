@@ -2,6 +2,17 @@
 
 Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [Unreleased] - 2026-03-08
+
+### 🍪 Datenschutz
+
+- Consent: Hydration-Fix – Cookie-Banner wird erst nach Mount gerendert (keine SSR/Client-Mismatch bei vorhandenem LocalStorage-Consent)
+
+### 🧭 Navigation
+
+- Navbar: Nachrichten-Link zeigt auf `/messages` (Desktop-Menü + Mobile-Menü)
+- Navbar: Ungelesene Nachrichten werden als Badge im Konto-Bereich angezeigt
+
 ## [Unreleased] - 2026-02-22
 
 ### 🧩 Gruppen
