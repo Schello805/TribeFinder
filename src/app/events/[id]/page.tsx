@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -68,17 +69,26 @@ interface EventDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-export async function generateMetadata({ params }: EventDetailPageProps) {
+export async function generateMetadata({ params }: EventDetailPageProps): Promise<Metadata> {
   const { id } = await params;
   const event = await prisma.event.findUnique({
     where: { id },
+    select: {
+      title: true,
+      description: true,
+    },
   });
 
   if (!event) return { title: "Event nicht gefunden" };
 
+  const description = (event.description || "").trim();
+
   return {
     title: `${event.title} | TribeFinder`,
-    description: event.description.substring(0, 160),
+    description: (description ? description.slice(0, 160) : "Event auf TribeFinder.").trim(),
+    alternates: {
+      canonical: `/events/${id}`,
+    },
   };
 }
 

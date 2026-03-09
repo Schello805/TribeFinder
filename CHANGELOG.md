@@ -22,6 +22,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - PWA: Install-Promo Layout: mehr Abstand zwischen Text und Buttons
 - Release: Version auf 2.8.1 erhöht
 
+### 🔎 SEO
+
+- SEO: Canonical URLs + robustere Meta-Descriptions für Event-/Gruppen-Detailseiten; Map/Hilfe mit Description+Canonical; private Bereiche (auth/dashboard/messages/direct-messages/admin) per noindex ausgeschlossen; robots.txt + sitemap erweitert
+
 ## [Unreleased] - 2026-02-22
 
 ### 🧩 Gruppen

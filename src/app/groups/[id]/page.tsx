@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -65,6 +66,30 @@ async function getLikeSnapshot(groupId: string, userId: string | null) {
   return {
     count: users.size,
     likedByMe: userId ? users.has(userId) : false,
+  };
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const id = (await params).id;
+
+  const group = await prisma.group.findUnique({
+    where: { id },
+    select: {
+      name: true,
+      description: true,
+    },
+  });
+
+  if (!group) return { title: "Gruppe nicht gefunden" };
+
+  const description = (group.description || "").trim();
+
+  return {
+    title: `${group.name} | TribeFinder`,
+    description: (description ? description.slice(0, 160) : "Gruppe auf TribeFinder.").trim(),
+    alternates: {
+      canonical: `/groups/${id}`,
+    },
   };
 }
 

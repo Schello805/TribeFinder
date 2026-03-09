@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Hilfe",
+  description:
+    "Kurze Hilfe und Überblick über TribeFinder: Karte, Gruppen, Events, Tänzerinnen, Links und Nachrichten.",
+  alternates: {
+    canonical: "/hilfe",
+  },
 };
 
 export default function HelpPage() {

@@ -1,7 +1,17 @@
 import prisma from "@/lib/prisma";
 import DynamicMap from "@/components/map/DynamicMap";
+import type { Metadata } from "next";
 
 export const revalidate = 60; // Revalidate every minute
+
+export const metadata: Metadata = {
+  title: "Karte",
+  description:
+    "Interaktive Karte mit Tanzgruppen, (falls aktiviert) Events und ausgewählten Links – finde Angebote in deiner Nähe auf TribeFinder.",
+  alternates: {
+    canonical: "/map",
+  },
+};
 
 type ExternalLinkMapRow = {
   id: string;
