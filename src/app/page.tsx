@@ -152,13 +152,13 @@ export default async function Home() {
             <div className="relative w-full max-w-md aspect-video bg-[var(--primary-foreground)]/10 backdrop-blur-sm rounded-lg shadow-2xl flex items-center justify-center border border-[var(--primary-foreground)]/20 overflow-hidden">
               <div className="relative flex items-center justify-center">
                 {brandingLogoUrl ? (
-                  <span className="tf-logo-glint relative z-10 inline-flex rounded-xl shadow-[0_0_0_1px_rgba(255,255,255,0.10)]">
+                  <span className="tf-logo-glint relative z-10 inline-flex rounded-full shadow-[0_0_0_1px_rgba(255,255,255,0.10)]">
                     <Image
                       src={brandingLogoUrl}
                       alt="TribeFinder"
                       width={320}
                       height={320}
-                      className="max-h-60 md:max-h-72 w-auto drop-shadow-[0_0_34px_rgba(79,70,229,0.35)]"
+                      className="max-h-60 md:max-h-72 w-auto rounded-full drop-shadow-[0_0_34px_rgba(79,70,229,0.35)]"
                       unoptimized
                     />
                   </span>

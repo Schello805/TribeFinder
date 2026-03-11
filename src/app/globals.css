@@ -118,7 +118,7 @@ html[data-tf-theme="nocturne"] {
 .tf-logo-glint {
   position: relative;
   overflow: hidden;
-  border-radius: 0.5rem;
+  border-radius: 9999px;
 }
 
 .tf-logo-glint::after {
@@ -131,13 +131,14 @@ html[data-tf-theme="nocturne"] {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0),
-    rgba(255, 255, 255, 0.65),
+    rgba(255, 255, 255, 0.75),
     rgba(255, 255, 255, 0)
   );
   transform: skewX(-20deg);
   opacity: 0;
   animation: tf-glint 5s infinite;
   pointer-events: none;
+  mix-blend-mode: screen;
 }
 
 @keyframes tf-glint {
@@ -162,10 +163,24 @@ html[data-tf-theme="nocturne"] {
   }
 }
 
+@keyframes tf-glint-flash {
+  0% {
+    opacity: 0.15;
+  }
+  6% {
+    opacity: 0.9;
+  }
+  12% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tf-logo-glint::after {
-    animation: none;
-    opacity: 0.25;
+    animation: tf-glint-flash 5s infinite;
     transform: skewX(-20deg);
   }
 }
