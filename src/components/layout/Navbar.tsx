@@ -208,7 +208,16 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="text-xl font-bold flex items-center gap-2 tf-display">
             {logoUrl ? (
-              <Image src={logoUrl} alt="TribeFinder" width={56} height={56} className="h-14 w-14 rounded-full" unoptimized />
+              <span className="tf-logo-glint inline-flex rounded-full shadow-[0_0_0_1px_rgba(255,255,255,0.14),0_0_18px_rgba(255,255,255,0.18)]">
+                <Image
+                  src={logoUrl}
+                  alt="TribeFinder"
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 rounded-full"
+                  unoptimized
+                />
+              </span>
             ) : (
               <span className="text-2xl">💃</span>
             )}
