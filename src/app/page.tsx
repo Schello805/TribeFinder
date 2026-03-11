@@ -151,19 +151,19 @@ export default async function Home() {
           <div className="md:w-1/2 flex justify-center">
             <div className="relative w-full max-w-md aspect-video bg-[var(--primary-foreground)]/10 backdrop-blur-sm rounded-lg shadow-2xl flex items-center justify-center border border-[var(--primary-foreground)]/20 overflow-hidden">
               <div className="relative flex items-center justify-center">
-                <div className="pointer-events-none absolute -inset-12 rounded-full bg-[var(--primary)]/20 blur-3xl motion-safe:animate-pulse" />
-                <div className="pointer-events-none absolute -inset-8 rounded-full bg-[var(--primary)]/10 blur-2xl motion-safe:animate-pulse" />
+                <div className="pointer-events-none absolute -inset-16 rounded-full bg-[var(--primary)]/25 blur-3xl motion-safe:animate-ping motion-safe:[animation-duration:3.6s] motion-safe:[animation-timing-function:ease-in-out]" />
+                <div className="pointer-events-none absolute -inset-10 rounded-full bg-[var(--primary)]/15 blur-2xl motion-safe:animate-pulse motion-safe:[animation-duration:2.8s]" />
                 {brandingLogoUrl ? (
                   <Image
                     src={brandingLogoUrl}
                     alt="TribeFinder"
                     width={256}
                     height={256}
-                    className="relative z-10 max-h-40 w-auto drop-shadow-[0_0_18px_rgba(79,70,229,0.25)]"
+                    className="relative z-10 max-h-56 md:max-h-64 w-auto drop-shadow-[0_0_28px_rgba(79,70,229,0.32)]"
                     unoptimized
                   />
                 ) : (
-                  <span className="relative z-10 text-6xl">💃</span>
+                  <span className="relative z-10 text-7xl">💃</span>
                 )}
               </div>
             </div>

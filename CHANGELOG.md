@@ -28,7 +28,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ### ✨ UI
 
-- Startseite: Logo im Hero-Bereich mit dezentem Glow-Effekt (Animation respektiert prefers-reduced-motion)
+- Startseite: Logo im Hero-Bereich größer + dezent animierter Glow-Effekt (Animation respektiert prefers-reduced-motion)
 
 ## [Unreleased] - 2026-02-22
 
