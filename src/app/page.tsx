@@ -151,7 +151,7 @@ export default async function Home() {
           <div className="md:w-1/2 flex justify-center">
             <div className="relative w-full max-w-md aspect-video flex items-center justify-center">
               {brandingLogoUrl ? (
-                <span className="tf-logo-glint-no-clip tf-logo-glint-soft relative z-10 inline-flex">
+                <span className="relative z-10 inline-flex">
                   <Image
                     src={brandingLogoUrl}
                     alt="TribeFinder"
