@@ -28,7 +28,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ### ✨ UI
 
-- Startseite: Logo im Hero-Bereich größer, ohne rechteckige Card im Hintergrund, Logo wird nicht mehr abgeschnitten (ohne Animation; dezenter statischer Schatten)
+- Startseite: Logo im Hero-Bereich größer, ohne rechteckige Card im Hintergrund, Logo wird nicht mehr abgeschnitten (ohne Animation; statischer Schatten für mehr Tiefe)
 - Navbar: Logo links oben mit Glint/Shimmer-Effekt (dezent)
 
 ## [Unreleased] - 2026-02-22
