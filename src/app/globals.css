@@ -147,6 +147,16 @@ html[data-tf-theme="nocturne"] {
   clip-path: circle(50% at 50% 50%);
 }
 
+.tf-logo-glint-soft::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.42),
+    rgba(255, 255, 255, 0)
+  );
+  animation: tf-glint-soft 7s infinite;
+}
+
 .tf-logo-glint::after {
   content: "";
   position: absolute;
@@ -180,6 +190,28 @@ html[data-tf-theme="nocturne"] {
     transform: translateX(260%) skewX(-20deg);
   }
   16% {
+    opacity: 0;
+    transform: translateX(260%) skewX(-20deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(260%) skewX(-20deg);
+  }
+}
+
+@keyframes tf-glint-soft {
+  0% {
+    opacity: 0;
+    transform: translateX(0) skewX(-20deg);
+  }
+  4% {
+    opacity: 0.7;
+  }
+  9% {
+    opacity: 0.7;
+    transform: translateX(260%) skewX(-20deg);
+  }
+  11% {
     opacity: 0;
     transform: translateX(260%) skewX(-20deg);
   }
