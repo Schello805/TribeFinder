@@ -26,6 +26,10 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 - SEO: Canonical URLs + robustere Meta-Descriptions für Event-/Gruppen-Detailseiten; Map/Hilfe mit Description+Canonical; private Bereiche (auth/dashboard/messages/direct-messages/admin) per noindex ausgeschlossen; robots.txt + sitemap erweitert
 
+### ✨ UI
+
+- Startseite: Logo im Hero-Bereich mit dezentem Glow-Effekt (Animation respektiert prefers-reduced-motion)
+
 ## [Unreleased] - 2026-02-22
 
 ### 🧩 Gruppen

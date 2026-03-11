@@ -149,12 +149,23 @@ export default async function Home() {
             </div>
           </div>
           <div className="md:w-1/2 flex justify-center">
-            <div className="relative w-full max-w-md aspect-video bg-[var(--primary-foreground)]/10 backdrop-blur-sm rounded-lg shadow-2xl flex items-center justify-center border border-[var(--primary-foreground)]/20">
-              {brandingLogoUrl ? (
-                <Image src={brandingLogoUrl} alt="TribeFinder" width={256} height={256} className="max-h-40 w-auto" unoptimized />
-              ) : (
-                <span className="text-6xl">💃</span>
-              )}
+            <div className="relative w-full max-w-md aspect-video bg-[var(--primary-foreground)]/10 backdrop-blur-sm rounded-lg shadow-2xl flex items-center justify-center border border-[var(--primary-foreground)]/20 overflow-hidden">
+              <div className="relative flex items-center justify-center">
+                <div className="pointer-events-none absolute -inset-12 rounded-full bg-[var(--primary)]/20 blur-3xl motion-safe:animate-pulse" />
+                <div className="pointer-events-none absolute -inset-8 rounded-full bg-[var(--primary)]/10 blur-2xl motion-safe:animate-pulse" />
+                {brandingLogoUrl ? (
+                  <Image
+                    src={brandingLogoUrl}
+                    alt="TribeFinder"
+                    width={256}
+                    height={256}
+                    className="relative z-10 max-h-40 w-auto drop-shadow-[0_0_18px_rgba(79,70,229,0.25)]"
+                    unoptimized
+                  />
+                ) : (
+                  <span className="relative z-10 text-6xl">💃</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
