@@ -28,7 +28,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 ### ✨ UI
 
-- Startseite: Logo im Hero-Bereich größer + sichtbarer Glint/Shimmer-Effekt (~5s Intervall; rund ohne Rechteck-Hintergrund; Animation respektiert prefers-reduced-motion)
+- Startseite: Logo im Hero-Bereich größer + sichtbarer Glint/Shimmer-Effekt (~5s Intervall; ohne rechteckige Card im Hintergrund; Logo wird nicht mehr abgeschnitten; Animation respektiert prefers-reduced-motion)
 - Navbar: Logo links oben mit Glint/Shimmer-Effekt (~5s Intervall; rund ohne Rechteck-Hintergrund)
 
 ## [Unreleased] - 2026-02-22
