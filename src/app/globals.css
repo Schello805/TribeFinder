@@ -246,6 +246,55 @@ html[data-tf-theme="nocturne"] {
     animation: tf-glint-flash 23s infinite;
     transform: skewX(-20deg);
   }
+
+  .tf-user-location__pulse {
+    animation: none;
+  }
+}
+
+.tf-user-location {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+}
+
+.tf-user-location__dot {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: rgb(37, 99, 235);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95), 0 0 0 4px rgba(37, 99, 235, 0.35);
+}
+
+.tf-user-location__pulse {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: rgba(37, 99, 235, 0.16);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.22);
+  animation: tf-user-location-pulse 2.2s ease-out infinite;
+}
+
+@keyframes tf-user-location-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
 }
 
 .dark {

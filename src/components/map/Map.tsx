@@ -123,6 +123,9 @@ export default function Map({ groups, events = [], availableTags = [], links = [
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const userLocationMarkerRef = useRef<L.Marker | null>(null);
+  const userLocationWatchIdRef = useRef<number | null>(null);
+  const userLocationStartedRef = useRef(false);
   const groupClusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const eventClusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const linkClusterRef = useRef<L.MarkerClusterGroup | null>(null);
@@ -137,6 +140,17 @@ export default function Map({ groups, events = [], availableTags = [], links = [
   const [linkCategories, setLinkCategories] = useState<MapLinkCategory[]>([]);
   const [selectedLinkCategoryIds, setSelectedLinkCategoryIds] = useState<Record<string, boolean>>({});
   const [showUncategorizedLinks, setShowUncategorizedLinks] = useState(true);
+
+  const userLocationIcon = useMemo(
+    () =>
+      L.divIcon({
+        className: "",
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        html: `<span class="tf-user-location"><span class="tf-user-location__pulse"></span><span class="tf-user-location__dot"></span></span>`,
+      }),
+    []
+  );
 
   const derivedLinkCategories = useMemo(() => {
     const byName = new globalThis.Map<string, MapLinkCategory>();
@@ -252,26 +266,77 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     }
   }, [buildNominatimReverseUrl, extractPostcode]);
 
-  const handleLocateMe = () => {
-    setIsLocating(true);
-    if (navigator.geolocation && mapRef.current) {
-      navigator.geolocation.getCurrentPosition(
+  const stopWatchingUserLocation = useCallback(() => {
+    if (userLocationWatchIdRef.current != null && navigator.geolocation?.clearWatch) {
+      navigator.geolocation.clearWatch(userLocationWatchIdRef.current);
+    }
+    userLocationWatchIdRef.current = null;
+  }, []);
+
+  const ensureUserLocationMarker = useCallback(
+    (lat: number, lng: number) => {
+      if (!mapRef.current) return;
+
+      const latLng: [number, number] = [lat, lng];
+      if (!userLocationMarkerRef.current) {
+        userLocationMarkerRef.current = L.marker(latLng, { icon: userLocationIcon, interactive: false, zIndexOffset: 1000 });
+        userLocationMarkerRef.current.addTo(mapRef.current);
+      } else {
+        userLocationMarkerRef.current.setLatLng(latLng);
+      }
+    },
+    [userLocationIcon]
+  );
+
+  const startWatchingUserLocation = useCallback(
+    (opts?: { flyTo?: boolean }) => {
+      if (!navigator.geolocation || !mapRef.current) {
+        showToast("Geolocation wird nicht unterstützt", "warning");
+        return;
+      }
+
+      if (userLocationWatchIdRef.current != null) {
+        if (opts?.flyTo && userLocationMarkerRef.current) {
+          const ll = userLocationMarkerRef.current.getLatLng();
+          mapRef.current.flyTo([ll.lat, ll.lng], 12);
+        }
+        return;
+      }
+
+      stopWatchingUserLocation();
+      setIsLocating(true);
+
+      userLocationWatchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          mapRef.current?.flyTo([latitude, longitude], 12);
+          ensureUserLocationMarker(latitude, longitude);
+          if (opts?.flyTo) {
+            mapRef.current?.flyTo([latitude, longitude], 12);
+          }
           setIsLocating(false);
         },
         (error) => {
           console.error("Error getting location", error);
           setIsLocating(false);
-          showToast('Standort konnte nicht ermittelt werden', 'error');
-        }
+          stopWatchingUserLocation();
+          showToast("Standort konnte nicht ermittelt werden", "error");
+        },
+        { enableHighAccuracy: false, maximumAge: 30_000, timeout: 12_000 }
       );
-    } else {
-      setIsLocating(false);
-      showToast('Geolocation wird nicht unterstützt', 'warning');
-    }
+    },
+    [ensureUserLocationMarker, showToast, stopWatchingUserLocation]
+  );
+
+  const handleLocateMe = () => {
+    startWatchingUserLocation({ flyTo: true });
   };
+
+  useEffect(() => {
+    if (!mapReady) return;
+    if (userLocationStartedRef.current) return;
+    userLocationStartedRef.current = true;
+    startWatchingUserLocation({ flyTo: false });
+  }, [mapReady, startWatchingUserLocation]);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -326,6 +391,11 @@ export default function Map({ groups, events = [], availableTags = [], links = [
 
     // Cleanup function will handle marker removal
     return () => {
+      stopWatchingUserLocation();
+      if (userLocationMarkerRef.current) {
+        userLocationMarkerRef.current.remove();
+        userLocationMarkerRef.current = null;
+      }
       if (mapRef.current) {
         if (groupClusterRef.current) {
           groupClusterRef.current.clearLayers();
@@ -343,7 +413,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [stopWatchingUserLocation]);
 
   // Separate effect for markers that responds to filter changes
   useEffect(() => {
