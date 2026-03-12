@@ -31,6 +31,8 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Startseite: Logo im Hero-Bereich größer, ohne rechteckige Card im Hintergrund, Logo wird nicht mehr abgeschnitten (ohne Animation; statischer Schatten für mehr Tiefe)
 - Navbar: Logo links oben mit Glint/Shimmer-Effekt (dezent; Intervall ~23s)
 - Karte: Eigener Standort wird als Marker angezeigt (pulsierend; respektiert prefers-reduced-motion)
+- Karte: Standort-Marker pulsiert deutlicher
+- Wartungs-/Wartebildschirm: Text angepasst (kein "Wir" mehr)
 
 ## [Unreleased] - 2026-02-22
 
