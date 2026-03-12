@@ -141,7 +141,7 @@ html[data-tf-theme="nocturne"] {
   );
   transform: skewX(-20deg);
   opacity: 0;
-  animation: tf-glint 5s infinite;
+  animation: tf-glint 23s infinite;
   pointer-events: none;
   mix-blend-mode: screen;
   clip-path: circle(50% at 50% 50%);
@@ -154,7 +154,7 @@ html[data-tf-theme="nocturne"] {
     rgba(255, 255, 255, 0.42),
     rgba(255, 255, 255, 0)
   );
-  animation: tf-glint-soft 7s infinite;
+  animation: tf-glint-soft 23s infinite;
 }
 
 .tf-logo-glint::after {
@@ -172,7 +172,7 @@ html[data-tf-theme="nocturne"] {
   );
   transform: skewX(-20deg);
   opacity: 0;
-  animation: tf-glint 5s infinite;
+  animation: tf-glint 23s infinite;
   pointer-events: none;
   mix-blend-mode: screen;
 }
@@ -238,12 +238,12 @@ html[data-tf-theme="nocturne"] {
 
 @media (prefers-reduced-motion: reduce) {
   .tf-logo-glint::after {
-    animation: tf-glint-flash 5s infinite;
+    animation: tf-glint-flash 23s infinite;
     transform: skewX(-20deg);
   }
 
   .tf-logo-glint-no-clip::after {
-    animation: tf-glint-flash 5s infinite;
+    animation: tf-glint-flash 23s infinite;
     transform: skewX(-20deg);
   }
 }
