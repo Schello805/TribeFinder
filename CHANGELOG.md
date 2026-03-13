@@ -33,6 +33,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Karte: Eigener Standort wird als Marker angezeigt (pulsierend; respektiert prefers-reduced-motion)
 - Karte: Standort-Marker pulsiert deutlicher
 - Wartungs-/Wartebildschirm: Text angepasst (kein "Wir" mehr)
+- Admin: Startseiten-Logo (Hero) separat konfigurierbar (Upload, inkl. GIF)
 
 ## [Unreleased] - 2026-02-22
 

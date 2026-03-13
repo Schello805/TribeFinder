@@ -18,6 +18,7 @@ export default function AdminSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isLogoSaving, setIsLogoSaving] = useState(false);
+  const [isHeroLogoSaving, setIsHeroLogoSaving] = useState(false);
   const [isMaintenanceLoading, setIsMaintenanceLoading] = useState(false);
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [formData, setFormData] = useState({
@@ -31,6 +32,7 @@ export default function AdminSettingsPage() {
     MATOMO_SITE_ID: '',
     MATOMO_TRACKING_CODE: '',
     BRANDING_LOGO_URL: '',
+    BRANDING_HERO_LOGO_URL: '',
     SITE_BANNER_ENABLED: 'false',
     SITE_BANNER_TEXT: '',
     SITE_BANNER_BG: '#f59e0b',
@@ -64,6 +66,61 @@ export default function AdminSettingsPage() {
       console.error('Error loading settings:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleHeroLogoUpload = async (file: File) => {
+    setIsHeroLogoSaving(true);
+    setMessage('');
+
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+
+      const res = await fetch('/api/admin/branding/hero-logo', {
+        method: 'POST',
+        body: fd,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setMessage(data?.error || 'Fehler beim Logo-Upload.');
+        return;
+      }
+
+      setFormData(prev => ({ ...prev, BRANDING_HERO_LOGO_URL: data.logoUrl || '' }));
+      setMessage('Logo gespeichert!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      console.error('Error uploading hero logo:', error);
+      setMessage('Fehler beim Logo-Upload.');
+    } finally {
+      setIsHeroLogoSaving(false);
+    }
+  };
+
+  const handleHeroLogoRemove = async () => {
+    setIsHeroLogoSaving(true);
+    setMessage('');
+
+    try {
+      const res = await fetch('/api/admin/branding/hero-logo', { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setMessage(data?.error || 'Fehler beim Entfernen.');
+        return;
+      }
+
+      setFormData(prev => ({ ...prev, BRANDING_HERO_LOGO_URL: '' }));
+      setMessage('Logo entfernt.');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      console.error('Error removing hero logo:', error);
+      setMessage('Fehler beim Entfernen.');
+    } finally {
+      setIsHeroLogoSaving(false);
     }
   };
 
@@ -260,6 +317,60 @@ export default function AdminSettingsPage() {
                   type="button"
                   disabled={isLogoSaving || !formData.BRANDING_LOGO_URL}
                   onClick={handleLogoRemove}
+                  className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 transition"
+                >
+                  Entfernen
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+            Empfohlen: quadratisches Bild, max. 5MB (PNG/JPG/WebP/GIF). Wird in <code>public/uploads</code> gespeichert.
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8 border border-transparent dark:border-gray-700">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Startseiten-Logo</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Großes Logo auf der Startseite (Hero).</p>
+        </div>
+        <div className="p-6">
+          <div className="flex items-center gap-6 flex-wrap">
+            <div className="w-16 h-16 rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+              {formData.BRANDING_HERO_LOGO_URL ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={normalizeUploadedImageUrl(formData.BRANDING_HERO_LOGO_URL) ?? ""} alt="Startseiten-Logo" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl">💃</span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                {isHeroLogoSaving ? 'Wird hochgeladen...' : 'Logo hochladen'}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  disabled={isHeroLogoSaving}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleHeroLogoUpload(f);
+                    e.target.value = '';
+                  }}
+                  className="hidden"
+                />
+              </label>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={isHeroLogoSaving || !formData.BRANDING_HERO_LOGO_URL}
+                  onClick={handleHeroLogoRemove}
                   className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 transition"
                 >
                   Entfernen

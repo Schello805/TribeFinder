@@ -18,8 +18,9 @@ export default async function Home() {
   let groupCount = 0;
   let eventCount = 0;
   let userCount = 0;
-  let linkCountsByCategory: Array<{ category: string; count: number }> = [];
   let brandingLogoUrl = "";
+  let heroLogoUrl = "";
+  let linkCountsByCategory: Array<{ category: string; count: number }> = [];
   let upcomingEvents: Array<{
     id: string;
     title: string;
@@ -54,7 +55,7 @@ export default async function Home() {
       prisma.event.count({ where: { startDate: { gte: new Date() } } }),
       prisma.user.count(),
       prisma.systemSetting.findMany({
-        where: { key: { in: ["BRANDING_LOGO_URL"] } },
+        where: { key: { in: ["BRANDING_LOGO_URL", "BRANDING_HERO_LOGO_URL"] } },
       }),
       prisma.event.findMany({
         where: { startDate: { gte: new Date() } },
@@ -97,6 +98,7 @@ export default async function Home() {
       return acc;
     }, {});
     brandingLogoUrl = normalizeUploadedImageUrl(map.BRANDING_LOGO_URL) ?? "";
+    heroLogoUrl = normalizeUploadedImageUrl(map.BRANDING_HERO_LOGO_URL) ?? "";
   } catch {
     // Intentionally ignore to keep homepage functional even if Prisma is unhealthy.
   }
@@ -150,10 +152,10 @@ export default async function Home() {
           </div>
           <div className="md:w-1/2 flex justify-center">
             <div className="relative w-full max-w-md aspect-video flex items-center justify-center">
-              {brandingLogoUrl ? (
+              {(heroLogoUrl || brandingLogoUrl) ? (
                 <span className="relative z-10 inline-flex [filter:drop-shadow(0_14px_28px_rgba(0,0,0,0.28))_drop-shadow(0_6px_10px_rgba(0,0,0,0.16))]">
                   <Image
-                    src={brandingLogoUrl}
+                    src={heroLogoUrl || brandingLogoUrl}
                     alt="TribeFinder"
                     width={380}
                     height={380}
