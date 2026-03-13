@@ -40,6 +40,8 @@ export default function AdminSettingsPage() {
   });
   const [message, setMessage] = useState('');
 
+  const isVideoUrl = (url: string) => /\.(mp4|webm)(\?|#|$)/i.test(String(url || '').trim());
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin');
@@ -340,8 +342,19 @@ export default function AdminSettingsPage() {
           <div className="flex items-center gap-6 flex-wrap">
             <div className="w-16 h-16 rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
               {formData.BRANDING_HERO_LOGO_URL ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={normalizeUploadedImageUrl(formData.BRANDING_HERO_LOGO_URL) ?? ""} alt="Startseiten-Logo" className="w-full h-full object-cover" />
+                isVideoUrl(formData.BRANDING_HERO_LOGO_URL) ? (
+                  <video
+                    src={normalizeUploadedImageUrl(formData.BRANDING_HERO_LOGO_URL) ?? ""}
+                    className="w-full h-full object-cover"
+                    muted
+                    autoPlay
+                    loop
+                    playsInline
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={normalizeUploadedImageUrl(formData.BRANDING_HERO_LOGO_URL) ?? ""} alt="Startseiten-Logo" className="w-full h-full object-cover" />
+                )
               ) : (
                 <span className="text-3xl">💃</span>
               )}
@@ -355,7 +368,7 @@ export default function AdminSettingsPage() {
                 {isHeroLogoSaving ? 'Wird hochgeladen...' : 'Logo hochladen'}
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm"
                   disabled={isHeroLogoSaving}
                   onChange={(e) => {
                     const f = e.target.files?.[0];

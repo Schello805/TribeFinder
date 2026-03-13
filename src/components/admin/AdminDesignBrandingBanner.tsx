@@ -29,6 +29,8 @@ export default function AdminDesignBrandingBanner() {
   const [bannerBg, setBannerBg] = useState<string>("#f59e0b");
   const [bannerTextColor, setBannerTextColor] = useState<string>("#ffffff");
 
+  const isVideoUrl = (url: string) => /\.(mp4|webm)(\?|#|$)/i.test(url.trim());
+
   useEffect(() => {
     let cancelled = false;
 
@@ -320,8 +322,19 @@ export default function AdminDesignBrandingBanner() {
           <div className="flex items-center gap-6 flex-wrap">
             <div className="w-16 h-16 rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
               {heroLogoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={normalizeUploadedImageUrl(heroLogoUrl) ?? ""} alt="Startseiten-Logo" className="w-full h-full object-cover" />
+                isVideoUrl(heroLogoUrl) ? (
+                  <video
+                    src={normalizeUploadedImageUrl(heroLogoUrl) ?? ""}
+                    className="w-full h-full object-cover"
+                    muted
+                    autoPlay
+                    loop
+                    playsInline
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={normalizeUploadedImageUrl(heroLogoUrl) ?? ""} alt="Startseiten-Logo" className="w-full h-full object-cover" />
+                )
               ) : (
                 <span className="text-3xl">💃</span>
               )}
@@ -335,7 +348,7 @@ export default function AdminDesignBrandingBanner() {
                 {isHeroLogoSaving ? "Wird hochgeladen..." : "Logo hochladen"}
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm"
                   disabled={isHeroLogoSaving}
                   onChange={(e) => {
                     const f = e.target.files?.[0];

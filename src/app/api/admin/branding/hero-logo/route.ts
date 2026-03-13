@@ -6,8 +6,15 @@ import { mkdir, unlink, writeFile } from "fs/promises";
 import crypto from "crypto";
 import path from "path";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"] as const;
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+  "video/mp4",
+  "video/webm",
+] as const;
 
 type AllowedMime = (typeof ALLOWED_MIME_TYPES)[number];
 
@@ -25,6 +32,10 @@ function extForMime(mime: AllowedMime): string {
       return ".webp";
     case "image/gif":
       return ".gif";
+    case "video/mp4":
+      return ".mp4";
+    case "video/webm":
+      return ".webm";
   }
 }
 

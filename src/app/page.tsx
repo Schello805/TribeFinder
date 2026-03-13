@@ -102,6 +102,10 @@ export default async function Home() {
   } catch {
     // Intentionally ignore to keep homepage functional even if Prisma is unhealthy.
   }
+
+  const isVideoUrl = (url: string) => /\.(mp4|webm)(\?|#|$)/i.test(String(url || "").trim());
+  const heroAssetUrl = heroLogoUrl || brandingLogoUrl;
+
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)]">
       {/* Hero Section */}
@@ -152,16 +156,27 @@ export default async function Home() {
           </div>
           <div className="md:w-1/2 flex justify-center">
             <div className="relative w-full max-w-md aspect-video flex items-center justify-center">
-              {(heroLogoUrl || brandingLogoUrl) ? (
+              {heroAssetUrl ? (
                 <span className="relative z-10 inline-flex [filter:drop-shadow(0_14px_28px_rgba(0,0,0,0.28))_drop-shadow(0_6px_10px_rgba(0,0,0,0.16))]">
-                  <Image
-                    src={heroLogoUrl || brandingLogoUrl}
-                    alt="TribeFinder"
-                    width={380}
-                    height={380}
-                    className="max-h-64 md:max-h-80 w-auto"
-                    unoptimized
-                  />
+                  {isVideoUrl(heroAssetUrl) ? (
+                    <video
+                      src={heroAssetUrl}
+                      className="max-h-64 md:max-h-80 w-auto"
+                      muted
+                      autoPlay
+                      loop
+                      playsInline
+                    />
+                  ) : (
+                    <Image
+                      src={heroAssetUrl}
+                      alt="TribeFinder"
+                      width={380}
+                      height={380}
+                      className="max-h-64 md:max-h-80 w-auto"
+                      unoptimized
+                    />
+                  )}
                 </span>
               ) : (
                 <span className="relative z-10 text-7xl">💃</span>

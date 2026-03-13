@@ -35,6 +35,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Wartungs-/Wartebildschirm: Text angepasst (kein "Wir" mehr)
 - Admin: Startseiten-Logo (Hero) separat konfigurierbar (Upload, inkl. GIF)
 - Admin → Design: Startseiten-Logo (Hero) ist auch im Branding-Bereich verwaltbar
+- Startseiten-Logo (Hero): Upload-Limit erhöht und Video (mp4/webm) als Alternative zu GIF möglich
 
 ## [Unreleased] - 2026-02-22
 
