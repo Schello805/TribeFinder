@@ -109,89 +109,104 @@ export default async function Home() {
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)]">
       {/* Hero Section */}
-      <section className="bg-black text-white py-20 px-4">
-        <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center">
-          <div className="md:w-1/2 mb-10 md:mb-0 text-center md:text-left">
-            <h1 className="tf-display text-4xl md:text-5xl font-bold mb-6">
-              Finde Events, Gruppen und Auftritte in deiner Nähe
-            </h1>
-            <p className="text-xl mb-8 text-white/90">
-              Entdecke Trainings, Bühnenprojekte und Community.
-              Ohne Anmeldung stöbern – zum Eintragen später kostenlos registrieren.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <Link
-                href="/map"
-                className="bg-[var(--surface)] text-[var(--foreground)] px-8 py-3 rounded-full font-bold text-lg hover:bg-[var(--surface-hover)] transition shadow-lg border border-[var(--border)]"
-              >
-                Zur Karte
-              </Link>
-              <Link
-                href="/events"
-                className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-white/10 transition"
-              >
-                Events entdecken
-              </Link>
-            </div>
-            <div className="mt-6 flex flex-wrap gap-3 justify-center md:justify-start">
-              <Link
-                href="/taenzerinnen"
-                className="text-sm font-semibold text-white/95 underline underline-offset-4 hover:opacity-90 transition"
-              >
-                Tänzerinnen finden
-              </Link>
-              <Link
-                href="/auth/register"
-                className="text-sm font-semibold text-white/95 underline underline-offset-4 hover:opacity-90 transition"
-              >
-                Kostenlos registrieren
-              </Link>
-              <Link
-                href="/groups/create"
-                className="text-sm font-semibold text-white/95 underline underline-offset-4 hover:opacity-90 transition"
-              >
-                Gruppe eintragen
-              </Link>
+      <section className="relative py-6 md:py-8">
+        <div className="hidden md:block pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute inset-y-0 left-0 w-1/2 bg-[var(--primary)]" />
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-black" />
+        </div>
+
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2">
+          <div className="bg-[var(--primary)] md:bg-transparent text-[var(--primary-foreground)] px-4 py-6 md:px-8 md:py-8 flex flex-col justify-center">
+            <div className="mx-auto w-full max-w-xl text-center md:text-left">
+              <h1 className="tf-display text-3xl md:text-4xl font-bold mb-4">
+                Finde Events, Gruppen und Auftritte in deiner Nähe
+              </h1>
+              <p className="text-base md:text-lg mb-6 text-[var(--primary-foreground)]/90">
+                Entdecke Trainings, Bühnenprojekte und Community.
+                Ohne Anmeldung stöbern – zum Eintragen später kostenlos registrieren.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <Link
+                  href="/map"
+                  className="bg-[var(--surface)] text-[var(--foreground)] px-6 py-2.5 rounded-full font-bold text-base hover:bg-[var(--surface-hover)] transition shadow-lg border border-[var(--border)]"
+                >
+                  Zur Karte
+                </Link>
+                <Link
+                  href="/events"
+                  className="bg-transparent border-2 border-[var(--primary-foreground)] text-[var(--primary-foreground)] px-6 py-2.5 rounded-full font-bold text-base hover:bg-[var(--primary-foreground)]/10 transition"
+                >
+                  Events entdecken
+                </Link>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3 justify-center md:justify-start">
+                <Link
+                  href="/taenzerinnen"
+                  className="text-sm font-semibold text-[var(--primary-foreground)]/95 underline underline-offset-4 hover:opacity-90 transition"
+                >
+                  Tänzerinnen finden
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="text-sm font-semibold text-[var(--primary-foreground)]/95 underline underline-offset-4 hover:opacity-90 transition"
+                >
+                  Kostenlos registrieren
+                </Link>
+                <Link
+                  href="/groups/create"
+                  className="text-sm font-semibold text-[var(--primary-foreground)]/95 underline underline-offset-4 hover:opacity-90 transition"
+                >
+                  Gruppe eintragen
+                </Link>
+              </div>
             </div>
           </div>
-          <div className="md:w-1/2 flex justify-center">
-            <div className="relative w-full max-w-md aspect-video flex items-center justify-center">
-              {heroAssetUrl ? (
-                <span className="relative z-10 inline-flex [filter:drop-shadow(0_14px_28px_rgba(0,0,0,0.28))_drop-shadow(0_6px_10px_rgba(0,0,0,0.16))]">
-                  {isVideoUrl(heroAssetUrl) ? (
-                    <video
-                      src={heroAssetUrl}
-                      className="max-h-64 md:max-h-80 w-auto"
-                      muted
-                      autoPlay
-                      loop
-                      playsInline
-                    />
+          <div className="relative bg-black md:bg-transparent text-white px-4 py-6 md:px-8 md:py-8 flex items-stretch justify-center md:border-l md:border-black/10 dark:md:border-white/10">
+            <div className="relative w-full h-full flex items-center justify-center">
+              <div className="w-full max-w-md">
+                {heroAssetUrl ? (
+                  isVideoUrl(heroAssetUrl) ? (
+                    <div className="w-full h-full rounded-2xl bg-black p-4 flex items-center justify-center">
+                      <span className="relative z-10 inline-flex [filter:drop-shadow(0_14px_28px_rgba(0,0,0,0.28))_drop-shadow(0_6px_10px_rgba(0,0,0,0.16))]">
+                        <video
+                          src={heroAssetUrl}
+                          className="h-full w-full object-contain"
+                          muted
+                          autoPlay
+                          loop
+                          playsInline
+                        />
+                      </span>
+                    </div>
                   ) : (
-                    <Image
-                      src={heroAssetUrl}
-                      alt="TribeFinder"
-                      width={380}
-                      height={380}
-                      className="max-h-64 md:max-h-80 w-auto"
-                      unoptimized
-                    />
-                  )}
-                </span>
-              ) : (
-                <span className="relative z-10 text-7xl">💃</span>
-              )}
+                    <div className="h-full aspect-square bg-black rounded-full overflow-hidden flex items-center justify-center p-3">
+                      <span className="relative z-10 inline-flex w-full h-full [filter:drop-shadow(0_14px_28px_rgba(0,0,0,0.28))_drop-shadow(0_6px_10px_rgba(0,0,0,0.16))]">
+                        <Image
+                          src={heroAssetUrl}
+                          alt="TribeFinder"
+                          width={280}
+                          height={280}
+                          className="h-full w-full object-contain"
+                          unoptimized
+                        />
+                      </span>
+                    </div>
+                  )
+                ) : (
+                  <span className="relative z-10 text-5xl">💃</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-14 bg-[var(--primary)] text-[var(--primary-foreground)] border-b border-[var(--border)]">
+      <section className="py-14 bg-[var(--surface)] text-[var(--foreground)] border-b border-[var(--border)]">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
-            <h2 className="tf-display text-3xl font-bold text-[var(--primary-foreground)]">Finde deine Tanz-Community</h2>
-            <p className="mt-3 text-[var(--primary-foreground)]/85 max-w-2xl mx-auto">
+            <h2 className="tf-display text-3xl font-bold text-[var(--foreground)]">Finde deine Tanz-Community</h2>
+            <p className="mt-3 text-[var(--muted)] max-w-2xl mx-auto">
               Ob Training, Bühnenprojekt oder Austausch: TribeFinder hilft dir, in deiner Region die richtigen Menschen zu finden.
             </p>
           </div>
