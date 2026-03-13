@@ -21,6 +21,7 @@ export default function Navbar() {
   const [isMoreMobileOpen, setIsMoreMobileOpen] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const navRef = useRef<HTMLElement | null>(null);
 
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
@@ -227,8 +228,35 @@ export default function Navbar() {
     };
   }, [isUserMenuOpen]);
 
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (navRef.current?.contains(target)) return;
+      setIsMenuOpen(false);
+      setIsMoreMobileOpen(false);
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false);
+        setIsMoreMobileOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isMenuOpen]);
+
   return (
-    <nav className="bg-[var(--nav-bg)] text-[var(--nav-fg)] shadow-lg transition-colors sticky top-0 z-[1000]">
+    <nav ref={navRef} className="bg-[var(--nav-bg)] text-[var(--nav-fg)] shadow-lg transition-colors sticky top-0 z-[1000]">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="text-xl font-bold flex items-center gap-2 tf-display">

@@ -15,6 +15,7 @@
 ### 🧭 Navigation
 
 - Konto-Menü: Schließt sich beim Klick außerhalb/ESC und beim Ausführen von Menü-Aktionen (z.B. Theme wechseln).
+- Mobile-Menü: Schließt sich beim Tippen außerhalb (und per ESC).
 
 ## [Unreleased] - 2026-03-08
 
