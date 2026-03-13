@@ -1,6 +1,20 @@
 # Changelog
 
-Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
+## [Unreleased] - 2026-03-13
+
+### 🔓 Auth
+
+- Verbesserte Fehlermeldungen beim Login: `/auth/signin` zeigt NextAuth-Fehler (z.B. `CredentialsSignin`, `EMAIL_NOT_VERIFIED`, `LOGIN_LOCKED`) zuverlässig als Toast und Inline-Hinweis an und behandelt unerwartete/undefined SignIn-Responses.
+
+### 🏠 Startseite
+
+- Hero: Zeigt das normale Logo als Platzhalter im rechten Logo/Video-Bereich, bis das Asset geladen ist.
+- Hero: Rechter Hintergrund nutzt jetzt die gleiche Farbe wie die Navbar (`--nav-bg`) statt reinem Schwarz.
+- Hero: Hintergrund-Füllflächen hinter dem Logo/Video entfernt (rechteckig + rund), damit transparente Assets sauber mit dem Panel-Hintergrund verschmelzen.
+
+### 🧭 Navigation
+
+- Konto-Menü: Schließt sich beim Klick außerhalb/ESC und beim Ausführen von Menü-Aktionen (z.B. Theme wechseln).
 
 ## [Unreleased] - 2026-03-08
 

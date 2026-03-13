@@ -1,9 +1,9 @@
 import Link from "next/link";
-import prisma from "@/lib/prisma";
-import Image from "next/image";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import HeroAsset from "@/components/home/HeroAsset";
 import HomeStats from "@/components/home/HomeStats";
 import PwaInstallPromo from "@/components/pwa/PwaInstallPromo";
+import prisma from "@/lib/prisma";
 
 function getExternalLinkDelegate(p: typeof prisma) {
   return (p as unknown as { externalLink?: unknown }).externalLink as
@@ -112,7 +112,7 @@ export default async function Home() {
       <section className="relative py-6 md:py-8">
         <div className="hidden md:block pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-y-0 left-0 w-1/2 bg-[var(--primary)]" />
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-black" />
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[var(--nav-bg)]" />
         </div>
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2">
@@ -161,36 +161,14 @@ export default async function Home() {
               </div>
             </div>
           </div>
-          <div className="relative bg-black md:bg-transparent text-white px-4 py-6 md:px-8 md:py-8 flex items-stretch justify-center md:border-l md:border-black/10 dark:md:border-white/10">
+          <div className="relative bg-[var(--nav-bg)] md:bg-transparent text-white px-4 py-6 md:px-8 md:py-8 flex items-stretch justify-center md:border-l md:border-black/10 dark:md:border-white/10">
             <div className="relative w-full h-full flex items-center justify-center">
               <div className="w-full max-w-md">
                 {heroAssetUrl ? (
                   isVideoUrl(heroAssetUrl) ? (
-                    <div className="w-full h-full rounded-2xl bg-black p-4 flex items-center justify-center">
-                      <span className="relative z-10 inline-flex [filter:drop-shadow(0_14px_28px_rgba(0,0,0,0.28))_drop-shadow(0_6px_10px_rgba(0,0,0,0.16))]">
-                        <video
-                          src={heroAssetUrl}
-                          className="h-full w-full object-contain"
-                          muted
-                          autoPlay
-                          loop
-                          playsInline
-                        />
-                      </span>
-                    </div>
+                    <HeroAsset url={heroAssetUrl} isVideo placeholderUrl={brandingLogoUrl || undefined} />
                   ) : (
-                    <div className="h-full aspect-square bg-black rounded-full overflow-hidden flex items-center justify-center p-3">
-                      <span className="relative z-10 inline-flex w-full h-full [filter:drop-shadow(0_14px_28px_rgba(0,0,0,0.28))_drop-shadow(0_6px_10px_rgba(0,0,0,0.16))]">
-                        <Image
-                          src={heroAssetUrl}
-                          alt="TribeFinder"
-                          width={280}
-                          height={280}
-                          className="h-full w-full object-contain"
-                          unoptimized
-                        />
-                      </span>
-                    </div>
+                    <HeroAsset url={heroAssetUrl} isVideo={false} placeholderUrl={brandingLogoUrl || undefined} />
                   )
                 ) : (
                   <span className="relative z-10 text-5xl">💃</span>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
@@ -19,6 +19,8 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isMoreMobileOpen, setIsMoreMobileOpen] = useState(false);
+
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
@@ -202,6 +204,29 @@ export default function Navbar() {
     return () => window.clearTimeout(t);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (userMenuRef.current?.contains(target)) return;
+      setIsUserMenuOpen(false);
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsUserMenuOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isUserMenuOpen]);
+
   return (
     <nav className="bg-[var(--nav-bg)] text-[var(--nav-fg)] shadow-lg transition-colors sticky top-0 z-[1000]">
       <div className="container mx-auto px-4">
@@ -273,7 +298,7 @@ export default function Navbar() {
 
             {session ? (
               <>
-                <div className="relative">
+                <div className="relative" ref={userMenuRef}>
                   <button
                     type="button"
                     onClick={() => setIsUserMenuOpen((v) => !v)}
@@ -352,7 +377,10 @@ export default function Navbar() {
                         <div className="flex items-center rounded-md border border-[var(--nav-border)] bg-[var(--nav-surface-subtle)] overflow-hidden">
                           <button
                             type="button"
-                            onClick={() => setTheme("light")}
+                            onClick={() => {
+                              setIsUserMenuOpen(false);
+                              setTheme("light");
+                            }}
                             className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] ${
                               theme === "light" ? "bg-[var(--nav-surface-hover)]" : ""
                             }`}
@@ -361,7 +389,10 @@ export default function Navbar() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => setTheme("dark")}
+                            onClick={() => {
+                              setIsUserMenuOpen(false);
+                              setTheme("dark");
+                            }}
                             className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] ${
                               theme === "dark" ? "bg-[var(--nav-surface-hover)]" : ""
                             }`}
@@ -370,7 +401,10 @@ export default function Navbar() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => setTheme("system")}
+                            onClick={() => {
+                              setIsUserMenuOpen(false);
+                              setTheme("system");
+                            }}
                             className={`flex-1 px-2 py-1.5 text-xs font-medium text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] ${
                               theme === "system" ? "bg-[var(--nav-surface-hover)]" : ""
                             }`}

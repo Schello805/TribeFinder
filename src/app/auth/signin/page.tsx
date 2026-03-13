@@ -18,6 +18,25 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    const authError = searchParams.get("error");
+    if (authError) {
+      const errorMsg =
+        authError === "EMAIL_NOT_VERIFIED"
+          ? "Bitte bestätige zuerst deine E-Mail-Adresse (Link in deiner E-Mail)."
+          : authError === "LOGIN_LOCKED"
+            ? "Zu viele Fehlversuche. Bitte warte 5 Minuten und versuche es erneut."
+            : authError === "CredentialsSignin"
+              ? "Ungültige E-Mail oder Passwort"
+              : authError === "AccessDenied"
+                ? "Zugriff verweigert. Bitte prüfe deine Anmeldung."
+                : authError === "Configuration"
+                  ? "Login ist momentan nicht verfügbar. Bitte versuche es später erneut."
+                  : "Anmeldung fehlgeschlagen. Bitte versuche es erneut.";
+      setError(errorMsg);
+      showToast(errorMsg, "error");
+      return;
+    }
+
     const registered = searchParams.get("registered");
     if (registered === "true") {
       const msg = "Fast geschafft: Bitte bestätige zuerst deine E-Mail-Adresse (Link in der E-Mail). Danach kannst du dich anmelden.";
@@ -46,13 +65,30 @@ export default function SignInPage() {
         password,
       });
 
+      if (!result) {
+        const errorMsg = "Anmeldung fehlgeschlagen. Bitte versuche es erneut.";
+        setError(errorMsg);
+        showToast(errorMsg, "error");
+        return;
+      }
+
       if (result?.error) {
         const errorMsg =
           result.error === "EMAIL_NOT_VERIFIED"
             ? "Bitte bestätige zuerst deine E-Mail-Adresse (Link in deiner E-Mail)."
             : result.error === "LOGIN_LOCKED"
               ? "Zu viele Fehlversuche. Bitte warte 5 Minuten und versuche es erneut."
+              : result.error === "CredentialsSignin"
+                ? "Ungültige E-Mail oder Passwort"
+                : result.error === "AccessDenied"
+                  ? "Zugriff verweigert. Bitte prüfe deine Anmeldung."
+                  : result.error === "Configuration"
+                    ? "Login ist momentan nicht verfügbar. Bitte versuche es später erneut."
             : "Ungültige E-Mail oder Passwort";
+        setError(errorMsg);
+        showToast(errorMsg, "error");
+      } else if (!result.ok) {
+        const errorMsg = "Anmeldung fehlgeschlagen. Bitte versuche es erneut.";
         setError(errorMsg);
         showToast(errorMsg, "error");
       } else {
