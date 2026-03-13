@@ -373,7 +373,7 @@ export default function AdminDesignBrandingBanner() {
           </div>
 
           <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-            Empfohlen: quadratisches Bild, max. 5MB (PNG/JPG/WebP/GIF). Wird in <code>public/uploads</code> gespeichert.
+            Empfohlen: quadratisches Bild oder Video, max. 100MB (PNG/JPG/WebP/GIF/MP4/WebM). Wird in <code>public/uploads</code> gespeichert.
           </div>
         </div>
       </div>
