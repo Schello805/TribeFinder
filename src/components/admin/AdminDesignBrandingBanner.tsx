@@ -15,6 +15,7 @@ export default function AdminDesignBrandingBanner() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLogoSaving, setIsLogoSaving] = useState(false);
+  const [isHeroLogoSaving, setIsHeroLogoSaving] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isThemeSaving, setIsThemeSaving] = useState(false);
   const [isMaintenanceLoading, setIsMaintenanceLoading] = useState(false);
@@ -22,6 +23,7 @@ export default function AdminDesignBrandingBanner() {
 
   const [themePreset, setThemePreset] = useState<string>("default");
   const [brandingLogoUrl, setBrandingLogoUrl] = useState<string>("");
+  const [heroLogoUrl, setHeroLogoUrl] = useState<string>("");
   const [bannerEnabled, setBannerEnabled] = useState<boolean>(false);
   const [bannerText, setBannerText] = useState<string>("");
   const [bannerBg, setBannerBg] = useState<string>("#f59e0b");
@@ -38,6 +40,7 @@ export default function AdminDesignBrandingBanner() {
         if (cancelled) return;
 
         const logo = getStringProp(data, "BRANDING_LOGO_URL") || "";
+        const heroLogo = getStringProp(data, "BRANDING_HERO_LOGO_URL") || "";
         const enabledRaw = getStringProp(data, "SITE_BANNER_ENABLED") || "false";
         const text = getStringProp(data, "SITE_BANNER_TEXT") || "";
         const bg = getStringProp(data, "SITE_BANNER_BG") || "#f59e0b";
@@ -45,6 +48,7 @@ export default function AdminDesignBrandingBanner() {
         const preset = (getStringProp(data, "SITE_THEME_PRESET") || "default").trim().toLowerCase();
 
         setBrandingLogoUrl(logo);
+        setHeroLogoUrl(heroLogo);
         setThemePreset(preset === "copper" || preset === "nocturne" ? preset : "default");
         setBannerEnabled(String(enabledRaw).toLowerCase() === "true");
         setBannerText(text);
@@ -91,6 +95,42 @@ export default function AdminDesignBrandingBanner() {
       showToast(e instanceof Error ? e.message : "Fehler beim Speichern", "error");
     } finally {
       setIsThemeSaving(false);
+    }
+  };
+
+  const handleHeroLogoUpload = async (file: File) => {
+    setIsHeroLogoSaving(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/branding/hero-logo", { method: "POST", body: fd });
+      const data: unknown = await res.json().catch(() => null);
+      const errMsg = getStringProp(data, "error") || getStringProp(data, "message") || "Fehler beim Logo-Upload";
+      if (!res.ok) throw new Error(errMsg);
+
+      const next = getStringProp(data, "logoUrl") || "";
+      setHeroLogoUrl(next);
+      showToast("Logo gespeichert", "success");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Fehler beim Logo-Upload", "error");
+    } finally {
+      setIsHeroLogoSaving(false);
+    }
+  };
+
+  const handleHeroLogoRemove = async () => {
+    setIsHeroLogoSaving(true);
+    try {
+      const res = await fetch("/api/admin/branding/hero-logo", { method: "DELETE" });
+      const data: unknown = await res.json().catch(() => null);
+      const errMsg = getStringProp(data, "error") || getStringProp(data, "message") || "Fehler beim Entfernen";
+      if (!res.ok) throw new Error(errMsg);
+      setHeroLogoUrl("");
+      showToast("Logo entfernt", "success");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Fehler beim Entfernen", "error");
+    } finally {
+      setIsHeroLogoSaving(false);
     }
   };
 
@@ -257,6 +297,60 @@ export default function AdminDesignBrandingBanner() {
                   type="button"
                   disabled={isLogoSaving || !brandingLogoUrl}
                   onClick={() => void handleLogoRemove()}
+                  className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 transition"
+                >
+                  Entfernen
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+            Empfohlen: quadratisches Bild, max. 5MB (PNG/JPG/WebP/GIF). Wird in <code>public/uploads</code> gespeichert.
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-transparent dark:border-gray-700">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Startseiten-Logo</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Großes Logo auf der Startseite (Hero).</p>
+        </div>
+        <div className="p-6">
+          <div className="flex items-center gap-6 flex-wrap">
+            <div className="w-16 h-16 rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+              {heroLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={normalizeUploadedImageUrl(heroLogoUrl) ?? ""} alt="Startseiten-Logo" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl">💃</span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                {isHeroLogoSaving ? "Wird hochgeladen..." : "Logo hochladen"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  disabled={isHeroLogoSaving}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void handleHeroLogoUpload(f);
+                    e.target.value = "";
+                  }}
+                  className="hidden"
+                />
+              </label>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={isHeroLogoSaving || !heroLogoUrl}
+                  onClick={() => void handleHeroLogoRemove()}
                   className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 transition"
                 >
                   Entfernen

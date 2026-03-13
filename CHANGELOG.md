@@ -34,6 +34,7 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 - Karte: Standort-Marker pulsiert deutlicher
 - Wartungs-/Wartebildschirm: Text angepasst (kein "Wir" mehr)
 - Admin: Startseiten-Logo (Hero) separat konfigurierbar (Upload, inkl. GIF)
+- Admin → Design: Startseiten-Logo (Hero) ist auch im Branding-Bereich verwaltbar
 
 ## [Unreleased] - 2026-02-22
 
