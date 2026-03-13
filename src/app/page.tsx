@@ -109,13 +109,13 @@ export default async function Home() {
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)]">
       {/* Hero Section */}
-      <section className="bg-[var(--primary)] text-[var(--primary-foreground)] py-20 px-4">
+      <section className="bg-black text-white py-20 px-4">
         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-10 md:mb-0 text-center md:text-left">
             <h1 className="tf-display text-4xl md:text-5xl font-bold mb-6">
               Finde Events, Gruppen und Auftritte in deiner Nähe
             </h1>
-            <p className="text-xl mb-8 text-[var(--primary-foreground)]/90">
+            <p className="text-xl mb-8 text-white/90">
               Entdecke Trainings, Bühnenprojekte und Community.
               Ohne Anmeldung stöbern – zum Eintragen später kostenlos registrieren.
             </p>
@@ -128,7 +128,7 @@ export default async function Home() {
               </Link>
               <Link
                 href="/events"
-                className="bg-transparent border-2 border-[var(--primary-foreground)] text-[var(--primary-foreground)] px-8 py-3 rounded-full font-bold text-lg hover:bg-[var(--primary-foreground)]/10 transition"
+                className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-white/10 transition"
               >
                 Events entdecken
               </Link>
@@ -136,19 +136,19 @@ export default async function Home() {
             <div className="mt-6 flex flex-wrap gap-3 justify-center md:justify-start">
               <Link
                 href="/taenzerinnen"
-                className="text-sm font-semibold text-[var(--primary-foreground)]/95 underline underline-offset-4 hover:opacity-90 transition"
+                className="text-sm font-semibold text-white/95 underline underline-offset-4 hover:opacity-90 transition"
               >
                 Tänzerinnen finden
               </Link>
               <Link
                 href="/auth/register"
-                className="text-sm font-semibold text-[var(--primary-foreground)]/95 underline underline-offset-4 hover:opacity-90 transition"
+                className="text-sm font-semibold text-white/95 underline underline-offset-4 hover:opacity-90 transition"
               >
                 Kostenlos registrieren
               </Link>
               <Link
                 href="/groups/create"
-                className="text-sm font-semibold text-[var(--primary-foreground)]/95 underline underline-offset-4 hover:opacity-90 transition"
+                className="text-sm font-semibold text-white/95 underline underline-offset-4 hover:opacity-90 transition"
               >
                 Gruppe eintragen
               </Link>
@@ -187,11 +187,11 @@ export default async function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-14 bg-[var(--surface)] text-[var(--foreground)] border-b border-[var(--border)]">
+      <section className="py-14 bg-[var(--primary)] text-[var(--primary-foreground)] border-b border-[var(--border)]">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-10">
-            <h2 className="tf-display text-3xl font-bold text-[var(--foreground)]">Finde deine Tanz-Community</h2>
-            <p className="mt-3 text-[var(--muted)] max-w-2xl mx-auto">
+            <h2 className="tf-display text-3xl font-bold text-[var(--primary-foreground)]">Finde deine Tanz-Community</h2>
+            <p className="mt-3 text-[var(--primary-foreground)]/85 max-w-2xl mx-auto">
               Ob Training, Bühnenprojekt oder Austausch: TribeFinder hilft dir, in deiner Region die richtigen Menschen zu finden.
             </p>
           </div>
