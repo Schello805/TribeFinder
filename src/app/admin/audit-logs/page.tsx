@@ -12,7 +12,7 @@ type AuditItem = {
   createdAt: string;
   targetBackupFilename: string | null;
   metadata: unknown;
-  actorAdmin: { id: string; name: string | null; email: string };
+  actorAdmin: { id: string; name: string | null; email: string } | null;
   targetUser: { id: string; name: string | null; email: string } | null;
 };
 
@@ -384,8 +384,14 @@ export default function AdminAuditLogsPage() {
                   <td className="py-2 px-4 whitespace-nowrap">{new Date(it.createdAt).toLocaleString("de-DE")}</td>
                   <td className="py-2 px-4 font-mono text-xs whitespace-nowrap">{it.action}</td>
                   <td className="py-2 px-4 whitespace-nowrap">
-                    <div className="text-sm">{it.actorAdmin.name || "—"}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{it.actorAdmin.email}</div>
+                    {it.actorAdmin ? (
+                      <>
+                        <div className="text-sm">{it.actorAdmin.name || "—"}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{it.actorAdmin.email}</div>
+                      </>
+                    ) : (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">—</span>
+                    )}
                   </td>
                   <td className="py-2 px-4 whitespace-nowrap">
                     {it.targetUser ? (

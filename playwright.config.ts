@@ -9,6 +9,8 @@ export default defineConfig({
   reporter: [["json", { outputFile: "playwright-report/results.json" }], ["html"]],
   use: {
     baseURL: process.env.E2E_BASE_URL || "http://localhost:3000",
+    navigationTimeout: 30_000,
+    serviceWorkers: "block",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

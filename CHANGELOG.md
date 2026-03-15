@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased] - 2026-03-15
+
+### 🔐 Admin / Audit-Log
+
+- Audit-Log: Auth-Events ergänzt (Login Erfolg/Fehler inkl. Lockout & Rate-Limits).
+- Audit-Log: Passwort-Reset Events ergänzt (angefordert/gesendet/erfolgreich/fehlgeschlagen).
+- Audit-Log: E-Mail-Verifikation Events ergänzt (erfolgreich/ungültig/bereits verifiziert).
+- Audit-Log: Registrierung Events ergänzt (Erfolg/Rate-Limit/E-Mail existiert/Validierung) inkl. Versandstatus der Verifikationsmail.
+- Audit-Log: `actorAdmin` kann für System/Auth-Events leer sein (Schema angepasst).
+
 ## [Unreleased] - 2026-03-13
 
 ### 🔓 Auth

@@ -7,37 +7,37 @@ function getBase(baseURL?: string) {
 test("public pages load", async ({ page, baseURL }) => {
   const base = getBase(baseURL);
 
-  await page.goto(`${base}/`);
+  await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/$/);
 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
-  await page.goto(`${base}/groups`);
+  await page.goto(`${base}/groups`, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/groups/);
 
   await expect(page.getByRole("heading", { name: "Tanzgruppen finden" })).toBeVisible();
 
-  await page.goto(`${base}/events`);
+  await page.goto(`${base}/events`, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/events/);
 
   await expect(page.getByRole("heading", { name: /Event Kalender/i })).toBeVisible();
 
-  await page.goto(`${base}/hilfe`);
+  await page.goto(`${base}/hilfe`, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/hilfe/);
   await expect(page.getByRole("heading", { name: "Hilfe" })).toBeVisible();
 
-  await page.goto(`${base}/changelog`);
+  await page.goto(`${base}/changelog`, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/changelog/);
   await expect(page.getByRole("heading", { name: "Changelog" })).toBeVisible();
 
-  await page.goto(`${base}/marketplace`);
+  await page.goto(`${base}/marketplace`, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/marketplace/);
   await expect(page.getByRole("heading", { name: "Second-Hand" })).toBeVisible();
 
-  await page.goto(`${base}/map`);
+  await page.goto(`${base}/map`, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/map/);
 
-  await page.goto(`${base}/taenzerinnen`);
+  await page.goto(`${base}/taenzerinnen`, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/taenzerinnen/);
   await expect(page.getByRole("heading", { name: "Tänzerinnen finden" })).toBeVisible();
 });

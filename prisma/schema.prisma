@@ -805,8 +805,8 @@ model AdminAuditLog {
 
   action String
 
-  actorAdminId String
-  actorAdmin   User @relation("AdminAuditActor", fields: [actorAdminId], references: [id], onDelete: Cascade)
+  actorAdminId String?
+  actorAdmin   User? @relation("AdminAuditActor", fields: [actorAdminId], references: [id], onDelete: Cascade)
 
   targetUserId String?
   targetUser   User? @relation("AdminAuditTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)

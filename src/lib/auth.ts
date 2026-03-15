@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import { recordAdminAudit } from "@/lib/adminAudit";
 
 type LoginAttemptEntry = { failures: number; lockedUntil: number };
 const loginAttemptStore = new Map<string, LoginAttemptEntry>();
@@ -42,8 +43,11 @@ function registerFailure(key: string) {
   const now = Date.now();
   const entry = loginAttemptStore.get(key);
   const nextFailures = (entry?.failures ?? 0) + 1;
+  const justLocked = nextFailures === 5;
   const lockedUntil = nextFailures >= 5 ? now + 5 * 60 * 1000 : 0;
   loginAttemptStore.set(key, { failures: nextFailures, lockedUntil });
+
+  return { failures: nextFailures, lockedUntil, justLocked };
 }
 
 function registerSuccess(key: string) {
@@ -67,8 +71,14 @@ export const authOptions: NextAuthOptions = {
         }
 
         const ip = getIpFromAuthRequest(req as unknown as { headers?: Record<string, string | string[] | undefined> });
+        const emailAttempt = credentials.email.toLowerCase().trim();
         const attemptKey = getAttemptKey(credentials.email, ip);
         if (isLocked(attemptKey)) {
+          await recordAdminAudit({
+            action: "AUTH_LOGIN_FAILED_LOCKED",
+            targetUserId: null,
+            metadata: { ip, emailAttempt, result: "LOCKED" },
+          });
           throw new Error("LOGIN_LOCKED")
         }
 
@@ -79,16 +89,57 @@ export const authOptions: NextAuthOptions = {
         })
 
         if (!user || !user.password) {
-          registerFailure(attemptKey)
+          const fail = registerFailure(attemptKey)
+          if (fail.justLocked) {
+            await recordAdminAudit({
+              action: "AUTH_LOGIN_LOCKOUT_TRIGGERED",
+              targetUserId: null,
+              metadata: {
+                ip,
+                emailAttempt,
+                result: "LOCKOUT_TRIGGERED",
+                failures: fail.failures,
+                lockedUntilSeconds: Math.max(0, Math.ceil((fail.lockedUntil - Date.now()) / 1000)),
+              },
+            });
+          }
+          await recordAdminAudit({
+            action: "AUTH_LOGIN_FAILED_INVALID_CREDENTIALS",
+            targetUserId: null,
+            metadata: { ip, emailAttempt, result: "INVALID_CREDENTIALS" },
+          });
           return null
         }
 
         if (!user.emailVerified) {
+          await recordAdminAudit({
+            action: "AUTH_LOGIN_FAILED_EMAIL_NOT_VERIFIED",
+            targetUserId: user.id,
+            metadata: { ip, emailAttempt, result: "EMAIL_NOT_VERIFIED" },
+          });
           throw new Error("EMAIL_NOT_VERIFIED")
         }
 
         if ((user as { isBlocked?: boolean }).isBlocked) {
-          registerFailure(attemptKey)
+          const fail = registerFailure(attemptKey)
+          if (fail.justLocked) {
+            await recordAdminAudit({
+              action: "AUTH_LOGIN_LOCKOUT_TRIGGERED",
+              targetUserId: user.id,
+              metadata: {
+                ip,
+                emailAttempt,
+                result: "LOCKOUT_TRIGGERED",
+                failures: fail.failures,
+                lockedUntilSeconds: Math.max(0, Math.ceil((fail.lockedUntil - Date.now()) / 1000)),
+              },
+            });
+          }
+          await recordAdminAudit({
+            action: "AUTH_LOGIN_FAILED_BLOCKED",
+            targetUserId: user.id,
+            metadata: { ip, emailAttempt, result: "BLOCKED" },
+          });
           return null
         }
 
@@ -98,11 +149,35 @@ export const authOptions: NextAuthOptions = {
         )
 
         if (!isPasswordValid) {
-          registerFailure(attemptKey)
+          const fail = registerFailure(attemptKey)
+          if (fail.justLocked) {
+            await recordAdminAudit({
+              action: "AUTH_LOGIN_LOCKOUT_TRIGGERED",
+              targetUserId: user.id,
+              metadata: {
+                ip,
+                emailAttempt,
+                result: "LOCKOUT_TRIGGERED",
+                failures: fail.failures,
+                lockedUntilSeconds: Math.max(0, Math.ceil((fail.lockedUntil - Date.now()) / 1000)),
+              },
+            });
+          }
+          await recordAdminAudit({
+            action: "AUTH_LOGIN_FAILED_INVALID_CREDENTIALS",
+            targetUserId: user.id,
+            metadata: { ip, emailAttempt, result: "INVALID_CREDENTIALS" },
+          });
           return null
         }
 
         registerSuccess(attemptKey)
+
+        await recordAdminAudit({
+          action: "AUTH_LOGIN_SUCCESS",
+          targetUserId: user.id,
+          metadata: { ip, emailAttempt, result: "SUCCESS" },
+        });
 
         try {
           await prisma.user.update({

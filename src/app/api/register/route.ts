@@ -6,6 +6,7 @@ import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } f
 import { v4 as uuidv4 } from "uuid";
 import { sendEmail, emailTemplate, emailHeading, emailText, emailButton, emailHighlight, getEmailBaseUrl, toAbsoluteUrl } from "@/lib/email";
 import { hashToken } from "@/lib/tokenHash";
+import { recordAdminAudit } from "@/lib/adminAudit";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -18,6 +19,19 @@ export async function POST(req: Request) {
   const clientId = getClientIdentifier(req);
   const rateCheck = checkRateLimit(`register:${clientId}`, RATE_LIMITS.register);
   if (!rateCheck.success) {
+    try {
+      await recordAdminAudit({
+        action: "AUTH_REGISTER_RATE_LIMITED",
+        targetUserId: null,
+        metadata: {
+          ip: clientId,
+          result: "RATE_LIMITED",
+          retryAfter: Math.ceil((rateCheck.resetAt - Date.now()) / 1000),
+        },
+      });
+    } catch {
+      // best-effort only
+    }
     return rateLimitResponse(rateCheck);
   }
 
@@ -25,11 +39,18 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email, password, name } = registerSchema.parse(body);
 
+    const emailAttempt = email.trim().toLowerCase();
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
+      await recordAdminAudit({
+        action: "AUTH_REGISTER_FAILED_EMAIL_EXISTS",
+        targetUserId: existingUser.id,
+        metadata: { ip: clientId, emailAttempt, result: "EMAIL_EXISTS" },
+      });
       return NextResponse.json(
         { message: "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits." },
         { status: 409 }
@@ -71,6 +92,18 @@ export async function POST(req: Request) {
       },
     });
 
+    await recordAdminAudit({
+      action: "AUTH_REGISTER_SUCCESS",
+      targetUserId: user.id,
+      metadata: {
+        ip: clientId,
+        emailAttempt,
+        role,
+        autoVerify,
+        result: "SUCCESS",
+      },
+    });
+
     if (!autoVerify) {
       const baseUrl = getEmailBaseUrl(req);
       const verifyUrl = toAbsoluteUrl(`/auth/verify-email?token=${verificationToken}`, baseUrl);
@@ -84,7 +117,26 @@ export async function POST(req: Request) {
     `;
 
       const html = await emailTemplate(emailContent, 'Bestätige deine E-Mail-Adresse');
-      await sendEmail(email, 'E-Mail bestätigen - TribeFinder', html);
+
+      let emailed = false;
+      try {
+        const result = await sendEmail(email, 'E-Mail bestätigen - TribeFinder', html);
+        emailed = Boolean(result?.success);
+      } catch {
+        emailed = false;
+      }
+
+      await recordAdminAudit({
+        action: "AUTH_VERIFY_EMAIL_SENT",
+        targetUserId: user.id,
+        metadata: {
+          ip: clientId,
+          emailAttempt,
+          emailed,
+          verificationTokenExpiry: verificationTokenExpiry?.toISOString() ?? null,
+          result: emailed ? "SENT" : "SEND_FAILED",
+        },
+      });
     }
 
     const safeUser = {
@@ -108,6 +160,15 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
+      try {
+        await recordAdminAudit({
+          action: "AUTH_REGISTER_FAILED_VALIDATION",
+          targetUserId: null,
+          metadata: { ip: clientId, result: "VALIDATION_ERROR" },
+        });
+      } catch {
+        // best-effort only
+      }
       return NextResponse.json(
         { message: "Ungültige Eingabedaten", errors: error.issues },
         { status: 400 }
@@ -115,6 +176,15 @@ export async function POST(req: Request) {
     }
     
     console.error("Registrierungsfehler:", error);
+    try {
+      await recordAdminAudit({
+        action: "AUTH_REGISTER_FAILED_ERROR",
+        targetUserId: null,
+        metadata: { ip: clientId, result: "ERROR" },
+      });
+    } catch {
+      // best-effort only
+    }
     return NextResponse.json(
       { message: "Interner Serverfehler" },
       { status: 500 }
