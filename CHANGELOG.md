@@ -5,6 +5,7 @@
 ### 🔓 Auth
 
 - Verbesserte Fehlermeldungen beim Login: `/auth/signin` zeigt NextAuth-Fehler (z.B. `CredentialsSignin`, `EMAIL_NOT_VERIFIED`, `LOGIN_LOCKED`) zuverlässig als Toast und Inline-Hinweis an und behandelt unerwartete/undefined SignIn-Responses.
+- Login: Feedback-Link für ausgeloggte Nutzer auf `/auth/signin` (vorbefüllt für Login-Probleme) inkl. Rate-Limit + Honeypot-Spamschutz im Feedback-Endpoint.
 
 ### 🏠 Startseite
 

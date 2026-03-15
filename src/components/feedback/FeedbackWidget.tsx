@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useToast } from "@/components/ui/Toast";
 
 type SpeechRecognitionType = {
@@ -23,15 +24,23 @@ type SpeechRecognitionEventLike = {
 
 export default function FeedbackWidget() {
   const { showToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [open, setOpen] = useState(false);
   const [reporterName, setReporterName] = useState("");
   const [reporterEmail, setReporterEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [website, setWebsite] = useState("");
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [screenshotPreviewUrl, setScreenshotPreviewUrl] = useState<string | null>(null);
+  const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [inlineError, setInlineError] = useState("");
 
   const recognitionRef = useRef<SpeechRecognitionType | null>(null);
+
+  const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024;
 
   const speechSupported = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -91,7 +100,14 @@ export default function FeedbackWidget() {
   }, [showToast, speechSupported]);
 
   useEffect(() => {
-    const onOpen = () => setOpen(true);
+    const onOpen = (event: Event) => {
+      const e = event as CustomEvent<{ initialMessage?: string } | undefined>;
+      const initial = (e?.detail?.initialMessage || "").trim();
+      if (initial) {
+        setMessage((prev) => (prev.trim() ? prev : initial));
+      }
+      setOpen(true);
+    };
     window.addEventListener("tribefinder:open-feedback", onOpen as EventListener);
     return () => {
       window.removeEventListener("tribefinder:open-feedback", onOpen as EventListener);
@@ -121,7 +137,58 @@ export default function FeedbackWidget() {
     setIsSending(false);
     setIsRecording(false);
     setInlineError("");
+    setWebsite("");
+    setScreenshotFile(null);
+    setScreenshotUrl(null);
+    setIsUploading(false);
+    setScreenshotPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
     recognitionRef.current?.stop();
+  };
+
+  const onPickScreenshot = (file: File | null) => {
+    if (file && file.size > MAX_SCREENSHOT_BYTES) {
+      setInlineError("Datei zu groß. Maximum: 5MB");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setScreenshotUrl(null);
+    setScreenshotFile(file);
+    setScreenshotPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return file ? URL.createObjectURL(file) : null;
+    });
+  };
+
+  const uploadScreenshot = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("website", website);
+
+      const res = await fetch("/api/feedback/upload", {
+        method: "POST",
+        body: fd,
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        const msg = data?.message || data?.error || `HTTP ${res.status}`;
+        throw new Error(String(msg));
+      }
+
+      const url = typeof data?.url === "string" ? data.url : "";
+      if (!url) throw new Error("Upload fehlgeschlagen");
+
+      setScreenshotUrl(url);
+      return url;
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const submit = async () => {
@@ -141,11 +208,19 @@ export default function FeedbackWidget() {
 
     setIsSending(true);
     try {
+      let uploadedScreenshotUrl: string | undefined;
+      if (screenshotFile) {
+        const url = screenshotUrl || (await uploadScreenshot(screenshotFile));
+        uploadedScreenshotUrl = url;
+      }
+
       const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
+          screenshotUrl: uploadedScreenshotUrl,
+          website: website.trim() ? website.trim() : undefined,
           reporterName: reporterName.trim() ? reporterName.trim() : undefined,
           reporterEmail: email ? email : undefined,
           pageUrl: typeof window !== "undefined" ? window.location.href : undefined,
@@ -228,6 +303,15 @@ export default function FeedbackWidget() {
                 />
               </div>
 
+              <input
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+                aria-hidden="true"
+              />
+
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -235,6 +319,67 @@ export default function FeedbackWidget() {
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 placeholder="Dein Feedback…"
               />
+
+              <div className="space-y-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  disabled={isUploading || isSending}
+                  onChange={(e) => onPickScreenshot(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading || isSending}
+                    className="px-3 py-2 rounded-md text-sm font-semibold border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-2)] transition disabled:opacity-50"
+                  >
+                    Screenshot auswählen
+                  </button>
+
+                  <div className="min-w-0 text-xs text-[var(--muted)] text-right">
+                    {screenshotFile ? (
+                      <div className="truncate">{screenshotFile.name}</div>
+                    ) : (
+                      <div>Max. 5MB</div>
+                    )}
+                  </div>
+                </div>
+
+                {screenshotPreviewUrl ? (
+                  <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-2">
+                    <div className="relative h-40 w-full">
+                      <Image
+                        src={screenshotPreviewUrl}
+                        alt="Screenshot Vorschau"
+                        fill
+                        sizes="(max-width: 520px) 100vw, 520px"
+                        className="object-contain rounded"
+                      />
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="text-xs text-[var(--muted)]">
+                        {isUploading
+                          ? "Lade Screenshot hoch…"
+                          : screenshotUrl
+                            ? "Screenshot hochgeladen"
+                            : "Screenshot ausgewählt"}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onPickScreenshot(null)}
+                        disabled={isUploading || isSending}
+                        className="px-2 py-1 rounded-md text-xs font-medium border border-[var(--border)] hover:bg-[var(--surface)] disabled:opacity-50 transition"
+                      >
+                        Entfernen
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
 
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
@@ -271,10 +416,10 @@ export default function FeedbackWidget() {
                   <button
                     type="button"
                     onClick={submit}
-                    disabled={isSending}
+                    disabled={isSending || isUploading}
                     className="tf-gothic-btn px-4 py-2 rounded-md text-sm font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition"
                   >
-                    {isSending ? "Sende…" : "Absenden"}
+                    {isUploading ? "Upload…" : isSending ? "Sende…" : "Absenden"}
                   </button>
                 </div>
               </div>

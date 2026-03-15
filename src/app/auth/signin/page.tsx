@@ -17,6 +17,13 @@ export default function SignInPage() {
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const openLoginFeedback = () => {
+    const authError = searchParams.get("error");
+    const debug = authError ? `\n\nDebug: error=${authError}` : "";
+    const initialMessage = `Ich habe Probleme beim Login.\n\nWas passiert? (kurz beschreiben)${debug}`;
+    window.dispatchEvent(new CustomEvent("tribefinder:open-feedback", { detail: { initialMessage } }));
+  };
+
   useEffect(() => {
     const authError = searchParams.get("error");
     if (authError) {
@@ -168,6 +175,14 @@ export default function SignInPage() {
             Hier registrieren
           </Link>
         </p>
+
+        <button
+          type="button"
+          onClick={openLoginFeedback}
+          className="mt-3 text-sm text-[var(--link)] hover:underline"
+        >
+          Probleme beim Login? Feedback senden
+        </button>
       </div>
     </div>
   );

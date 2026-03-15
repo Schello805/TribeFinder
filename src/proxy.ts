@@ -35,6 +35,9 @@ const isPublicApiPath = (pathname: string, method: string) => {
   if (pathname === "/api/presence/ping") return true;
   if (pathname === "/api/register") return true;
 
+  if (pathname === "/api/feedback") return true;
+  if (pathname === "/api/feedback/upload") return true;
+
   if (!isReadMethod(method)) return false;
 
   if (pathname === "/api/branding") return true;

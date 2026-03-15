@@ -17,6 +17,39 @@ type FeedbackRow = {
   user?: { id: string; email: string; name?: string | null } | null;
 };
 
+function renderMessageWithScreenshotLink(message: string) {
+  const lines = String(message || "").split("\n");
+  return (
+    <>
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        const isScreenshot = trimmed.startsWith("Screenshot:");
+        const url = isScreenshot ? trimmed.replace(/^Screenshot:\s*/i, "").trim() : "";
+
+        return (
+          <div key={idx}>
+            {isScreenshot && url ? (
+              <>
+                <span>Screenshot: </span>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-indigo-600 dark:text-indigo-400 hover:underline break-all"
+                >
+                  {url}
+                </a>
+              </>
+            ) : (
+              line
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 export default function AdminFeedbackList({ initialItems }: { initialItems: FeedbackRow[] }) {
   const { showToast } = useToast();
   const [items, setItems] = useState<FeedbackRow[]>(initialItems);
@@ -184,7 +217,7 @@ export default function AdminFeedbackList({ initialItems }: { initialItems: Feed
                   </div>
 
                   <div className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-                    {f.message}
+                    {renderMessageWithScreenshotLink(f.message)}
                   </div>
 
                   {(f.pageUrl || f.userAgent || f.browser || f.os) && (
