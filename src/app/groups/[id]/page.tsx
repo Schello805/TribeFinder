@@ -464,7 +464,7 @@ export default async function GroupDetailPage({
                   </svg>
                   Steckbrief
                 </Link>
-                {session && !isMember && !isPending && !isAdmin && (
+                {session && !isMember && !isPending && !isOwner && (
                   <JoinButton groupId={group.id} initialStatus="NONE" />
                 )}
                 {session && (isMember || isPending) && !isOwner && (

@@ -144,6 +144,21 @@ export default async function AdminUserDetailPage({ params }: RouteParams) {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">Gruppen</h2>
 
+            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <div>
+                <span className="font-medium">Owner</span> = Besitzer der Gruppe (steht direkt auf der Gruppe). Es gibt genau einen Owner.
+              </div>
+              <div>
+                <span className="font-medium">Admin (Gruppenleitung)</span> = zusätzliche Gruppenleitung über Mitgliedschaft (Role <span className="font-mono">ADMIN</span>, Status <span className="font-mono">APPROVED</span>).
+              </div>
+              <div>
+                <span className="font-medium">Mitglied</span> = normale Mitgliedschaft (Role <span className="font-mono">MEMBER</span>, Status <span className="font-mono">APPROVED</span>).
+              </div>
+              <div>
+                Hinweis: Owner ist technisch keine Membership und taucht deshalb nicht automatisch unter „Admin/Mitglied“ auf.
+              </div>
+            </div>
+
             <div className="mt-4 space-y-4">
               <div>
                 <div className="text-sm font-medium text-gray-900 dark:text-white">Owner</div>

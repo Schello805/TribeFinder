@@ -225,7 +225,18 @@ export default function ProfileForm() {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error("Speichern fehlgeschlagen");
+      const json = (await res.json().catch(() => null)) as
+        | { message?: string; error?: string; errors?: unknown }
+        | null;
+
+      if (!res.ok) {
+        const msg =
+          json?.message ||
+          json?.error ||
+          (json?.errors ? "Validierungsfehler" : null) ||
+          "Speichern fehlgeschlagen";
+        throw new Error(msg);
+      }
 
       const successMsg = "Profil erfolgreich aktualisiert!";
       setMessage(successMsg);
@@ -233,7 +244,7 @@ export default function ProfileForm() {
       router.refresh();
     } catch (err) {
       console.error(err);
-      const errorMsg = "Fehler beim Speichern des Profils.";
+      const errorMsg = err instanceof Error ? err.message : "Fehler beim Speichern des Profils.";
       setError(errorMsg);
       showToast(errorMsg, "error");
     } finally {
