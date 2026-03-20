@@ -33,27 +33,65 @@ export default function CountryAutocompleteInput({
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
+  const priority = useMemo(() => {
+    const important = [
+      "Deutschland",
+      "Österreich",
+      "Schweiz",
+      "Frankreich",
+      "Italien",
+      "Spanien",
+      "Niederlande",
+      "Belgien",
+      "Luxemburg",
+      "Dänemark",
+      "Polen",
+      "Tschechien",
+    ];
+    const m = new Map<string, number>();
+    important.forEach((n, idx) => m.set(n.toLowerCase(), idx));
+    return m;
+  }, []);
+
   const q = (value || "").trim();
   const lower = q.toLowerCase();
 
   const filtered = useMemo(() => {
-    if (!lower) return all.slice(0, 12);
-    const starts: string[] = [];
-    const contains: string[] = [];
-    for (const n of all) {
-      const nl = n.toLowerCase();
-      if (nl.startsWith(lower)) starts.push(n);
-      else if (nl.includes(lower)) contains.push(n);
-      if (starts.length >= 12) break;
+    if (!lower) {
+      const sorted = all
+        .slice()
+        .sort((a, b) => {
+          const ap = priority.get(a.toLowerCase()) ?? Number.POSITIVE_INFINITY;
+          const bp = priority.get(b.toLowerCase()) ?? Number.POSITIVE_INFINITY;
+          if (ap !== bp) return ap - bp;
+          return a.localeCompare(b, "de");
+        });
+      return sorted.slice(0, 12);
     }
-    if (starts.length >= 12) return starts.slice(0, 12);
 
-    for (const n of contains) {
-      starts.push(n);
-      if (starts.length >= 12) break;
-    }
-    return starts;
-  }, [all, lower]);
+    const matches = all.filter((n) => n.toLowerCase().includes(lower));
+
+    matches.sort((a, b) => {
+      const al = a.toLowerCase();
+      const bl = b.toLowerCase();
+
+      const aExact = al === lower;
+      const bExact = bl === lower;
+      if (aExact !== bExact) return aExact ? -1 : 1;
+
+      const aStarts = al.startsWith(lower);
+      const bStarts = bl.startsWith(lower);
+      if (aStarts !== bStarts) return aStarts ? -1 : 1;
+
+      const ap = priority.get(al) ?? Number.POSITIVE_INFINITY;
+      const bp = priority.get(bl) ?? Number.POSITIVE_INFINITY;
+      if (ap !== bp) return ap - bp;
+
+      return a.localeCompare(b, "de");
+    });
+
+    return matches.slice(0, 12);
+  }, [all, lower, priority]);
 
   const isValid = useMemo(() => {
     if (!showValidityHint) return true;
