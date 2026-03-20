@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { marketplaceListingUpdateSchema } from "@/lib/validations/marketplace";
 import { deleteUploadByPublicUrl } from "@/lib/uploadFiles";
-import { geocodeGermany } from "@/lib/geocode";
+import { geocodeByCountry } from "@/lib/geocode";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;
@@ -52,10 +52,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   let lng: number | null | undefined = undefined;
   let locationSource: "PROFILE" | "GEOCODE" | null | undefined = undefined;
 
-  if (typeof parsed.data.postalCode === "string" || typeof parsed.data.city === "string") {
+  if (typeof parsed.data.postalCode === "string" || typeof parsed.data.city === "string" || typeof parsed.data.country === "string") {
     const current = (await (prisma as unknown as { marketplaceListing: { findUnique: (args: unknown) => Promise<unknown> } }).marketplaceListing.findUnique({
       where: { id },
-      select: { postalCode: true, city: true },
+      select: { postalCode: true, city: true, country: true },
     })) as { postalCode: string | null; city: string | null } | null;
 
     const userLoc = await prisma.user.findUnique({
@@ -70,8 +70,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     } else {
       const effectivePostal = typeof parsed.data.postalCode === "string" ? parsed.data.postalCode : current?.postalCode || "";
       const effectiveCity = typeof parsed.data.city === "string" ? parsed.data.city : current?.city || "";
+      const effectiveCountry =
+        typeof parsed.data.country === "string"
+          ? (parsed.data.country.trim() || "Deutschland")
+          : ((current as unknown as { country?: string | null })?.country || "Deutschland").trim() || "Deutschland";
       try {
-        const r = await geocodeGermany(`${effectivePostal} ${effectiveCity}`);
+        const r = await geocodeByCountry(`${effectivePostal} ${effectiveCity}`.trim(), effectiveCountry);
         if (r) {
           lat = r.lat;
           lng = r.lng;
@@ -98,6 +102,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       listingType: parsed.data.listingType,
       postalCode: typeof parsed.data.postalCode === "string" ? parsed.data.postalCode : undefined,
       city: typeof parsed.data.city === "string" ? parsed.data.city : undefined,
+      country: typeof parsed.data.country === "string" ? (parsed.data.country.trim() || "Deutschland") : undefined,
       lat,
       lng,
       locationSource,

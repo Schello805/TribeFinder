@@ -16,6 +16,14 @@
 
 - Verbesserte Fehlermeldungen bei Standort-Ermittlung (Safari/macOS): konkrete Hinweise für Berechtigung / nicht verfügbar / Timeout.
 
+### 🔗 Links
+
+- Admin: Tab „Vorschläge“ zeigt jetzt auch neue Link-Einreichungen (PENDING) inkl. Freigeben/Ablehnen.
+
+### 🛍️ Second-Hand
+
+- Inserate: Land ergänzt (Formular + API + Anzeige) inkl. Geocoding nach Land.
+
 ## [Unreleased] - 2026-03-19
 
 ### 🧩 Events

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { useSession } from "next-auth/react";
+import { getGermanCountryData, getCountryCodeFromGermanName } from "@/lib/countries";
 
 const categories = [
   { value: "KOSTUEME", label: "Kostüme" },
@@ -29,6 +30,7 @@ type ListingDTO = {
   listingType: ListingType;
   postalCode: string | null;
   city: string | null;
+  country: string | null;
   priceCents: number | null;
   priceType: PriceType;
   shippingAvailable: boolean;
@@ -60,6 +62,7 @@ export default function EditMarketplaceListingPage() {
   const [listingType, setListingType] = useState<ListingType>("OFFER");
   const [postalCode, setPostalCode] = useState("");
   const [city, setCity] = useState("");
+  const [country, setCountry] = useState("Deutschland");
   const [priceType, setPriceType] = useState<PriceType>("FIXED");
   const [priceEuro, setPriceEuro] = useState<string>("");
   const [shippingAvailable, setShippingAvailable] = useState(false);
@@ -98,6 +101,7 @@ export default function EditMarketplaceListingPage() {
     setLocationWarning("");
     const pc = postalCode.trim();
     const c = city.trim();
+    const co = (country || "").trim() || "Deutschland";
     if (!/^\d{5}$/.test(pc) || c.length < 2) return;
 
     const seqId = ++locSeq.current;
@@ -106,9 +110,9 @@ export default function EditMarketplaceListingPage() {
       try {
         const params = new URLSearchParams({
           format: "json",
-          q: `${pc} ${c}, Deutschland`,
+          q: `${pc} ${c}, ${co}`,
           limit: "1",
-          countrycodes: "de",
+          countrycodes: getCountryCodeFromGermanName(co) || "de",
           "accept-language": "de",
           addressdetails: "1",
         });
@@ -144,7 +148,7 @@ export default function EditMarketplaceListingPage() {
       controller.abort();
       clearTimeout(t);
     };
-  }, [postalCode, city]);
+  }, [postalCode, city, country]);
 
   useEffect(() => {
     let cancelled = false;
@@ -167,6 +171,7 @@ export default function EditMarketplaceListingPage() {
         setListingType(data.listingType || "OFFER");
         setPostalCode(data.postalCode || "");
         setCity(data.city || "");
+        setCountry(data.country || "Deutschland");
         setPriceType(data.priceType || "FIXED");
         setPriceEuro(typeof data.priceCents === "number" ? String((data.priceCents / 100).toFixed(2)).replace(".", ",") : "");
         setShippingAvailable(!!data.shippingAvailable);
@@ -259,6 +264,7 @@ export default function EditMarketplaceListingPage() {
     if (title.trim().length < 2) nextErrors.title = "Bitte einen Titel eingeben";
     if (!/^\d{5}$/.test(postalCode.trim())) nextErrors.postalCode = "Bitte eine gültige PLZ (5 Ziffern) angeben";
     if (city.trim().length < 2) nextErrors.city = "Bitte einen Ort angeben";
+    if (!country.trim()) nextErrors.country = "Bitte ein Land angeben";
     if (description.trim().length < 10) nextErrors.description = "Bitte eine Beschreibung eingeben";
     if (listingType === "OFFER" && typeof priceCents !== "number") nextErrors.priceCents = "Bitte einen gültigen Preis angeben";
     if (shippingAvailable && (shippingCostCents === null || typeof shippingCostCents !== "number")) {
@@ -272,28 +278,31 @@ export default function EditMarketplaceListingPage() {
     }
 
     setIsSaving(true);
+
     try {
-      const res = await fetch(`/api/marketplace/${encodeURIComponent(id)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          category,
-          listingType,
-          postalCode: postalCode.trim(),
-          city: city.trim(),
-          priceType,
-          priceCents: listingType === "REQUEST" ? (typeof priceCents === "number" ? priceCents : null) : priceCents,
-          currency: "EUR",
-          shippingAvailable,
-          shippingCostCents: shippingAvailable ? shippingCostCents : null,
-          images: images.map((i) => ({ url: i.url })),
-        }),
-      });
+      const res = await fetch(`/api/marketplace/${encodeURIComponent(id)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: title.trim(),
+            description: description.trim(),
+            category,
+            listingType,
+            postalCode: postalCode.trim(),
+            city: city.trim(),
+            country: country.trim() || "Deutschland",
+            priceType,
+            priceCents: listingType === "REQUEST" ? (typeof priceCents === "number" ? priceCents : null) : priceCents,
+            currency: "EUR",
+            shippingAvailable,
+            shippingCostCents: shippingAvailable ? shippingCostCents : null,
+            images: images.map((i) => ({ url: i.url })),
+          }),
+        }
+      );
 
       const data = (await res.json().catch(() => ({}))) as {
-        id?: string;
         message?: string;
         errors?: { fieldErrors?: Record<string, string[]>; formErrors?: string[] };
       };
@@ -307,7 +316,9 @@ export default function EditMarketplaceListingPage() {
           }
           if (Object.keys(mapped).length > 0) setFieldErrors(mapped);
         }
-        const formErrors = Array.isArray(data?.errors?.formErrors) ? data.errors.formErrors.filter((x) => typeof x === "string") : [];
+        const formErrors = Array.isArray(data?.errors?.formErrors)
+          ? data.errors.formErrors.filter((x) => typeof x === "string")
+          : [];
         if (formErrors.length > 0) setFormError(formErrors.join("\n"));
         showToast(data?.message || "Konnte Inserat nicht speichern", "error");
         return;
@@ -429,6 +440,26 @@ export default function EditMarketplaceListingPage() {
             />
             {fieldErrors.city ? <div className="mt-1 text-xs text-red-700">{fieldErrors.city}</div> : null}
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)]">
+            Land <span className="text-red-600">*</span>
+          </label>
+          <input
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            placeholder="Deutschland"
+            list="marketplace-country-options"
+            className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]"
+            disabled={!canEdit}
+          />
+          <datalist id="marketplace-country-options">
+            {getGermanCountryData().names.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
+          {fieldErrors.country ? <div className="mt-1 text-xs text-red-700">{fieldErrors.country}</div> : null}
         </div>
 
         <div>

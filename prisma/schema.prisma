@@ -555,6 +555,7 @@ model MarketplaceListing {
 
   postalCode String?
   city       String?
+  country    String @default("Deutschland")
   lat        Float?
   lng        Float?
   locationSource MarketplaceLocationSource?
@@ -579,6 +580,7 @@ model MarketplaceListing {
   @@index([ownerId])
   @@index([postalCode])
   @@index([city])
+  @@index([country])
   @@index([lat])
   @@index([lng])
 }

@@ -96,6 +96,7 @@ export default async function MarketplacePage({
     listingType: "OFFER" | "REQUEST";
     postalCode: string | null;
     city: string | null;
+    country: string;
     lat: number | null;
     lng: number | null;
     priceCents: number | null;
@@ -136,7 +137,7 @@ export default async function MarketplacePage({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {listings.map((l) => {
             const cover = l.images[0]?.url || "";
-            const locationText = [l.postalCode, l.city].filter(Boolean).join(" ") || "Standort unbekannt";
+            const locationText = [l.postalCode, l.city, l.country].filter(Boolean).join(" ") || "Standort unbekannt";
             const distKm =
               Number.isFinite(lat) && Number.isFinite(lng) && typeof l.lat === "number" && typeof l.lng === "number"
                 ? haversineKm(lat, lng, l.lat, l.lng)

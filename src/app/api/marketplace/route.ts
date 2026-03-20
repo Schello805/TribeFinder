@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { marketplaceListingCreateSchema } from "@/lib/validations/marketplace";
-import { geocodeGermany } from "@/lib/geocode";
+import { geocodeByCountry } from "@/lib/geocode";
 import logger from "@/lib/logger";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -121,6 +121,7 @@ export async function GET(req: Request) {
     listingType: "OFFER" | "REQUEST";
     postalCode: string | null;
     city: string | null;
+    country: string;
     lat: number | null;
     lng: number | null;
     locationSource: "PROFILE" | "GEOCODE" | null;
@@ -181,13 +182,15 @@ export async function POST(req: Request) {
     let lng: number | null = null;
     let locationSource: "PROFILE" | "GEOCODE" | null = null;
 
+    const country = (parsed.data.country || "Deutschland").trim() || "Deutschland";
+
     if (typeof userLoc?.notifyLat === "number" && typeof userLoc?.notifyLng === "number") {
       lat = userLoc.notifyLat;
       lng = userLoc.notifyLng;
       locationSource = "PROFILE";
     } else {
       try {
-        const r = await geocodeGermany(`${parsed.data.postalCode} ${parsed.data.city}`);
+        const r = await geocodeByCountry(`${parsed.data.postalCode} ${parsed.data.city}`.trim(), country);
         if (r) {
           lat = r.lat;
           lng = r.lng;
@@ -207,6 +210,7 @@ export async function POST(req: Request) {
         listingType: parsed.data.listingType,
         postalCode: parsed.data.postalCode,
         city: parsed.data.city,
+        country,
         lat,
         lng,
         locationSource,

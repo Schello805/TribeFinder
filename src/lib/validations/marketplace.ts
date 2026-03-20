@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidGermanCountryName } from "@/lib/countries";
 
 const MarketplaceCategorySchema = z.enum([
   "KOSTUEME",
@@ -27,6 +28,13 @@ const marketplaceListingBaseSchema = z.object({
     .min(2)
     .max(80)
     .regex(/^[\p{L}][\p{L}\s\-.'’]*$/u, "Bitte einen gültigen Ort angeben."),
+  country: z
+    .string()
+    .trim()
+    .min(2)
+    .max(80)
+    .optional()
+    .refine((v) => (typeof v !== "string" || !v.trim() ? true : isValidGermanCountryName(v)), "Unbekanntes Land"),
   priceType: PriceTypeSchema,
   priceCents: z.number().int().nonnegative().nullable(),
   currency: z.string().min(1).optional(),

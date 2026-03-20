@@ -48,6 +48,7 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
     listingType: "OFFER" | "REQUEST";
     postalCode: string | null;
     city: string | null;
+    country: string;
     locationSource: "PROFILE" | "GEOCODE" | null;
     priceCents: number | null;
     priceType: "FIXED" | "NEGOTIABLE";
@@ -67,7 +68,7 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
 
   const ownerName = listing.owner.name || "Unbekannt";
 
-  const locationText = [listing.postalCode, listing.city].filter(Boolean).join(" ") || "Standort unbekannt";
+  const locationText = [listing.postalCode, listing.city, listing.country].filter(Boolean).join(" ") || "Standort unbekannt";
 
   const contactHref = session?.user
     ? `/direct-messages/new?receiverId=${encodeURIComponent(listing.ownerId)}&listingId=${encodeURIComponent(listing.id)}`
