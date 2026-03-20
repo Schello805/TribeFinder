@@ -50,6 +50,7 @@ const isPublicApiPath = (pathname: string, method: string) => {
   if (/^\/api\/marketplace\/[^/]+$/.test(pathname)) return true;
   if (pathname === "/api/events") return true;
   if (/^\/api\/events\/[^/]+$/.test(pathname)) return true;
+  if (pathname === "/api/event-countries") return true;
   if (pathname === "/api/dance-styles") return true;
   return false;
 };
