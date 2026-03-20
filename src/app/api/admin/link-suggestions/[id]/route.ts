@@ -4,6 +4,7 @@ import { requireAdminSession } from "@/lib/requireAdmin";
 import { jsonBadRequest, jsonUnauthorized } from "@/lib/apiResponse";
 import { z } from "zod";
 import { geocodeByCountry } from "@/lib/geocode";
+import { notifyUserAboutNewMessage } from "@/lib/notifications";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -25,6 +26,8 @@ function getSuggestionDelegate(p: typeof prisma) {
           postalCode: string | null;
           city: string | null;
           country: string | null;
+          createdById: string;
+          link?: { title: string; url: string } | null;
         } | null>;
         update: (args: unknown) => Promise<unknown>;
       };
@@ -76,6 +79,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         postalCode: true,
         city: true,
         country: true,
+        createdById: true,
+        link: { select: { title: true, url: true } },
       },
     });
 
@@ -93,6 +98,23 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         },
         select: { id: true, status: true, decidedAt: true },
       })) as unknown as { id: string; status: string; decidedAt: Date | null };
+
+      if (suggestion.createdById && suggestion.createdById !== session.user.id) {
+        const linkLabel = suggestion.link?.title || suggestion.title || suggestion.link?.url || suggestion.url;
+        await prisma.message.create({
+          data: {
+            senderId: session.user.id,
+            receiverId: suggestion.createdById,
+            content: `Dein Link-Änderungsvorschlag wurde abgelehnt: ${linkLabel}`,
+          },
+          select: { id: true },
+        });
+        notifyUserAboutNewMessage(
+          suggestion.createdById,
+          session.user.id,
+          session.user.name || session.user.email || "Unbekannt"
+        ).catch(() => undefined);
+      }
 
       return NextResponse.json({
         ...updated,
@@ -147,6 +169,23 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       },
       select: { id: true, status: true, decidedAt: true },
     })) as unknown as { id: string; status: string; decidedAt: Date | null };
+
+    if (suggestion.createdById && suggestion.createdById !== session.user.id) {
+      const linkLabel = suggestion.link?.title || suggestion.title || suggestion.link?.url || suggestion.url;
+      await prisma.message.create({
+        data: {
+          senderId: session.user.id,
+          receiverId: suggestion.createdById,
+          content: `Dein Link-Änderungsvorschlag wurde geprüft und freigegeben: ${linkLabel}`,
+        },
+        select: { id: true },
+      });
+      notifyUserAboutNewMessage(
+        suggestion.createdById,
+        session.user.id,
+        session.user.name || session.user.email || "Unbekannt"
+      ).catch(() => undefined);
+    }
 
     return NextResponse.json({
       ...updated,

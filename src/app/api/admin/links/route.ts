@@ -5,6 +5,7 @@ import { jsonUnauthorized } from "@/lib/apiResponse";
 import { z } from "zod";
 import { geocodeByCountry } from "@/lib/geocode";
 import { isValidGermanCountryName } from "@/lib/countries";
+import { notifyUserAboutNewMessage } from "@/lib/notifications";
 
 type ExternalLinkAdminRow = {
   id: string;
@@ -33,6 +34,13 @@ function getExternalLinkDelegate(p: typeof prisma) {
     | undefined
     | {
         findMany: (args: unknown) => Promise<ExternalLinkAdminRow[]>;
+        findUnique?: (args: unknown) => Promise<{
+          id: string;
+          title: string;
+          url: string;
+          submittedById: string;
+          status: string;
+        } | null>;
         count: (args: unknown) => Promise<number>;
         update: (args: unknown) => Promise<unknown>;
       };
@@ -252,19 +260,45 @@ export async function PATCH(req: Request) {
 
   const now = new Date();
 
+  const maybeNotifySubmitter = async (opts: { linkId: string; kind: "APPROVED" | "REJECTED" }) => {
+    if (!delegate.findUnique) return;
+    const link = await delegate.findUnique({ where: { id: opts.linkId }, select: { id: true, title: true, url: true, submittedById: true, status: true } });
+    if (!link?.submittedById) return;
+    if (link.submittedById === session.user.id) return;
+
+    const label = link.title || link.url;
+    const content =
+      opts.kind === "APPROVED"
+        ? `Dein Link-Vorschlag wurde freigegeben: ${label}`
+        : `Dein Link-Vorschlag wurde abgelehnt: ${label}`;
+
+    await prisma.message.create({
+      data: {
+        senderId: session.user.id,
+        receiverId: link.submittedById,
+        content,
+      },
+      select: { id: true },
+    });
+
+    notifyUserAboutNewMessage(link.submittedById, session.user.id, session.user.name || session.user.email || "Unbekannt").catch(() => undefined);
+  };
+
   if (parsed.data.action === "APPROVE") {
     await delegate.update({
       where: { id: parsed.data.id },
       data: { status: "APPROVED", approvedById: session.user.id, archivedAt: null, consecutiveFailures: 0 },
     });
+    await maybeNotifySubmitter({ linkId: parsed.data.id, kind: "APPROVED" });
     return NextResponse.json({ ok: true });
   }
 
   if (parsed.data.action === "REJECT") {
     await delegate.update({
       where: { id: parsed.data.id },
-      data: { status: "REJECTED", approvedById: session.user.id },
+      data: { status: "REJECTED", approvedById: session.user.id, archivedAt: null },
     });
+    await maybeNotifySubmitter({ linkId: parsed.data.id, kind: "REJECTED" });
     return NextResponse.json({ ok: true });
   }
 

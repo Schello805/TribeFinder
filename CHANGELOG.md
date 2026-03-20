@@ -19,6 +19,7 @@
 ### 🔗 Links
 
 - Admin: Tab „Vorschläge“ zeigt jetzt auch neue Link-Einreichungen (PENDING) inkl. Freigeben/Ablehnen.
+- Admin: Einreicher bekommen automatisch eine Direktnachricht, wenn ihr Link-Vorschlag (bzw. Änderungsvorschlag) freigegeben oder abgelehnt wurde.
 
 ### 🛍️ Second-Hand
 
