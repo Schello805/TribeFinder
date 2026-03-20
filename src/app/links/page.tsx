@@ -36,6 +36,7 @@ type ExternalLinkPublicRow = {
   category: string | null;
   postalCode: string | null;
   city: string | null;
+  country: string | null;
   status: string;
   lastCheckedAt: Date | null;
   lastStatusCode: number | null;
@@ -74,6 +75,7 @@ export default async function LinksPage({ searchParams }: PageProps) {
       category: true,
       postalCode: true,
       city: true,
+      country: true,
       status: true,
       lastCheckedAt: true,
       lastStatusCode: true,
@@ -182,9 +184,9 @@ export default async function LinksPage({ searchParams }: PageProps) {
                     {x.category ? (
                       <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">{x.category}</span>
                     ) : null}
-                    {x.postalCode || x.city ? (
+                    {x.postalCode || x.city || x.country ? (
                       <span className="px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">
-                        {[x.postalCode, x.city].filter(Boolean).join(" ")}
+                        {[x.postalCode, x.city, x.country].filter(Boolean).join(" ")}
                       </span>
                     ) : null}
                   </div>

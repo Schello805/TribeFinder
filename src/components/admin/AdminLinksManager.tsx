@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
 import AdminLinkSuggestionsManager from "@/components/admin/AdminLinkSuggestionsManager";
+import { getGermanCountryData } from "@/lib/countries";
 
 type CategoryItem = { id: string; name: string; showOnMap: boolean };
 
@@ -13,6 +14,7 @@ type LinkRow = {
   category: string | null;
   postalCode: string | null;
   city: string | null;
+  country: string | null;
   lat: number | null;
   lng: number | null;
   locationSource: string | null;
@@ -33,6 +35,7 @@ type EditDraft = {
   category: string;
   postalCode: string;
   city: string;
+  country: string;
   status: string;
 };
 
@@ -54,6 +57,7 @@ export default function AdminLinksManager() {
   const [createCategory, setCreateCategory] = useState("");
   const [createPostalCode, setCreatePostalCode] = useState("");
   const [createCity, setCreateCity] = useState("");
+  const [createCountry, setCreateCountry] = useState("Deutschland");
   const [isCreating, setIsCreating] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -65,6 +69,7 @@ export default function AdminLinksManager() {
     setCreateCategory(x.category || "");
     setCreatePostalCode(x.postalCode || "");
     setCreateCity(x.city || "");
+    setCreateCountry(x.country || "Deutschland");
     showToast("In 'Neuen Link anlegen' kopiert", "success");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -223,6 +228,7 @@ export default function AdminLinksManager() {
           category: createCategory.trim() || null,
           postalCode: createPostalCode.trim() || null,
           city: createCity.trim() || null,
+          country: (createCountry.trim() || "Deutschland"),
           status: "APPROVED",
         }),
       });
@@ -237,6 +243,7 @@ export default function AdminLinksManager() {
       setCreateCategory("");
       setCreatePostalCode("");
       setCreateCity("");
+      setCreateCountry("Deutschland");
       await load();
       showToast("OK", "success");
     } finally {
@@ -252,6 +259,7 @@ export default function AdminLinksManager() {
       category: x.category || "",
       postalCode: x.postalCode || "",
       city: x.city || "",
+      country: x.country || "Deutschland",
       status: x.status,
     });
   };
@@ -274,6 +282,7 @@ export default function AdminLinksManager() {
           category: editDraft.category.trim() || null,
           postalCode: editDraft.postalCode.trim() || null,
           city: editDraft.city.trim() || null,
+          country: (editDraft.country.trim() || "Deutschland"),
           status: editDraft.status,
         }),
       });
@@ -338,7 +347,7 @@ export default function AdminLinksManager() {
   const renderRow = (x: LinkRow) => {
     const checked = x.lastCheckedAt ? new Date(x.lastCheckedAt).toLocaleDateString("de-DE") : "-";
     const created = x.createdAt ? new Date(x.createdAt).toLocaleDateString("de-DE") : "-";
-    const locationText = [x.postalCode, x.city].filter(Boolean).join(" ");
+    const locationText = [x.postalCode, x.city, x.country].filter(Boolean).join(" ");
 
     const isEditing = editingId === x.id;
 
@@ -393,6 +402,13 @@ export default function AdminLinksManager() {
                       onChange={(e) => setEditDraft({ ...editDraft, city: e.target.value })}
                       placeholder="Ort"
                       className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
+                    />
+                    <input
+                      value={editDraft.country}
+                      onChange={(e) => setEditDraft({ ...editDraft, country: e.target.value })}
+                      placeholder="Land"
+                      list="admin-links-country-options"
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
                     />
                   </div>
                 </div>
@@ -553,6 +569,12 @@ export default function AdminLinksManager() {
 
   return (
     <div className="space-y-4">
+      <datalist id="admin-links-country-options">
+        {getGermanCountryData().names.map((n) => (
+          <option key={n} value={n} />
+        ))}
+      </datalist>
+
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -634,6 +656,13 @@ export default function AdminLinksManager() {
                     className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
                   />
                 </div>
+                <input
+                  value={createCountry}
+                  onChange={(e) => setCreateCountry(e.target.value)}
+                  placeholder="Land"
+                  list="admin-links-country-options"
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm"
+                />
               </div>
               <button
                 type="button"

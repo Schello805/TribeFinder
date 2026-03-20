@@ -3,13 +3,15 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useDebounce } from "use-debounce";
+import { getCountryCodeFromGermanName } from "@/lib/countries";
 
 type Props = {
   availableMonths: string[];
+  availableCountries: string[];
   initialAddress?: string;
 };
 
-export default function EventFilter({ availableMonths, initialAddress }: Props) {
+export default function EventFilter({ availableMonths, availableCountries, initialAddress }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchParamsString = searchParams.toString();
@@ -17,6 +19,7 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
   const [danceStyleId, setDanceStyleId] = useState(searchParams.get("danceStyleId") || "");
   const [month, setMonth] = useState(searchParams.get("month") || "");
   const [location, setLocation] = useState(searchParams.get("address") || initialAddress || "");
+  const [country, setCountry] = useState(searchParams.get("country") || "");
   const [lat, setLat] = useState(searchParams.get("lat") || "");
   const [lng, setLng] = useState(searchParams.get("lng") || "");
   const [radius, setRadius] = useState(searchParams.get("radius") || "50");
@@ -90,30 +93,47 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
       params.set("radius", radius);
       if (location) params.set("address", location);
       else params.delete("address");
+
+      if (country.trim()) params.set("country", country.trim());
+      else params.delete("country");
     } else {
       params.delete("lat");
       params.delete("lng");
       params.delete("radius");
       if (location) params.set("address", location);
       else params.delete("address");
+
+      if (country.trim()) params.set("country", country.trim());
+      else params.delete("country");
     }
 
     const next = params.toString();
     if (next === searchParamsString) return;
 
     router.replace(next ? `/events?${next}` : "/events");
-  }, [debouncedSearch, danceStyleId, lat, lng, location, month, radius, router, searchParamsString]);
+  }, [debouncedSearch, country, danceStyleId, lat, lng, location, month, radius, router, searchParamsString]);
 
   useEffect(() => {
-    if (debouncedLocation && !lat && !lng) {
+    const currentLocation = (location || "").trim();
+    const debounced = (debouncedLocation || "").trim();
+    if (debounced && debounced === currentLocation && !lat && !lng) {
       const controller = new AbortController();
 
       const geocode = async () => {
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(debouncedLocation)}&limit=1`,
-            { signal: controller.signal }
-          );
+          const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
+          const countryCode = getCountryCodeFromGermanName(selectedCountry);
+          const normalizedQuery = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(debouncedLocation)
+            ? debouncedLocation
+            : `${debouncedLocation}, ${selectedCountry}`;
+          const params = new URLSearchParams({
+            format: "json",
+            q: normalizedQuery,
+            limit: "1",
+            ...(countryCode ? { countrycodes: countryCode } : {}),
+            "accept-language": "de",
+          });
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, { signal: controller.signal });
           if (!res.ok) return;
           const data = (await res.json().catch(() => null)) as unknown;
           if (!Array.isArray(data) || !data[0]) return;
@@ -131,7 +151,7 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
       void geocode();
       return () => controller.abort();
     }
-  }, [debouncedLocation, lat, lng]);
+  }, [country, debouncedLocation, lat, lng, location]);
 
   const clearLocation = () => {
     setLocation("");
@@ -281,6 +301,28 @@ export default function EventFilter({ availableMonths, initialAddress }: Props) 
               </button>
             ) : null}
           </div>
+
+          <div className="w-[160px]">
+            <select
+              value={country}
+              onChange={(e) => {
+                setCountry(e.target.value);
+                if (lat || lng) {
+                  setLat("");
+                  setLng("");
+                }
+              }}
+              className="block w-full px-3 py-2 min-h-11 border border-[var(--border)] rounded-md leading-5 bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm appearance-none"
+            >
+              <option value="">Alle</option>
+              {availableCountries.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button
             type="button"
             onClick={handleUseMyLocation}

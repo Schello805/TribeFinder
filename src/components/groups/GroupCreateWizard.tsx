@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
 import { useToast } from "@/components/ui/Toast";
 import { MAX_FILE_SIZE } from "@/types";
+import { getCountryCodeFromGermanName, getGermanCountryData } from "@/lib/countries";
+import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
 
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), {
   ssr: false,
@@ -33,6 +34,7 @@ interface FormData {
     lat: number;
     lng: number;
     address?: string;
+    country?: string;
   };
   danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | "BOTH" | null }>;
 }
@@ -147,14 +149,25 @@ export default function GroupCreateWizard() {
   const geocodeAddress = async () => {
     if (!formData.location?.address) return;
 
+    const selectedCountry = (formData.location.country || "Deutschland").trim() || "Deutschland";
+    const countryCode = getCountryCodeFromGermanName(selectedCountry);
+    const q = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(formData.location.address)
+      ? formData.location.address
+      : `${formData.location.address}, ${selectedCountry}`;
+
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          formData.location.address
-        )}&limit=1`,
-        { headers: { "User-Agent": "TribeFinder/1.0" } }
-      );
+      const params = new URLSearchParams({
+        format: "json",
+        q,
+        limit: "1",
+        ...(countryCode ? { countrycodes: countryCode } : {}),
+        "accept-language": "de",
+      });
+
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+        headers: { "User-Agent": "TribeFinder/1.0" },
+      });
       const data = await response.json();
 
       if (data && data.length > 0) {
@@ -162,6 +175,7 @@ export default function GroupCreateWizard() {
           address: formData.location.address,
           lat: parseFloat(data[0].lat),
           lng: parseFloat(data[0].lon),
+          country: formData.location.country || "Deutschland",
         });
       } else {
         setError("Adresse konnte nicht gefunden werden.");
@@ -303,6 +317,32 @@ export default function GroupCreateWizard() {
             <div className="pt-2 border-t border-[var(--border)]">
               <div className="mb-2">
                 <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                  Land
+                </label>
+                <input
+                  type="text"
+                  value={formData.location?.country || "Deutschland"}
+                  onChange={(e) =>
+                    updateField("location", {
+                      lat: formData.location?.lat || 51.1657,
+                      lng: formData.location?.lng || 10.4515,
+                      address: formData.location?.address || "",
+                      country: e.target.value,
+                    })
+                  }
+                  list="group-create-country-options"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="Deutschland"
+                />
+                <datalist id="group-create-country-options">
+                  {getGermanCountryData().names.map((n) => (
+                    <option key={n} value={n} />
+                  ))}
+                </datalist>
+              </div>
+
+              <div className="mb-2">
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
                   Trainingsort (Adresse oder Stadt/PLZ) *
                 </label>
                 <div className="flex gap-2">
@@ -314,6 +354,7 @@ export default function GroupCreateWizard() {
                         lat: formData.location?.lat || 51.1657,
                         lng: formData.location?.lng || 10.4515,
                         address: e.target.value,
+                        country: formData.location?.country || "Deutschland",
                       })
                     }
                     className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
@@ -339,6 +380,7 @@ export default function GroupCreateWizard() {
                       ...formData.location,
                       lat,
                       lng,
+                      country: formData.location?.country || "Deutschland",
                     })
                   }
                 />
@@ -430,7 +472,7 @@ export default function GroupCreateWizard() {
               </label>
               <GroupDanceStylesEditor
                 value={formData.danceStyles || []}
-                onChange={(danceStyles) => updateField("danceStyles", danceStyles)}
+                onChange={(danceStyles: FormData["danceStyles"]) => updateField("danceStyles", danceStyles)}
                 disabled={isLoading}
               />
             </div>

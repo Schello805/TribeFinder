@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidGermanCountryName } from "@/lib/countries";
 
 const startOfDay = (d: Date) => {
   const copy = new Date(d);
@@ -19,6 +20,12 @@ export const eventSchema = z.object({
   danceStyleIds: z.array(z.string().min(1)).optional(),
   locationName: z.string().optional(),
   address: z.string().trim().min(6, "Adresse ist erforderlich"),
+  country: z
+    .string()
+    .trim()
+    .min(2)
+    .default("Deutschland")
+    .refine((v) => isValidGermanCountryName(v), "Unbekanntes Land"),
   lat: z.number(),
   lng: z.number(),
   

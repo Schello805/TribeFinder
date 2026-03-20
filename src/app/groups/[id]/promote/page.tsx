@@ -321,7 +321,16 @@ export default async function GroupPromotePage({ params }: { params: Promise<{ i
                 {group.location?.address ? (
                   <div className="flex gap-2">
                     <dt className="text-[var(--muted)] w-24">Standort</dt>
-                    <dd className="text-[var(--foreground)] flex-1">{group.location.address}</dd>
+                    <dd className="text-[var(--foreground)] flex-1">
+                      {(() => {
+                        const addr = (group.location?.address || "").trim();
+                        const country = (group.location as unknown as { country?: string | null })?.country;
+                        const c = (country || "").trim();
+                        if (!c) return addr;
+                        if (addr.toLowerCase().includes(c.toLowerCase())) return addr;
+                        return `${addr}, ${c}`;
+                      })()}
+                    </dd>
                   </div>
                 ) : null}
                 {group.trainingTime ? (

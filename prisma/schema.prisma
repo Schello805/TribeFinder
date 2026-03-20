@@ -140,6 +140,7 @@ model ExternalLink {
   category   String?
   postalCode String?
   city       String?
+  country    String?
 
   lat            Float?
   lng            Float?
@@ -200,6 +201,7 @@ model ExternalLinkSuggestion {
   category   String?
   postalCode String?
   city       String?
+  country    String?
 
   status ExternalLinkSuggestionStatus @default(PENDING)
 
@@ -355,6 +357,7 @@ model Event {
 
   locationName String?
   address      String?
+  country      String    @default("Deutschland")
   lat          Float
   lng          Float
 
@@ -404,6 +407,7 @@ model EventParticipation {
 model Location {
   id      String  @id @default(cuid())
   address String?
+  country String  @default("Deutschland")
   lat     Float
   lng     Float
   groupId String  @unique

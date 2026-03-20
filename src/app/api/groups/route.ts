@@ -541,7 +541,8 @@ export async function POST(req: Request) {
           create: {
             lat: validatedData.location.lat,
             lng: validatedData.location.lng,
-            address: validatedData.location.address
+            address: validatedData.location.address,
+            country: validatedData.location.country,
           }
         } : undefined,
         tags: allTagNames.length

@@ -526,7 +526,13 @@ export default function Map({ groups, events = [], availableTags = [], links = [
                         <span class="bg-[var(--surface-2)] p-1 rounded-full text-[var(--muted)] border border-[var(--border)]">
                           <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         </span>
-                        <span class="truncate max-w-[180px]">${group.location.address || 'Keine Adresse'}</span>
+                        <span class="truncate max-w-[180px]">${(() => {
+                          const addr = String(group.location.address || "Keine Adresse").trim();
+                          const country = ((group.location as unknown as { country?: string | null })?.country || "").trim();
+                          if (!country) return addr;
+                          if (addr.toLowerCase().includes(country.toLowerCase())) return addr;
+                          return `${addr}, ${country}`;
+                        })()}</span>
                       </p>
 
                       ${websiteHtml ? `<div class="flex justify-center">${websiteHtml}</div>` : ''}
@@ -644,7 +650,9 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         const index = keys.findIndex((x) => x === `L:${link.id}`);
         const j = jitterLatLng(lat, lng, pointKey, Math.max(0, index), keys.length);
 
-        const locationText = [link.postalCode, link.city].filter(Boolean).join(" ");
+        const locationText = [link.postalCode, link.city, (link as unknown as { country?: string | null }).country]
+          .filter(Boolean)
+          .join(" ");
         const categoryText = (link.category || "").trim();
         const safeUrl = (link.url || "").trim();
 

@@ -3,7 +3,8 @@ import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { jsonUnauthorized } from "@/lib/apiResponse";
 import { z } from "zod";
-import { geocodeGermany } from "@/lib/geocode";
+import { geocodeByCountry } from "@/lib/geocode";
+import { isValidGermanCountryName } from "@/lib/countries";
 
 type ExternalLinkAdminRow = {
   id: string;
@@ -12,6 +13,7 @@ type ExternalLinkAdminRow = {
   category: string | null;
   postalCode: string | null;
   city: string | null;
+  country: string | null;
   lat: number | null;
   lng: number | null;
   locationSource: string | null;
@@ -50,6 +52,13 @@ const createSchema = z.object({
   category: z.string().trim().min(2).max(40).nullable().optional(),
   postalCode: z.string().trim().regex(/^\d{5}$/).nullable().optional(),
   city: z.string().trim().min(2).max(80).nullable().optional(),
+  country: z
+    .string()
+    .trim()
+    .min(2)
+    .nullable()
+    .optional()
+    .refine((v) => (v == null ? true : isValidGermanCountryName(v)), "Unbekanntes Land"),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "OFFLINE"]).optional(),
 });
 
@@ -88,6 +97,7 @@ export async function POST(req: Request) {
 
   const postalCode = parsed.data.postalCode ?? null;
   const city = parsed.data.city ?? null;
+  const country = (parsed.data.country || "Deutschland").trim() || "Deutschland";
 
   // If no location is provided, avoid creating duplicate entries for the same website.
   if (!postalCode && !city) {
@@ -109,7 +119,7 @@ export async function POST(req: Request) {
 
   if (postalCode || city) {
     try {
-      const r = await geocodeGermany(`${postalCode ?? ""} ${city ?? ""}`.trim());
+      const r = await geocodeByCountry(`${postalCode ?? ""} ${city ?? ""}`.trim(), country);
       if (r) {
         lat = r.lat;
         lng = r.lng;
@@ -132,6 +142,7 @@ export async function POST(req: Request) {
         category: categoryName || null,
         postalCode,
         city,
+        country,
         lat,
         lng,
         locationSource,
@@ -188,6 +199,7 @@ export async function GET(req: Request) {
       category: true,
       postalCode: true,
       city: true,
+      country: true,
       lat: true,
       lng: true,
       locationSource: true,

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ui/Toast";
+import { getGermanCountryData } from "@/lib/countries";
 
 type CategoryItem = { id: string; name: string };
 
@@ -14,6 +15,7 @@ type Props = {
     category: string | null;
     postalCode: string | null;
     city: string | null;
+    country?: string | null;
   };
 };
 
@@ -32,6 +34,7 @@ export default function SuggestLinkEditForm({ link }: Props) {
   const [category, setCategory] = useState(link.category || "");
   const [postalCode, setPostalCode] = useState(link.postalCode || "");
   const [city, setCity] = useState(link.city || "");
+  const [country, setCountry] = useState(link.country || "Deutschland");
 
   useEffect(() => {
     let alive = true;
@@ -76,6 +79,7 @@ export default function SuggestLinkEditForm({ link }: Props) {
           category: category.trim() || null,
           postalCode: postalCode.trim() || null,
           city: city.trim() || null,
+          country: country.trim() || null,
         }),
       });
 
@@ -148,6 +152,19 @@ export default function SuggestLinkEditForm({ link }: Props) {
                 className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
               />
             </div>
+
+            <input
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder="Land"
+              list="suggest-link-country-options"
+              className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
+            />
+            <datalist id="suggest-link-country-options">
+              {getGermanCountryData().names.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
           </div>
 
           <div className="flex gap-2">

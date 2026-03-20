@@ -7,6 +7,7 @@ import { GroupFormData } from "@/lib/validations/group";
 import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
 import TagInput from "@/components/ui/TagInput";
 import { MAX_FILE_SIZE } from "@/types";
+import { getCountryCodeFromGermanName, getGermanCountryData } from "@/lib/countries";
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), {
@@ -17,7 +18,7 @@ const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), 
 interface GroupFormProps {
   initialData?: (Partial<GroupFormData> & {
     id?: string;
-    location?: { lat: number; lng: number; address?: string | null } | null;
+    location?: { lat: number; lng: number; address?: string | null; country?: string | null } | null;
     tags?: Array<{ name: string; type?: "GENERAL" | "DIALECT" | "PROP" } | string>;
     danceStyles?: Array<{ styleId: string; level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "PROFESSIONAL"; mode?: "IMPRO" | "CHOREO" | "BOTH" | null }>;
   });
@@ -79,6 +80,7 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
       lat: initialData.location.lat,
       lng: initialData.location.lng,
       address: initialData.location.address || "",
+      country: initialData.location.country || "Deutschland",
     } : undefined,
     tags: initialGeneralTags,
     dialectTags: initialDialectTags,
@@ -155,7 +157,8 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
         ...prev.location,
         lat,
         lng,
-        address: prev.location?.address || "" 
+        address: prev.location?.address || "",
+        country: prev.location?.country || "Deutschland",
       }
     }));
     setLocationDirty(false);
@@ -163,10 +166,23 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
   
   const geocodeAddress = async () => {
     if (!formData.location?.address) return;
+    const selectedCountry = (formData.location.country || "Deutschland").trim() || "Deutschland";
+    const countryCode = getCountryCodeFromGermanName(selectedCountry);
+    const q = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(formData.location.address)
+      ? formData.location.address
+      : `${formData.location.address}, ${selectedCountry}`;
     
     setIsLoading(true);
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location.address)}&limit=1`, {
+      const params = new URLSearchParams({
+        format: "json",
+        q,
+        limit: "1",
+        ...(countryCode ? { countrycodes: countryCode } : {}),
+        "accept-language": "de",
+      });
+
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
         headers: {
           "User-Agent": "DanceConnect/1.0"
         }
@@ -182,7 +198,8 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
           location: {
             address: prev.location?.address,
             lat: lat,
-            lng: lon
+            lng: lon,
+            country: prev.location?.country || "Deutschland",
           }
         }));
         setLocationDirty(false);
@@ -204,10 +221,24 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
       location: {
         lat: prev.location?.lat || 51.1657, // Default fallback
         lng: prev.location?.lng || 10.4515,
-        address: address
+        address: address,
+        country: prev.location?.country || "Deutschland",
       }
     }));
     setLocationDirty(true);
+  };
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const country = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      location: {
+        lat: prev.location?.lat || 51.1657,
+        lng: prev.location?.lng || 10.4515,
+        address: prev.location?.address || "",
+        country,
+      },
+    }));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -683,6 +714,23 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
       <div className="bg-[var(--surface-2)] p-4 rounded-md border border-[var(--border)]">
         <label className="block text-sm font-medium text-[var(--foreground)] mb-2">Trainingsort</label>
         <p className="text-xs text-[var(--muted)] mb-3">Der Trainingsort wird in der Gruppenansicht unter den Trainingszeiten angezeigt und auf der Karte genutzt.</p>
+
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-[var(--foreground)] mb-1">Land</label>
+          <input
+            type="text"
+            value={formData.location?.country || "Deutschland"}
+            onChange={handleCountryChange}
+            list="group-country-options"
+            placeholder="Deutschland"
+            className="block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:border-[var(--primary)] focus:outline-none focus:ring-[var(--primary)] text-[var(--foreground)] bg-[var(--surface)] placeholder:text-[var(--muted)]"
+          />
+          <datalist id="group-country-options">
+            {getGermanCountryData().names.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
+        </div>
         
         <div className="flex gap-2 mb-4">
           <input 

@@ -6,6 +6,8 @@ import { EventFormData } from "@/lib/validations/event";
 import { useToast } from "@/components/ui/Toast";
 import { normalizeUploadedImageUrl } from '@/lib/normalizeUploadedImageUrl';
 import { MAX_FILE_SIZE } from "@/types";
+import { getCountryCodeFromGermanName } from "@/lib/countries";
+import CountryAutocompleteInput from "@/components/ui/CountryAutocompleteInput";
 
 interface EventFormProps {
   initialData?: Partial<EventFormData> & { id?: string; flyerImage?: string | null };
@@ -141,10 +143,15 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const [geocodeResults, setGeocodeResults] = useState<NominatimSearchResult[]>([]);
   const geocodeControllerRef = useRef<AbortController | null>(null);
   const lastGeocodeQueryRef = useRef<string>("");
+  const didSkipInitialGeocodeRef = useRef(false);
   const didInitClearRef = useRef(false);
   const startFieldRef = useRef<HTMLDivElement | null>(null);
   const endFieldRef = useRef<HTMLDivElement | null>(null);
   const lastStartRef = useRef<Date | null>(null);
+
+  const getCountryCode = useCallback((country: string) => {
+    return getCountryCodeFromGermanName(country);
+  }, []);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
@@ -205,22 +212,28 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     return { postalcode, city, street: street || "" };
   }, []);
 
-  const buildNominatimFreeTextUrl = useCallback((rawQuery: string, limit = 1) => {
+  const buildNominatimFreeTextUrl = useCallback((rawQuery: string, country: string, limit = 1) => {
     const q = (rawQuery || "").trim();
     if (!q) return "";
-    const normalizedQuery = /\bdeutschland\b/i.test(q) ? q : `${q}, Deutschland`;
+    const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
+    const normalizedQuery = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(q)
+      ? q
+      : `${q}, ${selectedCountry}`;
+    const countryCode = getCountryCode(selectedCountry);
     const params = new URLSearchParams({
       format: "json",
       q: normalizedQuery,
       limit: String(limit),
-      countrycodes: "de",
+      ...(countryCode ? { countrycodes: countryCode } : {}),
       "accept-language": "de",
       addressdetails: "1",
     });
     return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-  }, []);
+  }, [getCountryCode]);
 
-  const buildNominatimStructuredUrl = useCallback((rawQuery: string, limit = 1) => {
+  const buildNominatimStructuredUrl = useCallback((rawQuery: string, country: string, limit = 1) => {
+    const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
+    if (selectedCountry !== "Deutschland") return "";
     const parsed = parseGermanAddress(rawQuery);
     if (!parsed) return "";
     const params = new URLSearchParams({
@@ -237,9 +250,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
   }, [parseGermanAddress]);
 
-  const fetchGeocodeResults = useCallback(async (query: string, limit = 5, signal?: AbortSignal) => {
-    const structuredUrl = buildNominatimStructuredUrl(query, limit);
-    const freeTextUrl = buildNominatimFreeTextUrl(query, limit);
+  const fetchGeocodeResults = useCallback(async (query: string, country: string, limit = 5, signal?: AbortSignal) => {
+    const structuredUrl = buildNominatimStructuredUrl(query, country, limit);
+    const freeTextUrl = buildNominatimFreeTextUrl(query, country, limit);
 
     const tryFetch = async (url: string) => {
       if (!url) return null;
@@ -279,7 +292,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     return s.trim().toLowerCase();
   };
 
-  const verifyAddressMatchesCoordinates = async (address: string, lat: number, lng: number) => {
+  const verifyAddressMatchesCoordinates = async (address: string, country: string, lat: number, lng: number) => {
     const addr = (address || "").trim();
     if (!addr) return { ok: false as const, reason: "Adresse fehlt" };
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { ok: false as const, reason: "Koordinaten fehlen" };
@@ -313,8 +326,10 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       }
     }
 
-    if (typeof json.address?.country_code === "string" && json.address.country_code.toLowerCase() !== "de") {
-      return { ok: false as const, reason: "Position liegt nicht in Deutschland" };
+    const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
+    const expectedCode = getCountryCode(selectedCountry);
+    if (expectedCode && typeof json.address?.country_code === "string" && json.address.country_code.toLowerCase() !== expectedCode) {
+      return { ok: false as const, reason: `Position liegt nicht in ${selectedCountry}` };
     }
 
     return { ok: true as const };
@@ -330,6 +345,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       : [],
     locationName: initialData?.locationName || "",
     address: initialData?.address || "",
+    country: initialData?.country || "Deutschland",
     lat: initialData?.lat || 51.1657,
     lng: initialData?.lng || 10.4515,
     flyer1: initialData?.flyer1 || "",
@@ -348,12 +364,13 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const [street, setStreet] = useState("");
 
   useEffect(() => {
+    if ((formData.country || "Deutschland") !== "Deutschland") return;
     const parsed = parseGermanAddress(initialData?.address || "");
     if (!parsed) return;
     setPostalCode(parsed.postalcode);
     setCity(parsed.city);
     setStreet(parsed.street);
-  }, [initialData?.address, parseGermanAddress]);
+  }, [formData.country, initialData?.address, parseGermanAddress]);
 
   const composedAddress = (() => {
     const pc = postalCode.trim();
@@ -369,6 +386,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
   useEffect(() => {
     setFormData((prev) => {
+      if ((prev.country || "Deutschland") !== "Deutschland") return prev;
       if ((prev.address || "") === composedAddress) return prev;
       return { ...prev, address: composedAddress } as EventFormData;
     });
@@ -412,6 +430,11 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
 
+    if (isEditing && !didSkipInitialGeocodeRef.current) {
+      didSkipInitialGeocodeRef.current = true;
+      return;
+    }
+
     const q = (formData.address || "").trim();
     if (q.length < 6) {
       setGeocodeResults([]);
@@ -434,7 +457,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       setGeocodeError("");
 
       try {
-        const data = await fetchGeocodeResults(normalized, 5, controller.signal);
+        const data = await fetchGeocodeResults(normalized, formData.country || "Deutschland", 5, controller.signal);
         if (controller.signal.aborted) return;
 
         lastGeocodeQueryRef.current = normalized;
@@ -446,17 +469,29 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             lng: parseFloat(data[0].lon),
           }));
           setGeocodeResults([]);
+          setGeocodeError("");
         } else if (data && data.length > 1) {
           setGeocodeResults(data);
+          if (Number.isFinite(formData.lat) && Number.isFinite(formData.lng)) {
+            setGeocodeError("");
+          }
         } else {
           setGeocodeResults([]);
-          setGeocodeError("Adresse nicht gefunden. Bitte überprüfen.");
+          if (Number.isFinite(formData.lat) && Number.isFinite(formData.lng)) {
+            setGeocodeError("");
+          } else {
+            setGeocodeError("Adresse nicht gefunden. Bitte überprüfen.");
+          }
         }
       } catch (e) {
         if (controller.signal.aborted) return;
         if (e instanceof DOMException && e.name === "AbortError") return;
         setGeocodeResults([]);
-        setGeocodeError("Fehler bei der Adresssuche");
+        if (Number.isFinite(formData.lat) && Number.isFinite(formData.lng)) {
+          setGeocodeError("");
+        } else {
+          setGeocodeError("Fehler bei der Adresssuche");
+        }
       } finally {
         if (!controller.signal.aborted) {
           setIsGeocoding(false);
@@ -465,7 +500,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     }, 650);
 
     return () => window.clearTimeout(t);
-  }, [formData.address, fetchGeocodeResults]);
+  }, [formData.address, formData.country, fetchGeocodeResults, formData.lat, formData.lng, isEditing]);
 
   const initialStartParts = splitLocalDateTime(isEditing ? (formData.startDate || "") : "");
   const initialEndParts = splitLocalDateTime(isEditing ? (formData.endDate || "") : "");
@@ -556,27 +591,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   useEffect(() => {
     if (!formData.startDate || !formData.endDate) return;
     const normalized = normalizeEndDate(formData.startDate, formData.endDate);
-    if (normalized !== formData.endDate) {
-      setFormData((prev) => ({ ...prev, endDate: normalized }));
-    }
+    if (normalized === formData.endDate) return;
+    setFormData((prev) => ({ ...prev, endDate: normalized } as EventFormData));
   }, [formData.startDate, formData.endDate]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => {
-      const next = { ...prev, [name]: value } as EventFormData;
-
-      if (process.env.NODE_ENV !== "production" && (name === "startDate" || name === "endDate")) {
-        console.warn(`[EventForm] ${name} changed:`, { value });
-      }
-
-      if (name === "startDate") {
-        next.endDate = normalizeEndDate(next.startDate, next.endDate || "");
-      }
-
-      return next;
-    });
-  };
 
   const setEndFromDate = (end: Date) => {
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -691,6 +708,19 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     setFormData((prev) => ({ ...prev, endDate: combined } as EventFormData));
   };
 
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value } as EventFormData;
+      if (name === "startDate") {
+        next.endDate = normalizeEndDate(next.startDate, next.endDate || "");
+      }
+      return next;
+    });
+  };
+
   const handleUrlBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (value) {
@@ -735,7 +765,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     setGeocodeResults([]);
     
     try {
-      const data = await fetchGeocodeResults(address, 5);
+      const data = await fetchGeocodeResults(address, formData.country || "Deutschland", 5);
       
       if (data && data.length === 1 && data[0]) {
         setFormData(prev => ({
@@ -784,6 +814,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
   const handleStreetBlur = () => {
     if (geocodeResults.length > 0) return;
+    if ((formData.country || "Deutschland") !== "Deutschland") return;
     if (!postalCode.trim() || !city.trim() || !street.trim()) return;
     geocodeAddress(composedAddress);
   };
@@ -796,7 +827,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     setGeocodeError("");
     setGeocodeResults([]);
     try {
-      const data = await fetchGeocodeResults(query, 5);
+      const data = await fetchGeocodeResults(query, formData.country || "Deutschland", 5);
       
       if (data && data.length === 1) {
         const { lat, lon } = data[0];
@@ -872,7 +903,12 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       }
 
       try {
-        const verified = await verifyAddressMatchesCoordinates(formData.address, formData.lat, formData.lng);
+        const verified = await verifyAddressMatchesCoordinates(
+          formData.address,
+          formData.country || "Deutschland",
+          formData.lat,
+          formData.lng
+        );
         if (!verified.ok) {
           throw new Error(
             `Adresse/Position stimmen nicht überein. Bitte Adresse erneut suchen und einen passenden Treffer auswählen. (${verified.reason})`
@@ -1252,86 +1288,134 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           </div>
         </div>
 
-        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-[var(--foreground)]">PLZ</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={postalCode}
-              onChange={(e) => setPostalCode(e.target.value)}
-              placeholder="z.B. 91572"
-              className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
+        <div className="mt-3">
+          <label className="block text-xs font-medium text-[var(--foreground)]">Land</label>
+          <div className="mt-1">
+            <CountryAutocompleteInput
+              id="event-country"
+              name="country"
+              value={formData.country ?? "Deutschland"}
+              onChange={(next) => {
+                setFormData((prev) => ({ ...prev, country: next } as EventFormData));
+              }}
+              defaultValue="Deutschland"
+              placeholder="Deutschland"
+              className="block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
             />
           </div>
-
-          <div>
-            <label className="block text-xs font-medium text-[var(--foreground)]">Ort</label>
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="z.B. Bechhofen"
-              className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
-            />
-          </div>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Standard ist Deutschland. Für Events im Ausland bitte ein Land eingeben.
+          </p>
         </div>
 
-        <div className="mt-3">
-          <label className="block text-xs font-medium text-[var(--foreground)]">Straße &amp; Hausnummer</label>
-          <div className="flex gap-2 items-start">
-            <div className="flex-1">
-              <input
-                type="text"
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                onBlur={handleStreetBlur}
-                placeholder="z.B. Ziegeleistraße 32"
-                disabled={!postalCode.trim() || !city.trim()}
-                required
-                className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] disabled:opacity-60"
-              />
-
-              <div className="mt-2 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => geocodeAddress(composedAddress)}
-                  disabled={!postalCode.trim() || !city.trim() || !street.trim()}
-                  className="inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-60"
-                >
-                  Adresse suchen
-                </button>
-                {composedAddress ? (
-                  <div className="text-xs text-[var(--muted)] break-words">{composedAddress}</div>
-                ) : null}
+        {(formData.country || "Deutschland") === "Deutschland" ? (
+          <>
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-[var(--foreground)]">PLZ</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  placeholder="z.B. 91572"
+                  className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
+                />
               </div>
 
-              {isGeocoding && (
-                <p className="mt-1 text-sm text-[var(--link)]">🔍 Suche Adresse...</p>
-              )}
-              {geocodeError && (
-                <p className="mt-1 text-sm text-red-600">⚠️ {geocodeError}</p>
-              )}
-              {!isGeocoding && geocodeResults.length > 0 && (
-                <div className="mt-2 rounded-md border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
-                  {geocodeResults.slice(0, 5).map((r, idx) => (
+              <div>
+                <label className="block text-xs font-medium text-[var(--foreground)]">Ort</label>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="z.B. Bechhofen"
+                  className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
+                />
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label className="block text-xs font-medium text-[var(--foreground)]">Straße &amp; Hausnummer</label>
+              <div className="flex gap-2 items-start">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    onBlur={handleStreetBlur}
+                    placeholder="z.B. Ziegeleistraße 32"
+                    disabled={!postalCode.trim() || !city.trim()}
+                    required
+                    className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] disabled:opacity-60"
+                  />
+
+                  <div className="mt-2 flex items-center gap-2">
                     <button
-                      key={`${r.lat}-${r.lon}-${idx}`}
                       type="button"
-                      onClick={() => applyGeocodeSelection(r)}
-                      className="block w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+                      onClick={() => geocodeAddress(composedAddress)}
+                      disabled={!postalCode.trim() || !city.trim() || !street.trim()}
+                      className="inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-60"
                     >
-                      {r.display_name || `${r.lat}, ${r.lon}`}
+                      Adresse suchen
                     </button>
-                  ))}
+                    {composedAddress ? (
+                      <div className="text-xs text-[var(--muted)] break-words">{composedAddress}</div>
+                    ) : null}
+                  </div>
                 </div>
-              )}
-              {!isGeocoding && !geocodeError && formData.lat !== 51.1657 && (
-                <p className="mt-1 text-sm text-[var(--muted)]">✓ Standort gefunden</p>
-              )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="mt-3">
+            <label className="block text-xs font-medium text-[var(--foreground)]">Adresse (Freitext)</label>
+            <input
+              type="text"
+              name="address"
+              value={formData.address || ""}
+              onChange={handleChange}
+              onBlur={handleGeocode}
+              placeholder="z.B. Hauptstraße 1, 1010 Wien"
+              required
+              className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
+            />
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => geocodeAddress(formData.address || "")}
+                disabled={!String(formData.address || "").trim()}
+                className="inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-60"
+              >
+                Adresse suchen
+              </button>
             </div>
           </div>
-        </div>
+        )}
+
+        {isGeocoding && (
+          <p className="mt-1 text-sm text-[var(--link)]">🔍 Suche Adresse...</p>
+        )}
+        {geocodeError && (
+          <p className="mt-1 text-sm text-red-600">⚠️ {geocodeError}</p>
+        )}
+        {!isGeocoding && geocodeResults.length > 0 && (
+          <div className="mt-2 rounded-md border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+            {geocodeResults.slice(0, 5).map((r, idx) => (
+              <button
+                key={`${r.lat}-${r.lon}-${idx}`}
+                type="button"
+                onClick={() => applyGeocodeSelection(r)}
+                className="block w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+              >
+                {r.display_name || `${r.lat}, ${r.lon}`}
+              </button>
+            ))}
+          </div>
+        )}
+        {!isGeocoding && !geocodeError && formData.lat !== 51.1657 && (
+          <p className="mt-1 text-sm text-[var(--muted)]">✓ Standort gefunden</p>
+        )}
 
         <p className="mt-1 text-xs text-[var(--muted)]">
           Die Adresse wird automatisch auf der Karte verortet.

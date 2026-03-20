@@ -500,7 +500,16 @@ export default async function GroupDetailPage({
                       {group.location && (
                         <dd className="mt-2 text-base text-[var(--foreground)] bg-[var(--surface-2)] p-3 rounded-lg border border-[var(--border)] flex items-start gap-3">
                           <span className="text-xl">📍</span>
-                          <span>{group.location.address || "Auf der Karte markiert"}</span>
+                          <span>
+                            {(() => {
+                              const addr = (group.location?.address || "Auf der Karte markiert").trim();
+                              const country = (group.location as unknown as { country?: string | null })?.country;
+                              const c = (country || "").trim();
+                              if (!c) return addr;
+                              if (addr.toLowerCase().includes(c.toLowerCase())) return addr;
+                              return `${addr}, ${c}`;
+                            })()}
+                          </span>
                         </dd>
                       )}
                     </div>

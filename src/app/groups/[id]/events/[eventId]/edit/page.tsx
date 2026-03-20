@@ -31,6 +31,7 @@ export default async function EditEventPage({
             endDate: Date | null;
             locationName: string | null;
             address: string | null;
+            country: string;
             lat: number;
             lng: number;
             flyer1: string | null;
@@ -79,6 +80,7 @@ export default async function EditEventPage({
     endDate: Date | null;
     locationName: string | null;
     address: string | null;
+    country: string;
     lat: number;
     lng: number;
     flyer1: string | null;
@@ -132,6 +134,7 @@ export default async function EditEventPage({
     danceStyleIds: eventAny.danceStyles.map((x: { styleId: string }) => x.styleId),
     locationName: eventAny.locationName ?? "",
     address: eventAny.address ?? "",
+    country: eventAny.country || "Deutschland",
     lat: eventAny.lat,
     lng: eventAny.lng,
     flyer1: eventAny.flyer1 ?? "",

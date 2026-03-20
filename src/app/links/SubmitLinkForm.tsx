@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ui/Toast";
+import { getGermanCountryData } from "@/lib/countries";
 
 type CategoryItem = { id: string; name: string };
 
@@ -18,6 +19,7 @@ export default function SubmitLinkForm() {
   const [category, setCategory] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [city, setCity] = useState("");
+  const [country, setCountry] = useState("Deutschland");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -67,6 +69,7 @@ export default function SubmitLinkForm() {
           category: category.trim() || undefined,
           postalCode: postalCode.trim() || undefined,
           city: city.trim() || undefined,
+          country: country.trim() || undefined,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { message?: string };
@@ -79,6 +82,7 @@ export default function SubmitLinkForm() {
       setCategory("");
       setPostalCode("");
       setCity("");
+      setCountry("Deutschland");
       showToast("Danke! Dein Link wurde zur Prüfung eingereicht.", "success");
     } finally {
       setIsSaving(false);
@@ -148,6 +152,22 @@ export default function SubmitLinkForm() {
               className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)]"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Land (optional)</label>
+          <input
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            placeholder="Deutschland"
+            list="link-country-options"
+            className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--foreground)]"
+          />
+          <datalist id="link-country-options">
+            {getGermanCountryData().names.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
         </div>
       </div>
 

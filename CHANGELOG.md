@@ -1,5 +1,24 @@
 # Changelog
 
+## [Unreleased] - 2026-03-20
+
+### 🌍 Länder
+
+- Events: Land als validiertes Textfeld (weltweite Länder auf Deutsch) mit Autocomplete.
+- Events: Land-Feld bleibt editierbar (nicht mehr durch Default „Deutschland“ überschrieben).
+- Filter (Events/Gruppen): Standortsuche um Land ergänzt, Geocoding nutzt countrycodes.
+- Gruppen: Standort um Land ergänzt (Formular + Wizard + API + Anzeige).
+- Links: Standort um Land ergänzt (Submit + Vorschläge + Admin + Geocoding + Map/Anzeige).
+- Map: Gruppen-Popup zeigt Land am Standort an.
+- DB: Backfill-Script für fehlende Länderwerte (`npm run db:backfill-country`).
+
+## [Unreleased] - 2026-03-19
+
+### 🧩 Events
+
+- Events: Adresse um Land ergänzt (Default: Deutschland) inkl. Unterstützung für Nachbarländer.
+- Event-Formular: Land-Auswahl + Geocoding/Positionsprüfung berücksichtigen das ausgewählte Land.
+
 ## [Unreleased] - 2026-03-15
 
 ### 🔐 Admin / Audit-Log

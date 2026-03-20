@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useToast } from "@/components/ui/Toast";
+import { getCountryCodeFromGermanName } from "@/lib/countries";
+import CountryAutocompleteInput from "@/components/ui/CountryAutocompleteInput";
 
 export default function GroupFilter() {
   const { showToast } = useToast();
@@ -13,6 +15,7 @@ export default function GroupFilter() {
   
   const [searchTerm, setSearchTerm] = useState(searchParams.get("query") || "");
   const [location, setLocation] = useState(searchParams.get("address") || "");
+  const [country, setCountry] = useState(searchParams.get("country") || "Deutschland");
   const [lat, setLat] = useState(searchParams.get("lat") || "");
   const [lng, setLng] = useState(searchParams.get("lng") || "");
   const [radius, setRadius] = useState(searchParams.get("radius") || "50");
@@ -82,6 +85,7 @@ export default function GroupFilter() {
       newLng: string,
       newRadius: string,
       newAddress: string,
+      newCountry: string,
       newTag: string,
       newOnlyPerformances: boolean,
       newOnlySeekingMembers: boolean,
@@ -115,12 +119,18 @@ export default function GroupFilter() {
         params.set("radius", newRadius);
         if (newAddress) params.set("address", newAddress);
         else params.delete("address");
+
+        if (newCountry) params.set("country", newCountry);
+        else params.delete("country");
       } else {
         params.delete("lat");
         params.delete("lng");
         params.delete("radius");
         if (newAddress) params.set("address", newAddress);
         else params.delete("address");
+
+        if (newCountry) params.set("country", newCountry);
+        else params.delete("country");
       }
 
       const nextQuery = params.toString();
@@ -135,8 +145,8 @@ export default function GroupFilter() {
 
   // Effect for Search Term and Tag
   useEffect(() => {
-    updateUrl(debouncedSearchTerm, lat, lng, radius, location, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
-  }, [debouncedSearchTerm, lat, lng, location, radius, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort, updateUrl]);
+    updateUrl(debouncedSearchTerm, lat, lng, radius, location, country.trim(), selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
+  }, [debouncedSearchTerm, country, lat, lng, location, radius, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort, updateUrl]);
 
   // Effect for Location Search (Geocoding)
   useEffect(() => {
@@ -147,8 +157,19 @@ export default function GroupFilter() {
 
       const geocode = async () => {
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(debouncedLocation)}&limit=1`,
+          const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
+          const countryCode = getCountryCodeFromGermanName(selectedCountry);
+          const normalizedQuery = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(debouncedLocation)
+            ? debouncedLocation
+            : `${debouncedLocation}, ${selectedCountry}`;
+          const params = new URLSearchParams({
+            format: "json",
+            q: normalizedQuery,
+            limit: "1",
+            ...(countryCode ? { countrycodes: countryCode } : {}),
+            "accept-language": "de",
+          });
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`,
             { signal: controller.signal }
           );
           if (!res.ok) {
@@ -163,7 +184,7 @@ export default function GroupFilter() {
           if (data && data[0]) {
             setLat(data[0].lat);
             setLng(data[0].lon);
-            updateUrl(searchTerm, data[0].lat, data[0].lon, radius, debouncedLocation, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
+            updateUrl(searchTerm, data[0].lat, data[0].lon, radius, debouncedLocation, selectedCountry, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
           }
         } catch (e) {
           if (controller.signal.aborted) return;
@@ -177,14 +198,14 @@ export default function GroupFilter() {
         controller.abort();
       };
     }
-  }, [debouncedLocation, lat, lng, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort, updateUrl]);
+  }, [country, debouncedLocation, lat, lng, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort, updateUrl]);
 
   // Trigger URL update when Radius or Coordinates change (if already set)
   useEffect(() => {
     if (lat && lng) {
-      updateUrl(searchTerm, lat, lng, radius, location, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
+      updateUrl(searchTerm, lat, lng, radius, location, country.trim(), selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
     }
-  }, [lat, lng, location, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort, updateUrl]);
+  }, [country, lat, lng, location, radius, searchTerm, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort, updateUrl]);
 
   const handleUseMyLocation = () => {
     setIsLocating(true);
@@ -227,7 +248,7 @@ export default function GroupFilter() {
     setLocation("");
     setLat("");
     setLng("");
-    updateUrl(searchTerm, "", "", radius, "", selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
+    updateUrl(searchTerm, "", "", radius, "", country.trim(), selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
   };
 
   const clearAll = () => {
@@ -242,7 +263,8 @@ export default function GroupFilter() {
     setLat("");
     setLng("");
     setRadius("50");
-    updateUrl("", "", "", "50", "", "", false, false, "", "newest");
+    setCountry("Deutschland");
+    updateUrl("", "", "", "50", "", "Deutschland", "", false, false, "", "newest");
   };
 
   const hasActiveFilters =
@@ -311,6 +333,24 @@ export default function GroupFilter() {
               </button>
             )}
           </div>
+
+          <div className="w-[160px]">
+            <CountryAutocompleteInput
+              id="group-filter-country"
+              value={country}
+              onChange={(next) => {
+                setCountry(next);
+                if (lat || lng) {
+                  setLat("");
+                  setLng("");
+                }
+              }}
+              defaultValue="Deutschland"
+              placeholder="Land"
+              className="w-full px-4 py-2 min-h-11 border border-[var(--border)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)]"
+            />
+          </div>
+
           <button
             onClick={handleUseMyLocation}
             disabled={isLocating}

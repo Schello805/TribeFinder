@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidGermanCountryName } from "@/lib/countries";
 
 const DanceLevelSchema = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "PROFESSIONAL"]);
 const DanceModeSchema = z.enum(["IMPRO", "CHOREO", "BOTH"]).nullable();
@@ -20,6 +21,12 @@ const baseGroupSchema = z.object({
   location: z
     .object({
       address: z.string().optional(),
+      country: z
+        .string()
+        .trim()
+        .min(2)
+        .default("Deutschland")
+        .refine((v) => isValidGermanCountryName(v), "Unbekanntes Land"),
       lat: z.number(),
       lng: z.number(),
     })
@@ -46,6 +53,12 @@ const baseGroupSchema = z.object({
 export const groupCreateSchema = baseGroupSchema.extend({
   location: z.object({
     address: z.string().trim().min(3, "Adresse ist erforderlich"),
+    country: z
+      .string()
+      .trim()
+      .min(2)
+      .default("Deutschland")
+      .refine((v) => isValidGermanCountryName(v), "Unbekanntes Land"),
     lat: z.number().refine((v) => Number.isFinite(v), "Ungültige Koordinaten"),
     lng: z.number().refine((v) => Number.isFinite(v), "Ungültige Koordinaten"),
   }),

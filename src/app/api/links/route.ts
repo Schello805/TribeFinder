@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 import logger from "@/lib/logger";
+import { isValidGermanCountryName } from "@/lib/countries";
 
 const createSchema = z.object({
   url: z.string().url().max(500),
@@ -11,6 +12,12 @@ const createSchema = z.object({
   category: z.string().min(2).max(40).optional(),
   postalCode: z.string().regex(/^\d{5}$/).optional(),
   city: z.string().min(2).max(80).optional(),
+  country: z
+    .string()
+    .trim()
+    .min(2)
+    .optional()
+    .refine((v) => (typeof v === "undefined" ? true : isValidGermanCountryName(v)), "Unbekanntes Land"),
 });
 
 type ExternalLinkRow = {
@@ -136,6 +143,7 @@ export async function POST(req: Request) {
 
     const postalCode = parsed.data.postalCode ? parsed.data.postalCode.trim() : null;
     const city = parsed.data.city ? parsed.data.city.trim() : null;
+    const country = parsed.data.country ? parsed.data.country.trim() : "Deutschland";
 
     // If no location is provided, avoid creating duplicate entries for the same website.
     if (!postalCode && !city) {
@@ -158,6 +166,7 @@ export async function POST(req: Request) {
         category: categoryName || null,
         postalCode,
         city,
+        country,
         status: "PENDING",
         submittedById: session.user.id,
       },

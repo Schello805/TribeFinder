@@ -11,11 +11,20 @@ type SuggestionItem = {
   category: string | null;
   postalCode: string | null;
   city: string | null;
+  country: string | null;
   createdAt: string;
   decidedAt: string | null;
   createdBy: { id: string; email: string; name: string | null };
   decidedByAdmin: { id: string; email: string; name: string | null } | null;
-  link: { id: string; url: string; title: string; category: string | null; postalCode: string | null; city: string | null };
+  link: {
+    id: string;
+    url: string;
+    title: string;
+    category: string | null;
+    postalCode: string | null;
+    city: string | null;
+    country: string | null;
+  };
 };
 
 function normalize(v: string | null | undefined): string {
@@ -133,6 +142,7 @@ export default function AdminLinkSuggestionsManager() {
                     <FieldDiff label="Kategorie" oldValue={x.link.category} newValue={x.category} />
                     <FieldDiff label="PLZ" oldValue={x.link.postalCode} newValue={x.postalCode} />
                     <FieldDiff label="Ort" oldValue={x.link.city} newValue={x.city} />
+                    <FieldDiff label="Land" oldValue={x.link.country} newValue={x.country} />
                   </div>
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">

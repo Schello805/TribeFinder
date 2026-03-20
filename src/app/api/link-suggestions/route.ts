@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 import { notifyAdminsAboutNewLinkSuggestion } from "@/lib/notifications";
+import { isValidGermanCountryName } from "@/lib/countries";
 
 const schema = z.object({
   linkId: z.string().trim().min(1).max(200),
@@ -12,6 +13,13 @@ const schema = z.object({
   category: z.string().trim().min(2).max(40).nullable().optional(),
   postalCode: z.string().trim().regex(/^\d{5}$/).nullable().optional(),
   city: z.string().trim().min(2).max(80).nullable().optional(),
+  country: z
+    .string()
+    .trim()
+    .min(2)
+    .nullable()
+    .optional()
+    .refine((v) => (v == null ? true : isValidGermanCountryName(v)), "Unbekanntes Land"),
 });
 
 function getSuggestionDelegate(p: typeof prisma) {
@@ -102,6 +110,7 @@ export async function POST(req: Request) {
       category: categoryName || null,
       postalCode: parsed.data.postalCode ?? null,
       city: parsed.data.city ?? null,
+      country: parsed.data.country ?? null,
       createdById: session.user.id,
       status: "PENDING",
     },

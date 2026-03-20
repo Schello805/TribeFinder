@@ -236,12 +236,14 @@ export async function PUT(
             create: {
               lat: validatedData.location.lat,
               lng: validatedData.location.lng,
-              address: validatedData.location.address
+              address: validatedData.location.address,
+              country: validatedData.location.country,
             },
             update: {
               lat: validatedData.location.lat,
               lng: validatedData.location.lng,
-              address: validatedData.location.address
+              address: validatedData.location.address,
+              country: validatedData.location.country,
             }
           }
         } : undefined,

@@ -95,6 +95,15 @@ npm run deploy
 3. **Loading States** - Skeleton Loader statt "Lädt..." Text
 4. **Error Handling** - Globale Error Boundary verhindert Crashes
 
+---
+
+## 🆕 Ergänzung (20. März 2026)
+
+- Länderfeld für **Events/Gruppen/Links** als validiertes Textfeld (weltweite Länder auf Deutsch) inkl. Autocomplete.
+- Geocoding ist nun **länderabhängig** (Nominatim `countrycodes`).
+- Filter (Events/Gruppen): Standortsuche um Land ergänzt; Event-Filter hat ein Land-Dropdown (Alle + Länder mit Events).
+- Map/Listenansichten zeigen Land konsistent an.
+
 ## ⚠️ Breaking Changes
 
 Keine! Alle Änderungen sind abwärtskompatibel.

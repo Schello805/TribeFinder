@@ -11,6 +11,8 @@ type Event = {
   eventType: string;
   startDate: Date;
   locationName: string | null;
+  address: string;
+  country: string;
   danceStyles: Array<{ style: { id: string; name: string } }>;
   group: {
     id: string;
@@ -34,6 +36,8 @@ export default async function EventsPage({
   const month = typeof monthRaw === "string" ? monthRaw.trim() : "";
   const addressRaw = sp.address;
   const address = typeof addressRaw === "string" ? addressRaw.trim() : "";
+  const countryRaw = sp.country;
+  const country = typeof countryRaw === "string" ? countryRaw.trim() : "";
   const latRaw = sp.lat;
   const lngRaw = sp.lng;
   const radiusRaw = sp.radius;
@@ -89,6 +93,7 @@ export default async function EventsPage({
     danceStyles?: { some: { styleId: string } };
     lat?: { gte: number; lte: number };
     lng?: { gte: number; lte: number };
+    country?: string;
   } = {
     startDate: {
       gte: now,
@@ -106,6 +111,13 @@ export default async function EventsPage({
   if (danceStyleId) {
     baseWhereClause.danceStyles = { some: { styleId: danceStyleId } };
   }
+
+  if (country) {
+    baseWhereClause.country = country;
+  }
+
+  const baseWhereForFacets = { ...baseWhereClause };
+  delete baseWhereForFacets.country;
 
   if (Number.isFinite(lat) && Number.isFinite(lng)) {
     const r = Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : 50;
@@ -133,7 +145,7 @@ export default async function EventsPage({
   }).event;
 
   const monthRows = (await eventDelegate.findMany({
-    where: baseWhereClause,
+    where: baseWhereForFacets,
     select: { startDate: true },
     orderBy: { startDate: "asc" },
     take: 2000,
@@ -151,6 +163,21 @@ export default async function EventsPage({
         .filter(Boolean) as string[]
     )
   );
+
+  const countryRows = (await eventDelegate.findMany({
+    where: baseWhereForFacets,
+    select: { country: true },
+    distinct: ["country"],
+    take: 2000,
+  })) as unknown as Array<{ country: string | null }>;
+
+  const availableCountries = Array.from(
+    new Set(
+      countryRows
+        .map((r) => (typeof r.country === "string" ? r.country.trim() : ""))
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b, "de"));
 
   const events = (await eventDelegate.findMany({
     where: whereClause,
@@ -193,7 +220,7 @@ export default async function EventsPage({
         <div className="mt-1 text-sm text-[var(--muted)]">{events.length} Events gefunden</div>
       </div>
 
-      <EventFilter availableMonths={availableMonths} initialAddress={address} />
+      <EventFilter availableMonths={availableMonths} availableCountries={availableCountries} initialAddress={address} />
 
       {events.length === 0 ? (
         <div className="text-center py-20 bg-[var(--surface-2)] text-[var(--foreground)] rounded-lg border border-dashed border-[var(--border)]">
@@ -235,11 +262,18 @@ export default async function EventsPage({
                   <span className="flex items-center gap-1">
                     🕒 {formatBerlin(event.startDate, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} Uhr
                   </span>
-                  {event.locationName && (
-                    <span className="flex items-center gap-1">
-                      📍 {event.locationName}
-                    </span>
-                  )}
+                  <span className="flex items-center gap-1">
+                    📍 {(() => {
+                      const loc = (event.locationName || "").trim();
+                      if (loc) return loc;
+                      const addr = (event.address || "").trim();
+                      const c = (event.country || "").trim();
+                      if (!addr) return c || "";
+                      if (!c) return addr;
+                      if (addr.toLowerCase().includes(c.toLowerCase())) return addr;
+                      return `${addr}, ${c}`;
+                    })()}
+                  </span>
                   {event.group && (
                     <span className="flex items-center gap-1">
                       👥 <Link href={`/groups/${event.group.id}`} className="hover:underline">{event.group.name}</Link>

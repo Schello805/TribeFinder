@@ -130,6 +130,7 @@ export async function PUT(
       endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
       locationName: validatedData.locationName,
       address: validatedData.address,
+      country: validatedData.country,
       lat: validatedData.lat,
       lng: validatedData.lng,
       flyer1,

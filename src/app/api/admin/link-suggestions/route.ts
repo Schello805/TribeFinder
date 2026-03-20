@@ -11,6 +11,7 @@ type SuggestionRow = {
   category: string | null;
   postalCode: string | null;
   city: string | null;
+  country: string | null;
   createdAt: Date;
   decidedAt: Date | null;
   createdBy: { id: string; email: string; name: string | null };
@@ -22,6 +23,7 @@ type SuggestionRow = {
     category: string | null;
     postalCode: string | null;
     city: string | null;
+    country: string | null;
   };
 };
 
@@ -62,11 +64,12 @@ export async function GET(req: Request) {
         category: true,
         postalCode: true,
         city: true,
+        country: true,
         createdAt: true,
         decidedAt: true,
         createdBy: { select: { id: true, email: true, name: true } },
         decidedByAdmin: { select: { id: true, email: true, name: true } },
-        link: { select: { id: true, url: true, title: true, category: true, postalCode: true, city: true } },
+        link: { select: { id: true, url: true, title: true, category: true, postalCode: true, city: true, country: true } },
       },
       take: 500,
     });

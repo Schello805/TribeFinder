@@ -47,6 +47,7 @@ type EventLike = {
   endDate: Date | null;
   locationName: string | null;
   address: string | null;
+  country: string;
   lat: number;
   lng: number;
   flyer1: string | null;
@@ -191,6 +192,15 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const isDefaultLatLng = event.lat === 51.1657 && event.lng === 10.4515;
   const hasLocation = Boolean((event.address || "").trim()) || (!isDefaultLatLng && Number.isFinite(event.lat) && Number.isFinite(event.lng));
   const isExpired = new Date(event.startDate).getTime() < +new Date();
+
+  const displayAddress = (() => {
+    const addr = (event.address || "").trim();
+    const country = (event.country || "").trim();
+    if (!addr) return "";
+    if (!country) return addr;
+    if (new RegExp(`\\b${country.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(addr)) return addr;
+    return `${addr}, ${country}`;
+  })();
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12 px-4 sm:px-0">
@@ -357,7 +367,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               <h2 className="tf-display text-xl font-bold text-[var(--foreground)] mb-4">Veranstaltungsort</h2>
               <div className="space-y-1 text-[var(--foreground)] mb-4">
                 <p className="font-semibold text-lg">{event.locationName}</p>
-                {event.address && <p>{event.address}</p>}
+                {displayAddress ? <p>{displayAddress}</p> : null}
                 
                 {hasLocation && (
                   <div className="pt-3">

@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { jsonBadRequest, jsonUnauthorized } from "@/lib/apiResponse";
 import { z } from "zod";
-import { geocodeGermany } from "@/lib/geocode";
+import { geocodeByCountry } from "@/lib/geocode";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -24,6 +24,7 @@ function getSuggestionDelegate(p: typeof prisma) {
           category: string | null;
           postalCode: string | null;
           city: string | null;
+          country: string | null;
         } | null>;
         update: (args: unknown) => Promise<unknown>;
       };
@@ -74,6 +75,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         category: true,
         postalCode: true,
         city: true,
+        country: true,
       },
     });
 
@@ -102,9 +104,11 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     let lng: number | null = null;
     let locationSource: "GEOCODE" | null = null;
 
+    const nextCountry = (suggestion.country || "Deutschland").trim() || "Deutschland";
+
     if (suggestion.postalCode || suggestion.city) {
       try {
-        const r = await geocodeGermany(`${suggestion.postalCode ?? ""} ${suggestion.city ?? ""}`.trim());
+        const r = await geocodeByCountry(`${suggestion.postalCode ?? ""} ${suggestion.city ?? ""}`.trim(), nextCountry);
         if (r) {
           lat = r.lat;
           lng = r.lng;
@@ -123,6 +127,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
         category: suggestion.category,
         postalCode: suggestion.postalCode,
         city: suggestion.city,
+        country: suggestion.country,
         lat,
         lng,
         locationSource,

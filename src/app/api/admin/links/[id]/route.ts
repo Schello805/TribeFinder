@@ -3,7 +3,8 @@ import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/requireAdmin";
 import { jsonUnauthorized } from "@/lib/apiResponse";
 import { z } from "zod";
-import { geocodeGermany } from "@/lib/geocode";
+import { geocodeByCountry } from "@/lib/geocode";
+import { isValidGermanCountryName } from "@/lib/countries";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -15,6 +16,7 @@ function getExternalLinkDelegate(p: typeof prisma) {
           id: string;
           postalCode: string | null;
           city: string | null;
+          country: string | null;
           approvedById: string | null;
           submittedById: string;
           status: string;
@@ -39,6 +41,13 @@ const updateSchema = z.object({
   category: z.string().trim().min(2).max(40).nullable().optional(),
   postalCode: z.string().trim().regex(/^\d{5}$/).nullable().optional(),
   city: z.string().trim().min(2).max(80).nullable().optional(),
+  country: z
+    .string()
+    .trim()
+    .min(2)
+    .nullable()
+    .optional()
+    .refine((v) => (v == null ? true : isValidGermanCountryName(v)), "Unbekanntes Land"),
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "OFFLINE"]).optional(),
   archivedAt: z.enum(["SET", "CLEAR"]).optional(),
 });
@@ -80,22 +89,30 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
   const existing = await delegate.findUnique({
     where: { id },
-    select: { id: true, postalCode: true, city: true, approvedById: true, submittedById: true, status: true, archivedAt: true },
+    select: { id: true, postalCode: true, city: true, country: true, approvedById: true, submittedById: true, status: true, archivedAt: true },
   });
 
   if (!existing) return NextResponse.json({ message: "Nicht gefunden" }, { status: 404 });
 
   const nextPostalCode = typeof parsed.data.postalCode !== "undefined" ? parsed.data.postalCode : existing.postalCode;
   const nextCity = typeof parsed.data.city !== "undefined" ? parsed.data.city : existing.city;
+  const nextCountry =
+    typeof parsed.data.country !== "undefined"
+      ? ((parsed.data.country || "Deutschland").trim() || "Deutschland")
+      : ((existing.country || "Deutschland").trim() || "Deutschland");
 
   let lat: number | null | undefined = undefined;
   let lng: number | null | undefined = undefined;
   let locationSource: "GEOCODE" | null | undefined = undefined;
 
-  if (typeof parsed.data.postalCode !== "undefined" || typeof parsed.data.city !== "undefined") {
+  if (
+    typeof parsed.data.postalCode !== "undefined" ||
+    typeof parsed.data.city !== "undefined" ||
+    typeof parsed.data.country !== "undefined"
+  ) {
     if (nextPostalCode || nextCity) {
       try {
-        const r = await geocodeGermany(`${nextPostalCode ?? ""} ${nextCity ?? ""}`.trim());
+        const r = await geocodeByCountry(`${nextPostalCode ?? ""} ${nextCity ?? ""}`.trim(), nextCountry);
         if (r) {
           lat = r.lat;
           lng = r.lng;
@@ -128,6 +145,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
         category: typeof parsed.data.category !== "undefined" ? categoryName || null : undefined,
         postalCode: typeof parsed.data.postalCode !== "undefined" ? parsed.data.postalCode : undefined,
         city: typeof parsed.data.city !== "undefined" ? parsed.data.city : undefined,
+        country: typeof parsed.data.country !== "undefined" ? nextCountry : undefined,
         lat,
         lng,
         locationSource,

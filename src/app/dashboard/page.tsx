@@ -206,7 +206,17 @@ export default async function DashboardPage() {
                       </p>
                       <div className="mt-2 flex items-center text-sm text-[var(--muted)] sm:mt-0">
                         {group.location ? (
-                          <p>📍 {group.location.address || "Standort auf Karte festgelegt"}</p>
+                          <p>
+                            📍{" "}
+                            {(() => {
+                              const addr = (group.location.address || "Standort auf Karte festgelegt").trim();
+                              const country = (group.location as unknown as { country?: string | null })?.country;
+                              const c = (country || "").trim();
+                              if (!c) return addr;
+                              if (addr.toLowerCase().includes(c.toLowerCase())) return addr;
+                              return `${addr}, ${c}`;
+                            })()}
+                          </p>
                         ) : (
                           <p>Kein Standort</p>
                         )}
