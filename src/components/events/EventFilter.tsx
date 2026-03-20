@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useDebounce } from "use-debounce";
 import { getCountryCodeFromGermanName } from "@/lib/countries";
+import { getGeolocationErrorToast } from "@/lib/geolocationError";
+import { useToast } from "@/components/ui/Toast";
 
 type Props = {
   availableMonths: string[];
@@ -14,6 +16,7 @@ type Props = {
 export default function EventFilter({ availableMonths, availableCountries, initialAddress }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const searchParamsString = searchParams.toString();
   const [search, setSearch] = useState(searchParams.get("q") || "");
   const [danceStyleId, setDanceStyleId] = useState(searchParams.get("danceStyleId") || "");
@@ -196,8 +199,10 @@ export default function EventFilter({ availableMonths, availableCountries, initi
         }
         setIsLocating(false);
       },
-      () => {
+      (error) => {
         setIsLocating(false);
+        const t = getGeolocationErrorToast(error);
+        showToast(t.message, t.level);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );

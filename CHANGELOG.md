@@ -12,6 +12,10 @@
 - Map: Gruppen-Popup zeigt Land am Standort an.
 - DB: Backfill-Script für fehlende Länderwerte (`npm run db:backfill-country`).
 
+### 📍 Standort
+
+- Verbesserte Fehlermeldungen bei Standort-Ermittlung (Safari/macOS): konkrete Hinweise für Berechtigung / nicht verfügbar / Timeout.
+
 ## [Unreleased] - 2026-03-19
 
 ### 🧩 Events

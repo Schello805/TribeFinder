@@ -6,6 +6,7 @@ import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useToast } from "@/components/ui/Toast";
 import { getCountryCodeFromGermanName } from "@/lib/countries";
 import CountryAutocompleteInput from "@/components/ui/CountryAutocompleteInput";
+import { getGeolocationErrorToast } from "@/lib/geolocationError";
 
 export default function GroupFilter() {
   const { showToast } = useToast();
@@ -234,7 +235,8 @@ export default function GroupFilter() {
         (error) => {
           console.error(error);
           setIsLocating(false);
-          showToast('Standort konnte nicht ermittelt werden', 'error');
+          const t = getGeolocationErrorToast(error);
+          showToast(t.message, t.level);
         }
       );
     } else {

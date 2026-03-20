@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { useToast } from "@/components/ui/Toast";
+import { getGeolocationErrorToast } from "@/lib/geolocationError";
 import "leaflet/dist/leaflet.css";
 
 L.Icon.Default.mergeOptions({
@@ -109,9 +110,10 @@ export default function RadiusMapPicker({ lat, lng, radiusKm, onChange }: Props)
         setIsLocating(false);
         onChange({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
-      () => {
+      (error) => {
         setIsLocating(false);
-        showToast('Standort konnte nicht ermittelt werden', 'error');
+        const t = getGeolocationErrorToast(error);
+        showToast(t.message, t.level);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );

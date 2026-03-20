@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "@/lib/hooks/useDebounce";
+import { useToast } from "@/components/ui/Toast";
+import { getGeolocationErrorToast } from "@/lib/geolocationError";
 
 const categories = [
   { value: "", label: "Alle" },
@@ -39,6 +41,7 @@ export default function MarketplaceFilterBar(props: {
 }) {
   const router = useRouter();
   const sp = useSearchParams();
+  const { showToast } = useToast();
 
   const [query, setQuery] = useState(() => props.query);
   const [category, setCategory] = useState(() => props.category);
@@ -151,7 +154,11 @@ export default function MarketplaceFilterBar(props: {
         setAddress("Mein Standort");
         setIsLocating(false);
       },
-      () => setIsLocating(false)
+      (error) => {
+        const t = getGeolocationErrorToast(error);
+        setIsLocating(false);
+        showToast(t.message, t.level);
+      }
     );
   };
 

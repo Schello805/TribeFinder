@@ -9,6 +9,7 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import { getGeolocationErrorToast } from "@/lib/geolocationError";
 
 type NominatimReverseResult = {
   address?: {
@@ -319,7 +320,8 @@ export default function Map({ groups, events = [], availableTags = [], links = [
           console.error("Error getting location", error);
           setIsLocating(false);
           stopWatchingUserLocation();
-          showToast("Standort konnte nicht ermittelt werden", "error");
+          const t = getGeolocationErrorToast(error);
+          showToast(t.message, t.level);
         },
         { enableHighAccuracy: false, maximumAge: 30_000, timeout: 12_000 }
       );
