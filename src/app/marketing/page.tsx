@@ -11,11 +11,18 @@ export const metadata: Metadata = {
     "Offizielles Marketing-Material von TribeFinder: Logo, Header und Plakate zum Download und Teilen.",
 };
 
-type MarketingAssetType = "LOGO" | "HEADER" | "POSTER";
+type MarketingAssetCategory = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  order: number;
+};
 
 type MarketingAsset = {
   id: string;
-  type: MarketingAssetType;
+  categoryId: string;
+  category?: MarketingAssetCategory | null;
   title: string;
   description: string | null;
   fileUrl: string;
@@ -38,27 +45,32 @@ function formatBytes(bytes: number) {
 }
 
 export default async function MarketingPage() {
-  const marketingAssetDelegate = (prisma as unknown as { marketingAsset?: { findMany: (args: unknown) => Promise<unknown> } }).marketingAsset;
+  const marketingAssetDelegate = (prisma as unknown as {
+    marketingAsset?: { findMany: (args: unknown) => Promise<unknown> };
+    marketingAssetCategory?: { findMany: (args: unknown) => Promise<unknown> };
+  }).marketingAsset;
+
+  const marketingCategoryDelegate = (prisma as unknown as {
+    marketingAssetCategory?: { findMany: (args: unknown) => Promise<unknown> };
+  }).marketingAssetCategory;
+
+  const categories = (marketingCategoryDelegate
+    ? ((await marketingCategoryDelegate.findMany({
+        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+      })) as unknown as MarketingAssetCategory[])
+    : []) as MarketingAssetCategory[];
+
   const items = (marketingAssetDelegate
     ? ((await marketingAssetDelegate.findMany({
         orderBy: { createdAt: "desc" },
+        include: { category: true },
       })) as unknown as MarketingAsset[])
     : []) as MarketingAsset[];
 
-  const grouped = items.reduce((acc: Record<MarketingAssetType, MarketingAsset[]>, item: MarketingAsset) => {
-    acc[item.type].push(item);
+  const grouped = items.reduce((acc: Record<string, MarketingAsset[]>, item: MarketingAsset) => {
+    (acc[item.categoryId] ||= []).push(item);
     return acc;
-  }, {
-    LOGO: [],
-    HEADER: [],
-    POSTER: [],
-  });
-
-  const sections: Array<{ key: "LOGO" | "HEADER" | "POSTER"; title: string; subtitle: string }> = [
-    { key: "LOGO", title: "Logo", subtitle: "Für Webseiten, Social Media und Flyer" },
-    { key: "HEADER", title: "Header / Banner", subtitle: "Für Webseiten, Newsletter oder Social Posts" },
-    { key: "POSTER", title: "Plakate", subtitle: "Zum Download und Weiterverteilen" },
-  ];
+  }, {} as Record<string, MarketingAsset[]>);
 
   return (
     <div className="max-w-4xl mx-auto space-y-10">
@@ -96,14 +108,14 @@ export default async function MarketingPage() {
         </div>
       </section>
 
-      {sections.map((sec) => {
-        const list = grouped[sec.key] || [];
+      {categories.map((sec) => {
+        const list = grouped[sec.id] || [];
         return (
-          <section key={sec.key} className="space-y-4">
+          <section key={sec.id} className="space-y-4">
             <div className="flex items-end justify-between gap-4 flex-wrap">
               <div>
                 <div className="tf-display text-xl font-bold text-[var(--foreground)]">{sec.title}</div>
-                <div className="text-sm text-[var(--muted)]">{sec.subtitle}</div>
+                {sec.subtitle ? <div className="text-sm text-[var(--muted)]">{sec.subtitle}</div> : null}
               </div>
               <div className="text-xs text-[var(--muted)]">{list.length} Datei(en)</div>
             </div>
@@ -117,7 +129,7 @@ export default async function MarketingPage() {
                 {list.map((item) => {
                   const url = normalizeUploadedImageUrl(item.fileUrl) || item.fileUrl;
                   const isPdf = (item.mimeType || "").toLowerCase().includes("pdf") || url.toLowerCase().endsWith(".pdf");
-                  const isLogo = item.type === "LOGO";
+                  const isLogo = (item.category?.slug || "") === "logo";
                   return (
                     <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
                       <div className="p-4 space-y-2">

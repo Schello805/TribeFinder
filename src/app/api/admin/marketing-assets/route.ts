@@ -18,16 +18,8 @@ const ALLOWED_MIME_TYPES = [
 
 type AllowedMime = (typeof ALLOWED_MIME_TYPES)[number];
 
-type MarketingAssetType = "LOGO" | "HEADER" | "POSTER";
-
 function isAllowedMime(mime: string): mime is AllowedMime {
   return (ALLOWED_MIME_TYPES as readonly string[]).includes(mime);
-}
-
-function sanitizeAssetType(v: unknown): MarketingAssetType | null {
-  const s = typeof v === "string" ? v.trim().toUpperCase() : "";
-  if (s === "LOGO" || s === "HEADER" || s === "POSTER") return s;
-  return null;
 }
 
 function extFromFileOrMime(originalName: string, mime: AllowedMime) {
@@ -46,9 +38,16 @@ export async function GET() {
   if (!session) return jsonUnauthorized();
 
   try {
-    const items = await prisma.marketingAsset.findMany({
-      orderBy: { createdAt: "desc" },
-    });
+    const marketingAssetDelegate = (prisma as unknown as {
+      marketingAsset?: { findMany: (args: unknown) => Promise<unknown> };
+    }).marketingAsset;
+
+    const items = (marketingAssetDelegate
+      ? ((await marketingAssetDelegate.findMany({
+          orderBy: { createdAt: "desc" },
+          include: { category: true },
+        })) as unknown as unknown[])
+      : []) as unknown[];
     return NextResponse.json({ items });
   } catch (error) {
     return jsonServerError("Fehler beim Laden", error);
@@ -60,18 +59,40 @@ export async function POST(req: Request) {
   if (!session) return jsonUnauthorized();
 
   try {
+    const marketingAssetCategoryDelegate = (prisma as unknown as {
+      marketingAssetCategory?: {
+        findUnique: (args: unknown) => Promise<unknown>;
+      };
+    }).marketingAssetCategory;
+
+    const marketingAssetDelegate = (prisma as unknown as {
+      marketingAsset?: {
+        create: (args: unknown) => Promise<unknown>;
+      };
+    }).marketingAsset;
+
     const formData = await req.formData();
 
-    const type = sanitizeAssetType(formData.get("type"));
+    const categoryId = String(formData.get("categoryId") || "").trim();
     const title = String(formData.get("title") || "").trim();
     const description = String(formData.get("description") || "").trim();
 
     const fileEntry = formData.get("file");
     const file = fileEntry instanceof File ? fileEntry : null;
 
-    if (!type) return jsonBadRequest("Ungültiger Typ");
+    if (!categoryId) return jsonBadRequest("Kategorie fehlt");
     if (!title) return jsonBadRequest("Titel fehlt");
     if (!file) return jsonBadRequest("Keine Datei hochgeladen");
+
+    if (!marketingAssetCategoryDelegate || !marketingAssetDelegate) {
+      return jsonServerError("Marketing-Schema fehlt", null);
+    }
+
+    const category = (await marketingAssetCategoryDelegate.findUnique({
+      where: { id: categoryId },
+      select: { id: true, slug: true },
+    })) as { id: string; slug: string } | null;
+    if (!category) return jsonBadRequest("Ungültige Kategorie");
 
     if (file.size > MAX_FILE_SIZE) {
       return jsonBadRequest("Datei zu groß");
@@ -86,7 +107,7 @@ export async function POST(req: Request) {
     await mkdir(uploadDir, { recursive: true });
 
     const ext = extFromFileOrMime(file.name || "", file.type);
-    const filename = `marketing-${type.toLowerCase()}-${crypto.randomUUID()}${ext}`;
+    const filename = `marketing-${category.slug}-${crypto.randomUUID()}${ext}`;
     const filepath = path.join(uploadDir, filename);
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -95,9 +116,9 @@ export async function POST(req: Request) {
 
     const fileUrl = `/uploads/marketing/${filename}`;
 
-    const item = await prisma.marketingAsset.create({
+    const item = await marketingAssetDelegate.create({
       data: {
-        type,
+        categoryId: category.id,
         title,
         description: description || null,
         fileUrl,

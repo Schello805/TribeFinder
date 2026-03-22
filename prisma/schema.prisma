@@ -458,20 +458,29 @@ enum MarketplaceLocationSource {
   GEOCODE
 }
 
-enum MarketingAssetType {
-  LOGO
-  HEADER
-  POSTER
-}
-
 model SystemSetting {
   key   String @id
   value String
 }
 
+model MarketingAssetCategory {
+  id       String @id @default(cuid())
+  slug     String @unique
+  title    String
+  subtitle String?
+  order    Int    @default(0)
+
+  assets MarketingAsset[]
+
+  createdAt DateTime @default(now())
+
+  @@index([order])
+}
+
 model MarketingAsset {
   id          String             @id @default(cuid())
-  type        MarketingAssetType
+  categoryId  String
+  category    MarketingAssetCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   title       String
   description String?
   fileUrl     String
@@ -480,7 +489,7 @@ model MarketingAsset {
 
   createdAt DateTime @default(now())
 
-  @@index([type])
+  @@index([categoryId])
   @@index([createdAt])
 }
 

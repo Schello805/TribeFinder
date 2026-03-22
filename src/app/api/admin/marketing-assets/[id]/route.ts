@@ -14,10 +14,21 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    const existing = await prisma.marketingAsset.findUnique({ where: { id } });
+    const marketingAssetDelegate = (prisma as unknown as {
+      marketingAsset?: {
+        findUnique: (args: unknown) => Promise<unknown>;
+        delete: (args: unknown) => Promise<unknown>;
+      };
+    }).marketingAsset;
+
+    if (!marketingAssetDelegate) {
+      return jsonServerError("Marketing-Schema fehlt", null);
+    }
+
+    const existing = (await marketingAssetDelegate.findUnique({ where: { id } })) as { fileUrl?: string | null } | null;
     if (!existing) return NextResponse.json({ ok: true });
 
-    await prisma.marketingAsset.delete({ where: { id } });
+    await marketingAssetDelegate.delete({ where: { id } });
 
     const url = (existing.fileUrl || "").trim();
     await deleteUploadByPublicUrl(url).catch(() => undefined);

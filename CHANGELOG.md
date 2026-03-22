@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased] - 2026-03-22
+
+### 📣 Marketing
+
+- Marketing: Asset-Typen sind jetzt dynamische Kategorien (DB-verwaltet) statt fester Enum (Logo/Header/Poster).
+- Admin → Marketing: Kategorien können angelegt/gelöscht werden; Uploads werden Kategorien zugeordnet.
+- /marketing: Bereiche/Sektionen werden automatisch aus Kategorien gerendert.
+
 ## [Unreleased] - 2026-03-20
 
 ### 🌍 Länder
