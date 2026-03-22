@@ -13,6 +13,8 @@ const ALLOWED_MIME_TYPES = [
   "image/jpeg",
   "image/webp",
   "image/gif",
+  "video/mp4",
+  "audio/mpeg",
   "application/pdf",
 ] as const;
 
@@ -29,6 +31,8 @@ function extFromFileOrMime(originalName: string, mime: AllowedMime) {
   if (mime === "image/jpeg") return ".jpg";
   if (mime === "image/webp") return ".webp";
   if (mime === "image/gif") return ".gif";
+  if (mime === "video/mp4") return ".mp4";
+  if (mime === "audio/mpeg") return ".mp3";
   if (mime === "application/pdf") return ".pdf";
   return "";
 }

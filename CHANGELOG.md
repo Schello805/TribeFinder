@@ -7,6 +7,7 @@
 - Marketing: Asset-Typen sind jetzt dynamische Kategorien (DB-verwaltet) statt fester Enum (Logo/Header/Poster).
 - Admin → Marketing: Kategorien können angelegt/gelöscht werden; Uploads werden Kategorien zugeordnet.
 - /marketing: Bereiche/Sektionen werden automatisch aus Kategorien gerendert.
+- Marketing: Upload unterstützt jetzt auch MP4 (Video) und MP3 (Audio) inkl. Abspielen im Admin und auf /marketing.
 
 ## [Unreleased] - 2026-03-20
 

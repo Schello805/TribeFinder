@@ -347,7 +347,7 @@ export default function AdminMarketingAssetsManager() {
             {saving ? "Bitte warten..." : "Datei auswählen & hochladen"}
             <input
               type="file"
-              accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
+              accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,video/mp4,audio/mpeg"
               disabled={saving}
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -358,7 +358,7 @@ export default function AdminMarketingAssetsManager() {
             />
           </label>
 
-          <div className="text-xs text-gray-500 dark:text-gray-400">Max. 15MB • PNG/JPG/WebP/GIF/PDF</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">Max. 15MB • PNG/JPG/WebP/GIF/PDF/MP4/MP3</div>
         </div>
       </div>
 
@@ -378,6 +378,8 @@ export default function AdminMarketingAssetsManager() {
                   {(grouped[c.id] || []).map((item) => {
                     const url = normalizeUploadedImageUrl(item.fileUrl) || item.fileUrl;
                     const isPdf = (item.mimeType || "").toLowerCase().includes("pdf") || url.toLowerCase().endsWith(".pdf");
+                    const isVideo = (item.mimeType || "").toLowerCase().startsWith("video/") || url.toLowerCase().endsWith(".mp4");
+                    const isAudio = (item.mimeType || "").toLowerCase().startsWith("audio/") || url.toLowerCase().endsWith(".mp3");
                     const isLogo = (item.category?.slug || c.slug) === "logo";
                     return (
                       <div key={item.id} className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden">
@@ -394,6 +396,14 @@ export default function AdminMarketingAssetsManager() {
 
                         {isPdf ? (
                           <div className="px-4 pb-4 text-xs text-gray-500 dark:text-gray-400">PDF Vorschau nicht eingebettet.</div>
+                        ) : isVideo ? (
+                          <div className="w-full bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
+                            <video src={url} controls className="w-full h-auto max-h-96" />
+                          </div>
+                        ) : isAudio ? (
+                          <div className="w-full bg-gray-50 dark:bg-gray-900 p-4">
+                            <audio src={url} controls className="w-full" />
+                          </div>
                         ) : (
                           <div className="w-full bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
                             <Image

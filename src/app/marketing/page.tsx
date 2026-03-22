@@ -129,6 +129,8 @@ export default async function MarketingPage() {
                 {list.map((item) => {
                   const url = normalizeUploadedImageUrl(item.fileUrl) || item.fileUrl;
                   const isPdf = (item.mimeType || "").toLowerCase().includes("pdf") || url.toLowerCase().endsWith(".pdf");
+                  const isVideo = (item.mimeType || "").toLowerCase().startsWith("video/") || url.toLowerCase().endsWith(".mp4");
+                  const isAudio = (item.mimeType || "").toLowerCase().startsWith("audio/") || url.toLowerCase().endsWith(".mp3");
                   const isLogo = (item.category?.slug || "") === "logo";
                   return (
                     <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
@@ -144,6 +146,14 @@ export default async function MarketingPage() {
                       <div className="border-t border-[var(--border)] bg-[var(--surface-2)]">
                         {isPdf ? (
                           <div className="p-4 text-sm text-[var(--muted)]">PDF Vorschau nicht eingebettet – bitte herunterladen.</div>
+                        ) : isVideo ? (
+                          <div className="w-full bg-[var(--surface)] p-4 flex items-center justify-center">
+                            <video src={url} controls className="w-full h-auto max-h-[70vh]" />
+                          </div>
+                        ) : isAudio ? (
+                          <div className="w-full bg-[var(--surface)] p-4">
+                            <audio src={url} controls className="w-full" />
+                          </div>
                         ) : (
                           <div className="w-full bg-[var(--surface)] p-4 flex items-center justify-center">
                             <Image
