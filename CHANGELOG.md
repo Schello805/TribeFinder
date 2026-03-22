@@ -13,6 +13,10 @@
 
 - Wartungsseite: Logo wird wieder zuverlässig angezeigt (relativer Pfad + Fallback auf /icons/icon-512.png).
 
+### 🚀 Deploy
+
+- Deploy (native): Schwere Steps (npm install/prisma generate/next build) laufen mit niedrigerer CPU/IO-Priorität; Hinweis wenn kein Swap aktiv ist.
+
 ## [Unreleased] - 2026-03-20
 
 ### 🌍 Länder

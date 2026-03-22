@@ -15,6 +15,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+run_lowprio() {
+    if command -v ionice >/dev/null 2>&1; then
+        nice -n 10 ionice -c2 -n7 "$@"
+    else
+        nice -n 10 "$@"
+    fi
+}
+
 # Prüfe ob Script als tribefinder User läuft
 if [ "$USER" != "tribefinder" ]; then
     echo -e "${RED}Fehler: Dieses Script muss als 'tribefinder' User ausgeführt werden!${NC}"
@@ -35,6 +43,11 @@ if [ "$CAN_SUDO" -eq 1 ]; then
     sudo chown -R tribefinder:tribefinder /var/www/tribefinder
     sudo chmod 755 /var/www/tribefinder || true
     sudo chmod 755 /var/www/tribefinder/uploads /var/www/tribefinder/backups || true
+fi
+
+if ! swapon --show 2>/dev/null | grep -q .; then
+    echo -e "${YELLOW}Hinweis: Kein Swap aktiv. Bei kleinen VMs kann next build während Deploy kurz 'einfrieren'.${NC}"
+    echo -e "${YELLOW}Empfehlung: 2-4GB Swap aktivieren (einmalig als root).${NC}"
 fi
 
 # Stelle sicher dass Upload-Verzeichnis existiert (und beschreibbar ist)
@@ -196,15 +209,15 @@ echo ""
 # Dependencies installieren
 echo -e "${YELLOW}[3/7] Installiere Dependencies...${NC}"
 if [ -f "package-lock.json" ]; then
-    npm ci --include=optional
+    run_lowprio npm ci --include=optional
 else
-    npm install
+    run_lowprio npm install
 fi
 echo ""
 
 # Prisma generieren
 echo -e "${YELLOW}[4/7] Generiere Prisma Client...${NC}"
-npm run db:generate
+run_lowprio npm run db:generate
 echo ""
 
 # Migrationen ausführen
@@ -224,7 +237,7 @@ echo -e "${YELLOW}Synchronisiere DB Schema (Prisma db push)...${NC}"
 bash ./scripts/db-migrate-safe.sh
 
 echo -e "${YELLOW}Generiere Prisma Client nach Migration...${NC}"
-npm run db:generate
+run_lowprio npm run db:generate
 
 
 
@@ -235,7 +248,7 @@ echo ""
 
 # Production Build
 echo -e "${YELLOW}[6/7] Erstelle Production Build...${NC}"
-npm run build
+run_lowprio npm run build
 
 # Next.js standalone served static files live under .next/standalone/public
 # Ensure uploads are reachable under /uploads/* in production
