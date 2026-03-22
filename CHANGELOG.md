@@ -9,6 +9,10 @@
 - /marketing: Bereiche/Sektionen werden automatisch aus Kategorien gerendert.
 - Marketing: Upload unterstützt jetzt auch MP4 (Video) und MP3 (Audio) inkl. Abspielen im Admin und auf /marketing.
 
+### 🧰 Maintenance
+
+- Wartungsseite: Logo wird wieder zuverlässig angezeigt (relativer Pfad + Fallback auf /icons/icon-512.png).
+
 ## [Unreleased] - 2026-03-20
 
 ### 🌍 Länder
