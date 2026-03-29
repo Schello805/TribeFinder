@@ -77,6 +77,12 @@ export default function DatenschutzPage() {
           <p className="mt-2">
             Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertrag/vertragsähnliches Nutzungsverhältnis).
           </p>
+
+          <h3 className="tf-display font-medium text-[var(--foreground)] mt-4">Löschung deines Nutzerkontos (Self-Service)</h3>
+          <p>
+            Du kannst dein Nutzerkonto jederzeit selbstständig in deinem Profil dauerhaft löschen. Dabei werden dein Profil und deine zugehörigen Daten (inkl. Kalender/Events)
+            unwiderruflich entfernt.
+          </p>
         </section>
 
         <section>

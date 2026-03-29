@@ -17,6 +17,16 @@
 
 - Deploy (native): Schwere Steps (npm install/prisma generate/next build) laufen mit niedrigerer CPU/IO-Priorität; Hinweis wenn kein Swap aktiv ist.
 
+## [Unreleased] - 2026-03-25
+
+### 🔐 Security
+
+- Admin: Es können keine weiteren Admins erstellt werden (Registrierung: nur erster User kann Admin sein; Admin-Promotion per API blockiert).
+
+### 🧹 Datenschutz
+
+- Profil: Self-Service „Konto & Daten löschen“ löscht Profil und zugehörige Daten inkl. Kalender/Events; Datenschutzerklärung ergänzt.
+
 ## [Unreleased] - 2026-03-20
 
 ### 🌍 Länder

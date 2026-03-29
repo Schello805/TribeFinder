@@ -62,6 +62,9 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   }
 
   try {
+    if (parsed.data.role === "ADMIN") {
+      return jsonBadRequest("Es können keine weiteren Admins erstellt werden");
+    }
     if (parsed.data.role === "USER") {
       await ensureNotLastUnblockedAdmin(id);
     }

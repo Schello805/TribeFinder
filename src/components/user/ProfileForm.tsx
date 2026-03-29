@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/types";
+import { signOut } from "next-auth/react";
 
 interface UserProfile {
   firstName?: string | null;
@@ -36,6 +37,7 @@ export default function ProfileForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [passwordForm, setPasswordForm] = useState({ password: "", confirmPassword: "" });
@@ -138,6 +140,31 @@ export default function ProfileForm() {
       showToast(msg, "error");
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "Möchtest du dein Konto wirklich dauerhaft löschen?\n\nDabei werden dein Profil und deine zugehörigen Daten (inkl. Kalender/Events) unwiderruflich entfernt."
+    );
+    if (!confirmed) return;
+
+    setIsDeletingAccount(true);
+    try {
+      const res = await fetch("/api/user/account", { method: "DELETE" });
+      const json = (await res.json().catch(() => null)) as { message?: string } | null;
+
+      if (!res.ok) {
+        throw new Error(json?.message || "Löschen fehlgeschlagen");
+      }
+
+      showToast("Dein Konto wurde gelöscht.", "success");
+      await signOut({ callbackUrl: "/" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Löschen fehlgeschlagen";
+      showToast(msg, "error");
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -732,6 +759,26 @@ export default function ProfileForm() {
           </button>
         </div>
       </form>
+
+      <div className="space-y-4 bg-[var(--surface)] text-[var(--foreground)] p-6 rounded-lg border border-red-200 shadow">
+        <div>
+          <h3 className="tf-display text-lg font-medium leading-6 text-[var(--foreground)]">Konto & Daten löschen</h3>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Löscht dein Profil und alle zugehörigen Daten inklusive Kalender/Events dauerhaft.
+          </p>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            onClick={handleDeleteAccount}
+            disabled={isDeletingAccount}
+            className="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 active:bg-red-800 disabled:opacity-50 transition"
+          >
+            {isDeletingAccount ? "Lösche..." : "Konto endgültig löschen"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

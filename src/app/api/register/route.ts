@@ -62,15 +62,13 @@ export async function POST(req: Request) {
     const defaultAdminEmail = (process.env.DEFAULT_ADMIN_EMAIL || "").trim().toLowerCase();
     const requestedEmail = email.trim().toLowerCase();
 
-    let role: "ADMIN" | "USER" = "USER";
-    if (defaultAdminEmail) {
-      role = requestedEmail === defaultAdminEmail ? "ADMIN" : "USER";
-    } else {
-      const userCount = await prisma.user.count();
-      role = userCount === 0 ? "ADMIN" : "USER";
-    }
+    // Security: only the very first account can be an admin.
+    // Subsequent registrations are always regular users.
+    const userCount = await prisma.user.count();
+    const role: "ADMIN" | "USER" = userCount === 0 ? "ADMIN" : "USER";
 
-    const autoVerify = Boolean(defaultAdminEmail) && requestedEmail === defaultAdminEmail && role === "ADMIN";
+    const autoVerify =
+      userCount === 0 && Boolean(defaultAdminEmail) && requestedEmail === defaultAdminEmail && role === "ADMIN";
 
     const verificationToken = autoVerify ? null : uuidv4();
     const verificationTokenExpiry = autoVerify ? null : new Date(Date.now() + 24 * 60 * 60 * 1000);
