@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased] - 2026-03-30
+
+### 🔐 Security
+
+- Security Headers: CSP + zusätzliche Header (u.a. HSTS in Production) zur besseren Abwehr von XSS/Mixed-Content.
+- CSP: Matomo (`analytics.schellenberger.biz`) ist explizit erlaubt; zusätzlich CSP Report-Only + Endpoint `/api/csp-report` für Monitoring.
+- HTTPS: Interne Basis-URLs (Metadata/robots/sitemap/E-Mails) normalisieren in Production auf `https://`.
+
+## [Unreleased] - 2026-03-25
+
+### 🔐 Security
+
+- Admin: Es können keine weiteren Admins erstellt werden (Registrierung: nur erster User kann Admin sein; Admin-Promotion per API blockiert).
+
+### 🧹 Datenschutz
+
+- Profil: Self-Service „Konto & Daten löschen“ löscht Profil und zugehörige Daten inkl. Kalender/Events restlos; Datenschutzerklärung ergänzt.
+
 ## [Unreleased] - 2026-03-22
 
 ### 📣 Marketing
@@ -16,16 +34,6 @@
 ### 🚀 Deploy
 
 - Deploy (native): Schwere Steps (npm install/prisma generate/next build) laufen mit niedrigerer CPU/IO-Priorität; Hinweis wenn kein Swap aktiv ist.
-
-## [Unreleased] - 2026-03-25
-
-### 🔐 Security
-
-- Admin: Es können keine weiteren Admins erstellt werden (Registrierung: nur erster User kann Admin sein; Admin-Promotion per API blockiert).
-
-### 🧹 Datenschutz
-
-- Profil: Self-Service „Konto & Daten löschen“ löscht Profil und zugehörige Daten inkl. Kalender/Events; Datenschutzerklärung ergänzt.
 
 ## [Unreleased] - 2026-03-20
 
@@ -123,84 +131,6 @@
 - Startseiten-Logo (Hero): Upload-Limit erhöht und Video (mp4/webm) als Alternative zu GIF möglich
 - Startseite: Hero zweigeteilt (links Blau/Primary, rechts Schwarz für Media) für saubere Darstellung von GIF/Video/Logo
 
-## [Unreleased] - 2026-02-22
-
-### 🧩 Gruppen
-
-- Gruppen-Flyer: Button "Flyer Vorschau" wieder sichtbar auf Gruppen-Detailseite und in "Gruppe bearbeiten" (für Admins/Owner)
-- Gruppen-Flyer PDF: Footer zeigt jetzt "Erstellt mit TribeFinder.de"; QR-Code und Footer-URL nutzen kanonische `SITE_URL` (Fallback: `NEXTAUTH_URL`)
-- Gruppen-Flyer PDF: Details-Layout robuster (kein Überlagern von Standort/Training durch Kontakt-Block) + Tanzstile nutzen echte `danceStyles` (Fallback: Tags)
-- Gruppen-Flyer PDF: Kontaktblock zeigt immer E-Mail + Website (mit Platzhalter falls nicht hinterlegt)
-- Gruppen-Flyer PDF: Download-/Preview-Endpoint ist nicht mehr öffentlich (nur Owner/Gruppen-Admins/Global-Admins)
-- Gruppen-Flyer PDF: DIN-A4 Layout stärker gerastert (fixe Bereiche) + deutlich mehr Platz für Beschreibung; TribeFinder-Logo im Footer
-- Gruppen-Flyer PDF: "Über uns" wird wieder zuverlässig angezeigt (Layout strikt top-down; Boxen schrumpfen bei wenig Platz)
-- Gruppen-Flyer PDF: Overlap-Fix (Kontaktblock unten verankert; Tanzstile/Events darüber)
-- Gruppen: Neue öffentliche Steckbrief-Seite zum Drucken/Teilen unter `/groups/[id]/promote` (A4-Print-Layout + QR-Code)
-- Gruppen: UI vereinfacht – statt PDF-Flyer Button gibt es jetzt den Steckbrief-Link (Promote-Seite)
-- Gruppen: Steckbrief verbessert (Drucken-Button wieder verfügbar; Tanzstile zeigen Level + Impro/Choreo; Link-Text entfernt – QR genügt)
-- Gruppen: Steckbrief-Druck optimiert (Print-Icon am Steckbrief-Button; beim Drucken werden Navbar/Footer ausgeblendet + höhere Kontraste)
-- Gruppen: Steckbrief-Link öffnet in neuem Tab
-- Gruppen: Steckbrief zeigt Gruppen-Logo; Safari-Druckvorschau fix (nur Steckbrief sichtbar via Print-CSS)
-- Gruppen: Steckbrief ist jetzt immer hell (lesbar auch im Darkmode)
-- Gruppen: Steckbrief zeigt optionalen Video-QR-Code, wenn ein Video verlinkt ist
-- Gruppen: Gruppen-Übersicht (`/groups`) zeigt nun kompakt die Top 3 beliebtesten Gruppen (mit Like-Aufforderung)
-- Gruppen: Sortierung "Beliebtheit" nutzt den gleichen Like-Zähler wie die Anzeige (Union aus `GroupLike` + legacy `FavoriteGroup`)
-- Gruppen: Gruppenleitung/Mitglieder verlinken nur noch auf Tänzerinnen-Profile, wenn diese aktiviert sind (kein 404 beim Klick)
-
-### 🧰 Admin
-
-- Admin: Benutzerliste zeigt jetzt Tänzerinnenprofil-Status (aktiv/privat) zur Fehlersuche
-- Admin: Benutzer-Detailseite zeigt jetzt Tänzerinnenprofil-Status (aktiv/privat)
-- Admin: Benutzerliste zeigt Online/Offline Status
-- Admin: Benutzer-Detailseite zeigt Online-Status + zusätzliche Debug-Felder (User ID, zuletzt aktualisiert)
-- Admin: Ankündigungen/„What's new“-Modal verwaltbar unter `/admin/announcements` (mit Zeitraum + Warnung bei mehreren aktiven)
-
-### 🗺️ Roadmap
-
-- Auth/Security: konsistente Rate-Limits + Schutz für Write-Endpoints (inkl. Abuse-Schutz und klare Auth-Matrix Tests)
-- Performance: Caching/ISR für öffentliche Listen (Gruppen/Events/Tänzerinnen/Marketplace) + Query-Optimierungen/Pagination
-
-## [Unreleased] - 2026-02-25
-
-### 💃 Tanzstile
-
-- Öffentliche Tanzstile-Übersicht unter `/dance-styles` mit Suche sowie Counts für Gruppen & Tänzerinnen (nur Profile mit `isDancerProfileEnabled = true`)
-- Öffentliche Tanzstil-Detailseiten unter `/dance-styles/[id]` inkl. Website/Beschreibung/„früherer Name“ sowie optionalem Video-Link (YouTube wird eingebettet)
-- Tanzstile: Vorschlagsformular für neue Stile (nur eingeloggte User); Vorschläge sind nicht öffentlich sichtbar bis zur Admin-Freigabe
-- Tanzstile: Änderungsvorschläge für bestehende Tanzstile (nur verifizierte User) inkl. Felder wie Website/Beschreibung/Video/„früherer Name“
-- Admin: Review-Seite für Tanzstil-Vorschläge unter `/admin/dance-style-suggestions` (Freigeben/Ablehnen)
-- Datenmodell: Neues Prisma-Model `DanceStyleSuggestion` inkl. Status (PENDING/APPROVED/REJECTED)
-- Seed: Default-Liste ergänzt um **ITS** und **Wüstenrosen ATS**
-- Admin: Zentrale Tanzstil-Verwaltung unter `/admin/dance-styles` (manuell hinzufügen/bearbeiten/löschen)
-- Admin: Tanzstile können jetzt auch einen optionalen Video-Link speichern (für Detailansicht)
-- Admin: Legacy-Tag-Verwaltung (`/admin/tags`, Admin → Inhalte) auf zentrale Tanzstil-Verwaltung umgestellt
-- Gruppen: Tanzstil-Filter lädt Tanzstile zentral aus `/api/dance-styles` (kein leerer Dropdown mehr)
-- Tänzerinnen: Tanzstil-Filter in der Übersicht (`/taenzerinnen`) ergänzt
-- Admin: Tanzstil-Vorschläge werden oben auf `/admin/dance-styles` eingeblendet, wenn offene Vorschläge existieren (Approve/Reject direkt dort)
-- Admin: E-Mail-Benachrichtigung an Admins bei neuem Tanzstil-Vorschlag
-
-### 🧭 Navigation
-
-- Navbar: Primärlinks auf Gruppen/Tänzerinnen/Events/Karte fokussiert; Tanzstile + Second-Hand unter „Mehr“ (Desktop Dropdown + Mobile aufklappbar)
-
-### 📍 Standort
-
-- Startseite: Standort wird erst nach Klick („Standort aktivieren“) abgefragt (kein automatisches GPS-Popup beim Seitenaufruf)
-
-## [Unreleased] - 2026-02-27
-
-### 💃 Tanzstile
-
-- Einmalige Initialbefüllung: Tanzstil-Infos (Beschreibung/Webseite/Video) für bestehende Einträge werden per Migration gesetzt (danach Pflege über Frontend)
-- Einmalige Ergänzung: Fehlende Tanzstile aus der initialen Liste werden angelegt und mit Infos befüllt (danach Pflege über Frontend)
-- Einmalige Zuordnung: Kategorien für Tanzstile werden gesetzt (Oriental/Tribal/Fusion/Folklore/Modern/Sonstiges)
-- Detailseite: Video-Bereich wird nur angezeigt, wenn das verlinkte YouTube-Video verfügbar ist
-- Admin: Änderungsvorschläge zeigen Alt/Neu (Vergleich) für bessere Freigabe-Entscheidungen; Freigabe kann Felder auch leeren (setzt NULL)
-
-### 🔎 SEO
-
-- Events: Kalender-Seite (`/events`) wird serverseitig gerendert (bessere Indexierbarkeit, kein Client-only Fetch)
-
 ## [Unreleased] - 2026-03-05
 
 ### 🔗 Links
@@ -264,6 +194,22 @@
 
 - PWA: Ungelesene Nachrichten können (wenn unterstützt) als Badge-Zahl am App-Icon angezeigt werden; Navbar nutzt dafür den bestehenden Unread-Count Endpoint
 - PWA: Dezente Install-Promo (ohne Sticky-Banner) im Profilbereich, im Konto-Menü sowie unten auf der Startseite inkl. Anleitung für Android/iOS
+
+## [Unreleased] - 2026-03-01
+
+### 🧰 Admin
+
+- Admin: Ankündigungen/„What's new“-Modal: Vorschau-Button im Editor (ohne Speichern)
+
+### 📣 What's new (Modal)
+
+- Neues globales „What's new“-Modal für eingeloggte Nutzer (zeigt neueste aktive Ankündigung einmal pro User, inkl. Dismissal)
+- Copper-Design: Header mit Branding-Farben, Button nutzt `--primary`, kleines Logo im Header (Branding-Logo mit Fallback)
+- Robustheit: Textumbruch/Scroll bei viel Inhalt, damit nichts aus dem Modal herausläuft
+
+### 💃 Tanzstile
+
+- Seed: Tanzstile werden nur einmal initial angelegt (Flag in `SystemSetting`) und nicht automatisch erneut erzeugt, wenn Admins Einträge löschen
 
 ## [Unreleased] - 2026-02-28
 
@@ -335,21 +281,83 @@
 - Tests: Regressionstest für `POST /api/events` (inkl. `danceStyleIds`), damit kaputte Event-Erstellung sofort auffällt
 - Admin: Diagnostics prüft Prisma-Relation `Event.danceStyles` explizit
 
-## [Unreleased] - 2026-03-01
-
-### 🧰 Admin
-
-- Admin: Ankündigungen/„What's new“-Modal: Vorschau-Button im Editor (ohne Speichern)
-
-### 📣 What's new (Modal)
-
-- Neues globales „What's new“-Modal für eingeloggte Nutzer (zeigt neueste aktive Ankündigung einmal pro User, inkl. Dismissal)
-- Copper-Design: Header mit Branding-Farben, Button nutzt `--primary`, kleines Logo im Header (Branding-Logo mit Fallback)
-- Robustheit: Textumbruch/Scroll bei viel Inhalt, damit nichts aus dem Modal herausläuft
+## [Unreleased] - 2026-02-27
 
 ### 💃 Tanzstile
 
-- Seed: Tanzstile werden nur einmal initial angelegt (Flag in `SystemSetting`) und nicht automatisch erneut erzeugt, wenn Admins Einträge löschen
+- Einmalige Initialbefüllung: Tanzstil-Infos (Beschreibung/Webseite/Video) für bestehende Einträge werden per Migration gesetzt (danach Pflege über Frontend)
+- Einmalige Ergänzung: Fehlende Tanzstile aus der initialen Liste werden angelegt und mit Infos befüllt (danach Pflege über Frontend)
+- Einmalige Zuordnung: Kategorien für Tanzstile werden gesetzt (Oriental/Tribal/Fusion/Folklore/Modern/Sonstiges)
+- Detailseite: Video-Bereich wird nur angezeigt, wenn das verlinkte YouTube-Video verfügbar ist
+- Admin: Änderungsvorschläge zeigen Alt/Neu (Vergleich) für bessere Freigabe-Entscheidungen; Freigabe kann Felder auch leeren (setzt NULL)
+
+### 🔎 SEO
+
+- Events: Kalender-Seite (`/events`) wird serverseitig gerendert (bessere Indexierbarkeit, kein Client-only Fetch)
+
+## [Unreleased] - 2026-02-25
+
+### 💃 Tanzstile
+
+- Öffentliche Tanzstile-Übersicht unter `/dance-styles` mit Suche sowie Counts für Gruppen & Tänzerinnen (nur Profile mit `isDancerProfileEnabled = true`)
+- Öffentliche Tanzstil-Detailseiten unter `/dance-styles/[id]` inkl. Website/Beschreibung/„früherer Name“ sowie optionalem Video-Link (YouTube wird eingebettet)
+- Tanzstile: Vorschlagsformular für neue Stile (nur eingeloggte User); Vorschläge sind nicht öffentlich sichtbar bis zur Admin-Freigabe
+- Tanzstile: Änderungsvorschläge für bestehende Tanzstile (nur verifizierte User) inkl. Felder wie Website/Beschreibung/Video/„früherer Name“
+- Admin: Review-Seite für Tanzstil-Vorschläge unter `/admin/dance-style-suggestions` (Freigeben/Ablehnen)
+- Datenmodell: Neues Prisma-Model `DanceStyleSuggestion` inkl. Status (PENDING/APPROVED/REJECTED)
+- Seed: Default-Liste ergänzt um **ITS** und **Wüstenrosen ATS**
+- Admin: Zentrale Tanzstil-Verwaltung unter `/admin/dance-styles` (manuell hinzufügen/bearbeiten/löschen)
+- Admin: Tanzstile können jetzt auch einen optionalen Video-Link speichern (für Detailansicht)
+- Admin: Legacy-Tag-Verwaltung (`/admin/tags`, Admin → Inhalte) auf zentrale Tanzstil-Verwaltung umgestellt
+- Gruppen: Tanzstil-Filter lädt Tanzstile zentral aus `/api/dance-styles` (kein leerer Dropdown mehr)
+- Tänzerinnen: Tanzstil-Filter in der Übersicht (`/taenzerinnen`) ergänzt
+- Admin: Tanzstil-Vorschläge werden oben auf `/admin/dance-styles` eingeblendet, wenn offene Vorschläge existieren (Approve/Reject direkt dort)
+- Admin: E-Mail-Benachrichtigung an Admins bei neuem Tanzstil-Vorschlag
+
+### 🧭 Navigation
+
+- Navbar: Primärlinks auf Gruppen/Tänzerinnen/Events/Karte fokussiert; Tanzstile + Second-Hand unter „Mehr“ (Desktop Dropdown + Mobile aufklappbar)
+
+### 📍 Standort
+
+- Startseite: Standort wird erst nach Klick („Standort aktivieren“) abgefragt (kein automatisches GPS-Popup beim Seitenaufruf)
+
+## [Unreleased] - 2026-02-22
+
+### 🧩 Gruppen
+
+- Gruppen-Flyer: Button "Flyer Vorschau" wieder sichtbar auf Gruppen-Detailseite und in "Gruppe bearbeiten" (für Admins/Owner)
+- Gruppen-Flyer PDF: Footer zeigt jetzt "Erstellt mit TribeFinder.de"; QR-Code und Footer-URL nutzen kanonische `SITE_URL` (Fallback: `NEXTAUTH_URL`)
+- Gruppen-Flyer PDF: Details-Layout robuster (kein Überlagern von Standort/Training durch Kontakt-Block) + Tanzstile nutzen echte `danceStyles` (Fallback: Tags)
+- Gruppen-Flyer PDF: Kontaktblock zeigt immer E-Mail + Website (mit Platzhalter falls nicht hinterlegt)
+- Gruppen-Flyer PDF: Download-/Preview-Endpoint ist nicht mehr öffentlich (nur Owner/Gruppen-Admins/Global-Admins)
+- Gruppen-Flyer PDF: DIN-A4 Layout stärker gerastert (fixe Bereiche) + deutlich mehr Platz für Beschreibung; TribeFinder-Logo im Footer
+- Gruppen-Flyer PDF: "Über uns" wird wieder zuverlässig angezeigt (Layout strikt top-down; Boxen schrumpfen bei wenig Platz)
+- Gruppen-Flyer PDF: Overlap-Fix (Kontaktblock unten verankert; Tanzstile/Events darüber)
+- Gruppen: Neue öffentliche Steckbrief-Seite zum Drucken/Teilen unter `/groups/[id]/promote` (A4-Print-Layout + QR-Code)
+- Gruppen: UI vereinfacht – statt PDF-Flyer Button gibt es jetzt den Steckbrief-Link (Promote-Seite)
+- Gruppen: Steckbrief verbessert (Drucken-Button wieder verfügbar; Tanzstile zeigen Level + Impro/Choreo; Link-Text entfernt – QR genügt)
+- Gruppen: Steckbrief-Druck optimiert (Print-Icon am Steckbrief-Button; beim Drucken werden Navbar/Footer ausgeblendet + höhere Kontraste)
+- Gruppen: Steckbrief-Link öffnet in neuem Tab
+- Gruppen: Steckbrief zeigt Gruppen-Logo; Safari-Druckvorschau fix (nur Steckbrief sichtbar via Print-CSS)
+- Gruppen: Steckbrief ist jetzt immer hell (lesbar auch im Darkmode)
+- Gruppen: Steckbrief zeigt optionalen Video-QR-Code, wenn ein Video verlinkt ist
+- Gruppen: Gruppen-Übersicht (`/groups`) zeigt nun kompakt die Top 3 beliebtesten Gruppen (mit Like-Aufforderung)
+- Gruppen: Sortierung "Beliebtheit" nutzt den gleichen Like-Zähler wie die Anzeige (Union aus `GroupLike` + legacy `FavoriteGroup`)
+- Gruppen: Gruppenleitung/Mitglieder verlinken nur noch auf Tänzerinnen-Profile, wenn diese aktiviert sind (kein 404 beim Klick)
+
+### 🧰 Admin
+
+- Admin: Benutzerliste zeigt jetzt Tänzerinnenprofil-Status (aktiv/privat) zur Fehlersuche
+- Admin: Benutzer-Detailseite zeigt jetzt Tänzerinnenprofil-Status (aktiv/privat)
+- Admin: Benutzerliste zeigt Online/Offline Status
+- Admin: Benutzer-Detailseite zeigt Online-Status + zusätzliche Debug-Felder (User ID, zuletzt aktualisiert)
+- Admin: Ankündigungen/„What's new“-Modal verwaltbar unter `/admin/announcements` (mit Zeitraum + Warnung bei mehreren aktiven)
+
+### 🗺️ Roadmap
+
+- Auth/Security: konsistente Rate-Limits + Schutz für Write-Endpoints (inkl. Abuse-Schutz und klare Auth-Matrix Tests)
+- Performance: Caching/ISR für öffentliche Listen (Gruppen/Events/Tänzerinnen/Marketplace) + Query-Optimierungen/Pagination
 
 ## [Unreleased] - 2026-02-20
 
@@ -423,14 +431,14 @@
   - SMTP + Admin E-Mail + DB Passwort: bei ungültig/leer erneut abfragen
   - SMTP Verify: Abbruch entfernt, stattdessen Warnung + Hilfe (STARTTLS vs SMTPS)
 
-### � PWA (iOS)
+### 📱 PWA (iOS)
 
 - iOS Home-Screen Icon verbessert
   - `apple-touch-icon.png` hinzugefügt
   - Manifest um PNG Icons ergänzt
   - Favicon/App-Icon: SVG Logo wird zusätzlich als Icon ausgeliefert (neben PNG Fallbacks)
 
-### �🔧 Deployment / Datenbank
+### 🛠️ Deployment / Datenbank
 
 - PostgreSQL-only: SQLite komplett entfernt
   - Entfernte Prisma SQLite-Migrations-History (`prisma/migrations` inkl. `migration_lock.toml`)
@@ -465,8 +473,6 @@
 ### 🎉 Neu hinzugefügt
 
 - Tänzerinnen-Profile: Optional im Nutzerprofil aktivierbar (inkl. Privat-Option) und sichtbar in `/taenzerinnen` + Gruppen-Detailseiten
-
-### 🎉 Neu hinzugefügt
 
 #### UX Verbesserungen
 - **Toast Notifications System** - Moderne Benachrichtigungen statt Browser-Alerts
