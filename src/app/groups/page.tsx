@@ -1,221 +1,109 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import GroupFilter from "@/components/groups/GroupFilter";
-import GroupListAnimated from "@/components/groups/GroupListAnimated";
-import { GroupListSkeleton } from "@/components/ui/SkeletonLoader";
-import Link from "next/link";
-import LikeButton from "@/components/groups/LikeButton";
-import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
-
-type GroupTag = { id: string; name: string };
-type GroupListItem = {
-  id: string;
-  name: string;
-  description: string;
-  image?: string | null;
-  createdAt: string | Date;
-  size?: 'SOLO' | 'SMALL' | 'LARGE' | null;
-  location?: { address?: string | null } | null;
-  tags: GroupTag[];
-  likeCount?: number;
-  likedByMe?: boolean;
-};
-
-function isGroupListItem(v: unknown): v is GroupListItem {
-  if (typeof v !== "object" || v === null) return false;
-  const o = v as Record<string, unknown>;
-  return typeof o.id === "string" && typeof o.name === "string" && typeof o.description === "string" && Array.isArray(o.tags);
-}
+import type { Metadata } from "next";
+import { headers } from "next/headers";
+import GroupsPageClient, { type GroupListItem } from "@/app/groups/GroupsPageClient";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
 }
 
-export default function GroupsPage() {
-  const searchParams = useSearchParams();
-  const [groups, setGroups] = useState<GroupListItem[]>([]);
-  const [topGroups, setTopGroups] = useState<GroupListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [total, setTotal] = useState<number>(0);
+function hasAnyIndexableListFilters(sp: Record<string, string | string[] | undefined>) {
+  const filterKeys = [
+    "query",
+    "danceStyleId",
+    "tag",
+    "performances",
+    "seeking",
+    "size",
+    "sort",
+    "page",
+    "lat",
+    "lng",
+    "radius",
+    "address",
+    "country",
+    "limit",
+  ];
+  return filterKeys.some((k) => {
+    const v = sp[k];
+    if (Array.isArray(v)) return v.some((x) => typeof x === "string" && x.trim().length > 0);
+    return typeof v === "string" && v.trim().length > 0;
+  });
+}
 
-  useEffect(() => {
-    const loadTop = async () => {
-      try {
-        const params = new URLSearchParams();
-        params.append("sort", "popular");
-        params.append("limit", "3");
-        const res = await fetch(`/api/groups?${params.toString()}`);
-        if (!res.ok) {
-          setTopGroups([]);
-          return;
-        }
-        const json: unknown = await res.json().catch(() => null);
-        const arr = Array.isArray(json)
-          ? json
-          : (isRecord(json) && Array.isArray(json.data) ? json.data : []);
-        setTopGroups((arr as unknown[]).filter(isGroupListItem).slice(0, 3));
-      } catch {
-        setTopGroups([]);
-      }
-    };
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  return {
+    title: "Tanzgruppen finden | TribeFinder",
+    description: "Finde Tanzgruppen in deiner Nähe – filtere nach Tanzstil, Standort und mehr.",
+    robots: { index: true, follow: true },
+    alternates: {
+      canonical: "/groups",
+    },
+  };
+}
 
-    void loadTop();
-  }, []);
+export const dynamic = "force-dynamic";
 
-  useEffect(() => {
-    const fetchGroups = async () => {
-      const address = searchParams.get('address');
-      const lat = searchParams.get('lat');
-      const lng = searchParams.get('lng');
-      const hasPendingGeocode = Boolean(address) && (!lat || !lng);
-      if (hasPendingGeocode) {
-        setIsLoading(true);
-        return;
-      }
+export default async function GroupsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const initialQueryString = new URLSearchParams(
+    Object.entries(sp).flatMap(([k, v]) => (Array.isArray(v) ? v.map((x) => [k, x]) : v ? [[k, v]] : [])) as Array<
+      [string, string]
+    >
+  ).toString();
 
-      setIsLoading(true);
-      try {
-        const params = new URLSearchParams();
-        const query = searchParams.get('query');
-        const danceStyleId = searchParams.get('danceStyleId');
-        const tag = searchParams.get('tag');
-        const performances = searchParams.get('performances');
-        const seeking = searchParams.get('seeking');
-        const size = searchParams.get('size');
-        const sort = searchParams.get('sort');
-        const page = searchParams.get('page') || '1';
-        const lat = searchParams.get('lat');
-        const lng = searchParams.get('lng');
-        const radius = searchParams.get('radius') || '50';
-        
-        if (query) params.append('query', query);
-        if (danceStyleId) params.append('danceStyleId', danceStyleId);
-        else if (tag) params.append('tag', tag);
-        if (performances) params.append('performances', performances);
-        if (seeking) params.append('seeking', seeking);
-        if (size) params.append('size', size);
-        if (sort) params.append('sort', sort);
-        if (lat) params.append('lat', lat);
-        if (lng) params.append('lng', lng);
-        if (radius) params.append('radius', radius);
-        
-        const res = await fetch(`/api/groups?${params.toString()}`);
-        if (!res.ok) {
-          setGroups([]);
-          setTotal(0);
-          return;
-        }
+  const h = await headers();
+  const host = h.get("x-forwarded-host") || h.get("host") || "";
+  const proto = h.get("x-forwarded-proto") || "http";
+  const baseUrl = host ? `${proto}://${host}` : process.env.NEXTAUTH_URL || "";
+  const cookie = h.get("cookie") || "";
 
-        const json: unknown = await res.json().catch(() => null);
-        const arr = Array.isArray(json)
-          ? json
-          : (isRecord(json) && Array.isArray(json.data) ? json.data : []);
+  const initialTopGroups = (await (async () => {
+    try {
+      if (!baseUrl) return [];
+      const params = new URLSearchParams();
+      params.append("sort", "popular");
+      params.append("limit", "3");
+      const res = await fetch(`${baseUrl}/api/groups?${params.toString()}`, { cache: "no-store", headers: { cookie } });
+      const json: unknown = await res.json().catch(() => null);
+      const arr = Array.isArray(json) ? json : isRecord(json) && Array.isArray(json.data) ? json.data : [];
+      return (arr as unknown[]).slice(0, 3) as GroupListItem[];
+    } catch {
+      return [];
+    }
+  })()) as GroupListItem[];
 
-        const fetched = (arr as unknown[]).filter(isGroupListItem);
-        const shouldMergeTop = page === '1' && sort !== 'popular' && topGroups.length > 0;
-        if (shouldMergeTop) {
-          const seen = new Set<string>();
-          const merged: GroupListItem[] = [];
-          for (const g of [...topGroups, ...fetched]) {
-            if (seen.has(g.id)) continue;
-            seen.add(g.id);
-            merged.push(g);
-          }
-          setGroups(merged);
-        } else {
-          setGroups(fetched);
-        }
-
-        if (isRecord(json) && isRecord(json.pagination) && typeof json.pagination.total === "number") {
-          setTotal(json.pagination.total);
-        } else {
-          setTotal((arr as unknown[]).length);
-        }
-      } catch (error) {
-        console.error('Error fetching groups:', error);
-        setGroups([]);
-        setTotal(0);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchGroups();
-  }, [searchParams, topGroups]);
-
+  const { initialGroups, initialTotal } = await (async () => {
+    try {
+      if (!baseUrl) return { initialGroups: [] as GroupListItem[], initialTotal: 0 };
+      const res = await fetch(`${baseUrl}/api/groups?${initialQueryString}`, { cache: "no-store", headers: { cookie } });
+      if (!res.ok) return { initialGroups: [] as GroupListItem[], initialTotal: 0 };
+      const json: unknown = await res.json().catch(() => null);
+      const arr = Array.isArray(json) ? json : isRecord(json) && Array.isArray(json.data) ? json.data : [];
+      const initialGroups = arr as GroupListItem[];
+      const initialTotal =
+        isRecord(json) && isRecord(json.pagination) && typeof json.pagination.total === "number"
+          ? (json.pagination.total as number)
+          : initialGroups.length;
+      return { initialGroups, initialTotal };
+    } catch {
+      return { initialGroups: [] as GroupListItem[], initialTotal: 0 };
+    }
+  })();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="flex justify-between items-center">
-          <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Tanzgruppen finden</h1>
-          <Link
-            href="/groups/create"
-            className="inline-flex items-center rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition"
-          >
-            + Neue Gruppe erstellen
-          </Link>
-        </div>
-        <div className="mt-1 text-sm text-[var(--muted)]">
-          {isLoading ? "Lade…" : `${total} Gruppen gefunden`}
-        </div>
-      </div>
-
-      {topGroups.length > 0 ? (
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-            <div>
-              <div className="tf-display text-lg font-bold text-[var(--foreground)]">Beliebteste Gruppen</div>
-              <div className="mt-1 text-sm text-[var(--muted)]">
-                Klick auf das Herz, um deine Lieblingsgruppen zu liken und die Community-Rangliste zu verbessern.
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            {topGroups.map((g) => (
-              <Link
-                key={g.id}
-                href={`/groups/${g.id}`}
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 hover:bg-[var(--surface-hover)] transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-md border border-[var(--border)] bg-[var(--surface)] overflow-hidden flex items-center justify-center flex-shrink-0">
-                    {g.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={normalizeUploadedImageUrl(g.image) ?? ""} alt="" className="h-full w-full object-contain" />
-                    ) : (
-                      <div className="text-[var(--muted)] font-bold">{g.name.charAt(0)}</div>
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="tf-display text-sm font-bold text-[var(--foreground)] truncate">{g.name}</div>
-                    <div className="mt-0.5 text-xs text-[var(--muted)] line-clamp-1">{g.description}</div>
-                  </div>
-
-                  <LikeButton
-                    groupId={g.id}
-                    initialCount={typeof g.likeCount === "number" ? g.likeCount : 0}
-                    initialLikedByMe={Boolean(g.likedByMe)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
-                  />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <GroupFilter />
-
-      {isLoading ? (
-        <GroupListSkeleton count={6} />
-      ) : (
-        <GroupListAnimated groups={groups} />
-      )}
-    </div>
+    <GroupsPageClient
+      initialGroups={initialGroups}
+      initialTopGroups={initialTopGroups}
+      initialTotal={initialTotal}
+      initialQueryString={initialQueryString}
+    />
   );
 }

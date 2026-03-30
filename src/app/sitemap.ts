@@ -1,6 +1,20 @@
 import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
 
+type MarketplaceListingSitemapRow = {
+  id: string;
+  updatedAt: Date;
+  expiresAt: Date;
+};
+
+function getMarketplaceListingDelegate(p: typeof prisma) {
+  return (p as unknown as { marketplaceListing?: unknown }).marketplaceListing as
+    | undefined
+    | {
+        findMany: (args: unknown) => Promise<MarketplaceListingSitemapRow[]>;
+      };
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const rawBase = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "").replace(/\/+$/, "");
   const fallbackProtocol = process.env.NODE_ENV === "development" ? "http" : "https";
@@ -111,7 +125,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    return [...staticPages, ...groupPages, ...eventPages];
+    const marketplaceDelegate = getMarketplaceListingDelegate(prisma);
+    const marketplaceListings = marketplaceDelegate
+      ? await marketplaceDelegate.findMany({
+          where: {
+            expiresAt: { gt: new Date() },
+          },
+          select: { id: true, updatedAt: true, expiresAt: true },
+          orderBy: { updatedAt: "desc" },
+          take: 2000,
+        })
+      : [];
+
+    const marketplacePages: MetadataRoute.Sitemap = marketplaceListings.map((l) => ({
+      url: `${baseUrl}/marketplace/${l.id}`,
+      lastModified: l.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    }));
+
+    return [...staticPages, ...groupPages, ...eventPages, ...marketplacePages];
   } catch {
     return staticPages;
   }

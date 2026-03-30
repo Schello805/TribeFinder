@@ -8,6 +8,12 @@
 - CSP: Matomo (`analytics.schellenberger.biz`) ist explizit erlaubt; zusätzlich CSP Report-Only + Endpoint `/api/csp-report` für Monitoring.
 - HTTPS: Interne Basis-URLs (Metadata/robots/sitemap/E-Mails) normalisieren in Production auf `https://`.
 
+### 📧 Product-Led Growth (E-Mails)
+
+- PLG: Mehrstufige Reminder-E-Mails (Gruppenprofil unvollständig; Event startet bald; Event teilen) als Cron-Scripts.
+- Admin: PLG-Reminder in den System-Einstellungen steuerbar (global an/aus, pro Hook an/aus, Timing/Steps in Tagen).
+- DB: Neues Prisma-Model `PlgEmailNotificationState` für Throttling/Dedupe der Reminder-Steps.
+
 ## [Unreleased] - 2026-03-25
 
 ### 🔐 Security

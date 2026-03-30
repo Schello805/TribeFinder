@@ -28,6 +28,16 @@ export default function AdminSettingsPage() {
     SMTP_PASSWORD: '',
     SMTP_FROM: '"TribeFinder" <noreply@tribefinder.de>',
     SMTP_SECURE: 'false',
+    PLG_EMAILS_ENABLED: 'true',
+    PLG_GROUP_PROFILE_REMINDERS_ENABLED: 'true',
+    PLG_GROUP_PROFILE_REMINDER_DAYS_1: '7',
+    PLG_GROUP_PROFILE_REMINDER_DAYS_2: '21',
+    PLG_EVENT_SOON_REMINDERS_ENABLED: 'true',
+    PLG_EVENT_SOON_DAYS_1: '7',
+    PLG_EVENT_SOON_DAYS_2: '1',
+    PLG_EVENT_SHARE_REMINDERS_ENABLED: 'true',
+    PLG_EVENT_SHARE_DAYS_1: '2',
+    PLG_EVENT_SHARE_DAYS_2: '7',
     MATOMO_URL: '',
     MATOMO_SITE_ID: '',
     MATOMO_TRACKING_CODE: '',
@@ -495,6 +505,130 @@ export default function AdminSettingsPage() {
 
           <div className="text-xs text-gray-500 dark:text-gray-400">
             Vorschau: wird direkt nach dem Speichern oben auf jeder Seite angezeigt.
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-8">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">PLG E-Mail Reminders</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Steuert die automatischen Erinnerungs-E-Mails (Cron-Scripts).</p>
+        </div>
+        <div className="p-6 space-y-6">
+          <label className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-200">
+            <input
+              type="checkbox"
+              name="PLG_EMAILS_ENABLED"
+              checked={String(formData.PLG_EMAILS_ENABLED).toLowerCase() === 'true'}
+              onChange={handleCheckboxChange}
+              className="h-4 w-4"
+            />
+            PLG E-Mails global aktivieren
+          </label>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <label className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-200 sm:col-span-3">
+              <input
+                type="checkbox"
+                name="PLG_GROUP_PROFILE_REMINDERS_ENABLED"
+                checked={String(formData.PLG_GROUP_PROFILE_REMINDERS_ENABLED).toLowerCase() === 'true'}
+                onChange={handleCheckboxChange}
+                className="h-4 w-4"
+              />
+              Gruppenprofil unvollständig
+            </label>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">Step 1 (Tage)</label>
+              <input
+                type="text"
+                name="PLG_GROUP_PROFILE_REMINDER_DAYS_1"
+                value={String(formData.PLG_GROUP_PROFILE_REMINDER_DAYS_1 || '')}
+                onChange={handleChange}
+                inputMode="numeric"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">Step 2 (Tage)</label>
+              <input
+                type="text"
+                name="PLG_GROUP_PROFILE_REMINDER_DAYS_2"
+                value={String(formData.PLG_GROUP_PROFILE_REMINDER_DAYS_2 || '')}
+                onChange={handleChange}
+                inputMode="numeric"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <label className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-200 sm:col-span-3">
+              <input
+                type="checkbox"
+                name="PLG_EVENT_SOON_REMINDERS_ENABLED"
+                checked={String(formData.PLG_EVENT_SOON_REMINDERS_ENABLED).toLowerCase() === 'true'}
+                onChange={handleCheckboxChange}
+                className="h-4 w-4"
+              />
+              Event startet bald
+            </label>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">Step 1 (Tage vorher)</label>
+              <input
+                type="text"
+                name="PLG_EVENT_SOON_DAYS_1"
+                value={String(formData.PLG_EVENT_SOON_DAYS_1 || '')}
+                onChange={handleChange}
+                inputMode="numeric"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">Step 2 (Tage vorher)</label>
+              <input
+                type="text"
+                name="PLG_EVENT_SOON_DAYS_2"
+                value={String(formData.PLG_EVENT_SOON_DAYS_2 || '')}
+                onChange={handleChange}
+                inputMode="numeric"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <label className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-200 sm:col-span-3">
+              <input
+                type="checkbox"
+                name="PLG_EVENT_SHARE_REMINDERS_ENABLED"
+                checked={String(formData.PLG_EVENT_SHARE_REMINDERS_ENABLED).toLowerCase() === 'true'}
+                onChange={handleCheckboxChange}
+                className="h-4 w-4"
+              />
+              Event teilen (Flyer/Links fehlen)
+            </label>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">Step 1 (Tage)</label>
+              <input
+                type="text"
+                name="PLG_EVENT_SHARE_DAYS_1"
+                value={String(formData.PLG_EVENT_SHARE_DAYS_1 || '')}
+                onChange={handleChange}
+                inputMode="numeric"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">Step 2 (Tage)</label>
+              <input
+                type="text"
+                name="PLG_EVENT_SHARE_DAYS_2"
+                value={String(formData.PLG_EVENT_SHARE_DAYS_2 || '')}
+                onChange={handleChange}
+                inputMode="numeric"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 bg-white dark:bg-gray-700"
+              />
+            </div>
           </div>
         </div>
       </div>

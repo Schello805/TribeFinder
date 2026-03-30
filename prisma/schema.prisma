@@ -92,6 +92,8 @@ model User {
   directMessageEmailNotificationReceiverStates DirectMessageEmailNotificationState[] @relation("DirectMessageEmailNotificationReceiver")
   directMessageEmailNotificationSenderStates   DirectMessageEmailNotificationState[] @relation("DirectMessageEmailNotificationSender")
 
+  plgEmailNotificationStates PlgEmailNotificationState[]
+
   adminAuditLogsAsActor AdminAuditLog[] @relation("AdminAuditActor")
   adminAuditLogTargets AdminAuditLog[] @relation("AdminAuditTargetUser")
 
@@ -814,6 +816,28 @@ model DirectMessageEmailNotificationState {
   @@index([receiverId])
   @@index([senderId])
 }
+
+model PlgEmailNotificationState {
+  id String @id @default(cuid())
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  notificationType String
+  targetType       String
+  targetId         String
+  step             String
+
+  lastSentAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, notificationType, targetId, step])
+  @@index([notificationType])
+  @@index([targetType])
+  @@index([targetId])
+ }
 
 model AdminAuditLog {
   id String @id @default(cuid())

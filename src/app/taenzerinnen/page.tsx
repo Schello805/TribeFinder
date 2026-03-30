@@ -1,94 +1,74 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { useSession } from "next-auth/react";
-import DancerFilter from "@/components/taenzerinnen/DancerFilter";
-import DancerListAnimated from "@/components/taenzerinnen/DancerListAnimated";
-import { GroupListSkeleton } from "@/components/ui/SkeletonLoader";
-
-type Membership = { group: { id: string; name: string } };
-type DancerListItem = {
-  id: string;
-  name: string | null;
-  dancerName: string | null;
-  image: string | null;
-  bio: string | null;
-  updatedAt: string | Date;
-  memberships: Membership[];
-};
-
-function isDancerListItem(v: unknown): v is DancerListItem {
-  if (typeof v !== "object" || v === null) return false;
-  const o = v as Record<string, unknown>;
-  return typeof o.id === "string" && (typeof o.dancerName === "string" || o.dancerName === null);
-}
+import type { Metadata } from "next";
+import { headers } from "next/headers";
+import DancersPageClient, { type DancerListItem } from "@/app/taenzerinnen/DancersPageClient";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
 }
 
-export default function DancersPage() {
-  const searchParams = useSearchParams();
-  const { data: session } = useSession();
+function hasAnyIndexableListFilters(sp: Record<string, string | string[] | undefined>) {
+  const filterKeys = ["query", "hasBio", "hasGroups", "teaches", "workshops", "danceStyleId", "style", "sort", "page", "limit"];
+  return filterKeys.some((k) => {
+    const v = sp[k];
+    if (Array.isArray(v)) return v.some((x) => typeof x === "string" && x.trim().length > 0);
+    return typeof v === "string" && v.trim().length > 0;
+  });
+}
 
-  const [dancers, setDancers] = useState<DancerListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [total, setTotal] = useState<number>(0);
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  return {
+    title: "Tänzerinnen finden | TribeFinder",
+    description: "Finde Tänzerinnen – filtere nach Bio, Unterricht, Workshops und Tanzstil.",
+    robots: { index: true, follow: true },
+    alternates: {
+      canonical: "/taenzerinnen",
+    },
+  };
+}
 
-  useEffect(() => {
-    const fetchDancers = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(`/api/taenzerinnen?${searchParams.toString()}`);
-        if (!res.ok) {
-          setDancers([]);
-          setTotal(0);
-          return;
-        }
+export const dynamic = "force-dynamic";
 
-        const json: unknown = await res.json().catch(() => null);
-        const arr = isRecord(json) && Array.isArray(json.data) ? json.data : [];
-        setDancers((arr as unknown[]).filter(isDancerListItem));
+export default async function DancersPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const initialQueryString = new URLSearchParams(
+    Object.entries(sp).flatMap(([k, v]) => (Array.isArray(v) ? v.map((x) => [k, x]) : v ? [[k, v]] : [])) as Array<
+      [string, string]
+    >
+  ).toString();
 
-        if (isRecord(json) && isRecord(json.pagination) && typeof json.pagination.total === "number") {
-          setTotal(json.pagination.total);
-        } else {
-          setTotal((arr as unknown[]).length);
-        }
-      } catch (error) {
-        console.error("Error fetching dancers:", error);
-        setDancers([]);
-        setTotal(0);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const h = await headers();
+  const host = h.get("x-forwarded-host") || h.get("host") || "";
+  const proto = h.get("x-forwarded-proto") || "http";
+  const baseUrl = host ? `${proto}://${host}` : process.env.NEXTAUTH_URL || "";
+  const cookie = h.get("cookie") || "";
 
-    fetchDancers();
-  }, [searchParams]);
+  const { initialDancers, initialTotal } = await (async () => {
+    try {
+      if (!baseUrl) return { initialDancers: [] as DancerListItem[], initialTotal: 0 };
+      const res = await fetch(`${baseUrl}/api/taenzerinnen?${initialQueryString}`, { cache: "no-store", headers: { cookie } });
+      if (!res.ok) return { initialDancers: [] as DancerListItem[], initialTotal: 0 };
+      const json: unknown = await res.json().catch(() => null);
+      const arr = isRecord(json) && Array.isArray(json.data) ? (json.data as unknown[]) : [];
+      const initialDancers = arr as DancerListItem[];
+      const initialTotal =
+        isRecord(json) && isRecord(json.pagination) && typeof json.pagination.total === "number"
+          ? (json.pagination.total as number)
+          : initialDancers.length;
+      return { initialDancers, initialTotal };
+    } catch {
+      return { initialDancers: [] as DancerListItem[], initialTotal: 0 };
+    }
+  })();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="flex justify-between items-center">
-          <h1 className="tf-display text-3xl font-bold text-[var(--foreground)]">Tänzerinnen finden</h1>
-          <Link
-            href={session?.user?.id ? "/dashboard/profile" : "/auth/signin"}
-            className="inline-flex items-center rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] transition"
-          >
-            {session?.user?.id ? "In Tänzerinnenliste sichtbar werden" : "Anmelden"}
-          </Link>
-        </div>
-        <div className="mt-1 text-sm text-[var(--muted)]">
-          {isLoading ? "Lade…" : `${total} Tänzerinnen gefunden`}
-        </div>
-      </div>
-
-      <DancerFilter />
-
-      {isLoading ? <GroupListSkeleton count={6} /> : <DancerListAnimated dancers={dancers} />}
-    </div>
+    <DancersPageClient initialDancers={initialDancers} initialTotal={initialTotal} initialQueryString={initialQueryString} />
   );
 }

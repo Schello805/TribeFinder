@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import EventFilter from "@/components/events/EventFilter";
+import type { Metadata } from "next";
 
 const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
@@ -21,6 +22,41 @@ type Event = {
 };
 
 export const dynamic = "force-dynamic";
+
+function hasAnyIndexableListFilters(sp: Record<string, string | string[] | undefined>) {
+  const filterKeys = [
+    "q",
+    "danceStyleId",
+    "month",
+    "address",
+    "country",
+    "lat",
+    "lng",
+    "radius",
+    "page",
+    "limit",
+  ];
+  return filterKeys.some((k) => {
+    const v = sp[k];
+    if (Array.isArray(v)) return v.some((x) => typeof x === "string" && x.trim().length > 0);
+    return typeof v === "string" && v.trim().length > 0;
+  });
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  return {
+    title: "Event Kalender | TribeFinder",
+    description: "Finde Workshops, Socials und Events – filtere nach Ort, Monat und Tanzstil.",
+    robots: { index: true, follow: true },
+    alternates: {
+      canonical: "/events",
+    },
+  };
+}
 
 export default async function EventsPage({
   searchParams,
