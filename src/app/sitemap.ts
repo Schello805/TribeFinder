@@ -2,7 +2,10 @@ import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+  const rawBase = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "").replace(/\/+$/, "");
+  const fallbackProtocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  const fallbackBase = `${fallbackProtocol}://localhost:3000`;
+  const baseUrl = (rawBase || fallbackBase).replace(/^http:\/\//i, process.env.NODE_ENV === "development" ? "http://" : "https://");
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

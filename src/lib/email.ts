@@ -55,7 +55,7 @@ export const getEmailBaseUrl = (req?: Request) => {
     if (effectiveHost) return `${proto}://${effectiveHost}`;
   }
 
-  return 'http://localhost:3000';
+  return process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://localhost:3000';
 };
 
 export const toAbsoluteUrl = (maybeUrl: string, baseUrl?: string) => {

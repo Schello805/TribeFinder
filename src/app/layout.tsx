@@ -46,7 +46,10 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const baseUrl = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+  const rawBase = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "").replace(/\/+$/, "");
+  const fallbackProtocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  const fallbackBase = `${fallbackProtocol}://localhost:3000`;
+  const baseUrl = (rawBase || fallbackBase).replace(/^http:\/\//i, process.env.NODE_ENV === "development" ? "http://" : "https://");
 
   let brandingLogoUrl = "";
   try {
@@ -126,7 +129,10 @@ export default async function RootLayout({
 }) {
   const session = await getServerSession(authOptions);
 
-  const publicBaseUrl = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+  const rawPublicBaseUrl = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "").replace(/\/+$/, "");
+  const fallbackProtocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  const fallbackBase = `${fallbackProtocol}://localhost:3000`;
+  const publicBaseUrl = (rawPublicBaseUrl || fallbackBase).replace(/^http:\/\//i, process.env.NODE_ENV === "development" ? "http://" : "https://");
   const toAbsoluteUrl = (maybeUrl: string) => {
     const v = (maybeUrl || "").trim();
     if (!v) return "";
