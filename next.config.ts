@@ -45,7 +45,22 @@ const nextConfig = {
       ...(isDev ? [] : ["upgrade-insecure-requests"]),
     ].join("; ");
 
-    const cspReportOnly = `${csp}; report-uri /api/csp-report`;
+    const cspReportOnly = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      // frame-ancestors is ignored in report-only; omit to reduce console noise.
+      "form-action 'self'",
+      `img-src 'self' data: blob: https: ${matomoOrigin}`.trim(),
+      "font-src 'self' data: https:",
+      "style-src 'self' 'unsafe-inline' https:",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https: ${matomoOrigin}`.trim(),
+      isDev
+        ? `connect-src 'self' https: http: ws: blob: ${matomoOrigin}`.trim()
+        : `connect-src 'self' https: blob: ${matomoOrigin}`.trim(),
+      // upgrade-insecure-requests is ignored in report-only; omit to reduce console noise.
+      "report-uri /api/csp-report",
+    ].join("; ");
 
     const headers = [
       { key: "Content-Security-Policy", value: csp },
