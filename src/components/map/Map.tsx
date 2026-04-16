@@ -224,16 +224,14 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     return m ? m[1] : null;
   }, []);
 
-  const buildNominatimReverseUrl = useCallback((lat: number, lng: number) => {
+  const buildReverseUrl = useCallback((lat: number, lng: number) => {
     const params = new URLSearchParams({
-      format: "json",
+      mode: "reverse",
       lat: String(lat),
-      lon: String(lng),
+      lng: String(lng),
       zoom: "18",
-      addressdetails: "1",
-      "accept-language": "de",
     });
-    return `https://nominatim.openstreetmap.org/reverse?${params.toString()}`;
+    return `/api/geocode?${params.toString()}`;
   }, []);
 
   const isEventLocationReliable = useCallback(async (event: MapEvent) => {
@@ -255,7 +253,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     }
 
     try {
-      const res = await fetch(buildNominatimReverseUrl(lat!, lng!));
+      const res = await fetch(buildReverseUrl(lat!, lng!));
       const json = (await res.json().catch(() => null)) as NominatimReverseResult | null;
       const postcode = typeof json?.address?.postcode === "string" ? json.address.postcode.trim() : "";
       const ok = Boolean(postcode && postcode === postcodeInAddress);
@@ -265,7 +263,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
       eventLocationOkCache.current.set(event.id, false);
       return false;
     }
-  }, [buildNominatimReverseUrl, extractPostcode]);
+  }, [buildReverseUrl, extractPostcode]);
 
   const stopWatchingUserLocation = useCallback(() => {
     if (userLocationWatchIdRef.current != null && navigator.geolocation?.clearWatch) {

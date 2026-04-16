@@ -147,54 +147,78 @@ export async function GET(req: Request) {
 
       const groupIdsAll = allIds.map((x) => x.id);
 
-      const [groupLikePairsRaw, favoritePairsRaw] = await Promise.all([
-        popularGroupLike && groupIdsAll.length
-          ? popularGroupLike.groupBy({
-              by: ["groupId", "userId"],
-              where: { groupId: { in: groupIdsAll } },
-            })
-          : Promise.resolve([]),
-        popularFavoriteGroup && groupIdsAll.length
-          ? popularFavoriteGroup.groupBy({
-              by: ["groupId", "userId"],
-              where: { groupId: { in: groupIdsAll } },
-            })
-          : Promise.resolve([]),
-      ]);
-
-      const groupLikePairs = Array.isArray(groupLikePairsRaw)
-        ? (groupLikePairsRaw as Array<{ groupId: string; userId: string }> )
-        : [];
-      const favoritePairs = Array.isArray(favoritePairsRaw)
-        ? (favoritePairsRaw as Array<{ groupId: string; userId: string }> )
-        : [];
-
-      const usersByGroupId = new Map<string, Set<string>>();
-      for (const { groupId, userId } of [...groupLikePairs, ...favoritePairs]) {
-        let set = usersByGroupId.get(groupId);
-        if (!set) {
-          set = new Set<string>();
-          usersByGroupId.set(groupId, set);
-        }
-        set.add(userId);
+      if (groupIdsAll.length === 0) {
+        return NextResponse.json({
+          data: [],
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+            hasMore: false,
+          },
+        });
       }
 
-      const createdAtById = new Map<string, number>(
-        allIds.map((x) => [x.id, x.createdAt instanceof Date ? x.createdAt.getTime() : new Date(x.createdAt).getTime()])
+      const pageRows = await (async () => {
+        // Prefer doing the popularity sort inside Postgres to avoid transferring large pair lists.
+        if (popularGroupLike && popularFavoriteGroup) {
+          return prisma.$queryRaw<Array<{ id: string; cnt: number }>>`
+            WITH pairs AS (
+              SELECT "groupId" AS id, "userId" FROM "GroupLike" WHERE "groupId" = ANY(${groupIdsAll})
+              UNION
+              SELECT "groupId" AS id, "userId" FROM "FavoriteGroup" WHERE "groupId" = ANY(${groupIdsAll})
+            ),
+            counts AS (
+              SELECT id, COUNT(*)::int AS cnt FROM pairs GROUP BY id
+            )
+            SELECT g.id, COALESCE(c.cnt, 0)::int AS cnt
+            FROM "Group" g
+            LEFT JOIN counts c ON c.id = g.id
+            WHERE g.id = ANY(${groupIdsAll})
+            ORDER BY COALESCE(c.cnt, 0) DESC, g."createdAt" DESC
+            OFFSET ${skip} LIMIT ${limit}
+          `;
+        }
+
+        if (popularGroupLike) {
+          return prisma.$queryRaw<Array<{ id: string; cnt: number }>>`
+            WITH counts AS (
+              SELECT "groupId" AS id, COUNT(*)::int AS cnt
+              FROM "GroupLike"
+              WHERE "groupId" = ANY(${groupIdsAll})
+              GROUP BY "groupId"
+            )
+            SELECT g.id, COALESCE(c.cnt, 0)::int AS cnt
+            FROM "Group" g
+            LEFT JOIN counts c ON c.id = g.id
+            WHERE g.id = ANY(${groupIdsAll})
+            ORDER BY COALESCE(c.cnt, 0) DESC, g."createdAt" DESC
+            OFFSET ${skip} LIMIT ${limit}
+          `;
+        }
+
+        // popularFavoriteGroup must exist here due to the outer if guard.
+        return prisma.$queryRaw<Array<{ id: string; cnt: number }>>`
+          WITH counts AS (
+            SELECT "groupId" AS id, COUNT(*)::int AS cnt
+            FROM "FavoriteGroup"
+            WHERE "groupId" = ANY(${groupIdsAll})
+            GROUP BY "groupId"
+          )
+          SELECT g.id, COALESCE(c.cnt, 0)::int AS cnt
+          FROM "Group" g
+          LEFT JOIN counts c ON c.id = g.id
+          WHERE g.id = ANY(${groupIdsAll})
+          ORDER BY COALESCE(c.cnt, 0) DESC, g."createdAt" DESC
+          OFFSET ${skip} LIMIT ${limit}
+        `;
+      })();
+
+      const pageIds = Array.isArray(pageRows) ? pageRows.map((r) => r.id) : [];
+      const likeCountById = new Map<string, number>(
+        (Array.isArray(pageRows) ? pageRows : []).map((r) => [r.id, typeof r.cnt === "number" ? r.cnt : 0])
       );
-
-      const sortedIds = groupIdsAll
-        .slice()
-        .sort((a, b) => {
-          const ca = usersByGroupId.get(a)?.size ?? 0;
-          const cb = usersByGroupId.get(b)?.size ?? 0;
-          if (cb !== ca) return cb - ca;
-          const ta = createdAtById.get(a) ?? 0;
-          const tb = createdAtById.get(b) ?? 0;
-          return tb - ta;
-        });
-
-      const pageIds = sortedIds.slice(skip, skip + limit);
       const groups = pageIds.length
         ? await prisma.group.findMany({
             where: { id: { in: pageIds } },
@@ -220,14 +244,26 @@ export async function GET(req: Request) {
       const myLikedByGroupId = session?.user?.id ? new Set<string>() : null;
       if (session?.user?.id) {
         const uid = session.user.id;
-        for (const { groupId, userId } of [...groupLikePairs, ...favoritePairs]) {
-          if (userId === uid) myLikedByGroupId?.add(groupId);
-        }
+        const [likes, favorites] = await Promise.all([
+          popularGroupLike
+            ? (popularGroupLike.findMany({ where: { groupId: { in: pageIds }, userId: uid }, select: { groupId: true } }) as Promise<
+                Array<{ groupId: string }>
+              >)
+            : Promise.resolve([]),
+          popularFavoriteGroup
+            ? (popularFavoriteGroup.findMany({
+                where: { groupId: { in: pageIds }, userId: uid },
+                select: { groupId: true },
+              }) as Promise<Array<{ groupId: string }>>)
+            : Promise.resolve([]),
+        ]);
+        for (const x of likes) myLikedByGroupId?.add(x.groupId);
+        for (const x of favorites) myLikedByGroupId?.add(x.groupId);
       }
 
       const enriched = groupsOrdered.map((g) => ({
         ...g,
-        likeCount: usersByGroupId.get(g.id)?.size ?? 0,
+        likeCount: likeCountById.get(g.id) ?? 0,
         likedByMe: Boolean(myLikedByGroupId?.has(g.id)),
       }));
 

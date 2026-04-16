@@ -122,15 +122,18 @@ export default function MarketplaceFilterBar(props: {
 
     const run = async () => {
       try {
-        const q = /\bdeutschland\b/i.test(debouncedAddress) ? debouncedAddress : `${debouncedAddress}, Deutschland`;
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1&countrycodes=de&accept-language=de`;
-        const res = await fetch(url, { signal: controller.signal });
+        const params = new URLSearchParams({ mode: "search", q: debouncedAddress, country: "Deutschland" });
+        const res = await fetch(`/api/geocode?${params.toString()}`, { signal: controller.signal });
         if (!res.ok) return;
-        const data = (await res.json().catch(() => null)) as Array<{ lat?: string; lon?: string }> | null;
         if (geocodeSeq.current !== seqId) return;
-        if (!data || !data[0]?.lat || !data[0]?.lon) return;
-        setLat(String(data[0].lat));
-        setLng(String(data[0].lon));
+        const data = (await res.json().catch(() => null)) as unknown;
+        if (!data || typeof data !== "object") return;
+        const latValue = "lat" in data ? (data as { lat?: unknown }).lat : undefined;
+        const lngValue = "lng" in data ? (data as { lng?: unknown }).lng : undefined;
+        if (typeof latValue !== "number" || typeof lngValue !== "number") return;
+        if (!Number.isFinite(latValue) || !Number.isFinite(lngValue)) return;
+        setLat(String(latValue));
+        setLng(String(lngValue));
       } catch (e) {
         if (controller.signal.aborted) return;
         if (e instanceof DOMException && e.name === "AbortError") return;

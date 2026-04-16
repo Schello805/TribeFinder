@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useToast } from "@/components/ui/Toast";
-import { getCountryCodeFromGermanName } from "@/lib/countries";
 import CountryAutocompleteInput from "@/components/ui/CountryAutocompleteInput";
 import { getGeolocationErrorToast } from "@/lib/geolocationError";
 
@@ -159,34 +158,38 @@ export default function GroupFilter() {
       const geocode = async () => {
         try {
           const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
-          const countryCode = getCountryCodeFromGermanName(selectedCountry);
-          const normalizedQuery = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(debouncedLocation)
-            ? debouncedLocation
-            : `${debouncedLocation}, ${selectedCountry}`;
-          const params = new URLSearchParams({
-            format: "json",
-            q: normalizedQuery,
-            limit: "1",
-            ...(countryCode ? { countrycodes: countryCode } : {}),
-            "accept-language": "de",
-          });
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`,
-            { signal: controller.signal }
-          );
+          const params = new URLSearchParams({ mode: "search", q: debouncedLocation, country: selectedCountry });
+          const res = await fetch(`/api/geocode?${params.toString()}`, { signal: controller.signal });
           if (!res.ok) {
             return;
           }
 
-          const data = await res.json().catch(() => null);
+          const data = (await res.json().catch(() => null)) as unknown;
           if (geocodeSeq.current !== seqId) return;
-          if (!data || !data[0]) return;
+          if (!data || typeof data !== "object") return;
           if (!debouncedLocation) return;
 
-          if (data && data[0]) {
-            setLat(data[0].lat);
-            setLng(data[0].lon);
-            updateUrl(searchTerm, data[0].lat, data[0].lon, radius, debouncedLocation, selectedCountry, selectedTag, onlyPerformances, onlySeekingMembers, groupSize, sort);
-          }
+          const latValue = "lat" in data ? (data as { lat?: unknown }).lat : undefined;
+          const lngValue = "lng" in data ? (data as { lng?: unknown }).lng : undefined;
+          if (typeof latValue !== "number" || typeof lngValue !== "number") return;
+          if (!Number.isFinite(latValue) || !Number.isFinite(lngValue)) return;
+          const latStr = String(latValue);
+          const lngStr = String(lngValue);
+          setLat(latStr);
+          setLng(lngStr);
+          updateUrl(
+            searchTerm,
+            latStr,
+            lngStr,
+            radius,
+            debouncedLocation,
+            selectedCountry,
+            selectedTag,
+            onlyPerformances,
+            onlySeekingMembers,
+            groupSize,
+            sort
+          );
         } catch (e) {
           if (controller.signal.aborted) return;
           if (e instanceof DOMException && e.name === "AbortError") return;
@@ -220,12 +223,17 @@ export default function GroupFilter() {
           
           // Optional: Reverse Geocoding für schöneren Text
           try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-            const data = await res.json();
-            if (data && data.address) {
-              const city = data.address.city || data.address.town || data.address.village || "Mein Standort";
-              setLocation(city);
-            }
+            const params = new URLSearchParams({
+              mode: "reverse",
+              lat: String(latitude),
+              lng: String(longitude),
+              zoom: "10",
+            });
+            const res = await fetch(`/api/geocode?${params.toString()}`);
+            const data = (await res.json().catch(() => null)) as unknown;
+            if (!data || typeof data !== "object") return;
+            const cityValue = "city" in data ? (data as { city?: unknown }).city : undefined;
+            if (typeof cityValue === "string" && cityValue.trim()) setLocation(cityValue.trim());
           } catch {
             // Ignore
           }

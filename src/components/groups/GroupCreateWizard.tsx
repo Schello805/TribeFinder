@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useToast } from "@/components/ui/Toast";
 import { MAX_FILE_SIZE } from "@/types";
-import { getCountryCodeFromGermanName, getGermanCountryData } from "@/lib/countries";
+import { getGermanCountryData } from "@/lib/countries";
 import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
 
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), {
@@ -150,31 +150,26 @@ export default function GroupCreateWizard() {
     if (!formData.location?.address) return;
 
     const selectedCountry = (formData.location.country || "Deutschland").trim() || "Deutschland";
-    const countryCode = getCountryCodeFromGermanName(selectedCountry);
-    const q = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(formData.location.address)
-      ? formData.location.address
-      : `${formData.location.address}, ${selectedCountry}`;
 
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
-        format: "json",
-        q,
+        mode: "search",
+        q: formData.location.address,
+        country: selectedCountry,
         limit: "1",
-        ...(countryCode ? { countrycodes: countryCode } : {}),
-        "accept-language": "de",
       });
 
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
-        headers: { "User-Agent": "TribeFinder/1.0" },
-      });
-      const data = await response.json();
+      const response = await fetch(`/api/geocode?${params.toString()}`);
+      const data = (await response.json().catch(() => null)) as unknown;
+      const lat = data && typeof data === "object" && "lat" in data ? (data as { lat?: unknown }).lat : undefined;
+      const lng = data && typeof data === "object" && "lng" in data ? (data as { lng?: unknown }).lng : undefined;
 
-      if (data && data.length > 0) {
+      if (typeof lat === "number" && typeof lng === "number" && Number.isFinite(lat) && Number.isFinite(lng)) {
         updateField("location", {
           address: formData.location.address,
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon),
+          lat,
+          lng,
           country: formData.location.country || "Deutschland",
         });
       } else {

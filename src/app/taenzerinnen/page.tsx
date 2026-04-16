@@ -20,10 +20,13 @@ export async function generateMetadata({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
+  const sp = (await searchParams) ?? {};
+  const hasFilters = hasAnyIndexableListFilters(sp);
   return {
     title: "Tänzerinnen finden | TribeFinder",
     description: "Finde Tänzerinnen – filtere nach Bio, Unterricht, Workshops und Tanzstil.",
-    robots: { index: true, follow: true },
+    // Index only the unfiltered list to avoid duplicate content via URL params.
+    robots: { index: !hasFilters, follow: true },
     alternates: {
       canonical: "/taenzerinnen",
     },

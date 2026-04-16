@@ -48,10 +48,13 @@ export async function generateMetadata({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
+  const sp = (await searchParams) ?? {};
+  const hasFilters = hasAnyIndexableListFilters(sp);
   return {
     title: "Event Kalender | TribeFinder",
     description: "Finde Workshops, Socials und Events – filtere nach Ort, Monat und Tanzstil.",
-    robots: { index: true, follow: true },
+    // Index only the unfiltered list to avoid duplicate content via URL params.
+    robots: { index: !hasFilters, follow: true },
     alternates: {
       canonical: "/events",
     },

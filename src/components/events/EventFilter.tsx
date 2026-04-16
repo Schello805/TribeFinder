@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useDebounce } from "use-debounce";
-import { getCountryCodeFromGermanName } from "@/lib/countries";
 import { getGeolocationErrorToast } from "@/lib/geolocationError";
 import { useToast } from "@/components/ui/Toast";
 
@@ -125,25 +124,17 @@ export default function EventFilter({ availableMonths, availableCountries, initi
       const geocode = async () => {
         try {
           const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
-          const countryCode = getCountryCodeFromGermanName(selectedCountry);
-          const normalizedQuery = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(debouncedLocation)
-            ? debouncedLocation
-            : `${debouncedLocation}, ${selectedCountry}`;
-          const params = new URLSearchParams({
-            format: "json",
-            q: normalizedQuery,
-            limit: "1",
-            ...(countryCode ? { countrycodes: countryCode } : {}),
-            "accept-language": "de",
-          });
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, { signal: controller.signal });
+          const params = new URLSearchParams({ mode: "search", q: debouncedLocation, country: selectedCountry });
+          const res = await fetch(`/api/geocode?${params.toString()}`, { signal: controller.signal });
           if (!res.ok) return;
           const data = (await res.json().catch(() => null)) as unknown;
-          if (!Array.isArray(data) || !data[0]) return;
-          const first = data[0] as { lat?: unknown; lon?: unknown };
-          if (typeof first.lat !== "string" || typeof first.lon !== "string") return;
-          setLat(first.lat);
-          setLng(first.lon);
+          if (!data || typeof data !== "object") return;
+          const latValue = "lat" in data ? (data as { lat?: unknown }).lat : undefined;
+          const lngValue = "lng" in data ? (data as { lng?: unknown }).lng : undefined;
+          if (typeof latValue !== "number" || typeof lngValue !== "number") return;
+          if (!Number.isFinite(latValue) || !Number.isFinite(lngValue)) return;
+          setLat(String(latValue));
+          setLng(String(lngValue));
         } catch (e) {
           if (controller.signal.aborted) return;
           if (e instanceof DOMException && e.name === "AbortError") return;
@@ -178,21 +169,18 @@ export default function EventFilter({ availableMonths, availableCountries, initi
         setLng(String(longitude));
         setLocation("Mein Standort");
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1&accept-language=de`
-          );
+          const params = new URLSearchParams({
+            mode: "reverse",
+            lat: String(latitude),
+            lng: String(longitude),
+            zoom: "10",
+          });
+          const res = await fetch(`/api/geocode?${params.toString()}`);
           if (res.ok) {
             const data = (await res.json().catch(() => null)) as unknown;
-            if (typeof data === "object" && data !== null) {
-              const address = "address" in data ? (data as { address?: unknown }).address : undefined;
-              if (typeof address === "object" && address !== null) {
-                const a = address as { city?: unknown; town?: unknown; village?: unknown };
-                const cityCandidate = a.city ?? a.town ?? a.village;
-                if (typeof cityCandidate === "string" && cityCandidate.trim()) {
-                  setLocation(cityCandidate.trim());
-                }
-              }
-            }
+            if (!data || typeof data !== "object") return;
+            const cityValue = "city" in data ? (data as { city?: unknown }).city : undefined;
+            if (typeof cityValue === "string" && cityValue.trim()) setLocation(cityValue.trim());
           }
         } catch {
           // ignore

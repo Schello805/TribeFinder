@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { useSession } from "next-auth/react";
-import { getGermanCountryData, getCountryCodeFromGermanName } from "@/lib/countries";
+import { getGermanCountryData } from "@/lib/countries";
 
 const categories = [
   { value: "KOSTUEME", label: "Kostüme" },
@@ -91,26 +91,27 @@ export default function NewMarketplaceListingPage() {
     const t = setTimeout(async () => {
       try {
         const params = new URLSearchParams({
-          format: "json",
+          mode: "search",
           q: `${pc} ${c}, ${co}`,
+          country: co,
           limit: "1",
-          countrycodes: getCountryCodeFromGermanName(co) || "de",
-          "accept-language": "de",
-          addressdetails: "1",
         });
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
-          signal: controller.signal,
-          cache: "no-store",
-        });
+        const res = await fetch(`/api/geocode?${params.toString()}`, { signal: controller.signal, cache: "no-store" });
         if (!res.ok) return;
-        const data = (await res.json().catch(() => null)) as Array<{
-          address?: { postcode?: string; city?: string; town?: string; village?: string };
-        }> | null;
+        const json = (await res.json().catch(() => null)) as unknown;
         if (locSeq.current !== seqId) return;
-        const first = data && data[0];
-        const addr = first?.address;
-        const apiPostcode = (addr?.postcode || "").trim();
-        const apiCity = (addr?.city || addr?.town || addr?.village || "").trim();
+        const first =
+          json && typeof json === "object" && "results" in json && Array.isArray((json as { results?: unknown }).results)
+            ? (((json as { results: unknown[] }).results as unknown[])[0] as unknown)
+            : null;
+        const addr =
+          first && typeof first === "object" && "address" in first ? (first as { address?: unknown }).address : undefined;
+        const addressObj = addr && typeof addr === "object" ? (addr as Record<string, unknown>) : null;
+        const apiPostcode = typeof addressObj?.postcode === "string" ? addressObj.postcode.trim() : "";
+        const apiCity = (() => {
+          const v = addressObj?.city ?? addressObj?.town ?? addressObj?.village;
+          return typeof v === "string" ? v.trim() : "";
+        })();
         if (!apiPostcode && !apiCity) return;
 
         const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();

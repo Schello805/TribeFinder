@@ -7,7 +7,7 @@ import { GroupFormData } from "@/lib/validations/group";
 import GroupDanceStylesEditor from "@/components/groups/GroupDanceStylesEditor";
 import TagInput from "@/components/ui/TagInput";
 import { MAX_FILE_SIZE } from "@/types";
-import { getCountryCodeFromGermanName, getGermanCountryData } from "@/lib/countries";
+import { getGermanCountryData } from "@/lib/countries";
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
 const LocationPicker = dynamic(() => import("@/components/map/LocationPicker"), {
@@ -88,6 +88,33 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
     danceStyles: initialDanceStyles,
   });
 
+  const profileCompleteness = useMemo(() => {
+    const hasLogo = Boolean(String(formData.image || "").trim());
+    const hasDescription = Boolean(String(formData.description || "").trim());
+    const hasWebsite = Boolean(String(formData.website || "").trim());
+    const hasLocation = Boolean(
+      formData.location &&
+        typeof formData.location.lat === "number" &&
+        Number.isFinite(formData.location.lat) &&
+        typeof formData.location.lng === "number" &&
+        Number.isFinite(formData.location.lng)
+    );
+
+    const items = [
+      { key: "logo", label: "Logo", ok: hasLogo },
+      { key: "description", label: "Beschreibung", ok: hasDescription },
+      { key: "location", label: "Standort", ok: hasLocation },
+      { key: "website", label: "Website", ok: hasWebsite },
+    ];
+
+    const done = items.filter((i) => i.ok).length;
+    const total = items.length;
+    const missing = items.filter((i) => !i.ok).map((i) => i.label);
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    return { done, total, missing, percent };
+  }, [formData.description, formData.image, formData.location, formData.website]);
+
   void isOwner;
   void canDelete;
 
@@ -167,45 +194,33 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
   const geocodeAddress = async () => {
     if (!formData.location?.address) return;
     const selectedCountry = (formData.location.country || "Deutschland").trim() || "Deutschland";
-    const countryCode = getCountryCodeFromGermanName(selectedCountry);
-    const q = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(formData.location.address)
-      ? formData.location.address
-      : `${formData.location.address}, ${selectedCountry}`;
     
     setIsLoading(true);
     try {
-      const params = new URLSearchParams({
-        format: "json",
-        q,
-        limit: "1",
-        ...(countryCode ? { countrycodes: countryCode } : {}),
-        "accept-language": "de",
-      });
+      const params = new URLSearchParams({ mode: "search", q: formData.location.address, country: selectedCountry, limit: "1" });
+      const response = await fetch(`/api/geocode?${params.toString()}`);
+      const data = (await response.json().catch(() => null)) as unknown;
 
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
-        headers: {
-          "User-Agent": "DanceConnect/1.0"
-        }
-      });
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const lat = parseFloat(data[0].lat);
-        const lon = parseFloat(data[0].lon);
+      if (data && typeof data === "object") {
+        const lat = "lat" in data ? (data as { lat?: unknown }).lat : undefined;
+        const lng = "lng" in data ? (data as { lng?: unknown }).lng : undefined;
+        if (typeof lat === "number" && typeof lng === "number" && Number.isFinite(lat) && Number.isFinite(lng)) {
         
         setFormData(prev => ({
           ...prev,
           location: {
             address: prev.location?.address,
-            lat: lat,
-            lng: lon,
+            lat,
+            lng,
             country: prev.location?.country || "Deutschland",
           }
         }));
         setLocationDirty(false);
-      } else {
-        setError("Adresse konnte nicht gefunden werden.");
+        return;
+        }
       }
+
+      setError("Adresse konnte nicht gefunden werden.");
     } catch (err) {
       console.error("Geocoding error:", err);
       setError("Fehler bei der Adresssuche.");
@@ -410,6 +425,39 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
           {error}
         </div>
       )}
+
+      <div className="bg-[var(--surface-2)] p-4 rounded-md border border-[var(--border)]">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-sm font-medium text-[var(--foreground)]">Profil-Vollständigkeit</div>
+            <div className="mt-1 text-xs text-[var(--muted)]">
+              {profileCompleteness.done}/{profileCompleteness.total} ausgefüllt ({profileCompleteness.percent}%)
+            </div>
+          </div>
+          <div
+            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border ${
+              profileCompleteness.percent >= 100
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-amber-50 text-amber-700 border-amber-200"
+            }`}
+          >
+            {profileCompleteness.percent >= 100 ? "Vollständig" : "Fast fertig"}
+          </div>
+        </div>
+
+        <div className="mt-3 h-2 w-full rounded bg-[var(--surface)] border border-[var(--border)] overflow-hidden">
+          <div
+            className="h-full bg-[var(--primary)]"
+            style={{ width: `${Math.min(100, Math.max(0, profileCompleteness.percent))}%` }}
+          />
+        </div>
+
+        {profileCompleteness.missing.length > 0 ? (
+          <div className="mt-3 text-xs text-[var(--muted)]">
+            Fehlt noch: <span className="text-[var(--foreground)]">{profileCompleteness.missing.join(", ")}</span>
+          </div>
+        ) : null}
+      </div>
 
       <div className="bg-[var(--surface-2)] p-4 rounded-md border border-[var(--border)]">
         <label className="block text-sm font-medium text-[var(--foreground)]">Header / Banner</label>

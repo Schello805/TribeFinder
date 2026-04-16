@@ -12,6 +12,30 @@ const isReadMethod = (method: string) => {
   return m === "GET" || m === "HEAD" || m === "OPTIONS";
 };
 
+const parseContentLength = (value: string | null) => {
+  if (!value) return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+};
+
+const getMaxBodyBytesForPath = (pathname: string) => {
+  // Default write limit for most endpoints.
+  const DEFAULT_MAX = 25 * 1024 * 1024; // 25 MB
+
+  // Admin-only large uploads.
+  if (pathname === "/api/admin/backups/upload") return 500 * 1024 * 1024; // 500 MB
+  if (pathname === "/api/admin/branding/hero-logo") return 105 * 1024 * 1024; // 100 MB + overhead
+  if (pathname === "/api/admin/branding/logo") return 6 * 1024 * 1024; // 5 MB + overhead
+
+  // Other uploads.
+  if (pathname === "/api/admin/marketing-assets") return 20 * 1024 * 1024;
+  if (pathname === "/api/upload") return 20 * 1024 * 1024;
+  if (pathname === "/api/upload/banner") return 20 * 1024 * 1024;
+  if (pathname === "/api/feedback/upload") return 20 * 1024 * 1024;
+
+  return DEFAULT_MAX;
+};
+
 const isPublicPagePath = (pathname: string) => {
   if (pathname === "/") return true;
   if (pathname === "/changelog") return true;
@@ -57,6 +81,24 @@ const isPublicApiPath = (pathname: string, method: string) => {
 
 export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
+
+  // Basic body-size guard (only works when Content-Length is present).
+  // This mitigates accidental or malicious large uploads to endpoints that don't expect them.
+  if (pathname.startsWith("/api") && !isReadMethod(req.method)) {
+    const len = parseContentLength(req.headers.get("content-length"));
+    if (len != null) {
+      const max = getMaxBodyBytesForPath(pathname);
+      if (len > max) {
+        return NextResponse.json(
+          {
+            message: "Request ist zu groß",
+            details: `Maximal erlaubt: ${Math.floor(max / 1024 / 1024)}MB`,
+          },
+          { status: 413 }
+        );
+      }
+    }
+  }
 
   if (pathname.startsWith("/api")) {
     if (isPublicApiPath(pathname, req.method)) {

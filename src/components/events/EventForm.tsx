@@ -15,10 +15,10 @@ interface EventFormProps {
   isEditing?: boolean;
 }
 
-type NominatimSearchResult = {
-  lat: string;
-  lon: string;
-  display_name?: string;
+type GeocodeSearchResult = {
+  lat: number;
+  lng: number;
+  displayName?: string;
 };
 
 type NominatimReverseResult = {
@@ -140,7 +140,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const [error, setError] = useState("");
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState("");
-  const [geocodeResults, setGeocodeResults] = useState<NominatimSearchResult[]>([]);
+  const [geocodeResults, setGeocodeResults] = useState<GeocodeSearchResult[]>([]);
   const geocodeControllerRef = useRef<AbortController | null>(null);
   const lastGeocodeQueryRef = useRef<string>("");
   const didSkipInitialGeocodeRef = useRef(false);
@@ -149,12 +149,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const endFieldRef = useRef<HTMLDivElement | null>(null);
   const lastStartRef = useRef<Date | null>(null);
 
-  const getCountryCode = useCallback((country: string) => {
-    return getCountryCodeFromGermanName(country);
-  }, []);
-
   useEffect(() => {
-    if (process.env.NODE_ENV === "production") return;
+    // Only enable noisy diagnostics in local development (not in tests / CI).
+    if (process.env.NODE_ENV !== "development") return;
 
     const onError = (e: ErrorEvent) => {
       console.error("[EventForm] window.error", e.message, e.error);
@@ -173,7 +170,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   }, []);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === "production") return;
+    // Only enable fetch instrumentation in local development (not in tests / CI).
+    if (process.env.NODE_ENV !== "development") return;
     if (typeof window === "undefined") return;
 
     const origFetch: typeof window.fetch = window.fetch.bind(window);
@@ -212,74 +210,68 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     return { postalcode, city, street: street || "" };
   }, []);
 
-  const buildNominatimFreeTextUrl = useCallback((rawQuery: string, country: string, limit = 1) => {
-    const q = (rawQuery || "").trim();
-    if (!q) return "";
-    const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
-    const normalizedQuery = new RegExp(`\\b${selectedCountry.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}\\b`, "i").test(q)
-      ? q
-      : `${q}, ${selectedCountry}`;
-    const countryCode = getCountryCode(selectedCountry);
+  const fetchGeocodeResults = useCallback(
+    async (query: string, country: string, limit = 5, signal?: AbortSignal): Promise<GeocodeSearchResult[]> => {
+      const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
+      const parsed = selectedCountry === "Deutschland" ? parseGermanAddress(query) : null;
+
+      const tryFetch = async (params: URLSearchParams) => {
+        const url = `/api/geocode?${params.toString()}`;
+        const res = await fetch(url, signal ? { signal } : undefined);
+        if (!res.ok) return [];
+        const json = (await res.json().catch(() => null)) as unknown;
+        if (!json || typeof json !== "object") return [];
+        const resultsRaw =
+          "results" in json && Array.isArray((json as { results?: unknown }).results)
+            ? ((json as { results: unknown[] }).results as unknown[])
+            : [];
+
+        const results: GeocodeSearchResult[] = [];
+        for (const r of resultsRaw) {
+          if (!r || typeof r !== "object") continue;
+          const lat = "lat" in r ? (r as { lat?: unknown }).lat : undefined;
+          const lng = "lng" in r ? (r as { lng?: unknown }).lng : undefined;
+          if (typeof lat !== "number" || typeof lng !== "number") continue;
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+          const displayName = "displayName" in r ? (r as { displayName?: unknown }).displayName : undefined;
+          results.push({ lat, lng, displayName: typeof displayName === "string" ? displayName : undefined });
+          if (results.length >= limit) break;
+        }
+        return results;
+      };
+
+      if (parsed) {
+        const params = new URLSearchParams({
+          mode: "search",
+          country: "Deutschland",
+          limit: String(limit),
+          postalcode: parsed.postalcode,
+          city: parsed.city,
+        });
+        if (parsed.street) params.set("street", parsed.street);
+        const structured = await tryFetch(params);
+        if (structured.length > 0) return structured;
+      }
+
+      const params = new URLSearchParams({
+        mode: "search",
+        q: query,
+        country: selectedCountry,
+        limit: String(limit),
+      });
+      return tryFetch(params);
+    },
+    [parseGermanAddress]
+  );
+
+  const buildReverseUrl = (lat: number, lng: number) => {
     const params = new URLSearchParams({
-      format: "json",
-      q: normalizedQuery,
-      limit: String(limit),
-      ...(countryCode ? { countrycodes: countryCode } : {}),
-      "accept-language": "de",
-      addressdetails: "1",
-    });
-    return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-  }, [getCountryCode]);
-
-  const buildNominatimStructuredUrl = useCallback((rawQuery: string, country: string, limit = 1) => {
-    const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
-    if (selectedCountry !== "Deutschland") return "";
-    const parsed = parseGermanAddress(rawQuery);
-    if (!parsed) return "";
-    const params = new URLSearchParams({
-      format: "json",
-      limit: String(limit),
-      countrycodes: "de",
-      "accept-language": "de",
-      addressdetails: "1",
-      postalcode: parsed.postalcode,
-      city: parsed.city,
-      country: "Deutschland",
-    });
-    if (parsed.street) params.set("street", parsed.street);
-    return `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-  }, [parseGermanAddress]);
-
-  const fetchGeocodeResults = useCallback(async (query: string, country: string, limit = 5, signal?: AbortSignal) => {
-    const structuredUrl = buildNominatimStructuredUrl(query, country, limit);
-    const freeTextUrl = buildNominatimFreeTextUrl(query, country, limit);
-
-    const tryFetch = async (url: string) => {
-      if (!url) return null;
-      const res = await fetch(url, signal ? { signal } : undefined);
-      const data = (await res.json().catch(() => null)) as NominatimSearchResult[] | null;
-      return Array.isArray(data) ? data : null;
-    };
-
-    if (structuredUrl) {
-      const structured = await tryFetch(structuredUrl);
-      if (structured && structured.length > 0) return structured;
-    }
-
-    const fallback = await tryFetch(freeTextUrl);
-    return fallback || [];
-  }, [buildNominatimFreeTextUrl, buildNominatimStructuredUrl]);
-
-  const buildNominatimReverseUrl = (lat: number, lng: number) => {
-    const params = new URLSearchParams({
-      format: "json",
+      mode: "reverse",
       lat: String(lat),
-      lon: String(lng),
+      lng: String(lng),
       zoom: "18",
-      addressdetails: "1",
-      "accept-language": "de",
     });
-    return `https://nominatim.openstreetmap.org/reverse?${params.toString()}`;
+    return `/api/geocode?${params.toString()}`;
   };
 
   const extractPostcode = (address: string) => {
@@ -297,7 +289,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     if (!addr) return { ok: false as const, reason: "Adresse fehlt" };
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { ok: false as const, reason: "Koordinaten fehlen" };
 
-    const url = buildNominatimReverseUrl(lat, lng);
+    const url = buildReverseUrl(lat, lng);
     const res = await fetch(url);
     const json = (await res.json().catch(() => null)) as NominatimReverseResult | null;
     if (!json || typeof json !== "object") return { ok: false as const, reason: "Koordinaten konnten nicht geprüft werden" };
@@ -327,7 +319,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     }
 
     const selectedCountry = (country || "Deutschland").trim() || "Deutschland";
-    const expectedCode = getCountryCode(selectedCountry);
+    const expectedCode = getCountryCodeFromGermanName(selectedCountry);
     if (expectedCode && typeof json.address?.country_code === "string" && json.address.country_code.toLowerCase() !== expectedCode) {
       return { ok: false as const, reason: `Position liegt nicht in ${selectedCountry}` };
     }
@@ -465,8 +457,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
         if (data && data.length === 1 && data[0]) {
           setFormData((prev) => ({
             ...prev,
-            lat: parseFloat(data[0].lat),
-            lng: parseFloat(data[0].lon),
+            lat: data[0].lat,
+            lng: data[0].lng,
           }));
           setGeocodeResults([]);
           setGeocodeError("");
@@ -770,8 +762,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       if (data && data.length === 1 && data[0]) {
         setFormData(prev => ({
           ...prev,
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon)
+          lat: data[0].lat,
+          lng: data[0].lng
         }));
         setGeocodeResults([]);
       } else if (data && data.length > 1) {
@@ -786,16 +778,16 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     }
   };
 
-  const applyGeocodeSelection = (result: NominatimSearchResult) => {
+  const applyGeocodeSelection = (result: GeocodeSearchResult) => {
     if (process.env.NODE_ENV !== "production") {
       console.warn("[EventForm] applyGeocodeSelection", {
         lat: result.lat,
-        lon: result.lon,
-        display_name: result.display_name,
+        lng: result.lng,
+        displayName: result.displayName,
       });
     }
 
-    const selectedAddress = (result.display_name || "").trim();
+    const selectedAddress = (result.displayName || "").trim();
     if (selectedAddress) {
       lastGeocodeQueryRef.current = selectedAddress;
       geocodeControllerRef.current?.abort();
@@ -806,8 +798,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     setGeocodeError("");
     setFormData((prev) => ({
       ...prev,
-      lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
+      lat: result.lat,
+      lng: result.lng,
       address: selectedAddress || prev.address,
     }));
   };
@@ -830,11 +822,11 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       const data = await fetchGeocodeResults(query, formData.country || "Deutschland", 5);
       
       if (data && data.length === 1) {
-        const { lat, lon } = data[0];
+        const { lat, lng } = data[0];
         setFormData(prev => ({
           ...prev,
-          lat: parseFloat(lat),
-          lng: parseFloat(lon)
+          lat,
+          lng,
         }));
         setError("");
       } else if (data && data.length > 1) {
@@ -986,7 +978,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       router.refresh();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Ein Fehler ist aufgetreten";
-      if (process.env.NODE_ENV !== "production") {
+      if (process.env.NODE_ENV === "development") {
         console.error("[EventForm] submit error", err);
       }
       setError(errorMessage);
@@ -1403,12 +1395,12 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           <div className="mt-2 rounded-md border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
             {geocodeResults.slice(0, 5).map((r, idx) => (
               <button
-                key={`${r.lat}-${r.lon}-${idx}`}
+                key={`${r.lat}-${r.lng}-${idx}`}
                 type="button"
                 onClick={() => applyGeocodeSelection(r)}
                 className="block w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
               >
-                {r.display_name || `${r.lat}, ${r.lon}`}
+                {r.displayName || `${r.lat}, ${r.lng}`}
               </button>
             ))}
           </div>

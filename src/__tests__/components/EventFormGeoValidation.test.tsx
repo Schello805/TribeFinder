@@ -20,9 +20,14 @@ describe("EventForm geolocation validation", () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = typeof input === "string" ? input : input.toString();
 
-      if (url.includes("nominatim.openstreetmap.org/reverse")) {
+      if (url.includes("/api/geocode") && url.includes("mode=reverse")) {
         return new Response(
-          JSON.stringify({ address: { postcode: "10115", city: "Berlin", country_code: "de" } }),
+          JSON.stringify({
+            address: { postcode: "10115", city: "Berlin", country_code: "de" },
+            city: "Berlin",
+            postcode: "10115",
+            countryCode: "de",
+          }),
           { status: 200, headers: { "content-type": "application/json" } }
         );
       }

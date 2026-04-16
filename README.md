@@ -144,6 +144,9 @@ SMTP_USER=""
 SMTP_PASSWORD=""
 SMTP_FROM=""
 
+# Optional: Matomo-Origin (für CSP-Allowlist)
+MATOMO_URL=""
+
 # Wartungsmodus (optional)
 # Wenn aktiv, werden Schreib-Requests (POST/PUT/PATCH/DELETE) mit HTTP 503 geblockt.
 # Erlaubte Werte: 1/true/yes/on
@@ -224,5 +227,4 @@ Siehe `CHANGELOG.md` für alle Änderungen und Updates.
 <img width="1558" height="717" alt="Bildschirmfoto 2026-03-23 um 20 16 52" src="https://github.com/user-attachments/assets/fafc1913-8624-40ec-8ad5-a57fc52dab2b" />
 <img width="1605" height="838" alt="Bildschirmfoto 2026-03-23 um 20 17 01" src="https://github.com/user-attachments/assets/a84bf40d-a650-4161-823d-24f3e4b4eebb" />
 <img width="1580" height="836" alt="Bildschirmfoto 2026-03-23 um 20 17 15" src="https://github.com/user-attachments/assets/4201215e-6e83-4ac1-93f1-75705ce01854" />
-
 

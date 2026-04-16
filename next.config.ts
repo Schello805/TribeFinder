@@ -16,22 +16,32 @@ const nextConfig = {
   output: "standalone",
   serverExternalPackages: ["@react-pdf/renderer"],
   experimental: {
-    proxyClientMaxBodySize: "600mb",
+    // Keep this just above the largest accepted upload (admin backups: 500 MB).
+    proxyClientMaxBodySize: "520mb",
   },
   async headers() {
     const isDev = process.env.NODE_ENV === "development";
-    const matomo = "https://analytics.schellenberger.biz";
+    const matomo = (process.env.MATOMO_URL || "").trim();
+    const matomoOrigin = (() => {
+      try {
+        return matomo ? new URL(matomo).origin : "";
+      } catch {
+        return "";
+      }
+    })();
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
       "object-src 'none'",
       "frame-ancestors 'self'",
       "form-action 'self'",
-      `img-src 'self' data: blob: https: ${matomo}`,
+      `img-src 'self' data: blob: https: ${matomoOrigin}`.trim(),
       "font-src 'self' data: https:",
       "style-src 'self' 'unsafe-inline' https:",
-      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https: ${matomo}`,
-      isDev ? `connect-src 'self' https: http: ws: blob: ${matomo}` : `connect-src 'self' https: blob: ${matomo}`,
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https: ${matomoOrigin}`.trim(),
+      isDev
+        ? `connect-src 'self' https: http: ws: blob: ${matomoOrigin}`.trim()
+        : `connect-src 'self' https: blob: ${matomoOrigin}`.trim(),
       ...(isDev ? [] : ["upgrade-insecure-requests"]),
     ].join("; ");
 
