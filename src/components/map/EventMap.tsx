@@ -4,14 +4,11 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect } from "react";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 // Fix for default marker icon in Leaflet with Next.js
 const icon = L.icon({
-  iconUrl: markerIcon.src,
-  shadowUrl: markerShadow.src,
+  iconUrl: "/leaflet/marker-icon.png",
+  shadowUrl: "/leaflet/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -29,9 +26,9 @@ export default function EventMap({ lat, lng }: EventMapProps) {
     // @ts-expect-error Leaflet internal type mismatch for private property
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
-      iconRetinaUrl: markerIcon2x.src,
-      iconUrl: markerIcon.src,
-      shadowUrl: markerShadow.src,
+      iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+      iconUrl: "/leaflet/marker-icon.png",
+      shadowUrl: "/leaflet/marker-shadow.png",
     });
   }, []);
 
