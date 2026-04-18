@@ -23,6 +23,7 @@ import { readFile } from "fs/promises";
 import WhatsNewModal from "@/components/announcements/WhatsNewModal";
 import CookieConsentBanner from "@/components/privacy/CookieConsentBanner";
 import CookieSettingsLink from "@/components/privacy/CookieSettingsLink";
+import { getPublicBaseUrl } from "@/lib/publicBaseUrl";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -46,10 +47,7 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const rawBase = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "").replace(/\/+$/, "");
-  const fallbackProtocol = process.env.NODE_ENV === "development" ? "http" : "https";
-  const fallbackBase = `${fallbackProtocol}://localhost:3000`;
-  const baseUrl = (rawBase || fallbackBase).replace(/^http:\/\//i, process.env.NODE_ENV === "development" ? "http://" : "https://");
+  const baseUrl = await getPublicBaseUrl();
 
   let brandingLogoUrl = "";
   try {

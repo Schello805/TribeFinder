@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
+import { getPublicBaseUrl } from "@/lib/publicBaseUrl";
 
 type MarketplaceListingSitemapRow = {
   id: string;
@@ -16,10 +17,7 @@ function getMarketplaceListingDelegate(p: typeof prisma) {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const rawBase = (process.env.SITE_URL || process.env.NEXTAUTH_URL || "").replace(/\/+$/, "");
-  const fallbackProtocol = process.env.NODE_ENV === "development" ? "http" : "https";
-  const fallbackBase = `${fallbackProtocol}://localhost:3000`;
-  const baseUrl = (rawBase || fallbackBase).replace(/^http:\/\//i, process.env.NODE_ENV === "development" ? "http://" : "https://");
+  const baseUrl = await getPublicBaseUrl();
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
