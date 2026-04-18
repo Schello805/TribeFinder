@@ -1,6 +1,6 @@
 {
   "name": "tribe-finder",
-  "version": "2.8.15",
+  "version": "2.8.16",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -11,7 +11,7 @@
     "typecheck": "tsc -p tsconfig.typecheck.json --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:all": "npm run lint && npm run typecheck && npm run test:run && npm run e2e:smoke",
+    "test:all": "npm run db:validate && npm run lint && npm run typecheck && npm run test:run && npm run e2e:smoke",
     "test:api": "vitest run src/__tests__/api/**/*.test.ts",
     "test:lib": "vitest run src/__tests__/lib/**/*.test.ts src/lib/**/*.test.ts",
     "test:focus": "vitest -t",
