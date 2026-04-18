@@ -58,7 +58,6 @@ export default function GroupCreateWizard() {
   const [isLocationConfirmed, setIsLocationConfirmed] = useState(false);
   const [prefillUrl, setPrefillUrl] = useState("");
   const [prefillLoading, setPrefillLoading] = useState(false);
-  const [prefillOverwrite, setPrefillOverwrite] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -175,17 +174,36 @@ export default function GroupCreateWizard() {
 
       if (!res.ok) throw new Error(data?.message || "Konnte keine Daten übernehmen");
 
+      const hasExistingValues =
+        Boolean((formData.website || "").trim()) ||
+        Boolean((formData.name || "").trim()) ||
+        Boolean((formData.description || "").trim()) ||
+        Boolean((formData.image || "").trim()) ||
+        Boolean((formData.contactEmail || "").trim());
+
+      const hasIncomingValues =
+        Boolean((data?.website || "").trim()) ||
+        Boolean((data?.name || "").trim()) ||
+        Boolean((data?.description || "").trim()) ||
+        Boolean((data?.imageUrl || "").trim()) ||
+        Boolean((data?.contactEmail || "").trim());
+
+      const shouldOverwrite =
+        hasExistingValues && hasIncomingValues
+          ? window.confirm("Es sind bereits Felder ausgefüllt. Sollen diese durch die Website-Daten überschrieben werden?")
+          : false;
+
       setFormData((prev) => {
         const next = { ...prev };
-        if (prefillOverwrite || !next.website) next.website = data?.website || next.website;
-        if (prefillOverwrite || !next.name?.trim()) next.name = data?.name || next.name;
-        if (prefillOverwrite || (next.description || "").trim().length < 10) next.description = data?.description || next.description;
-        if (prefillOverwrite || !next.image) next.image = data?.imageUrl || next.image;
-        if (prefillOverwrite || !next.contactEmail) next.contactEmail = data?.contactEmail || next.contactEmail;
+        if (shouldOverwrite || !next.website) next.website = data?.website || next.website;
+        if (shouldOverwrite || !next.name?.trim()) next.name = data?.name || next.name;
+        if (shouldOverwrite || !String(next.description || "").trim()) next.description = data?.description || next.description;
+        if (shouldOverwrite || !next.image) next.image = data?.imageUrl || next.image;
+        if (shouldOverwrite || !next.contactEmail) next.contactEmail = data?.contactEmail || next.contactEmail;
         return next;
       });
 
-      showToast("Infos übernommen (bitte kurz prüfen)", "success");
+      showToast(shouldOverwrite ? "Infos übernommen (überschrieben – bitte prüfen)" : "Infos übernommen (bitte kurz prüfen)", "success");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Fehler beim Übernehmen";
       showToast(msg, "error");
@@ -331,7 +349,7 @@ export default function GroupCreateWizard() {
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
               <div className="text-sm font-semibold text-[var(--foreground)]">Schon eine Website?</div>
               <div className="mt-1 text-sm text-[var(--muted)]">
-                Gib eine Website-URL ein und ich übernehme Titel/Beschreibung (OpenGraph/Meta) als Vorschlag.
+                Gib eine Website-URL ein und ich übernehme Name/Beschreibung als Vorschlag.
               </div>
               <div className="mt-3 flex gap-2">
                 <input
@@ -350,15 +368,6 @@ export default function GroupCreateWizard() {
                   {prefillLoading ? "…" : "Übernehmen"}
                 </button>
               </div>
-              <label className="mt-2 inline-flex items-center gap-2 text-xs text-[var(--muted)]">
-                <input
-                  type="checkbox"
-                  checked={prefillOverwrite}
-                  onChange={(e) => setPrefillOverwrite(e.target.checked)}
-                  className="h-4 w-4 rounded border border-[var(--border)]"
-                />
-                Vorhandene Felder überschreiben
-              </label>
             </div>
 
             <div>
