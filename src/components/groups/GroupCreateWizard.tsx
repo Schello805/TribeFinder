@@ -351,19 +351,19 @@ export default function GroupCreateWizard() {
               <div className="mt-1 text-sm text-[var(--muted)]">
                 Gib eine Website-URL ein und ich übernehme Name/Beschreibung als Vorschlag.
               </div>
-              <div className="mt-3 flex gap-2">
+              <div className="mt-3 flex flex-col sm:flex-row gap-2">
                 <input
                   type="url"
                   value={prefillUrl}
                   onChange={(e) => setPrefillUrl(e.target.value)}
-                  className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  className="w-full sm:flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="https://…"
                 />
                 <button
                   type="button"
                   onClick={handlePrefillFromUrl}
                   disabled={prefillLoading || !prefillUrl.trim()}
-                  className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition"
+                  className="w-full sm:w-auto px-4 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition whitespace-nowrap"
                 >
                   {prefillLoading ? "…" : "Übernehmen"}
                 </button>
