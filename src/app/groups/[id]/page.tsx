@@ -106,6 +106,9 @@ export default async function GroupDetailPage({
     name: true,
     description: true,
     website: true,
+    instagramUrl: true,
+    facebookUrl: true,
+    pinterestUrl: true,
     videoUrl: true,
     image: true,
     createdAt: true,
@@ -552,6 +555,53 @@ export default async function GroupDetailPage({
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
                           {displayUrl}
                         </a>
+                      </dd>
+                    </div>
+                  )}
+
+                  {(group.instagramUrl || group.facebookUrl || group.pinterestUrl) && (
+                    <div className="bg-[var(--surface-2)] p-4 rounded-xl border border-[var(--border)]">
+                      <dt className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Social</dt>
+                      <dd className="flex flex-col gap-2">
+                        {group.instagramUrl ? (
+                          <a
+                            href={group.instagramUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[var(--link)] hover:opacity-90 font-medium break-all flex items-center gap-2"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="currentColor">
+                              <path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9A5.5 5.5 0 0 1 16.5 22h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2zm9 2h-9A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4zm-4.5 3.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 0 1 12 7.5zm0 2A2.5 2.5 0 1 0 14.5 12 2.5 2.5 0 0 0 12 9.5zM17.2 6.6a1.1 1.1 0 1 1-1.1 1.1 1.1 1.1 0 0 1 1.1-1.1z" />
+                            </svg>
+                            Instagram
+                          </a>
+                        ) : null}
+                        {group.facebookUrl ? (
+                          <a
+                            href={group.facebookUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[var(--link)] hover:opacity-90 font-medium break-all flex items-center gap-2"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="currentColor">
+                              <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99A10 10 0 0 0 22 12z" />
+                            </svg>
+                            Facebook
+                          </a>
+                        ) : null}
+                        {group.pinterestUrl ? (
+                          <a
+                            href={group.pinterestUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[var(--link)] hover:opacity-90 font-medium break-all flex items-center gap-2"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="currentColor">
+                              <path d="M12 2a10 10 0 0 0-3.55 19.35c-.05-.8-.1-2.03.02-2.9.11-.84.74-5.36.74-5.36s-.19-.38-.19-.94c0-.88.51-1.54 1.15-1.54.54 0 .8.4.8.89 0 .54-.34 1.35-.52 2.1-.15.63.32 1.14.94 1.14 1.13 0 2-1.19 2-2.9 0-1.51-1.09-2.57-2.65-2.57-1.8 0-2.86 1.35-2.86 2.75 0 .54.21 1.12.47 1.44a.19.19 0 0 1 .04.18c-.05.2-.17.63-.2.72-.04.12-.12.15-.28.09-1.04-.48-1.69-1.98-1.69-3.19 0-2.6 1.89-4.98 5.46-4.98 2.87 0 5.1 2.05 5.1 4.79 0 2.86-1.8 5.16-4.3 5.16-.84 0-1.63-.44-1.9-.96l-.52 1.98c-.19.73-.7 1.65-1.04 2.21A10 10 0 0 0 12 22a10 10 0 0 0 0-20z" />
+                            </svg>
+                            Pinterest
+                          </a>
+                        ) : null}
                       </dd>
                     </div>
                   )}

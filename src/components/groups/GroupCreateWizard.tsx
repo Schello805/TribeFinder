@@ -23,6 +23,9 @@ interface FormData {
   size: "SOLO" | "DUO" | "TRIO" | "SMALL" | "LARGE";
   image?: string;
   website?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  pinterestUrl?: string;
   contactEmail?: string;
   videoUrl?: string;
   trainingTime?: string;
@@ -53,6 +56,9 @@ export default function GroupCreateWizard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [isLocationConfirmed, setIsLocationConfirmed] = useState(false);
+  const [prefillUrl, setPrefillUrl] = useState("");
+  const [prefillLoading, setPrefillLoading] = useState(false);
+  const [prefillOverwrite, setPrefillOverwrite] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -142,6 +148,49 @@ export default function GroupCreateWizard() {
       setError(err instanceof Error ? err.message : "Fehler beim Bild-Upload");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePrefillFromUrl = async () => {
+    const url = prefillUrl.trim();
+    if (!url) return;
+
+    setPrefillLoading(true);
+    try {
+      const res = await fetch("/api/groups/prefill-from-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = (await res.json().catch(() => null)) as
+        | {
+            website?: string | null;
+            name?: string | null;
+            description?: string | null;
+            imageUrl?: string | null;
+            contactEmail?: string | null;
+            message?: string;
+          }
+        | null;
+
+      if (!res.ok) throw new Error(data?.message || "Konnte keine Daten übernehmen");
+
+      setFormData((prev) => {
+        const next = { ...prev };
+        if (prefillOverwrite || !next.website) next.website = data?.website || next.website;
+        if (prefillOverwrite || !next.name?.trim()) next.name = data?.name || next.name;
+        if (prefillOverwrite || (next.description || "").trim().length < 10) next.description = data?.description || next.description;
+        if (prefillOverwrite || !next.image) next.image = data?.imageUrl || next.image;
+        if (prefillOverwrite || !next.contactEmail) next.contactEmail = data?.contactEmail || next.contactEmail;
+        return next;
+      });
+
+      showToast("Infos übernommen (bitte kurz prüfen)", "success");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Fehler beim Übernehmen";
+      showToast(msg, "error");
+    } finally {
+      setPrefillLoading(false);
     }
   };
 
@@ -277,6 +326,39 @@ export default function GroupCreateWizard() {
               <p className="text-[var(--muted)] text-sm mt-1">
                 Name, Beschreibung und Trainingsort sind Pflicht. Alles andere kommt im nächsten Schritt.
               </p>
+            </div>
+
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+              <div className="text-sm font-semibold text-[var(--foreground)]">Schon eine Website?</div>
+              <div className="mt-1 text-sm text-[var(--muted)]">
+                Gib eine Website-URL ein und ich übernehme Titel/Beschreibung (OpenGraph/Meta) als Vorschlag.
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input
+                  type="url"
+                  value={prefillUrl}
+                  onChange={(e) => setPrefillUrl(e.target.value)}
+                  className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="https://…"
+                />
+                <button
+                  type="button"
+                  onClick={handlePrefillFromUrl}
+                  disabled={prefillLoading || !prefillUrl.trim()}
+                  className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] disabled:opacity-50 transition"
+                >
+                  {prefillLoading ? "…" : "Übernehmen"}
+                </button>
+              </div>
+              <label className="mt-2 inline-flex items-center gap-2 text-xs text-[var(--muted)]">
+                <input
+                  type="checkbox"
+                  checked={prefillOverwrite}
+                  onChange={(e) => setPrefillOverwrite(e.target.checked)}
+                  className="h-4 w-4 rounded border border-[var(--border)]"
+                />
+                Vorhandene Felder überschreiben
+              </label>
             </div>
 
             <div>
@@ -566,6 +648,39 @@ export default function GroupCreateWizard() {
                   onChange={(e) => updateField("contactEmail", e.target.value)}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="info@..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Instagram</label>
+                <input
+                  type="url"
+                  value={formData.instagramUrl || ""}
+                  onChange={(e) => updateField("instagramUrl", e.target.value)}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="https://instagram.com/…"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Facebook</label>
+                <input
+                  type="url"
+                  value={formData.facebookUrl || ""}
+                  onChange={(e) => updateField("facebookUrl", e.target.value)}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="https://facebook.com/…"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Pinterest</label>
+                <input
+                  type="url"
+                  value={formData.pinterestUrl || ""}
+                  onChange={(e) => updateField("pinterestUrl", e.target.value)}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="https://pinterest.com/…"
                 />
               </div>
             </div>

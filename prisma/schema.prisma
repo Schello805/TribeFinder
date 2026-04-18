@@ -267,6 +267,9 @@ model Group {
   name               String
   description        String
   website            String?
+  instagramUrl       String?
+  facebookUrl        String?
+  pinterestUrl       String?
   contactEmail       String?
   image              String?
   headerImage        String?

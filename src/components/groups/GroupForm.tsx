@@ -61,6 +61,9 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
     name: initialData?.name || "",
     description: initialData?.description || "",
     website: initialData?.website || "",
+    instagramUrl: (initialData as unknown as { instagramUrl?: string | null } | undefined)?.instagramUrl || "",
+    facebookUrl: (initialData as unknown as { facebookUrl?: string | null } | undefined)?.facebookUrl || "",
+    pinterestUrl: (initialData as unknown as { pinterestUrl?: string | null } | undefined)?.pinterestUrl || "",
     contactEmail: initialData?.contactEmail || "",
     videoUrl: initialData?.videoUrl || "",
     size: initialData?.size || "SMALL",
@@ -756,6 +759,50 @@ export default function GroupForm({ initialData, isEditing = false, isOwner = fa
             placeholder="info@..."
           />
           {fieldErrors.contactEmail && <p className="mt-1 text-sm text-red-600">{fieldErrors.contactEmail}</p>}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Instagram (Optional)</label>
+          <input
+            type="text"
+            name="instagramUrl"
+            value={(formData as unknown as { instagramUrl?: string }).instagramUrl || ""}
+            onChange={handleChange}
+            onBlur={handleUrlBlur}
+            className={`mt-1 block w-full rounded-md border ${fieldErrors.instagramUrl ? 'border-red-500' : 'border-[var(--border)]'} px-3 py-2 shadow-sm focus:border-[var(--primary)] focus:outline-none focus:ring-[var(--primary)] text-[var(--foreground)] bg-[var(--surface)] placeholder:text-[var(--muted)]`}
+            placeholder="instagram.com/…"
+          />
+          {fieldErrors.instagramUrl && <p className="mt-1 text-sm text-red-600">{fieldErrors.instagramUrl}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Facebook (Optional)</label>
+          <input
+            type="text"
+            name="facebookUrl"
+            value={(formData as unknown as { facebookUrl?: string }).facebookUrl || ""}
+            onChange={handleChange}
+            onBlur={handleUrlBlur}
+            className={`mt-1 block w-full rounded-md border ${fieldErrors.facebookUrl ? 'border-red-500' : 'border-[var(--border)]'} px-3 py-2 shadow-sm focus:border-[var(--primary)] focus:outline-none focus:ring-[var(--primary)] text-[var(--foreground)] bg-[var(--surface)] placeholder:text-[var(--muted)]`}
+            placeholder="facebook.com/…"
+          />
+          {fieldErrors.facebookUrl && <p className="mt-1 text-sm text-red-600">{fieldErrors.facebookUrl}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[var(--foreground)]">Pinterest (Optional)</label>
+          <input
+            type="text"
+            name="pinterestUrl"
+            value={(formData as unknown as { pinterestUrl?: string }).pinterestUrl || ""}
+            onChange={handleChange}
+            onBlur={handleUrlBlur}
+            className={`mt-1 block w-full rounded-md border ${fieldErrors.pinterestUrl ? 'border-red-500' : 'border-[var(--border)]'} px-3 py-2 shadow-sm focus:border-[var(--primary)] focus:outline-none focus:ring-[var(--primary)] text-[var(--foreground)] bg-[var(--surface)] placeholder:text-[var(--muted)]`}
+            placeholder="pinterest.com/…"
+          />
+          {fieldErrors.pinterestUrl && <p className="mt-1 text-sm text-red-600">{fieldErrors.pinterestUrl}</p>}
         </div>
       </div>
 

@@ -8,6 +8,9 @@ const baseGroupSchema = z.object({
   name: z.string().min(2, "Name muss mindestens 2 Zeichen lang sein"),
   description: z.string().min(10, "Beschreibung muss mindestens 10 Zeichen lang sein"),
   website: z.string().url("Ungültige URL").optional().or(z.literal("")),
+  instagramUrl: z.string().url("Ungültige URL").optional().or(z.literal("")),
+  facebookUrl: z.string().url("Ungültige URL").optional().or(z.literal("")),
+  pinterestUrl: z.string().url("Ungültige URL").optional().or(z.literal("")),
   contactEmail: z.string().email("Ungültige E-Mail-Adresse").optional().or(z.literal("")),
   videoUrl: z.string().url("Ungültige URL").optional().or(z.literal("")), // Youtube Link
   size: z.enum(["SOLO", "DUO", "TRIO", "SMALL", "LARGE"]),
