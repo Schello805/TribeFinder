@@ -52,6 +52,7 @@ export default function GroupCreateWizard() {
   const [currentStep, setCurrentStep] = useState<WizardStep>("basics");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isLocationConfirmed, setIsLocationConfirmed] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -84,8 +85,8 @@ export default function GroupCreateWizard() {
           setError("Bitte gib einen Trainingsort (Adresse oder Stadt/PLZ) ein.");
           return false;
         }
-        if (!Number.isFinite(formData.location?.lat) || !Number.isFinite(formData.location?.lng)) {
-          setError("Bitte wähle einen Standort auf der Karte oder nutze die Suche.");
+        if (!isLocationConfirmed || !Number.isFinite(formData.location?.lat) || !Number.isFinite(formData.location?.lng)) {
+          setError("Bitte bestätige den Standort: Suche nutzen oder Karte anklicken.");
           return false;
         }
         return true;
@@ -99,9 +100,7 @@ export default function GroupCreateWizard() {
   const nextStep = async () => {
     if (currentStep === "basics") {
       if (formData.location?.address?.trim()) {
-        const hasLat = Number.isFinite(formData.location?.lat);
-        const hasLng = Number.isFinite(formData.location?.lng);
-        if (!hasLat || !hasLng) {
+        if (!isLocationConfirmed) {
           await geocodeAddress();
         }
       }
@@ -172,6 +171,7 @@ export default function GroupCreateWizard() {
           lng,
           country: formData.location.country || "Deutschland",
         });
+        setIsLocationConfirmed(true);
       } else {
         setError("Adresse konnte nicht gefunden werden.");
       }
@@ -317,14 +317,15 @@ export default function GroupCreateWizard() {
                 <input
                   type="text"
                   value={formData.location?.country || "Deutschland"}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    setIsLocationConfirmed(false);
                     updateField("location", {
-                      lat: formData.location?.lat || 51.1657,
-                      lng: formData.location?.lng || 10.4515,
+                      lat: Number.NaN,
+                      lng: Number.NaN,
                       address: formData.location?.address || "",
                       country: e.target.value,
-                    })
-                  }
+                    });
+                  }}
                   list="group-create-country-options"
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="Deutschland"
@@ -344,14 +345,15 @@ export default function GroupCreateWizard() {
                   <input
                     type="text"
                     value={formData.location?.address || ""}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      setIsLocationConfirmed(false);
                       updateField("location", {
-                        lat: formData.location?.lat || 51.1657,
-                        lng: formData.location?.lng || 10.4515,
+                        lat: Number.NaN,
+                        lng: Number.NaN,
                         address: e.target.value,
                         country: formData.location?.country || "Deutschland",
-                      })
-                    }
+                      });
+                    }}
                     className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                     placeholder="z.B. 10115 Berlin"
                   />
@@ -368,24 +370,25 @@ export default function GroupCreateWizard() {
 
               <div className="rounded-lg overflow-hidden border border-[var(--border)]">
                 <LocationPicker
-                  initialLat={formData.location?.lat}
-                  initialLng={formData.location?.lng}
-                  onLocationSelect={(lat, lng) =>
+                  initialLat={Number.isFinite(formData.location?.lat) ? formData.location?.lat : undefined}
+                  initialLng={Number.isFinite(formData.location?.lng) ? formData.location?.lng : undefined}
+                  onLocationSelect={(lat, lng) => {
+                    setIsLocationConfirmed(true);
                     updateField("location", {
-                      ...formData.location,
                       lat,
                       lng,
+                      address: formData.location?.address || "",
                       country: formData.location?.country || "Deutschland",
-                    })
-                  }
+                    });
+                  }}
                 />
               </div>
 
-              {formData.location?.lat && formData.location?.lng && (
-                <p className="text-sm text-[var(--muted)] text-center mt-2">
-                  📍 Koordinaten: {formData.location.lat.toFixed(4)}, {formData.location.lng.toFixed(4)}
-                </p>
-              )}
+              <p className="text-sm text-[var(--muted)] text-center mt-2">
+                {isLocationConfirmed && Number.isFinite(formData.location?.lat) && Number.isFinite(formData.location?.lng)
+                  ? `✓ Standort bestätigt (${formData.location!.lat.toFixed(4)}, ${formData.location!.lng.toFixed(4)})`
+                  : "Standort noch nicht bestätigt (Suche nutzen oder Karte anklicken)."}
+              </p>
             </div>
           </div>
         )}
