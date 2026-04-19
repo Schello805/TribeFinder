@@ -138,6 +138,14 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isLocationConfirmed, setIsLocationConfirmed] = useState(() => {
+    if (isEditing) return true;
+    const lat = typeof initialData?.lat === "number" ? initialData.lat : Number.NaN;
+    const lng = typeof initialData?.lng === "number" ? initialData.lng : Number.NaN;
+    const addr = (initialData?.address || "").trim();
+    if (!addr) return false;
+    return Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 51.1657 && lng === 10.4515);
+  });
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState("");
   const [geocodeResults, setGeocodeResults] = useState<GeocodeSearchResult[]>([]);
@@ -383,6 +391,11 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
       return { ...prev, address: composedAddress } as EventFormData;
     });
   }, [composedAddress]);
+
+  useEffect(() => {
+    if (isEditing) return;
+    setIsLocationConfirmed(false);
+  }, [isEditing, formData.address, formData.country]);
 
   useEffect(() => {
     const loadStyles = async () => {
@@ -765,14 +778,18 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           lat: data[0].lat,
           lng: data[0].lng
         }));
+        setIsLocationConfirmed(true);
         setGeocodeResults([]);
       } else if (data && data.length > 1) {
         setGeocodeResults(data);
+        setIsLocationConfirmed(false);
       } else {
         setGeocodeError("Adresse nicht gefunden. Bitte überprüfen.");
+        setIsLocationConfirmed(false);
       }
     } catch {
       setGeocodeError("Fehler bei der Adresssuche");
+      setIsLocationConfirmed(false);
     } finally {
       setIsGeocoding(false);
     }
@@ -796,6 +813,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
     setGeocodeResults([]);
     setGeocodeError("");
+    setIsLocationConfirmed(true);
     setFormData((prev) => ({
       ...prev,
       lat: result.lat,
@@ -828,15 +846,19 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           lat,
           lng,
         }));
+        setIsLocationConfirmed(true);
         setError("");
       } else if (data && data.length > 1) {
         setGeocodeResults(data);
+        setIsLocationConfirmed(false);
       } else {
         setError(`Die Adresse "${query}" konnte nicht gefunden werden.`);
+        setIsLocationConfirmed(false);
       }
     } catch (e) {
       console.error(e);
       setError("Verbindungsfehler beim Abrufen der Koordinaten.");
+      setIsLocationConfirmed(false);
     } finally {
       setIsGeocoding(false);
     }
@@ -892,6 +914,10 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
       if (!start || !end) {
         throw new Error("Bitte überprüfe die Eingaben.");
+      }
+
+      if (!isLocationConfirmed || geocodeResults.length > 0) {
+        throw new Error("Bitte Adresse suchen und einen passenden Treffer auswählen (Standort bestätigen).");
       }
 
       try {
@@ -1405,8 +1431,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
             ))}
           </div>
         )}
-        {!isGeocoding && !geocodeError && formData.lat !== 51.1657 && (
-          <p className="mt-1 text-sm text-[var(--muted)]">✓ Standort gefunden</p>
+        {!isGeocoding && !geocodeError && isLocationConfirmed && (
+          <p className="mt-1 text-sm text-[var(--muted)]">✓ Standort bestätigt</p>
         )}
 
         <p className="mt-1 text-xs text-[var(--muted)]">
