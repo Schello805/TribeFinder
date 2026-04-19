@@ -11,6 +11,7 @@
     "typecheck": "tsc -p tsconfig.typecheck.json --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "verify": "npm run db:validate && npm run lint && npm run typecheck && npm run test:run",
     "test:all": "npm run db:validate && npm run lint && npm run typecheck && npm run test:run && npm run e2e:smoke",
     "test:api": "vitest run src/__tests__/api",
     "test:lib": "vitest run src/__tests__/lib src/lib",
