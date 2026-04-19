@@ -208,6 +208,47 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const parseGermanAddress = useCallback((raw: string) => {
     const q = (raw || "").trim();
     if (!q) return null;
+
+    // Common Nominatim format:
+    // "Venue, house_number, road, suburb, city, state, 90473, Deutschland"
+    const tokens = q
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const postcodeIndex = tokens.findIndex((t) => /\b\d{5}\b/.test(t));
+    if (postcodeIndex !== -1) {
+      const postalcode = tokens[postcodeIndex].match(/\b(\d{5})\b/)?.[1] || "";
+      const cityCandidate = tokens[postcodeIndex - 2] || tokens[postcodeIndex - 1] || "";
+      const city = String(cityCandidate || "")
+        .replace(/\s+Deutschland\s*$/i, "")
+        .trim();
+
+      const streetTypeRegex =
+        /\b(straße|strasse|str\.|weg|platz|allee|ring|gasse|damm|ufer|chaussee|promenade|markt|steig|pfad|road|street|ave|avenue|boulevard|blvd|drive|dr\.|lane|court|ct\.|place|pl\.)\b/i;
+      const isHouseNumber = (t: string) => /^\d+[a-zA-Z]?$/.test(t.trim());
+      const looksLikeStreet = (t: string) => streetTypeRegex.test(t) || (/[A-Za-zÄÖÜäöüß]/.test(t) && /\d/.test(t));
+
+      let street = "";
+      for (let i = Math.max(0, postcodeIndex - 1); i >= 0; i -= 1) {
+        const token = tokens[i];
+        if (!token) continue;
+        if (!looksLikeStreet(token)) continue;
+
+        // "50, Glogauer Straße" -> "Glogauer Straße 50"
+        if (!/\d/.test(token) && i > 0 && isHouseNumber(tokens[i - 1] || "")) {
+          street = `${token} ${tokens[i - 1]}`.trim();
+        } else if (!/\d/.test(token) && i + 1 < postcodeIndex && isHouseNumber(tokens[i + 1] || "")) {
+          street = `${token} ${tokens[i + 1]}`.trim();
+        } else {
+          street = token.trim();
+        }
+        break;
+      }
+
+      if (postalcode && city.length >= 2) return { postalcode, city, street };
+    }
+
+    // Simple "91572 Bechhofen" style
     const m = q.match(/\b(\d{5})\b\s*([^,\n]+)?/);
     if (!m) return null;
     const postalcode = m[1];
@@ -215,7 +256,13 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     if (!postalcode || cityRaw.length < 2) return null;
     const city = cityRaw.replace(/\s+Deutschland\s*$/i, "").trim();
     if (city.length < 2) return null;
-    const street = q.replace(new RegExp(`\\b${postalcode}\\b\\s*${cityRaw.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}`, "i"), "").replace(/,\s*Deutschland\s*$/i, "").trim();
+    const street = q
+      .replace(
+        new RegExp(`\\b${postalcode}\\b\\s*${cityRaw.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}`, "i"),
+        ""
+      )
+      .replace(/,\s*Deutschland\s*$/i, "")
+      .trim();
     return { postalcode, city, street: street || "" };
   }, []);
 
@@ -339,8 +386,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
     title: initialData?.title || "",
     description: initialData?.description || "",
     eventType: initialData?.eventType || "EVENT",
-    startDate: isEditing && initialData?.startDate ? toLocalISOString(initialData.startDate) : "",
-    endDate: isEditing && initialData?.endDate ? toLocalISOString(initialData.endDate) : "",
+    startDate: "",
+    endDate: "",
     danceStyleIds: Array.isArray((initialData as { danceStyleIds?: unknown })?.danceStyleIds)
       ? (((initialData as { danceStyleIds?: unknown }).danceStyleIds as unknown[])?.filter((x) => typeof x === "string") as string[])
       : [],
@@ -363,6 +410,16 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const [postalCode, setPostalCode] = useState("");
   const [city, setCity] = useState("");
   const [street, setStreet] = useState("");
+
+  useEffect(() => {
+    if (!isEditing) return;
+    const nextStartDate = initialData?.startDate ? toLocalISOString(initialData.startDate) : "";
+    const nextEndDate = initialData?.endDate ? toLocalISOString(initialData.endDate) : "";
+    setFormData((prev) => {
+      if (prev.startDate === nextStartDate && prev.endDate === nextEndDate) return prev;
+      return { ...prev, startDate: nextStartDate, endDate: nextEndDate } as EventFormData;
+    });
+  }, [initialData?.endDate, initialData?.startDate, isEditing]);
 
   useEffect(() => {
     if ((formData.country || "Deutschland") !== "Deutschland") return;
@@ -1392,18 +1449,15 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
         {(formData.country || "Deutschland") === "Deutschland" ? (
           <>
-            <div className="mt-2">
-              <label className="block text-xs font-medium text-[var(--foreground)]">Adresse (aktuell)</label>
-              <input
-                type="text"
-                value={formData.address || ""}
-                readOnly
-                className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] opacity-90"
-              />
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                Diese Adresse wird aus PLZ/Ort/Straße zusammengesetzt (und so gespeichert).
-              </p>
-            </div>
+            {formData.address?.trim() && !postalCode.trim() && !city.trim() && !street.trim() ? (
+              <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-xs">
+                <div className="font-medium text-[var(--foreground)]">Gespeicherte Adresse</div>
+                <div className="mt-1 text-[var(--muted)] break-words">{formData.address}</div>
+                <div className="mt-2 text-[var(--muted)]">
+                  Diese Adresse konnte nicht automatisch in PLZ/Ort/Straße zerlegt werden. Bitte gib die Felder unten manuell ein.
+                </div>
+              </div>
+            ) : null}
 
             <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
