@@ -1389,6 +1389,19 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
 
         {(formData.country || "Deutschland") === "Deutschland" ? (
           <>
+            <div className="mt-2">
+              <label className="block text-xs font-medium text-[var(--foreground)]">Adresse (aktuell)</label>
+              <input
+                type="text"
+                value={formData.address || ""}
+                readOnly
+                className="mt-1 block w-full rounded-md border border-[var(--border)] px-3 py-2 shadow-sm bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] opacity-90"
+              />
+              <p className="mt-1 text-xs text-[var(--muted)]">
+                Diese Adresse wird aus PLZ/Ort/Straße zusammengesetzt (und so gespeichert).
+              </p>
+            </div>
+
             <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-[var(--foreground)]">PLZ</label>
