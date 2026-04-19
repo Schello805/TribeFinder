@@ -110,10 +110,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     // Dynamic event pages
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 28);
     const events = await prisma.event.findMany({
+      where: {
+        startDate: {
+          gte: cutoff,
+        },
+      },
       select: { id: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
-      take: 100, // Limit to recent events
+      take: 5000,
     });
 
     const eventPages: MetadataRoute.Sitemap = events.map((event) => ({

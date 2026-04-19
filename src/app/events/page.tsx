@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import EventFilter from "@/components/events/EventFilter";
 import type { Metadata } from "next";
+import { getPublicBaseUrl } from "@/lib/publicBaseUrl";
 
 const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
@@ -50,13 +51,32 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const sp = (await searchParams) ?? {};
   const hasFilters = hasAnyIndexableListFilters(sp);
+  const baseUrl = await getPublicBaseUrl();
+  const title = "Event Kalender | TribeFinder";
+  const description = "Finde Workshops, Socials und Events – filtere nach Ort, Monat und Tanzstil.";
+  const imageUrl = `${baseUrl}/opengraph-image`;
   return {
-    title: "Event Kalender | TribeFinder",
-    description: "Finde Workshops, Socials und Events – filtere nach Ort, Monat und Tanzstil.",
+    title,
+    description,
     // Index only the unfiltered list to avoid duplicate content via URL params.
     robots: { index: !hasFilters, follow: true },
     alternates: {
       canonical: "/events",
+    },
+    openGraph: {
+      type: "website",
+      locale: "de_DE",
+      url: `${baseUrl}/events`,
+      siteName: "TribeFinder",
+      title,
+      description,
+      images: [{ url: imageUrl }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
     },
   };
 }

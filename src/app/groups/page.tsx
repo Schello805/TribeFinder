@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import GroupsPageClient, { type GroupListItem } from "@/app/groups/GroupsPageClient";
+import { getPublicBaseUrl } from "@/lib/publicBaseUrl";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
@@ -37,13 +38,32 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const sp = (await searchParams) ?? {};
   const hasFilters = hasAnyIndexableListFilters(sp);
+  const baseUrl = await getPublicBaseUrl();
+  const title = "Tanzgruppen finden | TribeFinder";
+  const description = "Finde Tanzgruppen in deiner Nähe – filtere nach Tanzstil, Standort und mehr.";
+  const imageUrl = `${baseUrl}/opengraph-image`;
   return {
-    title: "Tanzgruppen finden | TribeFinder",
-    description: "Finde Tanzgruppen in deiner Nähe – filtere nach Tanzstil, Standort und mehr.",
+    title,
+    description,
     // Index only the unfiltered list to avoid duplicate content via URL params.
     robots: { index: !hasFilters, follow: true },
     alternates: {
       canonical: "/groups",
+    },
+    openGraph: {
+      type: "website",
+      locale: "de_DE",
+      url: `${baseUrl}/groups`,
+      siteName: "TribeFinder",
+      title,
+      description,
+      images: [{ url: imageUrl }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
     },
   };
 }
