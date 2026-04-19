@@ -9,6 +9,8 @@ import EventRegistration from '@/components/events/EventRegistration';
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import DynamicEventMap from "@/components/map/DynamicEventMap";
 import DuplicateEventButton from "@/components/events/DuplicateEventButton";
+import { getPublicBaseUrl } from "@/lib/publicBaseUrl";
+import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
 const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
@@ -77,18 +79,41 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
     select: {
       title: true,
       description: true,
+      flyer1: true,
+      flyer2: true,
     },
   });
 
   if (!event) return { title: "Event nicht gefunden" };
 
+  const baseUrl = await getPublicBaseUrl();
   const description = (event.description || "").trim();
+  const ogImage = normalizeUploadedImageUrl(event.flyer1) || normalizeUploadedImageUrl(event.flyer2) || "/icons/icon-512.png";
+  const ogImageAbs = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, baseUrl).toString();
+  const pageUrl = `${baseUrl}/events/${id}`;
+  const title = `${event.title} | TribeFinder`;
+  const metaDescription = (description ? description.slice(0, 160) : "Event auf TribeFinder.").trim();
 
   return {
-    title: `${event.title} | TribeFinder`,
-    description: (description ? description.slice(0, 160) : "Event auf TribeFinder.").trim(),
+    title,
+    description: metaDescription,
     alternates: {
       canonical: `/events/${id}`,
+    },
+    openGraph: {
+      type: "article",
+      locale: "de_DE",
+      url: pageUrl,
+      siteName: "TribeFinder",
+      title,
+      description: metaDescription,
+      images: [{ url: ogImageAbs }],
+    },
+    twitter: {
+      card: ogImageAbs ? "summary_large_image" : "summary",
+      title,
+      description: metaDescription,
+      images: ogImageAbs ? [ogImageAbs] : [],
     },
   };
 }

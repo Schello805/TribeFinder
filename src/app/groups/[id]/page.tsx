@@ -14,6 +14,7 @@ import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import LikeButton from "@/components/groups/LikeButton";
 import YouTubeEmbedWithConsent from "@/components/privacy/YouTubeEmbedWithConsent";
+import { getPublicBaseUrl } from "@/lib/publicBaseUrl";
 
 function getLikeDelegates() {
   const p = prisma as unknown as {
@@ -77,18 +78,40 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     select: {
       name: true,
       description: true,
+      image: true,
     },
   });
 
   if (!group) return { title: "Gruppe nicht gefunden" };
 
+  const baseUrl = await getPublicBaseUrl();
   const description = (group.description || "").trim();
+  const ogImage = normalizeUploadedImageUrl(group.image) || "/icons/icon-512.png";
+  const ogImageAbs = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, baseUrl).toString();
+  const pageUrl = `${baseUrl}/groups/${id}`;
+  const title = `${group.name} | TribeFinder`;
+  const metaDescription = (description ? description.slice(0, 160) : "Gruppe auf TribeFinder.").trim();
 
   return {
-    title: `${group.name} | TribeFinder`,
-    description: (description ? description.slice(0, 160) : "Gruppe auf TribeFinder.").trim(),
+    title,
+    description: metaDescription,
     alternates: {
       canonical: `/groups/${id}`,
+    },
+    openGraph: {
+      type: "article",
+      locale: "de_DE",
+      url: pageUrl,
+      siteName: "TribeFinder",
+      title,
+      description: metaDescription,
+      images: [{ url: ogImageAbs }],
+    },
+    twitter: {
+      card: ogImageAbs ? "summary_large_image" : "summary",
+      title,
+      description: metaDescription,
+      images: ogImageAbs ? [ogImageAbs] : [],
     },
   };
 }
