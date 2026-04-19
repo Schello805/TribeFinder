@@ -418,6 +418,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
   // Separate effect for markers that responds to filter changes
   useEffect(() => {
     if (!mapRef.current || !mapReady) return;
+    let cancelled = false;
 
     // Clear existing markers
     markersRef.current.forEach(marker => marker.remove());
@@ -573,12 +574,14 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     // Add markers for events
     if (showEvents) {
       (async () => {
-        for (const event of events || []) {
+        for (const event of visibleEvents) {
+          if (cancelled) return;
           const lat = typeof event.lat === "number" ? event.lat : null;
           const lng = typeof event.lng === "number" ? event.lng : null;
           if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
 
           const ok = await isEventLocationReliable(event);
+          if (cancelled) return;
           if (!ok) continue;
 
         const date = new Date(event.startDate).toLocaleDateString('de-DE', {
@@ -633,6 +636,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
             closeOnClick: false,
             keepInView: true,
           });
+          if (cancelled) return;
           eventClusterRef.current?.addLayer(marker);
           markersRef.current.push(marker);
         }
@@ -685,6 +689,9 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         markersRef.current.push(marker);
       }
     }
+    return () => {
+      cancelled = true;
+    };
   }, [groups, events, links, selectedTag, showGroups, showEvents, selectedLinkCategoryNames, showUncategorizedLinks, mapReady, isEventLocationReliable]);
 
   return (
