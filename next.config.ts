@@ -15,6 +15,11 @@ const withPWA = withPWAInit({
 const nextConfig = {
   output: "standalone",
   serverExternalPackages: ["@react-pdf/renderer"],
+  images: {
+    // We mostly serve local `/uploads/*` user content. Disabling the optimizer avoids
+    // occasional client/proxy quirks with `/_next/image` and simplifies deployment.
+    unoptimized: true,
+  },
   experimental: {
     // Keep this just above the largest accepted upload (admin backups: 500 MB).
     proxyClientMaxBodySize: "520mb",
