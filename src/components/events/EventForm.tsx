@@ -388,6 +388,9 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   useEffect(() => {
     setFormData((prev) => {
       if ((prev.country || "Deutschland") !== "Deutschland") return prev;
+      // Don't overwrite a previously saved free-text address with an empty composed value.
+      // This happens when the stored address doesn't match our PLZ/Ort parsing (e.g. Nominatim format).
+      if (!composedAddress.trim()) return prev;
       if ((prev.address || "") === composedAddress) return prev;
       return { ...prev, address: composedAddress } as EventFormData;
     });
