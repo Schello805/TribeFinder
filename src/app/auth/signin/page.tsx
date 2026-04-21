@@ -29,12 +29,12 @@ export default function SignInPage() {
     if (authError) {
       const errorMsg =
         authError === "EMAIL_NOT_VERIFIED"
-          ? "Bitte bestätige zuerst deine E-Mail-Adresse (Link in deiner E-Mail)."
+          ? "Bitte bestätige zuerst deine E-Mail-Adresse (Link in deiner E-Mail). Falls du keine E-Mail siehst: bitte auch im Spam/Junk-Ordner nachsehen und ggf. 1–2 Minuten warten."
           : authError === "LOGIN_LOCKED"
             ? "Zu viele Fehlversuche. Bitte warte 5 Minuten und versuche es erneut."
             : authError === "CredentialsSignin"
               ? "Ungültige E-Mail oder Passwort"
-              : authError === "AccessDenied"
+            : authError === "AccessDenied"
                 ? "Zugriff verweigert. Bitte prüfe deine Anmeldung."
                 : authError === "Configuration"
                   ? "Login ist momentan nicht verfügbar. Bitte versuche es später erneut."
@@ -46,7 +46,8 @@ export default function SignInPage() {
 
     const registered = searchParams.get("registered");
     if (registered === "true") {
-      const msg = "Fast geschafft: Bitte bestätige zuerst deine E-Mail-Adresse (Link in der E-Mail). Danach kannst du dich anmelden.";
+      const msg =
+        "Fast geschafft: Wir haben dir eine Bestätigungs-E-Mail geschickt. Bitte klicke den Link in der E-Mail, danach kannst du dich anmelden. Falls du keine E-Mail siehst: bitte auch im Spam/Junk-Ordner nachsehen und ggf. 1–2 Minuten warten.";
       setSuccess(msg);
       showToast(msg, "success");
       return;
@@ -82,12 +83,12 @@ export default function SignInPage() {
       if (result?.error) {
         const errorMsg =
           result.error === "EMAIL_NOT_VERIFIED"
-            ? "Bitte bestätige zuerst deine E-Mail-Adresse (Link in deiner E-Mail)."
+            ? "Bitte bestätige zuerst deine E-Mail-Adresse (Link in deiner E-Mail). Falls du keine E-Mail siehst: bitte auch im Spam/Junk-Ordner nachsehen und ggf. 1–2 Minuten warten."
             : result.error === "LOGIN_LOCKED"
               ? "Zu viele Fehlversuche. Bitte warte 5 Minuten und versuche es erneut."
-              : result.error === "CredentialsSignin"
-                ? "Ungültige E-Mail oder Passwort"
-                : result.error === "AccessDenied"
+            : result.error === "CredentialsSignin"
+              ? "Ungültige E-Mail oder Passwort"
+            : result.error === "AccessDenied"
                   ? "Zugriff verweigert. Bitte prüfe deine Anmeldung."
                   : result.error === "Configuration"
                     ? "Login ist momentan nicht verfügbar. Bitte versuche es später erneut."

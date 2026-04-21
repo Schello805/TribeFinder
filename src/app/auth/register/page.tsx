@@ -83,8 +83,14 @@ export default function RegisterPage() {
       )}
 
       <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm text-[var(--muted)]">
-        Deine detaillierten Tänzerinnen-Infos (Bio, Social Links, Unterricht/Workshops, Buchbarkeit usw.) kannst du nach dem ersten Login unter
-        <span className="font-medium text-[var(--foreground)]"> Dashboard → Profil bearbeiten</span> ausfüllen.
+        <div className="font-medium text-[var(--foreground)]">Wichtig</div>
+        <div className="mt-1">
+          Nach dem Registrieren musst du deine E-Mail-Adresse bestätigen (Link in der E-Mail). Falls du keine E-Mail siehst: bitte auch im Spam/Junk-Ordner nachsehen und ggf. 1–2 Minuten warten.
+        </div>
+        <div className="mt-3">
+          Deine detaillierten Tänzerinnen-Infos (Bio, Social Links, Unterricht/Workshops, Buchbarkeit usw.) kannst du nach dem ersten Login unter
+          <span className="font-medium text-[var(--foreground)]"> Dashboard → Profil bearbeiten</span> ausfüllen.
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
