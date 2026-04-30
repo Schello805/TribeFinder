@@ -11,6 +11,7 @@ import DynamicEventMap from "@/components/map/DynamicEventMap";
 import DuplicateEventButton from "@/components/events/DuplicateEventButton";
 import { getPublicBaseUrl } from "@/lib/publicBaseUrl";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import { buildEventJsonLd } from "@/lib/seo/eventJsonLd";
 
 const TZ_EUROPE_BERLIN = "Europe/Berlin";
 
@@ -47,6 +48,7 @@ type EventLike = {
   eventType: string;
   startDate: Date;
   endDate: Date | null;
+  createdAt?: Date;
   locationName: string | null;
   address: string | null;
   country: string;
@@ -230,77 +232,31 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   })();
 
   const structuredEventJsonLd = (() => {
-    const flyerCandidates = [normalizeUploadedImageUrl(event.flyer1), normalizeUploadedImageUrl(event.flyer2)].filter(Boolean) as string[];
-    const imageUrls = flyerCandidates.length
-      ? flyerCandidates.map((u) => (/^https?:\/\//i.test(u) ? u : new URL(u, baseUrl).toString()))
-      : [new URL("/opengraph-image", baseUrl).toString()];
-
     const organizerNameResolved = organizerName || "TribeFinder";
     const organizerUrl = event.group?.id ? `${baseUrl}/groups/${event.group.id}` : undefined;
-
-    const ticketUrl = (event.ticketLink || "").trim();
-    const rawPrice = (event.ticketPrice || "").trim();
-    const priceMatch = rawPrice.match(/(\d+(?:[.,]\d+)?)/);
-    const priceNumber = priceMatch ? Number(priceMatch[1].replace(",", ".")) : NaN;
-    const hasEur = /€|\bEUR\b/i.test(rawPrice);
-
-    const offers =
-      ticketUrl
-        ? {
-            "@type": "Offer",
-            url: ticketUrl,
-            ...(Number.isFinite(priceNumber) ? { price: String(priceNumber) } : {}),
-            ...(Number.isFinite(priceNumber) && hasEur ? { priceCurrency: "EUR" } : {}),
-            availability: "https://schema.org/InStock",
-          }
-        : undefined;
-
-    const locationNameResolved = (event.locationName || "").trim() || (event.address || "").trim() || "Veranstaltungsort";
-    const addressValue = (event.address || "").trim();
-    const countryValue = (event.country || "").trim();
-
-    const jsonLd = {
-      "@context": "https://schema.org",
-      "@type": "Event",
-      name: event.title,
-      description: (event.description || "").trim().slice(0, 2000),
-      url: pageUrl,
-      startDate: new Date(event.startDate).toISOString(),
-      ...(event.endDate ? { endDate: new Date(event.endDate).toISOString() } : {}),
-      eventStatus: "https://schema.org/EventScheduled",
-      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-      image: imageUrls,
-      location: {
-        "@type": "Place",
-        name: locationNameResolved,
-        ...(addressValue || countryValue
-          ? {
-              address: {
-                "@type": "PostalAddress",
-                ...(addressValue ? { streetAddress: addressValue } : {}),
-                ...(countryValue ? { addressCountry: countryValue } : {}),
-              },
-            }
-          : {}),
-        ...(Number.isFinite(event.lat) && Number.isFinite(event.lng)
-          ? {
-              geo: {
-                "@type": "GeoCoordinates",
-                latitude: event.lat,
-                longitude: event.lng,
-              },
-            }
-          : {}),
+    return buildEventJsonLd({
+      baseUrl,
+      pageUrl,
+      organizerName: organizerNameResolved,
+      organizerUrl,
+      event: {
+        title: event.title,
+        description: event.description,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        createdAt: (event as unknown as { createdAt?: Date }).createdAt,
+        locationName: event.locationName,
+        address: event.address,
+        country: event.country,
+        lat: event.lat,
+        lng: event.lng,
+        flyer1: event.flyer1,
+        flyer2: event.flyer2,
+        website: event.website,
+        ticketLink: event.ticketLink,
+        ticketPrice: event.ticketPrice,
       },
-      organizer: {
-        "@type": "Organization",
-        name: organizerNameResolved,
-        ...(organizerUrl ? { url: organizerUrl } : {}),
-      },
-      ...(offers ? { offers } : {}),
-    };
-
-    return JSON.stringify(jsonLd);
+    });
   })();
 
   return (
