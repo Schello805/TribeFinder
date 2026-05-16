@@ -1,5 +1,56 @@
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 
+const normalizeOfferUrl = (raw: string, baseUrl: string): string | null => {
+  const v = (raw || "").trim();
+  if (!v) return null;
+
+  const candidates: string[] = [];
+
+  // Already absolute
+  if (/^https?:\/\//i.test(v)) {
+    candidates.push(v);
+  }
+
+  // Protocol-relative
+  if (/^\/\//.test(v)) {
+    candidates.push(`https:${v}`);
+  }
+
+  // Common user input: "www.example.com/.."
+  if (/^www\./i.test(v)) {
+    candidates.push(`https://${v}`);
+  }
+
+  // Relative path on this site
+  if (v.startsWith("/")) {
+    try {
+      candidates.push(new URL(v, baseUrl).toString());
+    } catch {
+      // ignore
+    }
+  }
+
+  // Domain without scheme: "example.com/.."
+  if (/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(v)) {
+    candidates.push(`https://${v}`);
+  }
+
+  // Last resort: try what we have (may still be valid)
+  candidates.push(v);
+
+  for (const c of candidates) {
+    try {
+      const u = new URL(c);
+      if (u.protocol !== "http:" && u.protocol !== "https:") continue;
+      return u.toString();
+    } catch {
+      // ignore
+    }
+  }
+
+  return null;
+};
+
 type BuildEventJsonLdInput = {
   baseUrl: string;
   pageUrl: string;
@@ -32,7 +83,7 @@ export function buildEventJsonLd(input: BuildEventJsonLdInput) {
     ? flyerCandidates.map((u) => (/^https?:\/\//i.test(u) ? u : new URL(u, baseUrl).toString()))
     : [new URL("/opengraph-image", baseUrl).toString()];
 
-  const ticketUrl = (event.ticketLink || "").trim();
+  const ticketUrl = normalizeOfferUrl(event.ticketLink || "", baseUrl);
   const rawPrice = (event.ticketPrice || "").trim();
   const priceMatch = rawPrice.match(/(\d+(?:[.,]\d+)?)/);
   const priceNumber = priceMatch ? Number(priceMatch[1].replace(",", ".")) : NaN;
@@ -102,4 +153,3 @@ export function buildEventJsonLd(input: BuildEventJsonLdInput) {
 
   return JSON.stringify(jsonLd);
 }
-

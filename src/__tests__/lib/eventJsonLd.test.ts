@@ -64,5 +64,61 @@ describe("buildEventJsonLd", () => {
     expect(offer.priceCurrency).toBe("EUR");
     expect(offer.price).toBe("10");
   });
-});
 
+  test("normalizes offer url (no scheme) to https", () => {
+    const json = buildEventJsonLd({
+      baseUrl: "https://tribefinder.de",
+      pageUrl: "https://tribefinder.de/events/evt3",
+      organizerName: "My Organizer",
+      event: {
+        title: "Test Event",
+        description: "Beschreibung",
+        startDate: new Date("2026-04-30T10:00:00.000Z"),
+        endDate: null,
+        createdAt: new Date("2026-04-01T10:00:00.000Z"),
+        locationName: null,
+        address: "Main Street 1, 10115 Berlin",
+        country: "Deutschland",
+        lat: 52.52,
+        lng: 13.405,
+        flyer1: null,
+        flyer2: null,
+        website: null,
+        ticketLink: "tickets.example.com/event/1",
+        ticketPrice: null,
+      },
+    });
+
+    const parsed = JSON.parse(json) as { offers?: unknown };
+    const offer = parsed.offers as { url?: unknown };
+    expect(offer.url).toBe("https://tickets.example.com/event/1");
+  });
+
+  test("omits offers when ticket url is not a valid http(s) url", () => {
+    const json = buildEventJsonLd({
+      baseUrl: "https://tribefinder.de",
+      pageUrl: "https://tribefinder.de/events/evt4",
+      organizerName: "My Organizer",
+      event: {
+        title: "Test Event",
+        description: "Beschreibung",
+        startDate: new Date("2026-04-30T10:00:00.000Z"),
+        endDate: null,
+        createdAt: new Date("2026-04-01T10:00:00.000Z"),
+        locationName: null,
+        address: "Main Street 1, 10115 Berlin",
+        country: "Deutschland",
+        lat: 52.52,
+        lng: 13.405,
+        flyer1: null,
+        flyer2: null,
+        website: null,
+        ticketLink: "not a url",
+        ticketPrice: null,
+      },
+    });
+
+    const parsed = JSON.parse(json) as { offers?: unknown };
+    expect(parsed.offers).toBeUndefined();
+  });
+});
