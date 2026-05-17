@@ -11,7 +11,7 @@ export function getGeolocationErrorToast(error: unknown): { message: string; lev
     return {
       level: "warning",
       message:
-        "Standort-Berechtigung verweigert. Bitte in Safari die Standortfreigabe für diese Website erlauben (Safari → Einstellungen → Websites → Standort).",
+        "Standort-Berechtigung verweigert. Bitte Standortfreigabe im Browser für diese Website erlauben (z.B. Chrome: Schloss-Symbol → Standort → Zulassen; Safari: Einstellungen → Websites → Standort).",
     };
   }
 
@@ -19,7 +19,7 @@ export function getGeolocationErrorToast(error: unknown): { message: string; lev
     return {
       level: "error",
       message:
-        "Standort ist aktuell nicht verfügbar. Prüfe macOS Ortungsdienste, WLAN/Internet und die Safari-Standortfreigabe.",
+        "Standort ist aktuell nicht verfügbar. Bitte Ortungsdienste (macOS) aktivieren, WLAN/Internet prüfen und die Standortfreigabe im Browser erlauben.",
     };
   }
 
