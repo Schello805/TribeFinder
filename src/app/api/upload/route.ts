@@ -8,6 +8,7 @@ import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE, AllowedImageType } from "@/types";
 import { checkRateLimit, getClientIdentifier, rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import sharp from "sharp";
 
 const resolveProjectRoot = () => {
   let dir = process.cwd();
@@ -120,7 +121,25 @@ export async function POST(req: Request) {
       }
     }
 
-    const filename = `${crypto.randomUUID()}${ext}`;
+    let finalExtension = ext;
+    let finalBuffer = buffer;
+
+    if (file.type !== "image/gif") {
+      finalExtension = ".webp";
+      const sharpBuffer = await sharp(buffer)
+        .rotate()
+        .resize({
+          width: 1200,
+          height: 1200,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .webp({ quality: 80 })
+        .toBuffer();
+      finalBuffer = sharpBuffer as any;
+    }
+
+    const filename = `${crypto.randomUUID()}${finalExtension}`;
     const projectRoot = resolveProjectRoot();
     const uploadDir = await resolveUploadsDir();
 
@@ -131,7 +150,7 @@ export async function POST(req: Request) {
     await mkdir(uploadDir, { recursive: true, mode: 0o755 });
 
     const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer, { mode: 0o644 });
+    await writeFile(filepath, finalBuffer, { mode: 0o644 });
 
     const exists = await fileExists(filepath);
     const publicUploadsExists = await fileExists(publicUploadsPath);
@@ -140,7 +159,8 @@ export async function POST(req: Request) {
     logger.info(
       {
         filename,
-        size: file.size,
+        size: finalBuffer.length,
+        originalSize: file.size,
         type: file.type,
         projectRoot,
         uploadDir,

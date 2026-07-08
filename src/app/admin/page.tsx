@@ -19,13 +19,16 @@ export default async function AdminPage() {
   // Statistiken laden
   let totalGroupsCount = 0;
   let totalUsersCount = 0;
+  let totalErrorsCount = 0;
 
   try {
     totalGroupsCount = await prisma.group.count();
     totalUsersCount = await prisma.user.count();
+    totalErrorsCount = await prisma.errorLog.count();
   } catch {
     totalGroupsCount = 0;
     totalUsersCount = 0;
+    totalErrorsCount = 0;
   }
 
   // Settings laden
@@ -78,6 +81,10 @@ export default async function AdminPage() {
           <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Benutzer Gesamt</dt>
           <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{totalUsersCount}</dd>
         </div>
+        <Link href="/admin/errors" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-5 hover:shadow-md transition group block">
+          <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate group-hover:text-red-500 transition-colors">Fehler Gesamt</dt>
+          <dd className="mt-1 text-3xl font-semibold text-red-600 dark:text-red-400">{totalErrorsCount}</dd>
+        </Link>
         <AdminOnlineCard />
       </div>
 
@@ -95,6 +102,24 @@ export default async function AdminPage() {
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
           >
             Benutzer verwalten
+          </Link>
+        </div>
+      </div>
+
+      {/* Errors Section */}
+      <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+          <div>
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Fehlerprotokoll</h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+              Übersicht und Verwaltung der aufgetretenen Server- und Systemfehler.
+            </p>
+          </div>
+          <Link 
+            href="/admin/errors" 
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700"
+          >
+            Fehler verwalten
           </Link>
         </div>
       </div>
