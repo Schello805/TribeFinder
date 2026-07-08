@@ -122,7 +122,7 @@ export async function POST(req: Request) {
     }
 
     let finalExtension = ext;
-    let finalBuffer = buffer;
+    let finalBuffer: Uint8Array = buffer;
 
     if (file.type !== "image/gif") {
       finalExtension = ".webp";
@@ -136,7 +136,7 @@ export async function POST(req: Request) {
         })
         .webp({ quality: 80 })
         .toBuffer();
-      finalBuffer = sharpBuffer as any;
+      finalBuffer = sharpBuffer;
     }
 
     const filename = `${crypto.randomUUID()}${finalExtension}`;
