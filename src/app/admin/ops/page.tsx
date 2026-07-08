@@ -15,13 +15,18 @@ function OpsAccordionItem({
   title,
   description,
   children,
+  open,
 }: {
   title: string;
   description: string;
   children: ReactNode;
+  open?: boolean;
 }) {
   return (
-    <details className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700">
+    <details 
+      className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-transparent dark:border-gray-700"
+      open={open}
+    >
       <summary className="cursor-pointer select-none px-4 py-5 sm:px-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -40,12 +45,18 @@ function OpsAccordionItem({
   );
 }
 
-export default async function AdminOpsPage() {
+export default async function AdminOpsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ open?: string }>;
+}) {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
     redirect("/");
   }
+
+  const { open } = await searchParams;
 
   return (
     <div className="relative left-1/2 -translate-x-1/2 w-[90vw] py-8 px-4 space-y-6">
@@ -57,6 +68,7 @@ export default async function AdminOpsPage() {
         <OpsAccordionItem
           title="Backups & Restore"
           description="Manuelle Backups, Upload/Inspect, Restore und Auto-Backup Status."
+          open={open === "backups"}
         >
           <AdminBackupsPanel />
         </OpsAccordionItem>
@@ -64,6 +76,7 @@ export default async function AdminOpsPage() {
         <OpsAccordionItem
           title="Transfer (Import/Export)"
           description="Selektiv Gruppen/Events/User/Memberships inkl. Upload-Dateien zwischen Systemen übertragen."
+          open={open === "transfer"}
         >
           <AdminTransferPanel />
         </OpsAccordionItem>
@@ -71,6 +84,7 @@ export default async function AdminOpsPage() {
         <OpsAccordionItem
           title="Diagnose"
           description="Self-Test: Datenbank, Uploads, Konfiguration und wichtige Endpunkte."
+          open={open === "diagnose" || open === "diagnostics"}
         >
           <AdminDiagnosticsPanel />
         </OpsAccordionItem>
@@ -78,6 +92,7 @@ export default async function AdminOpsPage() {
         <OpsAccordionItem
           title="Fehler"
           description="Fehler/Reports einsehen und bearbeiten."
+          open={open === "errors"}
         >
           <AdminErrorsPanel />
         </OpsAccordionItem>
@@ -85,6 +100,7 @@ export default async function AdminOpsPage() {
         <OpsAccordionItem
           title="Feedback"
           description="Feedback-Liste sowie Benachrichtigungs-Empfänger konfigurieren."
+          open={open === "feedback"}
         >
           <AdminFeedbackPanel />
         </OpsAccordionItem>

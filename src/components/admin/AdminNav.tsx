@@ -31,7 +31,6 @@ function itemClass(active: boolean) {
     isActivePrefix("/admin/ops") ||
     isActivePrefix("/admin/backups") ||
     isActivePrefix("/admin/diagnostics") ||
-    isActivePrefix("/admin/errors") ||
     isActivePrefix("/admin/feedback");
   const isSystem = isActivePrefix("/admin/system");
   const isAudit = isActivePrefix("/admin/audit-logs");

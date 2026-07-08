@@ -81,7 +81,7 @@ export default async function AdminPage() {
           <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Benutzer Gesamt</dt>
           <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{totalUsersCount}</dd>
         </div>
-        <Link href="/admin/errors" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-5 hover:shadow-md transition group block">
+        <Link href="/admin/ops?open=errors" className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-5 hover:shadow-md transition group block">
           <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate group-hover:text-red-500 transition-colors">Fehler Gesamt</dt>
           <dd className="mt-1 text-3xl font-semibold text-red-600 dark:text-red-400">{totalErrorsCount}</dd>
         </Link>
@@ -116,7 +116,7 @@ export default async function AdminPage() {
             </p>
           </div>
           <Link 
-            href="/admin/errors" 
+            href="/admin/ops?open=errors" 
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700"
           >
             Fehler verwalten
