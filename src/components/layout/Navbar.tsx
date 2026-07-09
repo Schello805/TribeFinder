@@ -458,17 +458,12 @@ export default function Navbar() {
                 </div>
               </>
             ) : (
-              <>
-                <Link href="/auth/signin" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
-                  Anmelden
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:opacity-95 transition font-medium shadow-sm"
-                >
-                  Registrieren
-                </Link>
-              </>
+              <Link
+                href="/auth/signin"
+                className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 rounded-md hover:opacity-95 transition font-medium shadow-sm"
+              >
+                Login
+              </Link>
             )}
           </div>
 
@@ -616,14 +611,13 @@ export default function Navbar() {
                 </button>
               </>
             ) : (
-              <>
-                <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
-                  Anmelden
-                </Link>
-                <Link href="/auth/register" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] font-bold hover:opacity-95 rounded-md">
-                  Registrieren
-                </Link>
-              </>
+              <Link
+                href="/auth/signin"
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] font-bold hover:opacity-95 rounded-md"
+              >
+                Login
+              </Link>
             )}
           </div>
         </div>
