@@ -255,6 +255,13 @@ export default function Navbar() {
     };
   }, [isMenuOpen]);
 
+  const handleSignOut = async () => {
+    setIsUserMenuOpen(false);
+    setIsMenuOpen(false);
+    await signOut({ redirect: false, callbackUrl: "/" });
+    window.location.assign("/");
+  };
+
   return (
     <nav ref={navRef} className="bg-[var(--nav-bg)] text-[var(--nav-fg)] shadow-lg transition-colors sticky top-0 z-[1000]">
       <div className="container mx-auto px-4">
@@ -448,10 +455,7 @@ export default function Navbar() {
 
                       <button
                         type="button"
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          signOut({ callbackUrl: "/" });
-                        }}
+                        onClick={handleSignOut}
                         className="w-full text-left px-4 py-2 text-sm text-[var(--nav-fg)] hover:bg-[var(--nav-surface)]"
                       >
                         Abmelden
@@ -610,7 +614,7 @@ export default function Navbar() {
                 </button>
 
                 <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={handleSignOut}
                   className="w-full text-left block px-3 py-2 text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md"
                 >
                   Abmelden

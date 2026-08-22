@@ -159,7 +159,8 @@ export default function ProfileForm() {
       }
 
       showToast("Dein Konto wurde gelöscht.", "success");
-      await signOut({ callbackUrl: "/" });
+      await signOut({ redirect: false, callbackUrl: "/" });
+      window.location.assign("/");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Löschen fehlgeschlagen";
       showToast(msg, "error");

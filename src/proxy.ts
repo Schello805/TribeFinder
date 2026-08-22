@@ -51,6 +51,7 @@ const isPublicPagePath = (pathname: string) => {
   if (pathname.startsWith("/users")) return true;
   if (pathname.startsWith("/marketplace")) return true;
   if (pathname.startsWith("/events")) return true;
+  if (pathname === "/search") return true;
   return false;
 };
 

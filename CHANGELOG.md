@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.2] - 2026-08-22
+
+### 🔓 Navigation
+
+- Die globale Suche ist jetzt ohne Anmeldung öffentlich erreichbar.
+- Abmelden führt browserseitig zuverlässig zur Startseite und übernimmt keine fehlerhafte Server-Basis-URL mehr.
+
 ## [2.9.1] - 2026-08-22
 
 ### 🚀 Deploy
