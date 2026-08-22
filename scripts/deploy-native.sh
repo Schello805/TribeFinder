@@ -245,6 +245,9 @@ else
     echo -e "${GREEN}Bereits auf dem neuesten Stand!${NC}"
 fi
 
+# Ungültige Quotes/Pfade in NEXTAUTH_URL verursachen NextAuth CLIENT_FETCH_ERROR.
+node scripts/sanitize-public-urls.js .env
+
 # Version und Commit erst nach dem Git-Update setzen, damit der Footer das neue Release zeigt.
 if [ -f ".env" ]; then
     APP_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")

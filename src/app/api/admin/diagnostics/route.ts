@@ -79,10 +79,22 @@ export async function GET() {
     await runCheck("nextauth_url_https", "NEXTAUTH_URL: HTTPS", async () => {
       const url = (process.env.NEXTAUTH_URL || "").trim();
       if (!url) return { status: "warn", message: "NEXTAUTH_URL fehlt" };
-      if (!url.startsWith("https://")) {
+      let parsed: URL;
+      try {
+        parsed = new URL(url);
+      } catch {
+        return { status: "fail", message: `NEXTAUTH_URL ist ungültig (${url})` };
+      }
+      if (parsed.protocol !== "https:") {
         return {
           status: "warn",
           message: `NEXTAUTH_URL ist nicht https:// (${url})`,
+        };
+      }
+      if (url !== parsed.origin) {
+        return {
+          status: "fail",
+          message: `NEXTAUTH_URL muss eine reine Origin ohne Pfad oder zusätzliche Zeichen sein (${url})`,
         };
       }
       return { status: "ok", message: "OK" };

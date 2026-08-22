@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.5] - 2026-08-22
+
+### 🔐 Anmeldung
+
+- Das Deployment bereinigt ungültige Anführungszeichen und Pfade in `NEXTAUTH_URL` und synchronisiert `SITE_URL` vor dem Build.
+- Die Admin-Diagnose erkennt syntaktisch ungültige NextAuth-URLs jetzt als Fehler.
+
 ## [2.9.4] - 2026-08-22
 
 ### 📍 Standort
