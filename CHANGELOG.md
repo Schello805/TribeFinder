@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.7] - 2026-08-22
+
+### 📍 Karte
+
+- Wenn Safari oder macOS keine Position liefert, kann die Karte über Ort oder PLZ zentriert werden.
+- Wiederholte identische Standortfehler werden nur noch einmal in der Browser-Konsole protokolliert.
+
 ## [2.9.6] - 2026-08-22
 
 ### 📝 Changelog

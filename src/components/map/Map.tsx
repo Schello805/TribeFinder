@@ -127,12 +127,16 @@ export default function Map({ groups, events = [], availableTags = [], links = [
   const userLocationMarkerRef = useRef<L.Marker | null>(null);
   const userLocationWatchIdRef = useRef<number | null>(null);
   const userLocationStartedRef = useRef(false);
+  const locationErrorLoggedRef = useRef(false);
   const groupClusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const eventClusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const linkClusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const eventLocationOkCache = useRef<globalThis.Map<string, boolean>>(new globalThis.Map());
   const [mapReady, setMapReady] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [isManualLocating, setIsManualLocating] = useState(false);
+  const [locationUnavailable, setLocationUnavailable] = useState(false);
+  const [manualLocation, setManualLocation] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [showGroups, setShowGroups] = useState(true);
@@ -313,6 +317,8 @@ export default function Map({ groups, events = [], availableTags = [], links = [
             if (opts?.flyTo) {
               mapRef.current?.flyTo([latitude, longitude], 12);
             }
+            setLocationUnavailable(false);
+            locationErrorLoggedRef.current = false;
             setIsLocating(false);
           },
           (error) => {
@@ -323,8 +329,13 @@ export default function Map({ groups, events = [], availableTags = [], links = [
               return;
             }
 
-            console.error("Error getting location", error);
+            if (!locationErrorLoggedRef.current) {
+              console.warn("Browser location unavailable", { code: error.code, message: error.message });
+              locationErrorLoggedRef.current = true;
+            }
             setIsLocating(false);
+            setLocationUnavailable(true);
+            setIsFilterOpen(true);
             const toast = getGeolocationErrorToast(error);
             showToast(toast.message, toast.level);
           },
@@ -340,7 +351,32 @@ export default function Map({ groups, events = [], availableTags = [], links = [
   );
 
   const handleLocateMe = () => {
+    locationErrorLoggedRef.current = false;
     startWatchingUserLocation({ flyTo: true });
+  };
+
+  const handleManualLocation = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = manualLocation.trim();
+    if (query.length < 2) return;
+
+    setIsManualLocating(true);
+    try {
+      const params = new URLSearchParams({ mode: "search", q: query, limit: "1" });
+      const response = await fetch(`/api/geocode?${params.toString()}`);
+      const data = (await response.json().catch(() => null)) as { lat?: number | null; lng?: number | null } | null;
+      if (!response.ok || typeof data?.lat !== "number" || typeof data.lng !== "number") {
+        showToast("Ort wurde nicht gefunden. Bitte Ort oder PLZ genauer eingeben.", "warning");
+        return;
+      }
+
+      mapRef.current?.flyTo([data.lat, data.lng], 12);
+      showToast(`Karte auf „${query}“ zentriert.`, "success");
+    } catch {
+      showToast("Ortssuche ist aktuell nicht verfügbar. Bitte später erneut versuchen.", "error");
+    } finally {
+      setIsManualLocating(false);
+    }
   };
 
   useEffect(() => {
@@ -728,6 +764,33 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         </div>
 
         <div className={`${isFilterOpen ? "mt-3" : "hidden md:block md:mt-3"} max-h-[55vh] overflow-auto pr-1`}>
+
+        <form onSubmit={handleManualLocation} className="mb-3">
+          <label htmlFor="map-location-search" className="block text-xs font-medium text-[var(--muted)] mb-1">
+            Ort oder PLZ
+          </label>
+          <div className="flex gap-1.5">
+            <input
+              id="map-location-search"
+              value={manualLocation}
+              onChange={(event) => setManualLocation(event.target.value)}
+              placeholder="z. B. Nürnberg"
+              className="min-w-0 flex-1 rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--foreground)]"
+            />
+            <button
+              type="submit"
+              disabled={isManualLocating || manualLocation.trim().length < 2}
+              className="rounded-md bg-[var(--primary)] px-2.5 py-1.5 text-xs font-medium text-[var(--primary-foreground)] disabled:opacity-50"
+            >
+              {isManualLocating ? "…" : "Zeigen"}
+            </button>
+          </div>
+          {locationUnavailable ? (
+            <p className="mt-1.5 rounded-md bg-amber-100 px-2 py-1.5 text-xs leading-4 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">
+              Automatische Ortung nicht verfügbar. Bitte Ort oder PLZ eingeben.
+            </p>
+          ) : null}
+        </form>
         
         {/* Tag/Style Filter */}
         {availableTags.length > 0 && (
