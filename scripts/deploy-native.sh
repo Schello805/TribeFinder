@@ -55,6 +55,46 @@ APP_DIR="/var/www/tribefinder"
 UPLOADS_DIR="$APP_DIR/uploads"
 BACKUP_DIR="$APP_DIR/backups"
 MAINTENANCE_DIR="$APP_DIR/maintenance"
+MAINTENANCE_PID=""
+
+stop_maintenance_server() {
+    if [ -n "$MAINTENANCE_PID" ] && kill -0 "$MAINTENANCE_PID" 2>/dev/null; then
+        kill "$MAINTENANCE_PID" 2>/dev/null || true
+        wait "$MAINTENANCE_PID" 2>/dev/null || true
+    fi
+    MAINTENANCE_PID=""
+}
+
+restore_service_on_exit() {
+    local exit_code=$?
+    stop_maintenance_server
+    if [ "$exit_code" -ne 0 ] && [ "$CAN_SUDO" -eq 1 ]; then
+        echo -e "${YELLOW}Deployment abgebrochen – starte bisherigen TribeFinder-Service wieder...${NC}"
+        sudo systemctl start tribefinder || true
+    fi
+}
+
+start_maintenance_server() {
+    echo -e "${YELLOW}Aktiviere Wartungsseite...${NC}"
+    PORT=3000 node scripts/maintenance-server.js "$MAINTENANCE_DIR" > /tmp/tribefinder-maintenance.log 2>&1 &
+    MAINTENANCE_PID=$!
+
+    for attempt in 1 2 3 4 5; do
+        if [ "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:3000/ 2>/dev/null)" = "503" ]; then
+            return 0
+        fi
+        if ! kill -0 "$MAINTENANCE_PID" 2>/dev/null; then
+            echo -e "${RED}Fehler: Wartungsseite konnte nicht gestartet werden.${NC}"
+            cat /tmp/tribefinder-maintenance.log 2>/dev/null || true
+            return 1
+        fi
+        sleep 1
+    done
+
+    return 1
+}
+
+trap restore_service_on_exit EXIT
 
 set_env_var() {
     local key="$1"
@@ -204,6 +244,18 @@ if [ "$BEHIND" -gt 0 ]; then
 else
     echo -e "${GREEN}Bereits auf dem neuesten Stand!${NC}"
 fi
+
+# Version und Commit erst nach dem Git-Update setzen, damit der Footer das neue Release zeigt.
+if [ -f ".env" ]; then
+    APP_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+    APP_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "")
+    if [ -n "$APP_VERSION" ]; then
+        set_env_var NEXT_PUBLIC_APP_VERSION "$APP_VERSION"
+    fi
+    if [ -n "$APP_COMMIT" ]; then
+        set_env_var NEXT_PUBLIC_APP_COMMIT "$APP_COMMIT"
+    fi
+fi
 echo ""
 
 # Dependencies installieren
@@ -225,7 +277,7 @@ echo -e "${YELLOW}[5/7] Führe Datenbank-Migrationen aus...${NC}"
 if [ "$CAN_SUDO" -eq 1 ]; then
     echo -e "${YELLOW}Stoppe Service für DB Update...${NC}"
     sudo systemctl stop tribefinder || true
-    sleep 2
+    start_maintenance_server
 else
     echo -e "${RED}Fehler: Migrationen benötigen einen gestoppten Service, aber sudo ist nicht verfügbar.${NC}"
     echo "Bitte einmalig als root ausführen: systemctl stop tribefinder"
@@ -302,6 +354,7 @@ echo ""
 # Service neustarten
 echo -e "${YELLOW}[7/7] Starte Service neu...${NC}"
 if [ "$CAN_SUDO" -eq 1 ]; then
+    stop_maintenance_server
     sudo systemctl restart tribefinder
 else
     echo -e "${YELLOW}Hinweis: Service-Restart übersprungen (kein sudo).${NC}"

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.9.1] - 2026-08-22
+
+### 🚀 Deploy
+
+- Native Deployments zeigen während Migration und Build die Wartungsseite statt eines `502 Bad Gateway`.
+- Bei einem fehlgeschlagenen Deployment wird der bisherige TribeFinder-Service automatisch wieder gestartet.
+- Footer-Version und Commit werden nach dem Git-Update aus dem tatsächlich eingespielten Release übernommen.
+
 ## [2.9.0] - 2026-08-22
 
 ### ✨ Nutzererlebnis
