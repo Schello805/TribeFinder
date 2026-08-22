@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.3] - 2026-08-22
+
+### 🔎 Suche
+
+- Die globale Suche startet ab drei Zeichen automatisch nach einer kurzen Tipp-Pause.
+- Suche per Button oder Enter bleibt weiterhin möglich.
+
 ## [2.9.2] - 2026-08-22
 
 ### 🔓 Navigation
