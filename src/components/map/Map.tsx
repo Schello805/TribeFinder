@@ -305,24 +305,36 @@ export default function Map({ groups, events = [], availableTags = [], links = [
       stopWatchingUserLocation();
       setIsLocating(true);
 
-      userLocationWatchIdRef.current = navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          ensureUserLocationMarker(latitude, longitude);
-          if (opts?.flyTo) {
-            mapRef.current?.flyTo([latitude, longitude], 12);
-          }
-          setIsLocating(false);
-        },
-        (error) => {
-          console.error("Error getting location", error);
-          setIsLocating(false);
-          stopWatchingUserLocation();
-          const t = getGeolocationErrorToast(error);
-          showToast(t.message, t.level);
-        },
-        { enableHighAccuracy: false, maximumAge: 30_000, timeout: 12_000 }
-      );
+      const beginWatch = (highAccuracy: boolean) => {
+        userLocationWatchIdRef.current = navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            ensureUserLocationMarker(latitude, longitude);
+            if (opts?.flyTo) {
+              mapRef.current?.flyTo([latitude, longitude], 12);
+            }
+            setIsLocating(false);
+          },
+          (error) => {
+            stopWatchingUserLocation();
+
+            if (!highAccuracy && (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT)) {
+              beginWatch(true);
+              return;
+            }
+
+            console.error("Error getting location", error);
+            setIsLocating(false);
+            const toast = getGeolocationErrorToast(error);
+            showToast(toast.message, toast.level);
+          },
+          highAccuracy
+            ? { enableHighAccuracy: true, maximumAge: 0, timeout: 25_000 }
+            : { enableHighAccuracy: false, maximumAge: 30_000, timeout: 12_000 }
+        );
+      };
+
+      beginWatch(false);
     },
     [ensureUserLocationMarker, showToast, stopWatchingUserLocation]
   );

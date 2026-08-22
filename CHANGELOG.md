@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.4] - 2026-08-22
+
+### 📍 Standort
+
+- Die Karten-Ortung versucht bei einer nicht verfügbaren Position automatisch eine zweite, genauere Standortabfrage.
+- Der macOS-Hinweis unterscheidet jetzt zwischen Website-Freigabe und systemweiter Standortfreigabe für den Browser.
+
 ## [2.9.3] - 2026-08-22
 
 ### 🔎 Suche

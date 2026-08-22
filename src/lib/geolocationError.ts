@@ -19,7 +19,7 @@ export function getGeolocationErrorToast(error: unknown): { message: string; lev
     return {
       level: "error",
       message:
-        "Standort ist aktuell nicht verfügbar. Bitte Ortungsdienste (macOS) aktivieren, WLAN/Internet prüfen und die Standortfreigabe im Browser erlauben.",
+        "Der Browser darf den Standort verwenden, konnte aber keine Position ermitteln. Bitte unter macOS „Systemeinstellungen → Datenschutz & Sicherheit → Ortungsdienste“ auch Chrome bzw. Safari aktivieren, WLAN einschalten und danach erneut versuchen.",
     };
   }
 
