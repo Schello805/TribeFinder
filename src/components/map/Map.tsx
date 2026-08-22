@@ -125,7 +125,6 @@ export default function Map({ groups, events = [], availableTags = [], links = [
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const userLocationMarkerRef = useRef<L.Marker | null>(null);
-  const userLocationWatchIdRef = useRef<number | null>(null);
   const userLocationStartedRef = useRef(false);
   const locationErrorLoggedRef = useRef(false);
   const groupClusterRef = useRef<L.MarkerClusterGroup | null>(null);
@@ -269,13 +268,6 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     }
   }, [buildReverseUrl, extractPostcode]);
 
-  const stopWatchingUserLocation = useCallback(() => {
-    if (userLocationWatchIdRef.current != null && navigator.geolocation?.clearWatch) {
-      navigator.geolocation.clearWatch(userLocationWatchIdRef.current);
-    }
-    userLocationWatchIdRef.current = null;
-  }, []);
-
   const ensureUserLocationMarker = useCallback(
     (lat: number, lng: number) => {
       if (!mapRef.current) return;
@@ -291,26 +283,17 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     [userLocationIcon]
   );
 
-  const startWatchingUserLocation = useCallback(
+  const requestUserLocation = useCallback(
     (opts?: { flyTo?: boolean }) => {
       if (!navigator.geolocation || !mapRef.current) {
         showToast("Geolocation wird nicht unterstützt", "warning");
         return;
       }
 
-      if (userLocationWatchIdRef.current != null) {
-        if (opts?.flyTo && userLocationMarkerRef.current) {
-          const ll = userLocationMarkerRef.current.getLatLng();
-          mapRef.current.flyTo([ll.lat, ll.lng], 12);
-        }
-        return;
-      }
-
-      stopWatchingUserLocation();
       setIsLocating(true);
 
-      const beginWatch = (highAccuracy: boolean) => {
-        userLocationWatchIdRef.current = navigator.geolocation.watchPosition(
+      const beginRequest = (highAccuracy: boolean) => {
+        navigator.geolocation.getCurrentPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
             ensureUserLocationMarker(latitude, longitude);
@@ -322,10 +305,8 @@ export default function Map({ groups, events = [], availableTags = [], links = [
             setIsLocating(false);
           },
           (error) => {
-            stopWatchingUserLocation();
-
             if (!highAccuracy && (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT)) {
-              beginWatch(true);
+              beginRequest(true);
               return;
             }
 
@@ -345,14 +326,14 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         );
       };
 
-      beginWatch(false);
+      beginRequest(false);
     },
-    [ensureUserLocationMarker, showToast, stopWatchingUserLocation]
+    [ensureUserLocationMarker, showToast]
   );
 
   const handleLocateMe = () => {
     locationErrorLoggedRef.current = false;
-    startWatchingUserLocation({ flyTo: true });
+    requestUserLocation({ flyTo: true });
   };
 
   const handleManualLocation = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -383,8 +364,8 @@ export default function Map({ groups, events = [], availableTags = [], links = [
     if (!mapReady) return;
     if (userLocationStartedRef.current) return;
     userLocationStartedRef.current = true;
-    startWatchingUserLocation({ flyTo: false });
-  }, [mapReady, startWatchingUserLocation]);
+    requestUserLocation({ flyTo: false });
+  }, [mapReady, requestUserLocation]);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -439,7 +420,6 @@ export default function Map({ groups, events = [], availableTags = [], links = [
 
     // Cleanup function will handle marker removal
     return () => {
-      stopWatchingUserLocation();
       if (userLocationMarkerRef.current) {
         userLocationMarkerRef.current.remove();
         userLocationMarkerRef.current = null;
@@ -461,7 +441,7 @@ export default function Map({ groups, events = [], availableTags = [], links = [
         mapRef.current = null;
       }
     };
-  }, [stopWatchingUserLocation]);
+  }, []);
 
   // Separate effect for markers that responds to filter changes
   useEffect(() => {

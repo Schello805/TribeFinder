@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.8] - 2026-08-22
+
+### 📍 Desktop-Ortung
+
+- Safari und Chrome verwenden für die Kartenposition jetzt eine robuste Einmalabfrage statt permanenter Standortüberwachung.
+- Bei nicht verfügbarer Standardortung bleibt der automatische zweite Versuch mit hoher Genauigkeit erhalten.
+
 ## [2.9.7] - 2026-08-22
 
 ### 📍 Karte
