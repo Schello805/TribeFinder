@@ -4,13 +4,19 @@ export function formatChangelogSectionTitle(rawTitle: string) {
   const m = title.match(/^\[(.+?)\]\s*-\s*(\d{4}-\d{2}-\d{2})\s*$/);
   if (m) {
     const label = m[1].trim();
+    const [year, month, day] = m[2].split("-");
+    const formattedDate = `${day}.${month}.${year}`;
     if (label.toLowerCase() === "unreleased") {
-      return m[2];
+      return formattedDate;
     }
-    return `${m[2]} · ${label}`;
+    return `${formattedDate} · ${label}`;
   }
 
   return title;
+}
+
+export function getChangelogSectionDate(rawTitle: string) {
+  return rawTitle.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? null;
 }
 
 export function stripInstallSubsections(body: string) {

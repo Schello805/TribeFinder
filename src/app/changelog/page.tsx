@@ -3,7 +3,7 @@ import path from "path";
 import fs from "node:fs";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { formatChangelogSectionTitle, stripInstallSubsections } from "@/lib/changelog";
+import { formatChangelogSectionTitle, getChangelogSectionDate, stripInstallSubsections } from "@/lib/changelog";
 
 function resolveProjectRoot() {
   let dir = process.cwd();
@@ -181,7 +181,14 @@ export default async function ChangelogPage() {
     })
     .filter((s) => s.title.trim().toLowerCase() !== "installation");
 
-  const sortedSections = cleanedSections.slice().reverse();
+  const sortedSections = cleanedSections.slice().sort((first, second) => {
+    const firstDate = getChangelogSectionDate(first.title);
+    const secondDate = getChangelogSectionDate(second.title);
+    if (!firstDate && !secondDate) return 0;
+    if (!firstDate) return 1;
+    if (!secondDate) return -1;
+    return secondDate.localeCompare(firstDate);
+  });
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

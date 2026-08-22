@@ -1,18 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { formatChangelogSectionTitle, stripInstallSubsections } from "@/lib/changelog";
+import { formatChangelogSectionTitle, getChangelogSectionDate, stripInstallSubsections } from "@/lib/changelog";
 
 describe("changelog helpers", () => {
   describe("formatChangelogSectionTitle", () => {
     it("formats [Unreleased] - YYYY-MM-DD as only the date", () => {
-      expect(formatChangelogSectionTitle("[Unreleased] - 2026-02-06")).toBe("2026-02-06");
+      expect(formatChangelogSectionTitle("[Unreleased] - 2026-02-06")).toBe("06.02.2026");
     });
 
     it("formats other bracketed labels as date + label", () => {
-      expect(formatChangelogSectionTitle("[v1.2.3] - 2026-02-06")).toBe("2026-02-06 · v1.2.3");
+      expect(formatChangelogSectionTitle("[v1.2.3] - 2026-02-06")).toBe("06.02.2026 · v1.2.3");
     });
 
     it("removes replacement characters", () => {
-      expect(formatChangelogSectionTitle("\uFFFD\uFFFD [Unreleased] - 2026-02-06")).toBe("2026-02-06");
+      expect(formatChangelogSectionTitle("\uFFFD\uFFFD [Unreleased] - 2026-02-06")).toBe("06.02.2026");
+    });
+  });
+
+  describe("getChangelogSectionDate", () => {
+    it("extracts sortable ISO dates from release headings", () => {
+      expect(getChangelogSectionDate("[2.9.5] - 2026-08-22")).toBe("2026-08-22");
+      expect(getChangelogSectionDate("Allgemein")).toBeNull();
     });
   });
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.6] - 2026-08-22
+
+### 📝 Changelog
+
+- Datumsangaben werden im deutschen Format `TT.MM.JJJJ` dargestellt.
+- Die neuesten Änderungen stehen jetzt zuverlässig ganz oben.
+
 ## [2.9.5] - 2026-08-22
 
 ### 🔐 Anmeldung
