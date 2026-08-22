@@ -7,12 +7,14 @@ vi.mock("next-auth", () => {
 });
 
 vi.mock("@/lib/prisma", () => {
+  const client = {
+    group: { findUnique: vi.fn() },
+    groupMember: { findUnique: vi.fn() },
+    event: { create: vi.fn() },
+    eventSeries: { create: vi.fn() },
+  };
   return {
-    default: {
-      group: { findUnique: vi.fn() },
-      groupMember: { findUnique: vi.fn() },
-      event: { create: vi.fn() },
-    },
+    default: { ...client, $transaction: vi.fn((callback: (tx: typeof client) => unknown) => callback(client)) },
   };
 });
 
@@ -32,6 +34,7 @@ type PrismaMock = {
   group: { findUnique: (args: unknown) => unknown };
   groupMember: { findUnique: (args: unknown) => unknown };
   event: { create: (args: unknown) => unknown };
+  eventSeries: { create: (args: unknown) => unknown };
 };
 
 describe("POST /api/events", () => {
@@ -97,5 +100,41 @@ describe("POST /api/events", () => {
         skipDuplicates: true,
       },
     });
+  });
+
+  it("creates all dates of a weekly event series", async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: "u1", role: "USER" } } as unknown as Session);
+    const prismaMock = prisma as unknown as PrismaMock;
+    vi.mocked(prismaMock.eventSeries.create).mockResolvedValueOnce({ id: "series1" });
+    vi.mocked(prismaMock.event.create)
+      .mockResolvedValueOnce({ id: "e1", title: "Weekly Event" })
+      .mockResolvedValueOnce({ id: "e2", title: "Weekly Event" })
+      .mockResolvedValueOnce({ id: "e3", title: "Weekly Event" });
+
+    const start = new Date("2027-01-05T18:00:00.000Z");
+    const end = new Date("2027-01-05T20:00:00.000Z");
+    const req = new Request("https://example.com/api/events", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: "Weekly Event",
+        description: "This is a sufficiently long description",
+        eventType: "EVENT",
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+        address: "Some Street 1, 12345 City",
+        country: "Deutschland",
+        lat: 52.52,
+        lng: 13.405,
+        recurrenceFrequency: "WEEKLY",
+        recurrenceCount: 3,
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(vi.mocked(prismaMock.event.create)).toHaveBeenCalledTimes(3);
+    const second = vi.mocked(prismaMock.event.create).mock.calls[1]?.[0] as { data: { startDate: Date } };
+    expect(second.data.startDate.toISOString()).toBe("2027-01-12T18:00:00.000Z");
   });
 });

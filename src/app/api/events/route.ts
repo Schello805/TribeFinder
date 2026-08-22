@@ -7,6 +7,7 @@ import { z } from "zod";
 import logger from "@/lib/logger";
 import { notifyUsersAboutNewEvent } from "@/lib/notifications";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
+import type { Prisma } from "@prisma/client";
 // Rate limiting imports available if needed
 // import { rateLimitResponse, RATE_LIMITS } from "@/lib/rateLimit";
 
@@ -137,12 +138,6 @@ export async function POST(req: Request) {
   }
 
   try {
-    const eventDelegate = (prisma as unknown as {
-      event: {
-        create: (args: unknown) => Promise<unknown>;
-      };
-    }).event;
-
     const body = await req.json();
     const validatedData = eventSchema.parse(body);
 
@@ -179,7 +174,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const createDataBase = {
+    const createDataBase: Prisma.EventCreateInput = {
       title: validatedData.title,
       description: validatedData.description,
       eventType: validatedData.eventType,
@@ -210,7 +205,7 @@ export async function POST(req: Request) {
         : {}),
     };
 
-    const createDataWithStyles = {
+    const createDataWithStyles: Prisma.EventCreateInput = {
       ...createDataBase,
       ...(Array.isArray(validatedData.danceStyleIds) && validatedData.danceStyleIds.length > 0
         ? {
@@ -224,9 +219,43 @@ export async function POST(req: Request) {
         : {}),
     };
 
-    const created = (await eventDelegate.create({
-      data: createDataWithStyles,
-    })) as unknown as { id: string; title: string };
+    const recurrenceFrequency = validatedData.recurrenceFrequency || "NONE";
+    const recurrenceCount = recurrenceFrequency === "NONE" ? 1 : (validatedData.recurrenceCount || 2);
+    const startDate = new Date(validatedData.startDate);
+    const endDate = new Date(validatedData.endDate);
+
+    const shiftDate = (date: Date, occurrence: number) => {
+      const shifted = new Date(date);
+      if (recurrenceFrequency === "WEEKLY") shifted.setUTCDate(shifted.getUTCDate() + occurrence * 7);
+      if (recurrenceFrequency === "MONTHLY") {
+        const originalDay = shifted.getUTCDate();
+        shifted.setUTCDate(1);
+        shifted.setUTCMonth(shifted.getUTCMonth() + occurrence);
+        const lastDay = new Date(Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth() + 1, 0)).getUTCDate();
+        shifted.setUTCDate(Math.min(originalDay, lastDay));
+      }
+      return shifted;
+    };
+
+    const createdEvents = await prisma.$transaction(async (tx) => {
+      const series = recurrenceCount > 1
+        ? await tx.eventSeries.create({ data: { frequency: recurrenceFrequency, count: recurrenceCount } })
+        : null;
+      const rows = [];
+      for (let occurrence = 0; occurrence < recurrenceCount; occurrence += 1) {
+        rows.push(await tx.event.create({
+          data: {
+            ...createDataWithStyles,
+            startDate: shiftDate(startDate, occurrence),
+            endDate: shiftDate(endDate, occurrence),
+            ...(series ? { series: { connect: { id: series.id } } } : {}),
+          },
+          select: { id: true, title: true },
+        }));
+      }
+      return rows;
+    });
+    const created = createdEvents[0];
 
     // Notify users about new event in their vicinity
     if (validatedData.lat && validatedData.lng) {
@@ -239,7 +268,7 @@ export async function POST(req: Request) {
       ).catch(err => logger.error({ err }, "New event notification error"));
     }
 
-    return NextResponse.json(created, { status: 201 });
+    return NextResponse.json({ ...created, seriesCount: createdEvents.length }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

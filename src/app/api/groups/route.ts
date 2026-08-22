@@ -565,6 +565,7 @@ export async function POST(req: Request) {
         performances: validatedData.performances || false,
         foundingYear: validatedData.foundingYear,
         seekingMembers: validatedData.seekingMembers || false,
+        profileVerifiedAt: new Date(),
 
         owner: {
           connect: { id: session.user.id }

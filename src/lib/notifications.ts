@@ -89,6 +89,30 @@ function buildEmailUrl(path: string) {
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+export async function notifyEventWaitlistPromotion(eventId: string, userId: string) {
+  try {
+    const [event, user] = await Promise.all([
+      prisma.event.findUnique({ where: { id: eventId }, select: { title: true } }),
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, emailNotifications: true },
+      }),
+    ]);
+    if (!event || !user?.email || !user.emailNotifications) return;
+
+    const eventUrl = buildEmailUrl(`/events/${eventId}`);
+    const content = `
+      ${emailHeading("Du bist nachgerückt! 🎉")}
+      ${emailText(`Für <strong>${event.title}</strong> ist ein Platz frei geworden. Deine Anmeldung ist jetzt bestätigt.`)}
+      ${eventUrl ? emailButton("Event ansehen", eventUrl) : ""}
+    `;
+    const html = await emailTemplate(content, `Platz bestätigt: ${event.title}`);
+    await sendEmail(user.email, `Du bist nachgerückt: ${event.title}`, html);
+  } catch (error) {
+    logger.error({ error, eventId, userId }, "Error sending waitlist promotion notification");
+  }
+}
+
 // Notify group owner/admins about a new membership request
 export async function notifyGroupAboutNewMember(groupId: string, applicantName: string, applicantEmail: string) {
   try {

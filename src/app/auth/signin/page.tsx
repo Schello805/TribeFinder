@@ -101,7 +101,9 @@ export default function SignInPage() {
         showToast(errorMsg, "error");
       } else {
         showToast("Erfolgreich angemeldet!", "success");
-        router.push("/dashboard");
+        const callbackUrl = searchParams.get("callbackUrl");
+        const safeCallbackUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/dashboard";
+        router.push(safeCallbackUrl);
         router.refresh();
       }
     } catch (err) {

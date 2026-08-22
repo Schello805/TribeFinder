@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.9.0] - 2026-08-22
+
+### ✨ Nutzererlebnis
+
+- Events: Verbindliche Anmeldungen mit Kapazitätsgrenze, Warteliste und automatischem Nachrücken.
+- Events: Favoriten mit optionalen Erinnerungen sieben Tage und einen Tag vor Beginn.
+- Events: Wiederkehrende Termine können wöchentlich oder monatlich als Serie angelegt werden.
+- Suche: Neue globale Suche für Gruppen, Events, Tänzerinnen und Tanzstile.
+- Onboarding: Neue Mitglieder wählen Tanzstile, Standort, Suchradius und Benachrichtigungen direkt nach dem ersten Login.
+
+### 🤝 Vertrauen
+
+- Gruppenprofile: Aktualität kann bestätigt und veraltete Angaben können gemeldet werden.
+- Gruppenprofile: Jährliche Erinnerungen helfen Verantwortlichen, ihre Angaben aktuell zu halten.
+
+### 🛠️ Technik
+
+- Neue automatische Jobs für Event-Erinnerungen und Gruppen-Aktualitätsprüfungen inklusive systemd-Timern.
+- Datenbankmigration für Event-Favoriten, Terminserien, Onboarding und Profil-Aktualität ergänzt.
+- Login-Weiterleitung nach erfolgreicher Anmeldung abgesichert und verbessert.
+
 ## [Unreleased] - 2026-03-30
 
 ### 🔐 Security

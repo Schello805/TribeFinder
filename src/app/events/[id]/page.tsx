@@ -9,6 +9,7 @@ import EventRegistration from '@/components/events/EventRegistration';
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import DynamicEventMap from "@/components/map/DynamicEventMap";
 import DuplicateEventButton from "@/components/events/DuplicateEventButton";
+import EventFavoriteButton from "@/components/events/EventFavoriteButton";
 import { getPublicBaseUrl } from "@/lib/publicBaseUrl";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import { buildEventJsonLd } from "@/lib/seo/eventJsonLd";
@@ -64,6 +65,8 @@ type EventLike = {
   requiresRegistration: boolean;
   creatorId: string | null;
   groupId: string | null;
+  seriesId: string | null;
+  series: { events: Array<{ id: string; startDate: Date }> } | null;
   group: EventGroupLike | null;
   creator: EventCreatorLike | null;
   danceStyles: Array<{ style: { id: string; name: string } }>;
@@ -164,6 +167,16 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               id: true,
               name: true,
             },
+          },
+        },
+      },
+      series: {
+        select: {
+          events: {
+            where: { startDate: { gte: new Date() } },
+            select: { id: true, startDate: true },
+            orderBy: { startDate: "asc" },
+            take: 12,
           },
         },
       },
@@ -381,6 +394,8 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                 <span>📅</span> Zum Kalender hinzufügen
               </a>
 
+              <EventFavoriteButton eventId={event.id} isExpired={isExpired} />
+
               {canEdit && (
                 <>
                   <Link
@@ -402,9 +417,22 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
           {event.requiresRegistration && (
             <EventRegistration 
               eventId={event.id} 
-              isCreator={session?.user?.id === event.creatorId || session?.user?.id === event.group?.ownerId}
+              isCreator={canEdit}
             />
           )}
+
+          {event.series && event.series.events.length > 1 ? (
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4">
+              <h2 className="tf-display font-bold text-[var(--foreground)]">Weitere Termine dieser Serie</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {event.series.events.map((seriesEvent) => (
+                  <Link key={seriesEvent.id} href={`/events/${seriesEvent.id}`} className={`rounded-full border px-3 py-1.5 text-sm ${seriesEvent.id === event.id ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]" : "border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]"}`}>
+                    {formatBerlin(seriesEvent.startDate, { day: "2-digit", month: "2-digit", year: "numeric" })}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <hr className="border-[var(--border)]" />
 

@@ -25,6 +25,7 @@ export default async function DashboardPage() {
       instagramUrl?: string | null;
       tiktokUrl?: string | null;
       youtubeUrl?: string | null;
+      onboardingCompletedAt?: Date | null;
     } | null,
     prisma.group.findMany({
       where: {
@@ -57,6 +58,10 @@ export default async function DashboardPage() {
       take: 250,
     })
   ]);
+
+  if (!currentUser?.onboardingCompletedAt) {
+    redirect("/dashboard/onboarding");
+  }
 
   const pendingGroups = manageableGroups
     .map((g) => ({

@@ -70,6 +70,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   lastLoginAt DateTime?
+  onboardingCompletedAt DateTime?
 
   ownedGroups Group[]       @relation("GroupOwner")
   memberships GroupMember[]
@@ -107,6 +108,7 @@ model User {
 
   // Favorites
   favoriteGroups FavoriteGroup[]
+  favoriteEvents FavoriteEvent[]
 
   groupLikes GroupLike[]
 
@@ -284,6 +286,7 @@ model Group {
   performances   Boolean @default(false)
   foundingYear   Int?
   seekingMembers Boolean @default(false)
+  profileVerifiedAt DateTime?
 
   ownerId String
   owner   User   @relation("GroupOwner", fields: [ownerId], references: [id])
@@ -352,6 +355,34 @@ model FavoriteGroup {
   @@unique([userId, groupId])
 }
 
+model FavoriteEvent {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  remindWeek Boolean @default(true)
+  remindDay  Boolean @default(true)
+  weekReminderSentAt DateTime?
+  dayReminderSentAt  DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+  @@index([eventId])
+}
+
+model EventSeries {
+  id        String   @id @default(cuid())
+  frequency String
+  interval  Int      @default(1)
+  count     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events Event[]
+}
+
 model Event {
   id          String    @id @default(cuid())
   title       String
@@ -389,9 +420,15 @@ model Event {
 
   participations EventParticipation[]
   registrations  EventRegistration[]
+  favoritedBy    FavoriteEvent[]
+
+  seriesId String?
+  series   EventSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([seriesId])
 }
 
 model EventParticipation {

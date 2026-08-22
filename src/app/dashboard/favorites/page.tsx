@@ -16,6 +16,18 @@ type GroupLike = {
   tags: TagLike[];
 };
 type FavoriteRowLike = { group: GroupLike };
+type FavoriteEventRowLike = {
+  remindWeek: boolean;
+  remindDay: boolean;
+  event: {
+    id: string;
+    title: string;
+    startDate: Date;
+    locationName: string | null;
+    address: string | null;
+    group: { name: string } | null;
+  };
+};
 
 export default async function FavoritesPage() {
   const session = await getServerSession(authOptions);
@@ -24,31 +36,57 @@ export default async function FavoritesPage() {
     redirect("/auth/signin");
   }
 
-  const favorites = (await (prisma as unknown as {
-    favoriteGroup: {
-      findMany: (args: unknown) => Promise<unknown>;
-    };
-  }).favoriteGroup.findMany({
-    where: { userId: session.user.id },
-    include: {
-      group: {
-        include: {
-          location: true,
-          tags: true,
+  const [favorites, favoriteEvents] = await Promise.all([
+    prisma.favoriteGroup.findMany({
+      where: { userId: session.user.id },
+      include: {
+        group: {
+          include: {
+            location: true,
+            tags: true,
+          },
         },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  })) as FavoriteRowLike[];
+      orderBy: { createdAt: "desc" },
+    }) as unknown as Promise<FavoriteRowLike[]>,
+    prisma.favoriteEvent.findMany({
+      where: { userId: session.user.id, event: { startDate: { gte: new Date() } } },
+      include: { event: { include: { group: { select: { name: true } } } } },
+      orderBy: { event: { startDate: "asc" } },
+    }) as unknown as Promise<FavoriteEventRowLike[]>,
+  ]);
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="tf-display text-2xl font-bold text-[var(--foreground)]">Meine Favoriten</h2>
         <p className="text-[var(--muted)] mt-2">
-          Gruppen, die du favorisiert hast
+          Deine gemerkten Events und Gruppen
         </p>
       </div>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="tf-display text-xl font-bold text-[var(--foreground)]">Gemerkte Events</h3>
+          <Link href="/events" className="text-sm text-[var(--link)] hover:underline">Events entdecken</Link>
+        </div>
+        {favoriteEvents.length === 0 ? (
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 text-sm text-[var(--muted)]">Noch keine kommenden Events gemerkt.</div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {favoriteEvents.map(({ event, remindWeek, remindDay }) => (
+              <Link key={event.id} href={`/events/${event.id}`} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 hover:bg-[var(--surface-hover)] transition">
+                <div className="font-bold text-[var(--foreground)]">{event.title}</div>
+                <div className="mt-1 text-sm text-[var(--muted)]">{new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Berlin" }).format(event.startDate)}</div>
+                <div className="mt-1 text-sm text-[var(--muted)]">{event.locationName || event.address || event.group?.name || "Ort nicht angegeben"}</div>
+                <div className="mt-2 text-xs text-[var(--muted)]">Erinnerung: {[remindWeek ? "7 Tage" : "", remindDay ? "1 Tag" : ""].filter(Boolean).join(" und ") || "aus"}</div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <h3 className="tf-display text-xl font-bold text-[var(--foreground)]">Favorisierte Gruppen</h3>
 
       {favorites.length === 0 ? (
         <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-lg shadow-sm border border-[var(--border)] p-12 text-center">

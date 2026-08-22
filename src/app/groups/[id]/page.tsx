@@ -13,6 +13,7 @@ import GalleryManager from "@/components/groups/GalleryManager";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { normalizeUploadedImageUrl } from "@/lib/normalizeUploadedImageUrl";
 import LikeButton from "@/components/groups/LikeButton";
+import GroupFreshnessActions from "@/components/groups/GroupFreshnessActions";
 import YouTubeEmbedWithConsent from "@/components/privacy/YouTubeEmbedWithConsent";
 import { getPublicBaseUrl } from "@/lib/publicBaseUrl";
 
@@ -135,6 +136,7 @@ export default async function GroupDetailPage({
     videoUrl: true,
     image: true,
     createdAt: true,
+    profileVerifiedAt: true,
     ownerId: true,
     foundingYear: true,
     size: true,
@@ -460,6 +462,9 @@ export default async function GroupDetailPage({
                       initialLikedByMe={likedByMe}
                       className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 sm:py-2 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition disabled:opacity-50"
                     />
+                  </div>
+                  <div className="mt-3 flex justify-center sm:justify-start">
+                    <GroupFreshnessActions groupId={group.id} groupName={group.name} canManage={isAdmin} verifiedAt={group.profileVerifiedAt?.toISOString() ?? null} />
                   </div>
                 </div>
               </div>

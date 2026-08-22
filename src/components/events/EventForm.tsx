@@ -137,6 +137,8 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
   const router = useRouter();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<"NONE" | "WEEKLY" | "MONTHLY">("NONE");
+  const [recurrenceCount, setRecurrenceCount] = useState(4);
   const [error, setError] = useState("");
   const [isLocationConfirmed, setIsLocationConfirmed] = useState(() => {
     if (isEditing) return true;
@@ -1063,6 +1065,7 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
         ...formData,
         startDate: start.toISOString(),
         endDate: end.toISOString(),
+        ...(!isEditing ? { recurrenceFrequency, recurrenceCount: recurrenceFrequency === "NONE" ? undefined : recurrenceCount } : {}),
       };
 
       const response = await fetch(url, {
@@ -1244,6 +1247,28 @@ export default function EventForm({ initialData, groupId, isEditing = false }: E
           ) : null}
         </div>
       </div>
+
+      {!isEditing ? (
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-4 space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground)]">Event wiederholen</label>
+            <p className="mt-1 text-xs text-[var(--muted)]">Erstellt eine zusammengehörige Serie mit gleichen Angaben und fortlaufenden Terminen.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <select value={recurrenceFrequency} onChange={(event) => setRecurrenceFrequency(event.target.value as "NONE" | "WEEKLY" | "MONTHLY")} className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--foreground)]">
+              <option value="NONE">Einmalig</option>
+              <option value="WEEKLY">Wöchentlich</option>
+              <option value="MONTHLY">Monatlich</option>
+            </select>
+            {recurrenceFrequency !== "NONE" ? (
+              <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
+                <span>Anzahl Termine</span>
+                <input type="number" min={2} max={52} value={recurrenceCount} onChange={(event) => setRecurrenceCount(Math.min(52, Math.max(2, Number(event.target.value) || 2)))} className="w-20 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2" />
+              </label>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <div>
         <label className="block text-sm font-medium text-[var(--foreground)]">Beschreibung</label>

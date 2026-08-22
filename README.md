@@ -11,12 +11,18 @@ Eine moderne Plattform für Tanzgruppen (Tribal Style, Fusion & mehr) zur Verwal
   - Optional: Unterricht (wo), Unterricht-Schwerpunkte, Ausbildung/Training, Auftritte/Referenzen.
   - Optional: Workshops, buchbar für Auftritte, Konditionen (Freitext).
 - **Event-Management**: Plane Auftritte und Veranstaltungen.
+- **Event-Serien**: Erstelle wöchentlich oder monatlich wiederkehrende Termine in einem Schritt.
+- **Event-Merkliste**: Merke kommende Events und erhalte optional 7 Tage bzw. 1 Tag vorher eine E-Mail-Erinnerung.
+- **Workshop-Anmeldung**: Persönliche Anmeldung mit Teilnehmerlimit, Warteliste und automatischem Nachrücken.
+- **Globale Suche**: Durchsuche Gruppen, kommende Events, Tänzerinnen und Tanzstile gemeinsam.
 - **Interaktive Karte**: Finde Gruppen und Events in deiner Nähe (basierend auf OpenStreetMap).
 - **Community Feed**: Ein "Schwarzes Brett" für Austausch und Neuigkeiten.
 - **Mitgliederbereich**: Rollenbasierte Zugriffsrechte (Admin/Mitglied).
 - **Marketplace (Second-Hand)**: Inserate (Kostüme, Schmuck, Accessoires, Schuhe, Sonstiges) mit Bildern, Standort/Umkreis-Filter und Versandoption.
   - Preis ist Pflicht bei „Ich biete“ und optional bei „Ich suche“.
 - **Gruppen Likes**: "Gefällt mir" (Herz) für Gruppen mit Zähler und Toggle-Button.
+- **Aktuelle Gruppenprofile**: Besitzer können Angaben bestätigen; Besucher können veraltete Angaben melden.
+- **Geführter Einstieg**: Neue Nutzer wählen Tanzstile, Region und Benachrichtigungen beim ersten Besuch ihres Bereichs.
 - **Direktnachrichten**: 1:1 Messaging zwischen Nutzern (z.B. für Marketplace Kontakt) inkl. optionaler E-Mail Benachrichtigung bei neuen Nachrichten.
 - **Datenschutzfreundlich**: Keine externen Tracker (außer optional Matomo), lokale Datenhaltung.
 
@@ -227,4 +233,3 @@ Siehe `CHANGELOG.md` für alle Änderungen und Updates.
 <img width="1558" height="717" alt="Bildschirmfoto 2026-03-23 um 20 16 52" src="https://github.com/user-attachments/assets/fafc1913-8624-40ec-8ad5-a57fc52dab2b" />
 <img width="1605" height="838" alt="Bildschirmfoto 2026-03-23 um 20 17 01" src="https://github.com/user-attachments/assets/a84bf40d-a650-4161-823d-24f3e4b4eebb" />
 <img width="1580" height="836" alt="Bildschirmfoto 2026-03-23 um 20 17 15" src="https://github.com/user-attachments/assets/4201215e-6e83-4ac1-93f1-75705ce01854" />
-

@@ -42,6 +42,8 @@ export const eventSchema = z.object({
   // Workshop booking fields
   maxParticipants: z.number().min(1).optional().nullable(),
   requiresRegistration: z.boolean().optional(),
+  recurrenceFrequency: z.enum(["NONE", "WEEKLY", "MONTHLY"]).optional(),
+  recurrenceCount: z.number().int().min(2).max(52).optional(),
 }).refine((data) => {
   const start = new Date(data.startDate);
   if (Number.isNaN(start.getTime())) return true;

@@ -1,6 +1,6 @@
 {
   "name": "tribe-finder",
-  "version": "2.8.17",
+  "version": "2.9.0",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -29,6 +29,8 @@
     "db:push": "prisma db push",
     "db:validate": "prisma validate",
     "db:seed-styles": "node scripts/seed-dance-styles.js",
+    "events:reminders": "node scripts/event-favorite-reminders.js",
+    "groups:freshness-reminders": "node scripts/group-freshness-reminders.js",
     "db:backup": "./scripts/backup-db.sh",
     "db:backfill-country": "node scripts/backfill-country.js",
     "deploy": "./scripts/deploy-native.sh",

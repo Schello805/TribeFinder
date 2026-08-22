@@ -266,11 +266,19 @@ if [ "$CAN_SUDO" -eq 1 ]; then
     sudo cp -f config/tribefinder-auto-backup.timer /etc/systemd/system/tribefinder-auto-backup.timer || true
     sudo cp -f config/tribefinder-marketplace-expiry.service /etc/systemd/system/tribefinder-marketplace-expiry.service || true
     sudo cp -f config/tribefinder-marketplace-expiry.timer /etc/systemd/system/tribefinder-marketplace-expiry.timer || true
+    sudo cp -f config/tribefinder-event-reminders.service /etc/systemd/system/tribefinder-event-reminders.service || true
+    sudo cp -f config/tribefinder-event-reminders.timer /etc/systemd/system/tribefinder-event-reminders.timer || true
+    sudo cp -f config/tribefinder-group-freshness.service /etc/systemd/system/tribefinder-group-freshness.service || true
+    sudo cp -f config/tribefinder-group-freshness.timer /etc/systemd/system/tribefinder-group-freshness.timer || true
     sudo systemctl daemon-reload || true
     sudo systemctl enable tribefinder-auto-backup.timer || true
     sudo systemctl start tribefinder-auto-backup.timer || true
     sudo systemctl enable tribefinder-marketplace-expiry.timer || true
     sudo systemctl start tribefinder-marketplace-expiry.timer || true
+    sudo systemctl enable tribefinder-event-reminders.timer || true
+    sudo systemctl start tribefinder-event-reminders.timer || true
+    sudo systemctl enable tribefinder-group-freshness.timer || true
+    sudo systemctl start tribefinder-group-freshness.timer || true
 else
     echo -e "${YELLOW}Hinweis: Auto-Backup Timer übersprungen (User 'tribefinder' hat kein sudo).${NC}"
     echo "Einmalig als root ausführen:"
@@ -279,9 +287,15 @@ else
     echo "  cp -f config/tribefinder-auto-backup.timer /etc/systemd/system/tribefinder-auto-backup.timer"
     echo "  cp -f config/tribefinder-marketplace-expiry.service /etc/systemd/system/tribefinder-marketplace-expiry.service"
     echo "  cp -f config/tribefinder-marketplace-expiry.timer /etc/systemd/system/tribefinder-marketplace-expiry.timer"
+    echo "  cp -f config/tribefinder-event-reminders.service /etc/systemd/system/tribefinder-event-reminders.service"
+    echo "  cp -f config/tribefinder-event-reminders.timer /etc/systemd/system/tribefinder-event-reminders.timer"
+    echo "  cp -f config/tribefinder-group-freshness.service /etc/systemd/system/tribefinder-group-freshness.service"
+    echo "  cp -f config/tribefinder-group-freshness.timer /etc/systemd/system/tribefinder-group-freshness.timer"
     echo "  systemctl daemon-reload"
     echo "  systemctl enable --now tribefinder-auto-backup.timer"
     echo "  systemctl enable --now tribefinder-marketplace-expiry.timer"
+    echo "  systemctl enable --now tribefinder-event-reminders.timer"
+    echo "  systemctl enable --now tribefinder-group-freshness.timer"
 fi
 echo ""
 

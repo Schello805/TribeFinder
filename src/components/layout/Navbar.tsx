@@ -290,6 +290,9 @@ export default function Navbar() {
             <Link href="/map" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition font-medium">
               Karte
             </Link>
+            <Link href="/search" className="text-[var(--nav-muted)] hover:text-[var(--nav-fg)] transition" aria-label="Suche" title="Suche">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" /></svg>
+            </Link>
             <div className="relative">
               <button
                 type="button"
@@ -498,6 +501,9 @@ export default function Navbar() {
             </Link>
             <Link href="/map" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
               Karte
+            </Link>
+            <Link href="/search" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-[var(--nav-muted)] hover:text-[var(--nav-fg)] hover:bg-[var(--nav-surface)] rounded-md">
+              Suche
             </Link>
 
             <button
